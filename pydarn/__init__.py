@@ -2,6 +2,8 @@ import os
 import sys
 import logging.config
 import yaml
+from .exceptions.pydmap_exceptions import EmptyFileError
+from .io.pydmap.dmap import RawDmapRead
 
 real_path = os.path.realpath(__file__)
 dirname = os.path.dirname(real_path)
