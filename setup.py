@@ -10,7 +10,8 @@ setup(
     license="GNU",
     packages=find_packages(exclude=['docs', 'test']),
     author="SuperDARN",
-    data_files=[('pydarn',['pydarn/logging_config.yaml'])]
+    data_files=[('pydarn',['pydarn/logging_config.yaml'])],
+    install_requires=['pyyaml']
     #ext_modules = [rstmodule]
 )
 
