@@ -4,6 +4,8 @@ import time
 import gc
 import numpy as np
 import sys
+import logging
+
 
 DMAP = 0
 CHAR = 1
@@ -20,7 +22,7 @@ ULONG = 19
 
 DMAP_DATA_KEYS=[0,1,2,3,4,8,9,10,16,17,18,19]
 
-LOGGING = False
+pydarn_logger = logging.getLogger('pydarn')
 
 class EmptyFileError(Exception):
     """Raised if the dmap file is empty or corrupted

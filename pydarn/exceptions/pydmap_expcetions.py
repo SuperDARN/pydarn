@@ -4,7 +4,7 @@
         Marina Schmidt
 """
 import logging
-logger = logging.getLogger(__name__)
+pydarn_logger = logging.getLogger('pydarn')
 
 class EmptyFileError(Exception):
     """
@@ -15,7 +15,7 @@ class EmptyFileError(Exception):
         self.message = "Error: {} is empty,"\
                 " please check this is the correct file".format(filename)
         super().__init__(self.message)
-        logging.debug("EmptyFileError: {} is empty".format(filename))
+        pydarn_logger.debug("EmptyFileError: {} is empty".format(filename))
 
 
 class CorruptDataError(Exception):
