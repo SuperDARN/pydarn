@@ -22,8 +22,6 @@ DMAP_DATA_KEYS = [0, 1, 2, 3, 4, 8, 9, 10, 16, 17, 18, 19]
 
 pydarn_logger = logging.getLogger('pydarn')
 
-LOGGING = False
-
 
 class RawDmapScaler(object):
     """Holds all the same data that the original C dmap scaler struct holds +
@@ -400,9 +398,7 @@ class RawDmapRead(object):
         end_byte = len(self.dmap_bytearr)
         counter = 0
         while self.cursor < end_byte:
-            if LOGGING is True:
-                with open("logfile.txt", 'a') as f:
-                    f.write("TOP LEVEL LOOP: iteration {0}\n".format(counter))
+            pydarn_logger.info("TOP LEVEL LOOP: iteration {0}\n".format(counter))
             new_record = pr()
             add_rec(new_record)
             counter = counter + 1
@@ -457,10 +453,7 @@ class RawDmapRead(object):
 
         code = self.read_data('i')
         size = self.read_data('i')
-
-        if LOGGING is True:
-            with open("logfile.txt", 'a') as f:
-                f.write("PARSE RECORD: code {0} size {1}\n".format(code, size))
+        pydarn_logger.info("PARSE RECORD: code {0} size {1}\n".format(code, size))
 
         # adding 8 bytes because code+size are part of the record.
         if size > (len(self.dmap_bytearr) - self.cursor + 2 *
@@ -476,9 +469,7 @@ class RawDmapRead(object):
         num_scalers = self.read_data('i')
         num_arrays = self.read_data('i')
 
-        if LOGGING is True:
-            with open("logfile.txt", 'a') as f:
-                f.write("PARSE RECORD: num_scalers {0} num_arrays {1}\n"
+        pydarn_logger.info("PARSE RECORD: num_scalers {0} num_arrays {1}\n"
                         .format(num_scalers, num_arrays))
 
         if(num_scalers <= 0):
@@ -494,17 +485,11 @@ class RawDmapRead(object):
 
         dm_rec = RawDmapRecord()
 
-        if LOGGING is True:
-            with open("logfile.txt", 'a') as f:
-                f.write("PARSE RECORD: processing scalers\n")
-
+        pydarn_logger.info("PARSE RECORD: processing scalers\n")
         scalers = [self.parse_scaler() for sc in range(0, num_scalers)]
         dm_rec.set_scalers(scalers)
 
-        if LOGGING is True:
-            with open("logfile.txt", 'a') as f:
-                f.write("PARSE RECORD: processing arrays\n")
-
+        pydarn_logger.info("PARSE RECORD: processing arrays\n")
         arrays = [self.parse_array(size) for ar in range(0, num_arrays)]
         dm_rec.set_arrays(arrays)
 
@@ -532,9 +517,7 @@ class RawDmapRead(object):
                     " Record is likely corrupted"
             raise DmapDataError(message)
 
-        if LOGGING is True:
-            with open("logfile.txt", 'a') as f:
-                f.write("PARSE SCALER: name {0} data_type {1}\n"
+        pydarn_logger.info("PARSE SCALER: name {0} data_type {1}\n"
                         .format(name, data_type))
 
         data_type_fmt = self.convert_datatype_to_fmt(data_type)
@@ -558,12 +541,12 @@ class RawDmapRead(object):
         data_type = self.read_data('c')
 
         if data_type not in DMAP_DATA_KEYS:
-            message = "PARSE_ARRAY: Data type is corrupted. Record is likely corrupted"
+            message = "PARSE_ARRAY: Data type is corrupted."\
+                    " Record is likely corrupted"
             raise DmapDataError(message)
 
-        if LOGGING is True:
-            with open("logfile.txt", 'a') as f:
-                f.write("PARSE ARRAY: name {0} data_type {1}\n".format(name, data_type))
+        pydarn_logger.info("PARSE ARRAY: name {0} data_type {1}\n"
+                           .format(name, data_type))
 
         data_type_fmt = self.convert_datatype_to_fmt(data_type)
 
@@ -592,9 +575,7 @@ class RawDmapRead(object):
             if x >= record_size:
                 message = "PARSE_ARRAY: Array dimension exceeds record size."
 
-        if LOGGING is True:
-            with open("logfile.txt", 'a') as f:
-                f.write("PARSE ARRAY: dimensions {0}\n".format(dimensions))
+        pydarn_logger.info("PARSE ARRAY: dimensions {0}\n".format(dimensions))
 
         total_elements = 1
         for dim in dimensions:
@@ -608,9 +589,7 @@ class RawDmapRead(object):
                     " Data is likely corrupted"
             raise DmapDataError(message)
 
-        if LOGGING is True:
-            with open("logfile.txt", 'a') as f:
-                f.write("PARSE ARRAY: total elements {0} size {1}\n"
+        pydarn_logger.info("PARSE ARRAY: total elements {0} size {1}\n"
                         .format(total_elements,
                                 self.get_num_bytes(data_type_fmt)))
 
@@ -664,10 +643,7 @@ class RawDmapRead(object):
         :returns: parsed data
 
         """
-
-        if LOGGING is True:
-            with open("logfile.txt", 'a') as f:
-                f.write("READ DATA: cursor {0} bytelen {1}\n"
+        pydarn_logger.info("READ DATA: cursor {0} bytelen {1}\n"
                         .format(self.cursor,
                                 len(self.dmap_bytearr)))
 
@@ -750,10 +726,7 @@ class RawDmapRead(object):
         self.cursor = self.cursor + total_elements *\
             self.get_num_bytes(data_type_fmt)
 
-        if LOGGING is True:
-            with open("logfile.txt", 'a') as f:
-                f.write("READ NUMERICAL ARRAY: Successfully read array\n")
-
+        pydarn_logger.info("READ NUMERICAL ARRAY: Successfully read array\n")
         return array
 
     def get_num_bytes(self, data_type_fmt):

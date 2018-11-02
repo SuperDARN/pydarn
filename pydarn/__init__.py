@@ -3,6 +3,8 @@ import sys
 import logging.config
 import yaml
 from .exceptions.pydmap_exceptions import EmptyFileError
+from .exceptions.pydmap_exceptions import DmapDataError
+
 from .io.pydmap.dmap import RawDmapRead
 
 real_path = os.path.realpath(__file__)
