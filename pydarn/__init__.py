@@ -6,6 +6,7 @@ from .exceptions.pydmap_exceptions import EmptyFileError
 from .exceptions.pydmap_exceptions import DmapDataError
 
 from .io.pydmap.dmap import RawDmapRead
+from .io.pydmap.dmap import parse_dmap_format_from_file
 
 real_path = os.path.realpath(__file__)
 dirname = os.path.dirname(real_path)

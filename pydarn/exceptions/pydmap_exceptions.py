@@ -15,13 +15,20 @@ class EmptyFileError(Exception):
         self.message = "Error: {} is empty,"\
                 " please check this is the correct file".format(filename)
         super().__init__(self.message)
-        pydarn_logger.debug("EmptyFileError: {} is empty".format(filename))
+        pydarn_logger.error("EmptyFileError: {} is empty".format(filename))
 
 class DmapDataError(Exception):
     """Raised if there is an error in parsing of data
 
     """
-    pass
+    def __init__(self,filename, message):
+        self.filename = filename
+        self.message = "Error: {filename} is data,"\
+                " is currupt because: {msg}".format(filename=filename,
+                                                    msg=message)
+        super().__init__(self.message)
+        pydarn_logger.error("DmapDataError: {} is corrupt {}".format(filename,
+                                                                     message))
 
 
 class CorruptDataError(Exception):
