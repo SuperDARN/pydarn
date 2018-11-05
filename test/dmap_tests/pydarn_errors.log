@@ -1,0 +1,20 @@
+2018-11-05 15:49:33,395 pydarn: ERROR DmapDataError: testfiles/20160301.C0.sas.fitacf is corrupt INITIAL INTEGRITY: Initial integrity check shows
+                total sizes mismatch buffer size. Data is likely corrupted
+2018-11-05 15:49:33,464 pydarn: ERROR DmapDataError: testfiles/20160301.C0.sas.fitacf is corrupt INITIAL INTEGRITY: Initial integrity check shows
+                total sizes mismatch buffer size. Data is likely corrupted
+2018-11-05 15:49:33,476 pydarn: ERROR DmapDataError: testfiles/20160316.1945.01.rkn.iqdat is corrupt INITIAL INTEGRITY: Initial integrity check shows
+                total sizes mismatch buffer size. Data is likely corrupted
+2018-11-05 15:49:33,483 pydarn: ERROR DmapDataError: testfiles/20110214.map is corrupt INITIAL INTEGRITY: Initial integrity check shows
+                total sizes mismatch buffer size. Data is likely corrupted
+2018-11-05 15:49:33,506 pydarn: ERROR DmapDataError: testfiles/20180623.map is corrupt INITIAL INTEGRITY: Initial integrity check shows size <= 0.
+                 Data is likely corrupted
+2018-11-05 15:55:45,943 pydarn: ERROR DmapDataError: testfiles/20160301.C0.sas.fitacf is corrupt INITIAL INTEGRITY: Initial integrity check shows
+                total sizes mismatch buffer size. Data is likely corrupted
+2018-11-05 15:55:46,015 pydarn: ERROR DmapDataError: testfiles/20160301.C0.sas.fitacf is corrupt INITIAL INTEGRITY: Initial integrity check shows
+                total sizes mismatch buffer size. Data is likely corrupted
+2018-11-05 15:55:46,027 pydarn: ERROR DmapDataError: testfiles/20160316.1945.01.rkn.iqdat is corrupt INITIAL INTEGRITY: Initial integrity check shows
+                total sizes mismatch buffer size. Data is likely corrupted
+2018-11-05 15:55:46,035 pydarn: ERROR DmapDataError: testfiles/20110214.map is corrupt INITIAL INTEGRITY: Initial integrity check shows
+                total sizes mismatch buffer size. Data is likely corrupted
+2018-11-05 15:55:46,057 pydarn: ERROR DmapDataError: testfiles/20180623.map is corrupt INITIAL INTEGRITY: Initial integrity check shows size <= 0.
+                 Data is likely corrupted

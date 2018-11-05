@@ -23,8 +23,8 @@ formatters:
 # handlers are used a way to set levels, formats, and classes for the logger.
 handlers:
     # used for testing purposes. 
-    console: 
-        class: logging.StreamHandler # logger class that streams log messages
+    console:
+        class: logging.StreamHandler
         level: DEBUG
         formatter: pydarn_fmt
         stream: ext://sys.stdout 
