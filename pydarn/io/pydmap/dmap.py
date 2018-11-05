@@ -377,15 +377,17 @@ class RawDmapRead(object):
 
         # parses the whole file/stream into a byte array
         if stream is False:
+            self.filename = dmap_data
             with open(dmap_data, 'rb') as f:
                 self.dmap_bytearr = bytearray(f.read())
 
             if os.stat(dmap_data).st_size == 0:
                 raise EmptyFileError("File is empty")
         else:
+            self.filename="stream"
             if len(dmap_data) == 0:
                 message = "Stream contains no data!"
-                raise EmptyFileError(message)
+                raise EmptyFileError(self.filename, message)
 
             self.dmap_bytearr = bytearray(dmap_data)
 
@@ -407,7 +409,7 @@ class RawDmapRead(object):
             message = "Bytes attempted {cursor} does not match the size of"\
                     " file {end_byte}".format(cursor=self.cursor,
                                               end_byte=end_byte)
-            raise DmapDataError(message)
+            raise DmapDataError(self.filename, message)
 
     def test_initial_data_integrity(self):
         """Quickly parses the data to add up data sizes and determine
@@ -423,25 +425,25 @@ class RawDmapRead(object):
             if size <= 0:
                 message = """INITIAL INTEGRITY: Initial integrity check shows size <= 0.
                  Data is likely corrupted"""
-                raise DmapDataError(message)
+                raise DmapDataError(self.filename, message)
             elif size > end_byte:
                 message = """INITIAL INTEGRITY: Initial integrity check shows
                 total sizes mismatch buffer size. Data is likely corrupted"""
-                raise DmapDataError(message)
+                raise DmapDataError(self.filename, message)
 
             size_total = size_total + size
 
             if size_total > end_byte:
                 message = """INTIAL INTEGRITY: Initial integrity check shows record size mismatch.
                  Data is likely corrupted"""
-                raise DmapDataError(message)
+                raise DmapDataError(self.filename, message)
 
             self.cursor = self.cursor + size - 2 * self.get_num_bytes('i')
 
         if size_total != end_byte:
             message = "INITIAL INTEGRITY: Initial integrity check shows"\
                     " total size < buffer size. Data is likely corrupted"
-            raise DmapDataError(message)
+            raise DmapDataError(self.filename, message)
 
         self.cursor = 0
 
@@ -460,11 +462,11 @@ class RawDmapRead(object):
                    self.get_num_bytes('i')):
             message = "PARSE RECORD: Integrity check shows record size bigger"\
                     " than remaining buffer. Data is likely corrupted"
-            raise DmapDataError(message)
+            raise DmapDataError(self.filename, message)
         elif size <= 0:
             message = "PARSE RECORD: Integrity check shows record size <= 0."\
                     " Data is likely corrupted"
-            raise DmapDataError(message)
+            raise DmapDataError(self.filename, message)
 
         num_scalers = self.read_data('i')
         num_arrays = self.read_data('i')
@@ -474,14 +476,14 @@ class RawDmapRead(object):
 
         if(num_scalers <= 0):
             message = "PARSE RECORD: Number of scalers is 0 or negative."
-            raise DmapDataError(message)
+            raise DmapDataError(self.filename, message)
         elif(num_arrays <= 0):
             message = "PARSE RECORD: Number of arrays is 0 or negative."
-            raise DmapDataError(message)
+            raise DmapDataError(self.filename, message)
         elif (num_scalers + num_arrays) > size:
             message = "PARSE RECORD: Invalid number of record elements."\
                     " Array or scaler field is likely corrupted."
-            raise DmapDataError(message)
+            raise DmapDataError(self.filename, message)
 
         dm_rec = RawDmapRecord()
 
@@ -497,7 +499,7 @@ class RawDmapRead(object):
             message = "PARSE RECORD: Bytes read {0} does not match the records"\
                     " size field {1}".format(self.cursor-bytes_already_read,
                                              size)
-            raise DmapDataError(message)
+            raise DmapDataError(self.filename, message)
 
         return dm_rec
 
@@ -515,7 +517,7 @@ class RawDmapRead(object):
         if data_type not in DMAP_DATA_KEYS:
             message = "PARSE_SCALER: Data type is corrupted."\
                     " Record is likely corrupted"
-            raise DmapDataError(message)
+            raise DmapDataError(self.filename, message)
 
         pydarn_logger.info("PARSE SCALER: name {0} data_type {1}\n"
                         .format(name, data_type))
@@ -543,7 +545,7 @@ class RawDmapRead(object):
         if data_type not in DMAP_DATA_KEYS:
             message = "PARSE_ARRAY: Data type is corrupted."\
                     " Record is likely corrupted"
-            raise DmapDataError(message)
+            raise DmapDataError(self.filename, message)
 
         pydarn_logger.info("PARSE ARRAY: name {0} data_type {1}\n"
                            .format(name, data_type))
@@ -555,21 +557,21 @@ class RawDmapRead(object):
         if array_dimension > record_size:
             message = """PARSE_ARRAY: Parsed # of array dimensions are larger than
              record size. Record is likely corrupted"""
-            raise DmapDataError(message)
+            raise DmapDataError(self.filename, message)
         elif array_dimension <= 0:
             message = """PARSE ARRAY: Parsed # of array dimensions are zero or
              negative. Record is likely corrupted"""
-            raise DmapDataError(message)
+            raise DmapDataError(self.filename, message)
 
         dimensions = [self.read_data('i') for i in range(0, array_dimension)]
         if not dimensions:
             message = "PARSE ARRAY: Array dimensions could not be parsed."
-            raise DmapDataError(message)
+            raise DmapDataError(self.filename, message)
         elif sum(x <= 0 for x in dimensions) > 0 and name != "slist":
             # slist is exception
             message = """PARSE ARRAY: Array dimension is zero or negative.
              Record is likely corrupted"""
-            raise DmapDataError(message)
+            raise DmapDataError(self.filename, message)
 
         for x in dimensions:
             if x >= record_size:
@@ -583,11 +585,11 @@ class RawDmapRead(object):
 
         if total_elements > record_size:
             message = """PARSE_ARRAY: Total array elements > record size."""
-            raise DmapDataError(message)
+            raise DmapDataError(self.filename, message)
         elif total_elements * self.get_num_bytes(data_type_fmt) > record_size:
             message = "PARSE ARRAY: Array size exceeds record size."\
                     " Data is likely corrupted"
-            raise DmapDataError(message)
+            raise DmapDataError(self.filename, message)
 
         pydarn_logger.info("PARSE ARRAY: total elements {0} size {1}\n"
                         .format(total_elements,
@@ -650,12 +652,12 @@ class RawDmapRead(object):
         if self.cursor >= len(self.dmap_bytearr):
             message = "READ DATA: Cursor extends out of buffer."\
                     " Data is likely corrupted"
-            raise DmapDataError(message)
+            raise DmapDataError(self.filename, message)
 
         if len(self.dmap_bytearr) - self.cursor < self.get_num_bytes(data_type_fmt):
             message = "READ DATA: Byte offsets into buffer are not properly"\
                     " aligned. Data is likely corrupted"
-            raise DmapDataError(message)
+            raise DmapDataError(self.filename, message)
 
         if data_type_fmt is DMAP:
             return self.parse_record()
@@ -663,7 +665,7 @@ class RawDmapRead(object):
             data = self.dmap_bytearr[self.cursor]
             self.cursor = self.cursor + self.get_num_bytes(data_type_fmt)
         elif data_type_fmt is not 's':
-            data = struct.unpack_from(data_type_fmt, buffer(self.dmap_bytearr),
+            data = struct.unpack_from(data_type_fmt, memoryview(self.dmap_bytearr),
                                       self.cursor)
             self.cursor = self.cursor + self.get_num_bytes(data_type_fmt)
         else:
@@ -673,11 +675,11 @@ class RawDmapRead(object):
                 if self.cursor + byte_counter >= len(self.dmap_bytearr):
                     message = "READ DATA: String is improperly terminated."\
                             " Dmap record is corrupted"
-                    raise DmapDataError(message)
+                    raise DmapDataError(self.filename, message)
 
             char_count = '{0}s'.format(byte_counter)
             data = struct.unpack_from(char_count,
-                                      buffer(self.dmap_bytearr),
+                                      memoryview(self.dmap_bytearr),
                                       self.cursor)
             self.cursor = self.cursor + byte_counter + 1
 
@@ -707,7 +709,7 @@ class RawDmapRead(object):
         if end > len(self.dmap_bytearr):
             message = "READ_NUMERICAL_ARRAY: Array end point extends past"\
                     " length of buffer"
-            raise DmapDataError(message)
+            raise DmapDataError(self.filename, message)
 
         buf = self.dmap_bytearr[self.cursor:self.cursor + total_elements *
                                 self.get_num_bytes(data_type_fmt)]
@@ -1345,13 +1347,13 @@ def dicts_to_file(data_dicts, file_path, file_type=''):
             if k not in ud_types:
                 message = "DICTS_TO_FILE: A supplied dictionary contains"\
                         " extra field {}".format(k)
-                raise DmapDataError(message)
+                raise DmapDataError(self.filename, message)
 
     for k, v in ud_types.iteritems():
         if k not in dd:
             message = "DICTS_TO_FILE: Supplied dictionary is missing field {}"\
                     "".format(k)
-            raise DmapDataError(message)
+            raise DmapDataError(self.filename, message)
 
 
 def parse_dmap_format_from_file(filepath, raw_dmap=False):
