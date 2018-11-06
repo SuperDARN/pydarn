@@ -24,7 +24,7 @@ class DmapDataError(Exception):
     def __init__(self,filename, message):
         self.filename = filename
         self.message = "Error: {filename} is data,"\
-                " is currupt because: {msg}".format(filename=filename,
+                " is corrupt because: {msg}".format(filename=filename,
                                                     msg=message)
         super().__init__(self.message)
         pydarn_logger.error("DmapDataError: {} is corrupt {}".format(filename,
@@ -33,7 +33,7 @@ class DmapDataError(Exception):
 
 class CorruptDataError(Exception):
     """
-    Raise when data is curropt in the file
+    Raise when data is corrupt in the file
     """
     def __init__():
         pass
