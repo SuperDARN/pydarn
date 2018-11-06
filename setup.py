@@ -13,7 +13,7 @@ Marina Schmidt
 from distutils.core import setup
 from setuptools import setup, find_packages
 
-# currently not implemented due to some challenges
+# TODO: currently not implemented due to some challenges
 # with C API and memory leaks.
 #rstmodule = Extension('dmap',
 #                      sources= ['dmap.c'])
