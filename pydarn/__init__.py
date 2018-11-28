@@ -19,7 +19,8 @@ from .exceptions.pydmap_exceptions import DmapDataError
 # Importing pydarn pydmap classes
 from .io.pydmap.dmap import RawDmapRead
 from .io.pydmap.dmap import parse_dmap_format_from_file
-
+from .io.pydmap.dmap import dicts_to_file
+from .io.pydmap.dmap import parse_dmap_format_from_stream
 """
 Pydarn uses yaml for logging configuration because it is the
 preferred configuration file format because of its readability.
