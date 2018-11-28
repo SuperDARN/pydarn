@@ -12,10 +12,10 @@ class EmptyFileError(Exception):
     """
     def __init__(self,filename):
         self.filename = filename
-        self.message = "Error: {} is empty,"\
+        self.message = "Error: {} is empty or"\
                 " please check this is the correct file".format(filename)
         super().__init__(self.message)
-        pydarn_logger.error("EmptyFileError: {} is empty".format(filename))
+        pydarn_logger.error(self.message)
 
 class DmapDataError(Exception):
     """Raised if there is an error in parsing of data

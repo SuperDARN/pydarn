@@ -363,7 +363,7 @@ class RawDmapRecord(object):
 
         return self.arrays
 
-
+#TODO: consider this public class and making outher classes private?
 class RawDmapRead(object):
     """Contains members and methods relating to parsing files into raw Dmap objects.
         Takes in a buffer path to decode. Default is open a file, but can optionally
@@ -375,14 +375,19 @@ class RawDmapRead(object):
         self.cursor = 0
         self.dmap_records = []
 
-        # parses the whole file/stream into a byte array
+        # parses the whole file/stream into a byte object
         if stream is False:
-            self.filename = dmap_data
-            with open(dmap_data, 'rb') as f:
-                self.dmap_bytearr = bytearray(f.read())
+            # check if the file is empty
+            try:
+                if os.path.getsize(dmap_data) == 0:
+                    raise EmptyFileError(dmap_data)
+            except FileNotFoundError as err:
+                raise EmptyFileError(dmap_data)
 
-            if os.stat(dmap_data).st_size == 0:
-                raise EmptyFileError("File is empty")
+            self.filename = dmap_data # this seems to be backwards? TODO: check size sooner
+            # Read binary dmap file
+            with open(dmap_data, 'rb') as f:
+                self.dmap_bytearr = bytes(f.read()) # TODO: do we want to use a bytearray or bytes object. The difference is that bytes is immutable (not changeable with out making a clone.)
         else:
             self.filename="stream"
             if len(dmap_data) == 0:
@@ -417,11 +422,11 @@ class RawDmapRead(object):
         There still may be errors, but this is a quick initial check
 
         """
-
         end_byte = len(self.dmap_bytearr)
         size_total = 0
         while self.cursor < end_byte:
-            size = self.read_data('i')
+            code = self.read_data('i') # needed for moving the cursor to the correct spot
+            size = self.read_data('i') # How does this get the size of data?
             if size <= 0:
                 message = """INITIAL INTEGRITY: Initial integrity check shows size <= 0.
                  Data is likely corrupted"""
@@ -429,7 +434,8 @@ class RawDmapRead(object):
             elif size > end_byte:
                 message = """INITIAL INTEGRITY: Initial integrity check shows
                 total sizes mismatch buffer size. Data is likely corrupted"""
-                raise DmapDataError(self.filename, message)
+                #raise DmapDataError(self.filename, message)
+                raise IOError(message)
 
             size_total = size_total + size
 
@@ -627,11 +633,11 @@ class RawDmapRead(object):
         dimension = dim.pop()
 
         if not dim:
-                dim_data = [self.read_data(data_type_fmt)
-                            for i in range(0, dimension)]
+            dim_data = [self.read_data(data_type_fmt)
+                        for i in range(0, dimension)]
         else:
-                dim_data = [self.build_n_dimension_list(list(dim), data_type_fmt)
-                            for i in range(0, dimension)]
+            dim_data = [self.build_n_dimension_list(list(dim), data_type_fmt)
+                        for i in range(0, dimension)]
 
         return dim_data
 
@@ -661,16 +667,17 @@ class RawDmapRead(object):
 
         if data_type_fmt is DMAP:
             return self.parse_record()
-        elif data_type_fmt is 'c':
+        elif data_type_fmt == 'c':
             data = self.dmap_bytearr[self.cursor]
             self.cursor = self.cursor + self.get_num_bytes(data_type_fmt)
-        elif data_type_fmt is not 's':
+        elif data_type_fmt != 's': # TODO: reverse? this seems backwards
             data = struct.unpack_from(data_type_fmt, memoryview(self.dmap_bytearr),
                                       self.cursor)
             self.cursor = self.cursor + self.get_num_bytes(data_type_fmt)
+            #self.cursor += 1
         else:
             byte_counter = 0
-            while self.dmap_bytearr[self.cursor + byte_counter] is not 0:
+            while self.dmap_bytearr[self.cursor + byte_counter] != 0:
                 byte_counter = byte_counter + 1
                 if self.cursor + byte_counter >= len(self.dmap_bytearr):
                     message = "READ DATA: String is improperly terminated."\
@@ -683,7 +690,7 @@ class RawDmapRead(object):
                                       self.cursor)
             self.cursor = self.cursor + byte_counter + 1
 
-        if(data_type_fmt is 'c'):
+        if data_type_fmt == 'c':
             return data
         else:
             # struct.unpack returns a tuple. [0] is the actual data
@@ -704,7 +711,8 @@ class RawDmapRead(object):
         :returns: parsed numpy array in the correct shape
 
         """
-        end = self.cursor+total_elements*self.get_num_bytes(data_type_fmt)
+        start = self.cursor
+        end = self.cursor + total_elements * self.get_num_bytes(data_type_fmt)
 
         if end > len(self.dmap_bytearr):
             message = "READ_NUMERICAL_ARRAY: Array end point extends past"\
@@ -721,7 +729,7 @@ class RawDmapRead(object):
                     " data size. Likely due to corrupted array parameters in"\
                     " record"
 
-        if(len(dimensions) > 1):
+        if len(dimensions) > 1:
             # reshape expects a tuple and dimensions reversed from what is parsed
             array = array.reshape(tuple(dimensions[::-1]))
 
@@ -819,14 +827,15 @@ class RawDmapWrite(object):
 
         """
         record = RawDmapRecord()
-        for k, v in data_dict.iteritems():
+        for k, v in data_dict.items():
 
             if k in self.ud_types:
                 data_type_fmt = self.ud_types[k]
             else:
                 data_type_fmt = self.find_datatype_fmt(v)
                 if data_type_fmt == '':
-                    """TODO: handle recursive dmap writing"""
+                    #TODO: handle recursive dmap writing
+                    # recursive is slow so we should look at other options
                     pass
 
             if isinstance(v, (list, np.ndarray)):
@@ -886,7 +895,7 @@ class RawDmapWrite(object):
         scalers = record.get_scalers()
         arrays = record.get_arrays()
 
-        code = 65537
+        code = 65537 # TODO: what is this value?
         num_scalers = record.get_num_scalers()
         num_arrays = record.get_num_arrays()
 
@@ -896,6 +905,7 @@ class RawDmapWrite(object):
         for ar in arrays:
             byte_arr.extend(self.dmap_array_to_bytes(ar))
 
+        # + 16 for length,code,num scalers, and num arrays fields
         length = len(byte_arr) + 16
 
         code_bytes = struct.pack('i', code)
@@ -1029,7 +1039,7 @@ class RawDmapWrite(object):
                 'Q': ULONG,
             }.get(fmt, None)
 
-
+#TODO: consider removing this function and get the user to call RawDmapWrite
 def dicts_to_file(data_dicts, file_path, file_type=''):
     """This function abstracts the type overrides for the main SuperDARN
     file types. These dictionaries write out the types to be compatible
@@ -1040,7 +1050,8 @@ def dicts_to_file(data_dicts, file_path, file_type=''):
     :param file_type: type of SuperDARN file with what the data is
 
     """
-
+    # TODO: move to another file to make it shorter to search through
+    # this will also clean up the file so it is nicer to look at
     rawacf_types = {
      'radar.revision.major': 'c',
      'radar.revision.minor': 'c',
@@ -1343,19 +1354,21 @@ def dicts_to_file(data_dicts, file_path, file_type=''):
         raise ValueError("Incorrect or missing file type")
 
     for dd in data_dicts:
-        for k, v in dd.iteritems():
+        for k, v in dd.items():
             if k not in ud_types:
                 message = "DICTS_TO_FILE: A supplied dictionary contains"\
                         " extra field {}".format(k)
-                raise DmapDataError(self.filename, message)
+                raise DmapDataError(file_path, message)
 
-    for k, v in ud_types.iteritems():
+    for k, v in ud_types.items():
         if k not in dd:
             message = "DICTS_TO_FILE: Supplied dictionary is missing field {}"\
                     "".format(k)
-            raise DmapDataError(self.filename, message)
+            raise DmapDataError(file_path, message)
+    RawDmapWrite(data_dicts, file_path, ud_types, ud_types)
 
 
+# TODO: Remove the unescessary functions
 def parse_dmap_format_from_file(filepath, raw_dmap=False):
     """Creates a new dmap object from file and then formats the data results
      into a nice list of dictionaries
@@ -1417,7 +1430,7 @@ def dmap_rec_to_dict(rec):
 
 
 if __name__ == '__main__':
-    dm = RawDmapRead('20101211.0047.24.cve.rawacf')
+    dm = RawDmapRead('20170410.1801.00.sas.rawacf')
     # records = parse_dmap_format_from_file('testfiles/20150831.0000.03.bks.rawacf')
     # print(records[5])
     # records = parse_dmap_format('20150831.0000.03.bks_corrupt.rawacf')
