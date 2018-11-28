@@ -25,6 +25,9 @@ import logging
 import pydarn
 
 pydarn_logger = logging.getLogger('pydarn')
+rawacf_file = "./testfiles/20170410.1801.00.sas.rawacf"
+fitacf_file = "./testfiles/20180220.C0.rkn.fitacf"
+map_file = "./testfiles/20170114.map"
 
 def compare_arrays(arr1, arr2):
     for a, b in zip(arr1, arr2):
@@ -64,14 +67,14 @@ class TestDmap(unittest.TestCase):
 
     def test_incorrect_file(self):
         """tests whether the file is empty or missing"""
-        self.assertRaises(IOError, pydarn.RawDmapRead, '/tmp/somefile.rawacf')
+        self.assertRaises(pydarn.EmptyFileError, pydarn.RawDmapRead, '/tmp/somefile.rawacf')
         self.assertRaises(pydarn.EmptyFileError,
                           pydarn.RawDmapRead,
                           'testfiles/emptytestfile')
 
     def test_open_rawacf(self):
         """tests opening a rawacf file using RawDmapRead"""
-        file_path = "testfiles/20150831.0000.03.bks.rawacf"
+        file_path = rawacf_file
 
         # fail if any changes cause an exception to be thrown
         try:
@@ -84,7 +87,7 @@ class TestDmap(unittest.TestCase):
 
     def test_open_fitacf(self):
         """tests opening a fitacf file using RawDmapRead"""
-        file_path = "testfiles/20160301.C0.sas.fitacf"
+        file_path = fitacf_file
 
         # fail if any changes cause an exception to be thrown
         try:
@@ -97,7 +100,7 @@ class TestDmap(unittest.TestCase):
 
     def test_open_map(self):
         """tests opening a map file using RawDmapRead"""
-        file_path = "testfiles/20110214.map"
+        file_path = map_file
 
         # fail if any changes cause an exception to be thrown
         try:
@@ -124,7 +127,7 @@ class TestDmap(unittest.TestCase):
     def test_parse_dmap_from_file_function(self):
         """tests the overarching function used to open dmap based files
         and returns a list of parsed items"""
-        file_path = "testfiles/20180623.map"
+        file_path = map_file
 
         # fail if any changes cause an exception to be thrown
         try:
@@ -169,8 +172,12 @@ class TestDmap(unittest.TestCase):
 
         os.remove(file_path)
 
-    def test_writing_to_fitacf(self):
-        """tests using RawDmapWrite to write to fitacf"""
+    def test_RawDmapWrite_missing_field(self):
+        """
+            Tests RawDmapWite to write to fitacf:
+                Expected behaviour to raise a DmapDataError
+                because the fitacf file is missing field.
+        """
         file_path = "test_fitacf.fitacf"
 
         dict_list = [test_data.fitacf_missing_field]
@@ -178,22 +185,33 @@ class TestDmap(unittest.TestCase):
         self.assertRaises(pydarn.DmapDataError, pydarn.dicts_to_file,
                           dict_list, file_path, file_type='fitacf')
 
+
+    def test_RawDmapWrite_extra_field(self):
+        """
+            Tests RawDmapWite to write to fitacf:
+                Expected behaviour to raise a DmapDataError
+                because the fitacf file data has an extra field.
+        """
+        file_path = "test_fitacf.fitacf"
+
         dict_list = [test_data.fitacf_extra_field]
 
         self.assertRaises(pydarn.DmapDataError, pydarn.dicts_to_file,
                           dict_list, file_path, file_type='fitacf')
 
+
+    def test_writing_to_fitacf(self):
+        """
+            tests using RawDmapWrite to write to fitacf
+            Excpected behaviour test_fitacf.fitacf is produced
+            with no errors.
+        """
+
+        file_path = "test_fitacf.fitacf"
+
         dict_list = [test_data.good_fitacf]
-
-        try:
-            pydarn.dicts_to_file(dict_list, file_path, file_type='fitacf')
-        except pydarn.DmapDataError as e:
-            self.fail(str(e))
-
-        try:
-            rec = pydarn.parse_dmap_format_from_file(file_path)
-        except pydarn.DmapDataError as e:
-            self.fail(str(e))
+        pydarn.dicts_to_file(dict_list, file_path,'fitacf')
+        pydarn.parse_dmap_format_from_file(file_path)
 
         parsed_record = rec[0]
 
@@ -283,10 +301,10 @@ class TestDmap(unittest.TestCase):
 
         num_tests = 100
 
-        file_path = "testfiles/20160301.C0.sas.fitacf"
-
+        file_path = fitacf_file
+        print("read file")
         dm = pydarn.parse_dmap_format_from_file(file_path, raw_dmap=True)
-
+        print("done reading file")
         dm.cursor = 0
         dm.parse_record()
 
@@ -305,7 +323,7 @@ class TestDmap(unittest.TestCase):
             corrupted_dmap = [chr(a ^ ord(b))
                               for a, b in zip(dmap_to_randomize, randomizer)]
             try:
-                self.assertRaises(pydarn.DmapDataError,pydarn.parse_dmap_format_from_stream(),corrupted_dmap)
+                self.assertRaises(pydarn.DmapDataError,pydarn.parse_dmap_format_from_stream, corrupted_dmap)
                 del(records)
             #except pydarn.DmapDataError as e:
             #    pass

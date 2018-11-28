@@ -120,7 +120,6 @@ dmypy.json
 *~
 *.log
 *.log*
-
 # mkdocs 
 site/
 
