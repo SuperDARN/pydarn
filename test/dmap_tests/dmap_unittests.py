@@ -47,7 +47,7 @@ def compare_arrays(arr1, arr2):
 
 
 def test_write_integrity(parsed_record, dict_to_test):
-        for k, v in dict_to_test.iteritems():
+        for k, v in dict_to_test.items():
             if isinstance(parsed_record[k], np.ndarray):
                 if compare_arrays(parsed_record[k], v):
                     return k
@@ -138,8 +138,12 @@ class TestDmap(unittest.TestCase):
         self.assertIsInstance(records, list)
         self.assertIsInstance(records[0], dict)
 
-    def test_writing_to_rawacf(self):
-        """tests using RawDmapWrite to write to rawacf"""
+    def test_RawDmapWrite_missing_field_rawacf(self):
+        """
+            Tests RawDmapWite to write to rawacf:
+                Expected behaviour to raise a DmapDataError
+                because the rawtacf file is missing field.
+        """
         file_path = "test_rawacf.rawacf"
 
         dict_list = [test_data.rawacf_missing_field]
@@ -147,22 +151,29 @@ class TestDmap(unittest.TestCase):
         self.assertRaises(pydarn.DmapDataError, pydarn.dicts_to_file,
                           dict_list, file_path, file_type='rawacf')
 
+
+    def test_RawDmapWrite_extra_field_rawacf(self):
+        """
+            Tests RawDmapWite to write to rawacf:
+                Expected behaviour to raise a DmapDataError
+                because the rawacf file data has an extra field.
+        """
+        file_path = "test_rawacf.rawacf"
+
         dict_list = [test_data.rawacf_extra_field]
 
-        self.assertRaises(pydarn.DmapDataError, pydarn.dicts_to_file, dict_list,
-                          file_path, file_type='rawacf')
+        self.assertRaises(pydarn.DmapDataError, pydarn.dicts_to_file,
+                          dict_list, file_path, file_type='rawacf')
 
+
+    def test_writing_to_rawacf(self):
+        """tests using RawDmapWrite to write to rawacf"""
         dict_list = [test_data.good_rawacf]
+        file_path = "test_rawacf.rawacf"
 
-        try:
-            pydarn.dicts_to_file(dict_list, file_path, file_type='rawacf')
-        except pydarn.DmapDataError as e:
-            self.fail(str(e))
+        pydarn.dicts_to_file(dict_list, file_path, file_type='rawacf')
 
-        try:
-            rec = pydarn.parse_dmap_format_from_file(file_path)
-        except pydarn.DmapDataError as e:
-            self.fail(str(e))
+        rec = pydarn.parse_dmap_format_from_file(file_path)
 
         parsed_record = rec[0]
         k = test_write_integrity(parsed_record, test_data.good_rawacf)
@@ -211,7 +222,7 @@ class TestDmap(unittest.TestCase):
 
         dict_list = [test_data.good_fitacf]
         pydarn.dicts_to_file(dict_list, file_path,'fitacf')
-        pydarn.parse_dmap_format_from_file(file_path)
+        rec = pydarn.parse_dmap_format_from_file(file_path)
 
         parsed_record = rec[0]
 
@@ -302,9 +313,7 @@ class TestDmap(unittest.TestCase):
         num_tests = 100
 
         file_path = fitacf_file
-        print("read file")
         dm = pydarn.parse_dmap_format_from_file(file_path, raw_dmap=True)
-        print("done reading file")
         dm.cursor = 0
         dm.parse_record()
 
@@ -322,17 +331,8 @@ class TestDmap(unittest.TestCase):
 
             corrupted_dmap = [chr(a ^ ord(b))
                               for a, b in zip(dmap_to_randomize, randomizer)]
-            try:
-                self.assertRaises(pydarn.DmapDataError,pydarn.parse_dmap_format_from_stream, corrupted_dmap)
-                del(records)
-            #except pydarn.DmapDataError as e:
-            #    pass
-            except Exception as e:
-                pydarn_logger.debug("New exception thrown by DMAP")
-                message = "Corruption not handled."\
-                          " Seed {0}. New exception thrown".format(seed)
-                self.fail(message)
-
+            self.assertRaises(pydarn.DmapDataError,pydarn.parse_dmap_format_from_stream, corrupted_dmap)
+            del(records)
             del(randomizer)
             del(corrupted_dmap)
 
