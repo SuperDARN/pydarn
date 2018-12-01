@@ -387,7 +387,7 @@ class RawDmapRead(object):
             self.filename = dmap_data # this seems to be backwards? TODO: check size sooner
             # Read binary dmap file
             with open(dmap_data, 'rb') as f:
-                self.dmap_bytearr = bytes(f.read()) # TODO: do we want to use a bytearray or bytes object. The difference is that bytes is immutable (not changeable with out making a clone.)
+                self.dmap_bytearr = bytearray(f.read()) # TODO: do we want to use a bytearray or bytes object. The difference is that bytes is immutable (not changeable with out making a clone.)
         else:
             self.filename="stream"
             if len(dmap_data) == 0:
@@ -692,6 +692,8 @@ class RawDmapRead(object):
 
         if data_type_fmt == 'c':
             return data
+        elif data_type_fmt == 's':
+             return str(data[0],'utf-8')
         else:
             # struct.unpack returns a tuple. [0] is the actual data
             return data[0]
@@ -930,17 +932,17 @@ class RawDmapWrite(object):
 
         name = "{0}\0".format(scaler.get_name())
         struct_fmt = '{0}s'.format(len(name))
-        name_bytes = struct.pack(struct_fmt, name)
-        dmap_type_bytes = struct.pack('c', chr(scaler.get_type()))
+        name_bytes = struct.pack(struct_fmt, name.encode('utf-8'))
+        dmap_type_bytes = struct.pack('c', chr(scaler.get_type()).encode('utf-8'))
 
         data_type_fmt = scaler.get_datatype_fmt()
 
         if data_type_fmt == 's':
             data = "{0}\0".format(scaler.get_data())
             struct_fmt = '{0}s'.format(len(data))
-            data_bytes = struct.pack(struct_fmt, data)
+            data_bytes = struct.pack(struct_fmt, data.encode('utf-8'))
         elif data_type_fmt == 'c':
-            data_bytes = chr(scaler.get_data())
+            data_bytes = chr(scaler.get_data()).encode('utf-8')
         else:
             data_bytes = struct.pack(data_type_fmt, scaler.get_data())
 
@@ -962,9 +964,9 @@ class RawDmapWrite(object):
 
         name = "{0}\0".format(array.get_name())
         struct_fmt = '{0}s'.format(len(name))
-        name_bytes = struct.pack(struct_fmt, name)
+        name_bytes = struct.pack(struct_fmt, name.encode('utf-8'))
 
-        dmap_type_bytes = struct.pack('c', chr(array.get_type()))
+        dmap_type_bytes = struct.pack('c', chr(array.get_type()).encode('utf-8'))
 
         dimension_bytes = struct.pack('i', array.get_dimension())
         arr_dimensions_bytes = bytes()
@@ -1365,7 +1367,7 @@ def dicts_to_file(data_dicts, file_path, file_type=''):
             message = "DICTS_TO_FILE: Supplied dictionary is missing field {}"\
                     "".format(k)
             raise DmapDataError(file_path, message)
-    RawDmapWrite(data_dicts, file_path, ud_types, ud_types)
+    RawDmapWrite(data_dicts, file_path, ud_types)
 
 
 # TODO: Remove the unescessary functions
