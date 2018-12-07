@@ -6,6 +6,18 @@
 import logging
 pydarn_logger = logging.getLogger('pydarn')
 
+class CursorError(Exception):
+    """
+    Raise if the cursor is not correctly set
+    """
+    def __init__(self,cursor,expected_value):
+        self.cursor
+        self.message = "Error: Cursor is at {cursor} and"\
+                "it needs to be {expected}".format(cursor=cursor,
+                                                   expected=expected_value)
+        super().__init__(self.message)
+        pydarn_logger.error(self.message)
+
 class EmptyFileError(Exception):
     """
     Raised if a file is empty
