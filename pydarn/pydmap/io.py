@@ -2,9 +2,14 @@ import os
 import struct
 import numpy as np
 import logging
+import collections
 
-from pydarn import EmptyFileError, DmapDataError
+from pydarn import DmapRecord
+from pydarn import DmapArray
+from pydarn import Dmapscalar
+from pydarn import EmptyFileError, DmapDataError, CursorError
 
+# TODO: are these global, local, or class dependent?
 DMAP = 0
 CHAR = 1
 SHORT = 2
@@ -22,435 +27,131 @@ DMAP_DATA_KEYS = [0, 1, 2, 3, 4, 8, 9, 10, 16, 17, 18, 19]
 
 pydarn_logger = logging.getLogger('pydarn')
 
-
-class RawDmapScaler(object):
-    """Holds all the same data that the original C dmap scaler struct holds +
-    some additional type format identifiers
-
-    """
-    def __init__(self, name, dmap_type, data_type_fmt, mode, data):
-        self.dmap_type = dmap_type
-        self.name = name
-        self.mode = mode
-        self.data = data
-        self.data_type_fmt = data_type_fmt
-
-    def get_type(self):
-        """Returns the DMAP type of the scaler
-
-        :returns: dmap_type
-
-        """
-        return self.dmap_type
-
-    def get_name(self):
-        """Returns the name of the scaler
-
-        :returns: name
-
-        """
-        return self.name
-
-    def get_mode(self):
-        """Returns the mode of the scaler
-
-        :returns: mode
-
-        """
-        return self.mode
-
-    def get_data(self):
-        """Returns the scaler data
-
-        :returns: data
-
-        """
-        return self.data
-
-    def get_datatype_fmt(self):
-        """Returns the string format identifier of the scaler that
-        corresponds to the DMAP type
-
-        :returns: data_type_fmt
-
-        """
-        return self.data_type_fmt
-
-    def set_type(self, dmap_type):
-        """Sets the DMAP type of the scaler
-
-        :param data_type: DMAP type of the scaler
-
-        """
-        self.dmap_type = dmap_type
-
-    def set_name(self, name):
-        """Sets the name of the scaler
-
-        :param name: scaler name
-
-        """
-
-        self.name = name
-
-    def set_mode(self, mode):
-        """Sets the mode of the scaler
-
-        :param mode: scaler mode
-
-        """
-
-        self.mode = mode
-
-    def set_data(self, data):
-        """Sets the data of the scaler
-
-        :param data: data for the scaler to contain
-
-        """
-
-        self.data = data
-
-    def set_datatype_fmt(self, fmt):
-        """Sets the string format identifier of the scaler that
-        corresponds to the DMAP type of the scaler
-
-        :param fmt: DMAP type string format of the scaler
-
-        """
-
-        self.data_type_fmt = fmt
-
-
-class RawDmapArray(object):
-    """Holds all the same data that the original C dmap array struct holds +
-    some additional type information
-
-    """
-    def __init__(self, name, dmap_type, data_type_fmt,
-                 mode, dimension, arr_dimensions, data):
-        self.dmap_type = dmap_type
-        self.name = name
-        self.mode = mode
-        self.dimension = dimension
-        self.arr_dimensions = arr_dimensions
-        self.data = data
-        self.data_type_fmt = data_type_fmt
-
-    def get_type(self):
-        """Returns the DMAP type of the array
-
-        :returns: dmap_type
-
-        """
-        return self.dmap_type
-
-    def get_name(self):
-        """Returns the name of the array
-
-        :returns: name
-
-        """
-        return self.name
-
-    def get_mode(self):
-        """Returns the mode of the array
-
-        :returns: mode
-
-        """
-
-        return self.mode
-
-    def get_dimension(self):
-        """Returns the number of dimensions in the array
-
-        :returns: dimension
-
-        """
-
-        return self.dimension
-
-    def get_arr_dimensions(self):
-        """Returns a list of array dimensions
-
-        :returns: arr_dimensions
-
-        """
-        return self.arr_dimensions
-
-    def get_data(self):
-        """Returns the array data
-
-        :returns: data
-
-        """
-
-        return self.data
-
-    def get_datatype_fmt(self):
-        """Returns the string format identifier of the scaler that
-        corresponds to the DMAP type
-
-        :returns: data_type_fmt
-
-        """
-
-        return self.data_type_fmt
-
-    def set_type(self, data_type):
-        """Sets the DMAP type of the array
-
-        :param data_type: DMAP type of the array
-
-        """
-
-        self.type = data_type
-
-    def set_name(self, name):
-        """Sets the name of the array
-
-        :param name: name of the array
-
-        """
-
-        self.name = name
-
-    def set_mode(self, mode):
-        """Sets the mode of the array
-
-        :param mode: the mode of the array
-
-        """
-
-        self.mode = mode
-
-    def set_dimension(self, dimension):
-        """Sets the number of array dimensions
-
-        :param dimension: total array dimensions
-
-        """
-
-        self.dimension = dimension
-
-    def set_arr_dimensions(self, arr_dimensions):
-        """Sets the list of dimensions for the array
-
-        :param arr_dimensions: list of dimensions for the array
-
-        """
-        self.arr_dimensions = arr_dimensions
-
-    def set_data(self, data):
-        """Sets the array data
-
-        :param data: the data associated with the array
-
-        """
-        self.data = data
-
-    def set_datatype_fmt(self, fmt):
-        """Sets the DMAP type string format identifier of the array
-
-        :param fmt: the string format identifier
-
-        """
-        self.data_type_fmt = fmt
-
-
-class RawDmapRecord(object):
-    """Contains the arrays and scalers associated with a dmap record.
-
-    """
-    def __init__(self):
-        self.num_scalers = 0
-        self.num_arrays = 0
-        self.scalers = []
-        self.arrays = []
-
-    def set_num_scalers(self, num_scalers):
-        """Sets the number of scalers in this DMAP record
-
-        :param num_scalers: number of scalers
-
-        """
-
-        self.num_scalers = num_scalers
-
-    def set_num_arrays(self, num_arrays):
-        """Sets the number of arrays in this DMAP record
-
-        :param num_arrays: number of arrays
-
-        """
-
-        self.num_arrays = num_arrays
-
-    def add_scaler(self, new_scaler):
-        """Adds a new scaler to the DMAP record
-
-        :param new_scaler: new RawDmapScaler to add
-
-        """
-
-        self.scalers.append(new_scaler)
-        self.num_scalers = self.num_scalers + 1
-
-    def set_scalers(self, scalers):
-        """Sets the DMAP scaler list to a new list
-
-        :param scalers: new list of scalers
-
-        """
-
-        self.scalers = scalers
-        self.num_scalers = len(scalers)
-
-    def add_array(self, new_array):
-        """Adds a new array to the DMAP record
-
-        :param new_array: new RawDmapArray to add
-
-        """
-
-        self.arrays.append(new_array)
-        self.num_arrays = self.num_arrays + 1
-
-    def set_arrays(self, arrays):
-        """Sets the DMAP array list to a new list
-
-        :param arrays: new list of arrays
-
-        """
-
-        self.arrays = arrays
-        self.num_arrays = len(arrays)
-
-    def get_num_scalers(self):
-        """Returns the number of scalers in the DMAP record
-
-        :returns: num_scalers
-
-        """
-
-        return self.num_scalers
-
-    def get_num_arrays(self):
-        """Returns the number of arrays in the DMAP record
-
-        :returns: num_arrays
-
-        """
-
-        return self.num_arrays
-
-    def get_scalers(self):
-        """Returns the list of scalers in the DMAP record
-
-        :returns: scalers
-
-        """
-
-        return self.scalers
-
-    def get_arrays(self):
-        """Returns the list of arrays in the DMAP record
-
-        :returns: arrays
-
-        """
-
-        return self.arrays
-
-#TODO: consider this public class and making outher classes private?
-class RawDmapRead(object):
+class DmapRead():
     """Contains members and methods relating to parsing files into raw Dmap objects.
         Takes in a buffer path to decode. Default is open a file, but can optionally
         use a stream such as from a real time socket connection
-
+        :param dmap_file: is a file/stream to contains binary dmap records
     """
-
-    def __init__(self, dmap_data, stream=False):
-        self.cursor = 0
+    def __init__(self, dmap_file, stream=False):
+        self.dmap_cursor = 0 # offset of bytes
+        self.dmap_end_bytes = 0 # units of bytes
         self.dmap_records = []
+        self.dmap_file = dmap_file
 
         # parses the whole file/stream into a byte object
         if stream is False:
             # check if the file is empty
             try:
-                if os.path.getsize(dmap_data) == 0:
-                    raise EmptyFileError(dmap_data)
+                if os.path.getsize(self.dmap_file) == 0:
+                    raise EmptyFileError(self.dmap_file)
             except FileNotFoundError as err:
-                raise EmptyFileError(dmap_data)
+                raise EmptyFileError(self.dmap_file)
 
-            self.filename = dmap_data # this seems to be backwards? TODO: check size sooner
             # Read binary dmap file
-            with open(dmap_data, 'rb') as f:
-                self.dmap_bytearr = bytearray(f.read()) # TODO: do we want to use a bytearray or bytes object. The difference is that bytes is immutable (not changeable with out making a clone.)
+            with open(self.dmap_file, 'rb') as f:
+                self.dmap_bytearr = bytearray(f.read())
+            pydarn_logger.info("DMAP Read file: {}".format(self.dmap_file))
+
         else:
-            self.filename="stream"
-            if len(dmap_data) == 0:
-                message = "Stream contains no data!"
-                raise EmptyFileError(self.filename, message)
+            if len(dmap_file) == 0:
+                raise EmptyFileError("data stream")
 
-            self.dmap_bytearr = bytearray(dmap_data)
+            self.dmap_bytearr = bytearray(self.data_file)
+            self.data_file = "stream"
+            pydarn_logger.info("DMAP Read file: Stream")
+        self.dmap_end_bytes = len(self.dmap_bytearr)
 
-        self.test_initial_data_integrity()
-
-        # parse bytes until end of byte array
-        pr = self.parse_record
-        add_rec = self.dmap_records.append
-
-        end_byte = len(self.dmap_bytearr)
-        counter = 0
-        while self.cursor < end_byte:
-            pydarn_logger.info("TOP LEVEL LOOP: iteration {0}\n".format(counter))
-            new_record = pr()
-            add_rec(new_record)
-            counter = counter + 1
-
-        if (self.cursor > end_byte):
-            message = "Bytes attempted {cursor} does not match the size of"\
-                    " file {end_byte}".format(cursor=self.cursor,
-                                              end_byte=end_byte)
-            raise DmapDataError(self.filename, message)
-
-    def test_initial_data_integrity(self):
-        """Quickly parses the data to add up data sizes and determine
-        if the records are intact.
-        There still may be errors, but this is a quick initial check
-
+    def read_records(self):
         """
-        end_byte = len(self.dmap_bytearr)
-        size_total = 0
-        while self.cursor < end_byte:
-            code = self.read_data('i') # needed for moving the cursor to the correct spot
-            size = self.read_data('i') # How does this get the size of data?
-            if size <= 0:
-                message = """INITIAL INTEGRITY: Initial integrity check shows size <= 0.
-                 Data is likely corrupted"""
-                raise DmapDataError(self.filename, message)
-            elif size > end_byte:
-                message = """INITIAL INTEGRITY: Initial integrity check shows
-                total sizes mismatch buffer size. Data is likely corrupted"""
-                #raise DmapDataError(self.filename, message)
-                raise IOError(message)
+            This method reads the records from the dmap file/stream passed
+            into the class.
+        """
+        pydarn_logger.info("Sanity check first before reading records")
+        # Sanity check to make sure we do not have currupt files
+        self.test_initial_data_integrity(self.dmap_bytearr)
 
-            size_total = size_total + size
+        pydarn_logger.info("Reading dmap records...")
+        # parse bytes until end of byte array
+        while self.dmap_cursor < self.dmap_end_bytes:
+            # TODO: Maybe I need a debugger file for this kind of information?
+            pydarn_logger.debug("TOP LEVEL LOOP: cursor {0}\n".format(self.cursor))
+            new_record = self.parse_record()
+            self.dmap_records.append(new_record)
+            if (self.cursor > end_byte):
+                message = "Bytes attempted {cursor} does not match the size of"\
+                        " file {end_byte}".format(cursor=self.cursor,
+                                                  end_byte=self.end_bytes)
+                raise DmapDataError(self.data_file, message)
 
-            if size_total > end_byte:
-                message = """INTIAL INTEGRITY: Initial integrity check shows record size mismatch.
-                 Data is likely corrupted"""
-                raise DmapDataError(self.filename, message)
+    # TODO: Maybe break this method into smaller checks that could just be called
+    #       In other methods. This method is useful for a script that just does
+    #       file integrity but doesn't need to read the records.
+    def test_initial_data_integrity(self):
+        """
+        Static method so that is detached to the potetial corruption of data and
+        prevention of mutating and variables passed it. This also has a nice
+        effect that users could use on other files if they just want to check
+        the file.
+         :pre: precondition is that the cursor is set to 0
+         :exception CursorError: If the currsor is not set to an expected value.
+         :exception DmapDateError: If the data is curropted by some byte offset.
+        """
+        pydarn_logger.info("Testing the integrity of the dmap file/stream")
+        total_block_size = 0 # unit of bytes
+        if self.cursor > 0:
+            raise CursorError(self.cursor,0)
 
-            self.cursor = self.cursor + size - 2 * self.get_num_bytes('i')
+        while self.cursor < self.dmap_end_bytes:
+            """
+            DMAP files headers contain the following:
+                - encoding identifier: is a unique 32-bit integer that indicates
+                  how the block was constructed. It is used to differentiate
+                  between the possible furture changes to the DataMap format.
+                - block size: 32-bit integer that repersents the total size of
+                  block including the header and the data.
+                - Number of Scalars: number of scalar variables
+                - Scalar data: the scalar data of the record.
+                  Please see DMAPScalar for more information on scalars.
+                - Number of arrays: number of array variables
+                  Please see DMAPArray for more information on arrays.
+            """
+            # This is an unused variable but is need to move the cursor to the
+            # next offset.
+            encoding_identifier = self.read_data('i')
+            if self.cursor > 4:
+                raise CursorError(self.cursor,0)
+            block_size = self.read_data('i')
+            if block_size <= 0:
+                message = "Error: Initial integrity check"\
+                        " block size: {block_size} <= 0 or"\
+                        " > end bytes: {end_bytes}\n Cursor: {cursor}."\
+                        " Data is likely corrupted".format(cursor=self.cursor,
+                                                           end_bytes=self.dmap_end_bytes,
+                                                           block_size=block_size)
+                raise DmapDataError(self.date_file, message)
 
-        if size_total != end_byte:
-            message = "INITIAL INTEGRITY: Initial integrity check shows"\
-                    " total size < buffer size. Data is likely corrupted"
-            raise DmapDataError(self.filename, message)
+            total_block_size += block_size
 
+            if total_block_size > self.dmap_end_bytes:
+                message = "Error: Initial integrity check shows record size"\
+                        " mismatch. total block size: {total_size} >"\
+                        " end bytes: {end_bytes}."\
+                        " Data is likely corrupted".format(total_size=total_block_size,
+                                                           end_bytes=self.dmap_end_bytes)
+                raise DmapDataError(self.data_file, message)
+
+            # why minus 2?
+            self.cursor = self.cursor + block_size - 2 * self.get_num_bytes('i')
+
+        if total_block_size != self.dmap_end_bytes:
+            message = "Error: Initial integrity check shows"\
+                    " total block size: {total_size} < end bytes {end_bytes}."\
+                    " Cursor: {cursor}."\
+                    " Data is likely corrupted".format(total_size=total_block_size,
+                                                       end_bytes=self.dmap_end_bytes,
+                                                       cursor=self.cursor)
+            raise DmapDataError(self.date_file, message)
         self.cursor = 0
 
     def parse_record(self):
