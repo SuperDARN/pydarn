@@ -12,12 +12,13 @@ class Dmapscalar(object):
     """
         Scalar object containing the dmap scalar parameters.
     """
-    def __init__(self, name, mode, data, dmap_type="i", data_type_fmt='i'):
+    # 3 means INT idicated in io.py
+    def __init__(self, name, mode, data, scalar_type=3, scalar_type_fmt='i'):
         self.scalar_type = scalar_type
         self.name = name # parameter?
         self.mode = mode # is this ther cpid?
         self.data = data # paramater values?
-        self.data_type_fmt = data_type_fmt # what is the difference between scalar type?
+        self.scalar_type_fmt = scalar_type_fmt # what is the difference between scalar type?
 
     # decorator syntax for property, makes things pythonic
     # read DEVELOPER_README for more information.
