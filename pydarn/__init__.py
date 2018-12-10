@@ -13,8 +13,7 @@ import logging.config
 import yaml
 
 # Importing pydarn exception classes
-from .exceptions.pydmap_exceptions import EmptyFileError
-from .exceptions.pydmap_exceptions import DmapDataError
+from .exceptions import pydmap_exceptions
 
 # Importing pydarn pydmap classes
 from .pydmap.io import RawDmapRead
