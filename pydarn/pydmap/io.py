@@ -7,9 +7,10 @@ import collections
 from pydarn import DmapRecord
 from pydarn import DmapArray
 from pydarn import Dmapscalar
-from pydarn import EmptyFileError, DmapDataError, CursorError
+from pydarn import pydmap_exceptions
 
-# TODO: are these global, local, or class dependent?
+# Keeping these global definitions for readbility purposes
+# where do these values come from?
 DMAP = 0
 CHAR = 1
 SHORT = 2
@@ -23,7 +24,20 @@ USHORT = 17
 UINT = 18
 ULONG = 19
 
-DMAP_DATA_KEYS = [0, 1, 2, 3, 4, 8, 9, 10, 16, 17, 18, 19]
+# ChainMap maybe of interest ... but not sure how to implement at this moment
+DMAP_DATA_TYPES = {DMAP: ('', 0),
+                   CHAR: ('c',1),
+                   SHORT: ('h',2),
+                   INT: ('i',4),
+                   FLOAT: ('f',4)
+                   DOUBLE: ('d',8),
+                   STRING: ('s'),
+                   LONG: ('q',8),
+                   UCHAR: ('B',1),
+                   USHORT: ('H',2),
+                   UINT: ('I',4),
+                   ULONG: ('Q',8)}
+
 
 pydarn_logger = logging.getLogger('pydarn')
 
@@ -33,6 +47,8 @@ class DmapRead():
         use a stream such as from a real time socket connection
         :param dmap_file: is a file/stream to contains binary dmap records
     """
+    DMAP_DATA_KEYS = [0, 1, 2, 3, 4, 8, 9, 10, 16, 17, 18, 19]
+
     def __init__(self, dmap_file, stream=False):
         self.dmap_cursor = 0 # offset of bytes
         self.dmap_end_bytes = 0 # units of bytes
@@ -42,10 +58,7 @@ class DmapRead():
         # parses the whole file/stream into a byte object
         if stream is False:
             # check if the file is empty
-            try:
-                if os.path.getsize(self.dmap_file) == 0:
-                    raise EmptyFileError(self.dmap_file)
-            except FileNotFoundError as err:
+            if os.path.getsize(self.dmap_file) == 0:
                 raise EmptyFileError(self.dmap_file)
 
             # Read binary dmap file
@@ -154,153 +167,167 @@ class DmapRead():
             raise DmapDataError(self.date_file, message)
         self.cursor = 0
 
-    def parse_record(self):
-        """Parses a single dmap record from the buffer
-
+    @staticmethod
+    def zero_check(element, element_name, filename, cursor):
         """
-        bytes_already_read = self.cursor
+        Checks if the element <= 0 bytes. If true then raise a ZeroByteError.
+        """
+        if element <= 0:
+            element_info = "{name} {size}".format(name=element_name,
+                                                  size=element)
+            raise pydmap_exceptions.ZeroByteError(filename, element_info, cursor)
 
-        code = self.read_data('i')
-        size = self.read_data('i')
-        pydarn_logger.info("PARSE RECORD: code {0} size {1}\n".format(code, size))
+    @statitmethod
+    def bytes_check(element, element_name, byte_check,
+                    byte_check_name, filename, cursor)
+        """
+        check if the element > byte check. If true then raise a MismatchByteError.
+        """
+        if element > byte_check:
+            element_info = "{name} {size} >"\
+                    " {check_name} {check}".format(name=element_name,
+                                                   size=element,
+                                                   check_name=byte_check_name,
+                                                   check=byte_check)
+           raise pydmap_exceptions.MismatchByteError(filename, element_info, cursor)
+
+    @staticmethod
+    def check_data_type(data_type, data_name, filename, cursor):
+        if data_type not in DMAP_DATA_TYPES.keys():
+            raise pydmap_exceptions.DmapDataTypeError(self.dmap_file, data_name,
+                                                     data_type, self.cursor)
+
+
+    def read_record(self):
+        """
+        Parses a single dmap record from the buffer
+        """
+        # used in a cursor check.
+        post_cursor = self.cursor
+
+        encoding_identifier = self.read_data('i')
+        block_size = self.read_data('i')
+
+        pydarn_logger.info("Reading Record: encoding idetifier {code}"\
+                           " block size {size}\n".format(code=encoding_identifier,
+                                                         size=block_size))
 
         # adding 8 bytes because code+size are part of the record.
-        if size > (len(self.dmap_bytearr) - self.cursor + 2 *
-                   self.get_num_bytes('i')):
-            message = "PARSE RECORD: Integrity check shows record size bigger"\
-                    " than remaining buffer. Data is likely corrupted"
-            raise DmapDataError(self.filename, message)
-        elif size <= 0:
-            message = "PARSE RECORD: Integrity check shows record size <= 0."\
-                    " Data is likely corrupted"
-            raise DmapDataError(self.filename, message)
+        remaining_bytes = self.dmap_end_bytes - self.cursor + 2 * self.get_num_bytes('i') # why 2?
+        bytes_check(block_size, "block size", remaining_bytes, "remaining bytes",
+                    self.data_file, self.cursor)
+        zero_check(block_size, "block size", self.data_file, self.cursor)
 
-        num_scalers = self.read_data('i')
+        num_scalars = self.read_data('i')
         num_arrays = self.read_data('i')
 
-        pydarn_logger.info("PARSE RECORD: num_scalers {0} num_arrays {1}\n"
-                        .format(num_scalers, num_arrays))
+        pydarn_logger.info("Reading record: there are {scalars} scalars"\
+                           " and {arrays} arrays\n"
+                        .format(scalars=num_scaleas, arrays=num_arrays))
+        zero_check(num_scalars, "number of scalars", self.data_file, self.cursor)
+        zero_check(num_arrays, "number of arrays", self.data_file, self.cursor)
+        bytes_check(num_scalars + num_arrays, "number of scalars + arrays",
+                    block_size, "block size", self.data_file, self.cursor)
 
-        if(num_scalers <= 0):
-            message = "PARSE RECORD: Number of scalers is 0 or negative."
-            raise DmapDataError(self.filename, message)
-        elif(num_arrays <= 0):
-            message = "PARSE RECORD: Number of arrays is 0 or negative."
-            raise DmapDataError(self.filename, message)
-        elif (num_scalers + num_arrays) > size:
-            message = "PARSE RECORD: Invalid number of record elements."\
-                    " Array or scaler field is likely corrupted."
-            raise DmapDataError(self.filename, message)
 
-        dm_rec = RawDmapRecord()
+        pydarn_logger.info("Reading record: reading scalars\n")
+        # TODO: Need to review how to rewrite this to fit new dmap record storage
+        scalars = {}
+        for i in range(0, num_scalars):
+            scalar = self.read_scalar()
+            # this will allow for faster access
+            scalars[scalar.name] = scalar
 
-        pydarn_logger.info("PARSE RECORD: processing scalers\n")
-        scalers = [self.parse_scaler() for sc in range(0, num_scalers)]
-        dm_rec.set_scalers(scalers)
+        pydarn_logger.info("Reading record: reading arrays\n")
+        arrays = {}
+        for i in range(0, num_arrays):
+            array = self.read_array(block_size)
+            arrays[array.name] = array
 
-        pydarn_logger.info("PARSE RECORD: processing arrays\n")
-        arrays = [self.parse_array(size) for ar in range(0, num_arrays)]
-        dm_rec.set_arrays(arrays)
+        # check for a cursor error
+        if (self.cursor - post_cursor) != block_size:
+            raise pydmap_exceptions.CursorError(self.cursor, block_size)
 
-        if (self.cursor - bytes_already_read) != size:
-            message = "PARSE RECORD: Bytes read {0} does not match the records"\
-                    " size field {1}".format(self.cursor-bytes_already_read,
-                                             size)
-            raise DmapDataError(self.filename, message)
+        return DmapRecord(scalars, arrays)
 
-        return dm_rec
-
-    def parse_scaler(self):
+    def read_scalars(self):
         """Parses a new dmap scaler from bytearray
-
         :returns: new RawDmapScaler with parsed data
-
         """
 
-        mode = 6
-        name = self.read_data('s')
-        data_type = self.read_data('c')
+        mode = 6 # what does this mean?
+        scalar_name = self.read_data('s')
+        scalar_type = self.read_data('c')
 
-        if data_type not in DMAP_DATA_KEYS:
-            message = "PARSE_SCALER: Data type is corrupted."\
-                    " Record is likely corrupted"
-            raise DmapDataError(self.filename, message)
-
-        pydarn_logger.info("PARSE SCALER: name {0} data_type {1}\n"
+        check_data_type(scalar_type, scalar_name, self.dmap_file, self.cursor)
+        pydarn_logger.info("Read scalar: name {0} data type {1}\n"
                         .format(name, data_type))
 
-        data_type_fmt = self.convert_datatype_to_fmt(data_type)
+        scalar_type_fmt = DMAP_DATA_TYPE.get(scalar_type, DMAP)
 
-        if data_type_fmt != DMAP:
-            data = self.read_data(data_type_fmt)
+        if scalar_type_fmt != DMAP:
+            scalar_data = self.read_data(scalar_type_fmt)
         else:
-            data = self.parse_record()
+            scalar_data = self.read_record() # why do we read another record?
 
-        return RawDmapScaler(name, data_type, data_type_fmt, mode, data)
+        return DmapScalar(scalar_name, scalar_type, scalar_type_fmt,
+                          mode, scalar_data)
 
-    def parse_array(self, record_size):
+    def read_array(self, record_size):
         """Parses a new dmap array from bytearray
-
+        :params record size: is the size of the record in bytes
         :returns: new RawDmapArray with parsed data
-
         """
-        mode = 7
-        name = self.read_data('s')
+        mode = 7 # again what does this mean?
+        array_name = self.read_data('s')
+        array_type = self.read_data('c')
 
-        data_type = self.read_data('c')
-
-        if data_type not in DMAP_DATA_KEYS:
-            message = "PARSE_ARRAY: Data type is corrupted."\
-                    " Record is likely corrupted"
-            raise DmapDataError(self.filename, message)
-
+        check_data_type(array_type, array_name, self.dmap_file, self.cursor)
         pydarn_logger.info("PARSE ARRAY: name {0} data_type {1}\n"
-                           .format(name, data_type))
+                           .format(array_name, array_type))
 
-        data_type_fmt = self.convert_datatype_to_fmt(data_type)
+        array_type_fmt = DMAP_DATA_TYPE.get(array_type, (DMAP))[0]
+        array_fmt_btes = DMAP_DATA_TYPE.get(array_type, (DMAP))[1]
 
         array_dimension = self.read_data('i')
+        bytes_check(array_dimension, "array dimension",
+                    record_size, "record size", self.data_file, self.cursor)
+        zero_check(array_dimension, "array dimension", self.data_file, self.cursor)
 
-        if array_dimension > record_size:
-            message = """PARSE_ARRAY: Parsed # of array dimensions are larger than
-             record size. Record is likely corrupted"""
-            raise DmapDataError(self.filename, message)
-        elif array_dimension <= 0:
-            message = """PARSE ARRAY: Parsed # of array dimensions are zero or
-             negative. Record is likely corrupted"""
-            raise DmapDataError(self.filename, message)
+        array_shape = [self.read_data('i') for i in range(0, array_dimension)]
 
-        dimensions = [self.read_data('i') for i in range(0, array_dimension)]
-        if not dimensions:
-            message = "PARSE ARRAY: Array dimensions could not be parsed."
-            raise DmapDataError(self.filename, message)
-        elif sum(x <= 0 for x in dimensions) > 0 and name != "slist":
-            # slist is exception
-            message = """PARSE ARRAY: Array dimension is zero or negative.
-             Record is likely corrupted"""
+        # if dimensions list is empty
+        if array_shape > 0:
+            message = "Error: Array shape {shape} could not be read."\
+                    " cursor: {cursor}".format(shape=array_shape,
+                                               cursor=self.cursor)
+            raise DmapDataError(self.dmap_file, message)
+        elif any(x <= 0 for x in array_dimensions) and name != "slist": # where does slist come from?
+            message = "Error: Array shape {shape} contains dimension size <= 0."\
+                    " Cursor: {cursor}".format(dim=array_shape,
+                                               cursor=self.cursor)
             raise DmapDataError(self.filename, message)
 
-        for x in dimensions:
-            if x >= record_size:
-                message = "PARSE_ARRAY: Array dimension exceeds record size."
+        for i in range(len(array_shape)):
+            if array_shape[i] >= record_size:
+                message = "Error: Array {index}-dimension size {size}"\
+                        " exceeds record size: {rec_size}.".format(index=i,
+                                                               size=array_shape[i],
+                                                               rec_size=record_size)
+                raise pydmap_exceptions.DmapDataError(self.dmap_file, message)
 
-        pydarn_logger.info("PARSE ARRAY: dimensions {0}\n".format(dimensions))
+        pydarn_logger.info("Read array: shape is {0}\n".format(array_dimensions))
 
-        total_elements = 1
-        for dim in dimensions:
-            total_elements = total_elements * dim
+        total_num_cells = np.prod(array_dimensions)
+        byte_check(total_num_cells, "total number of cells", record_size,
+                   "record size", self.dmap_file, self.cursor)
 
-        if total_elements > record_size:
-            message = """PARSE_ARRAY: Total array elements > record size."""
-            raise DmapDataError(self.filename, message)
-        elif total_elements * self.get_num_bytes(data_type_fmt) > record_size:
-            message = "PARSE ARRAY: Array size exceeds record size."\
-                    " Data is likely corrupted"
-            raise DmapDataError(self.filename, message)
+        total_num_cells_bytes = total_num_cells * self.get_num_bytes(array_type_fmt)
+        byte_check(total_num_cells_bytes, "total number of cells in bytes", record_size,
+                   "record size", self.dmap_file, self.cursor)
 
-        pydarn_logger.info("PARSE ARRAY: total elements {0} size {1}\n"
-                        .format(total_elements,
-                                self.get_num_bytes(data_type_fmt)))
+        pydarn_logger.info("Read array: total elements {0} byte size {1}\n"
+                        .format(total_elements, array_fmt_bytes))
 
         # parsing an array of strings requires a different method. Numpy can't
         # parse strings or dmaps into arrays the way it can for other
@@ -309,6 +336,9 @@ class DmapRead():
         # Because chars
         # are encoded as hex literals, they have to be read one at a
         # time to make sense.
+
+        # what is DMAP format? Can we get an example that has a list of Strings or DMAP?
+        # Also why is char also included?
         if data_type_fmt == 's' or data_type_fmt == 'c' or data_type_fmt == DMAP:
             data_array = np.array(self.build_n_dimension_list(dimensions,
                                                               data_type_fmt))
@@ -320,31 +350,32 @@ class DmapRead():
         return RawDmapArray(name, data_type, data_type_fmt, mode,
                             array_dimension, dimensions, data_array)
 
-    def build_n_dimension_list(self, dim, data_type_fmt):
+    def build_n_dimension_list(self, shape, data_type_fmt):
         """This is used to build a list of multiple dimensions without knowing
         them ahead of time. This method is used to manually parse arrays
         from a dmap
 
-        :param dim: list of dimensions
-        :param data_type_fmt: string format identifier of the DMAP data type
-        :returns: n dimensional list of data parsed from buffer
-
+        :param shape: the shape of n-dimensional array containing
+                      the size of each dimension
+        :param data_type_fmt: string format identifier of the DMAP data type  <--- what about char?
+        :returns: list of strings or DMAP data
         """
-        dim_data = []
-        dimension = dim.pop()
+        data = []
 
-        if not dim:
-            dim_data = [self.read_data(data_type_fmt)
-                        for i in range(0, dimension)]
-        else:
-            dim_data = [self.build_n_dimension_list(list(dim), data_type_fmt)
-                        for i in range(0, dimension)]
+        for dim_size in shape:
+            for i in range(dim_size):
+                data.append(self.read_data(data_type_fmt))
+       # try to avoid using recursion, it is slow
+       # if not dim:
+       #     dim_data = [self.read_data(data_type_fmt)
+       #                 for i in range(0, dimension)]
+       # else:
+       #     dim_data = [self.build_n_dimension_list(list(dim), data_type_fmt)
+       #                 for i in range(0, dimension)]
+        return data
 
-        return dim_data
-
-    def read_data(self, data_type_fmt):
+    def read_data(self, data_type_fmt, data_fmt_bytes):
         """Reads an individual data type from the buffer
-
         Given a format identifier, a number of bytes are read from the buffer
         and turned into the correct data type
 
@@ -352,44 +383,49 @@ class DmapRead():
         :returns: parsed data
 
         """
-        pydarn_logger.info("READ DATA: cursor {0} bytelen {1}\n"
+        pydarn_logger.info("read data: cursor {0} out of {1} bytes\n"
                         .format(self.cursor,
-                                len(self.dmap_bytearr)))
+                                self.dmap_end_bytes))
 
-        if self.cursor >= len(self.dmap_bytearr):
-            message = "READ DATA: Cursor extends out of buffer."\
-                    " Data is likely corrupted"
-            raise DmapDataError(self.filename, message)
+        if self.cursor >= self.dmap_end_bytes:
+            message = "Error: Cursor {cursor} extends"\
+                    " out of buffer {end_bytes}.".format(cursor=self.cursor,
+                                                         end_bytes=self.dmap_end_bytes)
+            raise pydmap_exceptions.CursorError(self.cursor, message=message)
 
-        if len(self.dmap_bytearr) - self.cursor < self.get_num_bytes(data_type_fmt):
-            message = "READ DATA: Byte offsets into buffer are not properly"\
-                    " aligned. Data is likely corrupted"
-            raise DmapDataError(self.filename, message)
+        cursor_offset = self.dmap_end_bytes - self.cursor
+        if cursor_offset < data_fmt_bytes:
+            message = "Error: Byte offsets {offset} into buffer {fmt}"\
+                    " are not aligned.".format(offset=cursor_offset,
+                                               fmt=data_fmt_bytes)
+            raise pydmap_exceptions.CursorError(self.cursor, message=message)
 
+        # Still confused what DMAP means?
         if data_type_fmt is DMAP:
             return self.parse_record()
         elif data_type_fmt == 'c':
             data = self.dmap_bytearr[self.cursor]
-            self.cursor = self.cursor + self.get_num_bytes(data_type_fmt)
-        elif data_type_fmt != 's': # TODO: reverse? this seems backwards
-            data = struct.unpack_from(data_type_fmt, memoryview(self.dmap_bytearr),
-                                      self.cursor)
-            self.cursor = self.cursor + self.get_num_bytes(data_type_fmt)
-            #self.cursor += 1
-        else:
+            self.cursor = self.cursor + data_fmt_bytes
+        elif data_type_fmt == 's':
             byte_counter = 0
             while self.dmap_bytearr[self.cursor + byte_counter] != 0:
                 byte_counter = byte_counter + 1
-                if self.cursor + byte_counter >= len(self.dmap_bytearr):
-                    message = "READ DATA: String is improperly terminated."\
-                            " Dmap record is corrupted"
-                    raise DmapDataError(self.filename, message)
+                if self.cursor + byte_counter >= self.dmap_end_bytes:
+                    message = "Error: Cursor {cursor} + byte counter >="\
+                            " {end_bytes} end number"\
+                            " of bytes".format(cursor=self.cursor + byte_counter,
+                                               end_bytes=self.dmap_end_bytes)
+                    raise pydmap_exceptions.CursorError(self.cursor, message=message)
 
             char_count = '{0}s'.format(byte_counter)
             data = struct.unpack_from(char_count,
                                       memoryview(self.dmap_bytearr),
                                       self.cursor)
             self.cursor = self.cursor + byte_counter + 1
+        else:
+            data = struct.unpack_from(data_type_fmt, memoryview(self.dmap_bytearr),
+                                      self.cursor)
+            self.cursor = self.cursor + self.get_num_bytes(data_type_fmt)
 
         if data_type_fmt == 'c':
             return data
@@ -589,35 +625,35 @@ class RawDmapWrite(object):
     def dmap_record_to_bytes(self, record):
         """This method converts a dmap record to the byte format that is written to file.
 
-        Format is code,length of record,number of scalers,number of arrays, followed by
-        the scalers and then the arrays
+        Format is code,length of record,number of scalars,number of arrays, followed by
+        the scalars and then the arrays
 
         :param record: a RawDmapRecord
 
         """
-        scalers = record.get_scalers()
+        scalars = record.get_scalars()
         arrays = record.get_arrays()
 
         code = 65537 # TODO: what is this value?
-        num_scalers = record.get_num_scalers()
+        num_scalars = record.get_num_scalars()
         num_arrays = record.get_num_arrays()
 
         byte_arr = bytearray()
-        for sc in scalers:
+        for sc in scalars:
             byte_arr.extend(self.dmap_scaler_to_bytes(sc))
         for ar in arrays:
             byte_arr.extend(self.dmap_array_to_bytes(ar))
 
-        # + 16 for length,code,num scalers, and num arrays fields
+        # + 16 for length,code,num scalars, and num arrays fields
         length = len(byte_arr) + 16
 
         code_bytes = struct.pack('i', code)
         length_bytes = struct.pack('i', length)
-        num_scalers_bytes = struct.pack('i', num_scalers)
+        num_scalars_bytes = struct.pack('i', num_scalars)
         num_arrays_bytes = struct.pack('i', num_arrays)
         self.dmap_bytearr.extend(code_bytes)
         self.dmap_bytearr.extend(length_bytes)
-        self.dmap_bytearr.extend(num_scalers_bytes)
+        self.dmap_bytearr.extend(num_scalars_bytes)
         self.dmap_bytearr.extend(num_arrays_bytes)
         self.dmap_bytearr.extend(byte_arr)
 
@@ -1123,10 +1159,10 @@ def dmap_rec_to_dict(rec):
     :returns: a dictionary of all data contained in the record
 
     """
-    scalers = rec.get_scalers()
+    scalars = rec.get_scalars()
     arrays = rec.get_arrays()
 
-    merged_lists = scalers + arrays
+    merged_lists = scalars + arrays
 
     record_dict = {ml.get_name(): ml.get_data() for ml in merged_lists}
     return record_dict
