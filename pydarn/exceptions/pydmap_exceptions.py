@@ -43,7 +43,7 @@ class DmapDataTypeError(Exception):
         self.message = "Error: Dmap data type {data_type} for {name}"\
                 " at cursor = {cursor} does not exist in dmap data types."\
                 "filename: {filename}".format(name=data_name,
-                                              data_type=data_type
+                                              data_type=data_type,
                                               filename=filename,
                                               cursor=cursor)
         super().__init__(self.message)
