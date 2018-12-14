@@ -32,7 +32,7 @@ DMAP_DATA_TYPES = {DMAP: ('', 0),
                    INT: ('i', 4),
                    FLOAT: ('f', 4),
                    DOUBLE: ('d', 8),
-                   STRING: ('s', None),
+                   STRING: ('s', 1),
                    LONG: ('q', 8),
                    UCHAR: ('B', 1),
                    USHORT: ('H', 2),
@@ -60,7 +60,7 @@ class DmapRead():
         :param stewam: defualt to false, boolean that indicates if dmap_file
                        is a stream
         """
-        self.dmap_cursor = 0  # offset of bytes
+        self.cursor = 0  # offset of bytes
         self.dmap_end_bytes = 0  # units of bytes
         """
         Dmap records are stored in a deque data structure for
@@ -89,6 +89,8 @@ class DmapRead():
             self.dmap_file = "stream"
             pydarn_logger.info("DMAP Read file: Stream")
         self.dmap_end_bytes = len(self.dmap_bytearr)
+        if self.dmap_end_bytes == 0:
+            raise pydmap_exceptions.EmptyFileError(self.dmap_file)
 
     def read_records(self):
         """
@@ -106,10 +108,7 @@ class DmapRead():
 
         pydarn_logger.info("Reading dmap records...")
         # read bytes until end of byte array
-        while self.dmap_cursor < self.dmap_end_bytes:
-            # TODO: Maybe I need a debugger file for this kind of information?
-            pydarn_logger.debug("TOP LEVEL LOOP: cursor {0}\n"
-                                .format(self.cursor))
+        while self.cursor < self.dmap_end_bytes:
             new_record = self.read_record()
             self.__dmap_records.append(new_record)
             self.bytes_check(self.cursor, "cursor",
@@ -128,7 +127,8 @@ class DmapRead():
         """
         pydarn_logger.info("Testing the integrity of the dmap file/stream")
         total_block_size = 0  # unit of bytes
-        self.zero_check(self.cursor, "cursor")
+        if self.cursor != 0:
+            raise pydmap_exceptions.CursorError(self.cursor, 0)
 
         while self.cursor < self.dmap_end_bytes:
             """
@@ -146,11 +146,8 @@ class DmapRead():
             """
             # This is an unused variable but is need to move the cursor to the
             # next offset.
-            encoding_identifier = self.read_data('i')
-            self.bytes_check(self.cursor, "cursor",
-                             DMAP_DATA_TYPES[INT][1],
-                             "encoding identifier size")
-            block_size = self.read_data('i')
+            encoding_identifier = self.read_data(INT)
+            block_size = self.read_data(INT)
             self.zero_check(block_size, "block size")
 
             total_block_size += block_size
@@ -210,13 +207,10 @@ class DmapRead():
         # used in a cursor check.
         post_cursor = self.cursor
 
-        encoding_identifier = self.read_data('i')
-        block_size = self.read_data('i')
+        encoding_identifier = self.read_data(INT)
+        block_size = self.read_data(INT)
 
-        pydarn_logger.info("Reading Record: encoding idetifier {code}"
-                           " block size {size}\n"
-                           .format(code=encoding_identifier,
-                                   size=block_size))
+        pydarn_logger.info("Reading Record: cursor {}".format(self.cursor))
 
         # adding 8 bytes because code+size are part of the record.
         remaining_bytes = self.dmap_end_bytes - self.cursor + 2 *\
@@ -225,8 +219,8 @@ class DmapRead():
                          remaining_bytes, "remaining bytes")
         self.zero_check(block_size, "block size")
 
-        num_scalars = self.read_data('i')
-        num_arrays = self.read_data('i')
+        num_scalars = self.read_data(INT)
+        num_arrays = self.read_data(INT)
 
         pydarn_logger.info("Reading record: there are {scalars} scalars"
                            " and {arrays} arrays\n"
@@ -251,7 +245,8 @@ class DmapRead():
         if (self.cursor - post_cursor) != block_size:
             raise pydmap_exceptions.CursorError(self.cursor, block_size)
 
-        return DmapRecord(scalars, arrays)
+        dmap_record = DmapRecord(scalars, arrays)
+        return dmap_record.record
 
     def read_scalar(self):
         """
@@ -260,8 +255,8 @@ class DmapRead():
         :returns: DmapScalar namedtupled
         """
 
-        scalar_name = self.read_data('s')
-        scalar_type = self.read_data('c')
+        scalar_name = self.read_data(STRING)
+        scalar_type = self.read_data(CHAR)
 
         self.check_data_type(scalar_type, scalar_name)
         pydarn_logger.info("Read scalar: name {0} data type {1}\n"
@@ -270,10 +265,11 @@ class DmapRead():
         scalar_type_fmt = DMAP_DATA_TYPES.get(scalar_type, DMAP)
 
         if scalar_type_fmt != DMAP:
-            scalar_value = self.read_data(scalar_type_fmt)
+            scalar_value = self.read_data(scalar_type)
         else:
-            print("reading a record in reading scalar?")
-            scalar_value = self.read_record()  # why do we read another record?
+            message = "Error: Trying to read DMAP format."\
+                    " cursor at {}".format(self.cursor)
+            raise pydmap_exceptions.DmapDataError(self.dmap_file,message)
 
         return DmapScalar(scalar_name, scalar_value, scalar_type)
 
@@ -284,8 +280,8 @@ class DmapRead():
         :params record size: is the size of the record (block size) in bytes
         :returns: DmapArray namedtuple
         """
-        array_name = self.read_data('s')
-        array_type = self.read_data('c')
+        array_name = self.read_data(STRING)
+        array_type = self.read_data(CHAR)
 
         self.check_data_type(array_type, array_name)
         pydarn_logger.info("PARSE ARRAY: name {0} data_type {1}\n"
@@ -294,12 +290,13 @@ class DmapRead():
         array_type_fmt = DMAP_DATA_TYPES.get(array_type, (DMAP, None))[0]
         array_fmt_bytes = DMAP_DATA_TYPES.get(array_type, (DMAP, 0))[1]
 
-        array_dimension = self.read_data('i')
+        array_dimension = self.read_data(INT)
         self.bytes_check(array_dimension, "array dimension",
                          record_size, "record size")
         self.zero_check(array_dimension, "array dimension")
 
-        array_shape = [self.read_data('i') for i in range(0, array_dimension)]
+        array_shape = [self.read_data(INT) for i in range(0, array_dimension)]
+        array_shape.reverse()
 
         # if shape list is empty
         if len(array_shape) <= 0:
@@ -352,16 +349,16 @@ class DmapRead():
         if array_type_fmt == 's' or array_type_fmt == 'c' or\
            array_type_fmt == DMAP:
             array_value = self.read_string_DMAP_array(array_shape,
-                                                      array_type_fmt)
+                                                      array_type)
         else:
-            array_value = self.read_numerical_array(array_type_fmt,
+            array_value = self.read_numerical_array(array_type,
                                                     array_shape,
                                                     total_num_cells)
 
         return DmapArray(array_name, array_value, array_type,
                          array_dimension, array_shape)
 
-    def read_string_DMAP_array(self, shape, array_type_fmt):
+    def read_string_DMAP_array(self, shape, array_type):
         """This is used to build a list of multiple dimensions without knowing
         them ahead of time. This method is used to manually parse arrays
         from a dmap
@@ -375,7 +372,7 @@ class DmapRead():
 
         for dim_size in shape:
             for i in range(dim_size):
-                data.append(self.read_data(array_type_fmt))
+                data.append(self.read_data(array_type))
         # try to avoid using recursion, it is slow
         # if not dim:
         #     dim_data = [self.read_data(data_type_fmt)
@@ -394,12 +391,11 @@ class DmapRead():
         :returns: parsed data
 
         """
-        pydarn_logger.info("read data: cursor {0} out of {1} bytes\n"
-                           .format(self.cursor,
-                                   self.dmap_end_bytes))
+        #pydarn_logger.info("read data: cursor {cursor} out of"
+        #                   " {size} bytes".format(cursor=self.cursor,
+        #                                          size=self.dmap_end_bytes))
         data_type_fmt = DMAP_DATA_TYPES.get(data_type, (DMAP, None))[0]
         data_fmt_bytes = DMAP_DATA_TYPES.get(data_type, (DMAP, 0))[1]
-
         if self.cursor >= self.dmap_end_bytes:
             message = "Error: Cursor {cursor} extends"\
                     " out of buffer {end_bytes}."\
@@ -416,10 +412,9 @@ class DmapRead():
 
         # struct.upack is a python method the converts C struct as python bytes
         # to python values. See DEVELOPER_README.md for more information.
-        # Still confused what DMAP means?
+        # TODO: how to handle this gracefully? return None and check later than continue in the looop?
         if data_type_fmt is DMAP:
-            print("Reading a record for DMAP array?")
-            return self.read_record()
+            raise pydmap_exceptions.DmapDataError(self.dmap_file, "Error: trying read data from DMAP")
         elif data_type_fmt == 'c':
             data = self.dmap_bytearr[self.cursor]  # Not sure this always holds?
             self.cursor = self.cursor + data_fmt_bytes
@@ -488,12 +483,6 @@ class DmapRead():
                                                       buf=array_buffer,
                                                       size=data_fmt_bytes)
             raise pydmap_exceptions.DmapDataError(self.dmap_file, message)
-
-        if len(shape) > 1:
-            # reshape the array from 1-d to n-d.
-            # we need to reverse the shape order because it is read in reverse
-            # from the file.
-            array = array.reshape(tuple(shape[::-1]))
 
         self.cursor = self.cursor + total_number_cells * data_fmt_bytes
 
