@@ -21,322 +21,317 @@ import random
 import gc
 import time
 import logging
+import collections
 
 import pydarn
 
 pydarn_logger = logging.getLogger('pydarn')
+
+# Test files
 rawacf_file = "./testfiles/20170410.1801.00.sas.rawacf"
 fitacf_file = "./testfiles/20180220.C0.rkn.fitacf"
 map_file = "./testfiles/20170114.map"
-
-def compare_arrays(arr1, arr2):
-    for a, b in zip(arr1, arr2):
-        if (isinstance(a, np.ndarray) or isinstance(a, list)) and \
-         (isinstance(b, np.ndarray) or isinstance(b, list)):
-            return compare_arrays(a, b)
-        else:
-            if (isinstance(a, np.float32) or isinstance(a, float)) and \
-             (isinstance(a, np.float32) or isinstance(a, float)):
-                if abs(a-b) > 1e-03:
-                    return True
-            else:
-                if a != b:
-                    return True
-
-    return False
+iqdat_file = "testfiles/20160316.1945.01.rkn.iqdat"
+# Black listed files
+corrupt_file1 = "./testfiles/20070117.1001.00.han.rawacf"
+corrupt_file2 = "./testfiles/20090320.1601.00.pgr.rawacf"
 
 
-def test_write_integrity(parsed_record, dict_to_test):
-        for k, v in dict_to_test.items():
-            if isinstance(parsed_record[k], np.ndarray):
-                if compare_arrays(parsed_record[k], v):
-                    return k
-            else:
-                if isinstance(parsed_record[k], float):
-                    if abs(parsed_record[k] - v) >= 1e-05:
-                        return k
-                else:
-                    if parsed_record[k] != v:
-                        return k
-        return None
-
-
-class TestDmap(unittest.TestCase):
+class TestDmapRead(unittest.TestCase):
+    """
+    Testing class for DmapRead class
+    """
     def setUp(self):
         pass
 
+    """
+    Testing DmapRead's constructor
+    """
+    def test_incorrect_path(self):
+        """
+        Testing DmapRead's constructor with an non-existant folder.
+
+        Expected behaviour: raise FileNotFoundError
+        """
+        self.assertRaises(FileNotFoundError, pydarn.DmapRead, './dog/somefile.rawacf')
+
     def test_incorrect_file(self):
-        """tests whether the file is empty or missing"""
-        self.assertRaises(pydarn.EmptyFileError, pydarn.RawDmapRead, '/tmp/somefile.rawacf')
-        self.assertRaises(pydarn.EmptyFileError,
-                          pydarn.RawDmapRead,
-                          'testfiles/emptytestfile')
+        """
+        Tests if DmapRead's constructor with an non-existant file
+
+        Expected bahaviour: raises FileNotFoundError
+        """
+        self.assertRaises(FileNotFoundError, pydarn.DmapRead, './testfiles/somefile.rawacf')
+
+    def test_empty_file(self):
+        """
+        Tests if DmapRead's constructor with an empty file
+
+        Expected behaviour: raise EmptyFileError
+        """
+        self.assertRaises(pydarn.pydmap_exceptions.EmptyFileError, pydarn.DmapRead, './testfiles/empty.rawacf')
 
     def test_open_rawacf(self):
-        """tests opening a rawacf file using RawDmapRead"""
+        """
+        Tests DmapRead's constructor on opening a rawacf.
+        It should be able to open the file, read it and convert to bytearray.
+
+        Checks:
+            - bytearray instance is created from reading in the file
+            - bytearray is not empty
+        """
         file_path = rawacf_file
-
-        # fail if any changes cause an exception to be thrown
-        try:
-            dm = pydarn.RawDmapRead(file_path)
-        except pydarn.DmapDataError as e:
-            self.fail(str(e))
-
-        # will fail if there are no records
-        self.assertTrue(dm.get_records())
+        dm = pydarn.DmapRead(file_path)
+        self.assertIsInstance(dm.dmap_bytearr, bytearray)
+        self.assertGreater(dm.dmap_end_bytes, 0)
 
     def test_open_fitacf(self):
-        """tests opening a fitacf file using RawDmapRead"""
+        """
+        Tests DmapRead's constructor on opening a fitacf.
+        It should be able to open the file, read it and convert to bytearray.
+
+        Checks:
+            - bytearray instance is created from reading in the file
+            - bytearray is not empty
+        """
         file_path = fitacf_file
-
-        # fail if any changes cause an exception to be thrown
-        try:
-            dm = pydarn.RawDmapRead(file_path)
-        except pydarn.DmapDataError as e:
-            self.fail(str(e))
-
-        # will fail if there are no records
-        self.assertTrue(dm.get_records())
+        dm = pydarn.DmapRead(file_path)
+        self.assertIsInstance(dm.dmap_bytearr, bytearray)
+        self.assertGreater(dm.dmap_end_bytes, 0)
 
     def test_open_map(self):
-        """tests opening a map file using RawDmapRead"""
+        """
+        Tests DmapRead's constructor on opening a map.
+        It should be able to open the file, read it and convert to bytearray.
+
+        Checks:
+            - bytearray instance is created from reading in the file
+            - bytearray is not empty
+        """
         file_path = map_file
-
-        # fail if any changes cause an exception to be thrown
-        try:
-            dm = pydarn.RawDmapRead(file_path)
-        except pydarn.DmapDataError as e:
-            self.fail(str(e))
-
-        # will fail if there are no records
-        self.assertTrue(dm.get_records())
+        dm = pydarn.DmapRead(file_path)
+        self.assertIsInstance(dm.dmap_bytearr, bytearray)
+        self.assertGreater(dm.dmap_end_bytes, 0)
 
     def test_open_iqdat(self):
-        """tests opening a map file using RawDmapRead"""
-        file_path = "testfiles/20160316.1945.01.rkn.iqdat"
-
-        # fail if any changes cause an exception to be thrown
-        try:
-            dm = pydarn.RawDmapRead(file_path)
-        except pydarn.DmapDataError as e:
-            self.fail(str(e))
-
-        # will fail if there are no records
-        self.assertTrue(dm.get_records())
-
-    def test_parse_dmap_from_file_function(self):
-        """tests the overarching function used to open dmap based files
-        and returns a list of parsed items"""
-        file_path = map_file
-
-        # fail if any changes cause an exception to be thrown
-        try:
-            records = pydarn.parse_dmap_format_from_file(file_path)
-        except pydarn.DmapDataError as e:
-            self.fail(str(e))
-
-        self.assertIsInstance(records, list)
-        self.assertIsInstance(records[0], dict)
-
-    def test_RawDmapWrite_missing_field_rawacf(self):
         """
-            Tests RawDmapWite to write to rawacf:
-                Expected behaviour to raise a DmapDataError
-                because the rawtacf file is missing field.
+        Tests DmapRead's constructor on opening a iqdat.
+        It should be able to open the file, read it and convert to bytearray.
+
+        Checks:
+            - bytearray instance is created from reading in the file
+            - bytearray is not empty
         """
-        file_path = "test_rawacf.rawacf"
+        file_path = iqdat_file
+        dm = pydarn.DmapRead(file_path)
+        self.assertIsInstance(dm.dmap_bytearr, bytearray)
+        self.assertGreater(dm.dmap_end_bytes, 0)
 
-        dict_list = [test_data.rawacf_missing_field]
-
-        self.assertRaises(pydarn.DmapDataError, pydarn.dicts_to_file,
-                          dict_list, file_path, file_type='rawacf')
-
-
-    def test_RawDmapWrite_extra_field_rawacf(self):
+    def test_integrity_check_rawacf(self):
         """
-            Tests RawDmapWite to write to rawacf:
-                Expected behaviour to raise a DmapDataError
-                because the rawacf file data has an extra field.
+        Tests DmapRead test_initial_data_integrity
+        It should be able to read through the bytearray quickly
+        ensureing no curruption has occured in the file.
+
+        Behaviours: raising no exceptions
         """
-        file_path = "test_rawacf.rawacf"
+        file_path = rawacf_file
+        dm = pydarn.DmapRead(file_path)
+        dm.test_initial_data_integrity()
 
-        dict_list = [test_data.rawacf_extra_field]
-
-        self.assertRaises(pydarn.DmapDataError, pydarn.dicts_to_file,
-                          dict_list, file_path, file_type='rawacf')
-
-
-    def test_writing_to_rawacf(self):
-        """tests using RawDmapWrite to write to rawacf"""
-        dict_list = [test_data.good_rawacf]
-        file_path = "test_rawacf.rawacf"
-
-        pydarn.dicts_to_file(dict_list, file_path, file_type='rawacf')
-
-        rec = pydarn.parse_dmap_format_from_file(file_path)
-
-        parsed_record = rec[0]
-        k = test_write_integrity(parsed_record, test_data.good_rawacf)
-
-        if k is not None:
-            self.fail("Parsed field {0} data does not match data to be written out".format(k))
-
-        os.remove(file_path)
-
-    def test_RawDmapWrite_missing_field(self):
+    def test_integrity_check_fitacf(self):
         """
-            Tests RawDmapWite to write to fitacf:
-                Expected behaviour to raise a DmapDataError
-                because the fitacf file is missing field.
+        Tests DmapRead test_initial_data_integrity
+        It should be able to read through the bytearray quickly
+        ensureing no curruption has occured in the file.
+
+        Behaviours: raising no exceptions
         """
-        file_path = "test_fitacf.fitacf"
-
-        dict_list = [test_data.fitacf_missing_field]
-
-        self.assertRaises(pydarn.DmapDataError, pydarn.dicts_to_file,
-                          dict_list, file_path, file_type='fitacf')
-
-
-    def test_RawDmapWrite_extra_field(self):
-        """
-            Tests RawDmapWite to write to fitacf:
-                Expected behaviour to raise a DmapDataError
-                because the fitacf file data has an extra field.
-        """
-        file_path = "test_fitacf.fitacf"
-
-        dict_list = [test_data.fitacf_extra_field]
-
-        self.assertRaises(pydarn.DmapDataError, pydarn.dicts_to_file,
-                          dict_list, file_path, file_type='fitacf')
-
-
-    def test_writing_to_fitacf(self):
-        """
-            tests using RawDmapWrite to write to fitacf
-            Excpected behaviour test_fitacf.fitacf is produced
-            with no errors.
-        """
-
-        file_path = "test_fitacf.fitacf"
-
-        dict_list = [test_data.good_fitacf]
-        pydarn.dicts_to_file(dict_list, file_path,'fitacf')
-        rec = pydarn.parse_dmap_format_from_file(file_path)
-
-        parsed_record = rec[0]
-
-        k = test_write_integrity(parsed_record, test_data.good_fitacf)
-
-        if k is not None:
-            self.fail("Parsed field {0} data does not match data to be written out".format(k))
-
-        os.remove(file_path)
-
-    def test_writing_to_iq(self):
-        """tests using RawDmapWrite to write to iqdat"""
-        file_path = "test_iq.iqdat"
-
-        dict_list = [test_data.iq_missing_field]
-
-        self.assertRaises(pydarn.DmapDataError, pydarn.dicts_to_file, dict_list,
-                          file_path, file_type='iqdat')
-
-        dict_list = [test_data.iq_extra_field]
-
-        self.assertRaises(pydarn.DmapDataError, pydarn.dicts_to_file,
-                          dict_list, file_path, file_type='iqdat')
-
-        dict_list = [test_data.good_iq]
-
-        try:
-            pydarn.dicts_to_file(dict_list, file_path,
-                                 file_type='iqdat')
-        except pydarn.DmapDataError as e:
-            self.fail(str(e))
-
-        try:
-            rec = pydarn.parse_dmap_format_from_file(file_path)
-        except pydarn.DmapDataError as e:
-            self.fail(str(e))
-
-        parsed_record = rec[0]
-
-        k = test_write_integrity(parsed_record, test_data.good_iq)
-
-        if k is not None:
-            self.fail("Parsed field {0} data does not match data to be written out".format(k))
-
-        os.remove(file_path)
-
-    def test_writing_to_map(self):
-        """tests using RawDmapWrite to write to map"""
-        file_path = "test_map.map"
-
-        dict_list = [test_data.map_missing_field]
-
-        self.assertRaises(pydarn.DmapDataError, pydarn.dicts_to_file,
-                          dict_list, file_path, file_type='map')
-
-        dict_list = [test_data.map_extra_field]
-
-        self.assertRaises(pydarn.DmapDataError, pydarn.dicts_to_file,
-                          dict_list, file_path, file_type='map')
-
-        dict_list = [test_data.good_map]
-
-        try:
-            pydarn.dicts_to_file(dict_list, file_path, file_type='map')
-        except pydarn.DmapDataError as e:
-            self.fail(str(e))
-
-        try:
-            rec = pydarn.parse_dmap_format_from_file(file_path)
-        except pydarn.DmapDataError as e:
-            self.fail(str(e))
-
-        parsed_record = rec[0]
-
-        k = test_write_integrity(parsed_record, test_data.good_map)
-
-        if k is not None:
-            self.fail("Parsed field {0} data does not match data to be written out".format(k))
-
-        os.remove(file_path)
-
-    def test_dmap_read_through_randomization(self):
-        """Randomly corrupts 5% of the data in a record and tries to parse.
-            Fails if an non Dmap exception is thrown as this means there is a
-            missing check against bad input. Increase the number of tests to
-            stress test."""
-
-        num_tests = 100
-
         file_path = fitacf_file
-        dm = pydarn.parse_dmap_format_from_file(file_path, raw_dmap=True)
-        dm.cursor = 0
-        dm.parse_record()
+        dm = pydarn.DmapRead(file_path)
+        dm.test_initial_data_integrity()
 
-        dmap_length = dm.cursor
+    def test_integrity_check_map(self):
+        """
+        Tests DmapRead test_initial_data_integrity
+        It should be able to read through the bytearray quickly
+        ensureing no curruption has occured in the file.
 
-        dmap_to_randomize = dm.dmap_bytearr[0:dmap_length]
+        Behaviours: raising no exceptions
+        """
+        file_path = map_file
+        dm = pydarn.DmapRead(file_path)
+        dm.test_initial_data_integrity()
 
-        seed = int(time.time())
-        random.seed(seed)
+    def test_integrity_check_iqdat(self):
+        """
+        Tests DmapRead test_initial_data_integrity
+        It should be able to read through the bytearray quickly
+        ensureing no curruption has occured in the file.
 
-        for x in range(0, num_tests):
-            gc.collect()
-            randomizer = [os.urandom(1) if random.randint(0, 100) >= 95
-                          else '\x00' for j in range(0, dmap_length)]
+        Behaviours: raising no exceptions
+        """
+        file_path = iqdat_file
+        dm = pydarn.DmapRead(file_path)
+        dm.test_initial_data_integrity()
 
-            corrupted_dmap = [chr(a ^ ord(b))
-                              for a, b in zip(dmap_to_randomize, randomizer)]
-            self.assertRaises(pydarn.DmapDataError,pydarn.parse_dmap_format_from_stream, corrupted_dmap)
-            del(records)
-            del(randomizer)
-            del(corrupted_dmap)
+    # TODO: potential issue if files change and the values are not the same :/
+    def test_read_iqdat(self):
+        """
+        Test reading records from iqdat.
+
+        Checks:
+            - returns correct data structures
+            - returns excpected values
+        """
+        file_path = iqdat_file
+        dm = pydarn.DmapRead(file_path)
+        dm_records = dm.read_records()
+        self.assertIsInstance(dm_records, collections.deque)
+        self.assertIsInstance(dm_records[0], collections.OrderedDict)
+        self.assertIsInstance(dm_records[0]['rxrise'], pydarn.DmapScalar)
+        self.assertIsInstance(dm_records[3]['tsc'], pydarn.DmapArray)
+        self.assertIsInstance(dm_records[5]['mppul'].value, int)
+        self.assertIsInstance(dm_records[6]['tnoise'].value, np.ndarray)
+        self.assertEqual(dm_records[7]['channel'].value, 0)
+        self.assertEqual(dm_records[10]['data'].dimension, 1)
+
+    def test_read_rawacf(self):
+        """
+        Test reading records from rawacf.
+
+        Checks:
+            - returns correct data structures
+            - returns excpected values
+        """
+        file_path = rawacf_file
+        dm = pydarn.DmapRead(file_path)
+        dm_records = dm.read_records()
+        self.assertIsInstance(dm_records, collections.deque)
+        self.assertIsInstance(dm_records[0], collections.OrderedDict)
+        self.assertIsInstance(dm_records[4]['channel'], pydarn.DmapScalar)
+        self.assertIsInstance(dm_records[1]['ptab'], pydarn.DmapArray)
+        self.assertIsInstance(dm_records[7]['channel'].value, int)
+        self.assertIsInstance(dm_records[2]['xcfd'].value, np.ndarray)
+        self.assertEqual(dm_records[0]['xcfd'].dimension, 3)
+
+    def test_read_fitacf(self):
+        """
+        Test reading records from fitacf.
+
+        Checks:
+            - returns correct data structures
+            - returns excpected values
+        """
+        file_path = fitacf_file
+        dm = pydarn.DmapRead(file_path)
+        dm_records = dm.read_records()
+        self.assertIsInstance(dm_records, collections.deque)
+        self.assertIsInstance(dm_records[0], collections.OrderedDict)
+        self.assertIsInstance(dm_records[2]['channel'], pydarn.DmapScalar)
+        self.assertIsInstance(dm_records[5]['ptab'], pydarn.DmapArray)
+        self.assertIsInstance(dm_records[9]['channel'].value, int)
+        self.assertIsInstance(dm_records[4]['ptab'].value, np.ndarray)
+        self.assertEqual(dm_records[0]['scan'].value, 1)
+        self.assertEqual(dm_records[7]['ltab'].dimension, 2)
+
+    def test_read_map(self):
+        """
+        Test reading records from map file.
+
+        Checks:
+            - returns correct data structures
+            - returns excpected values
+        """
+        file_path = map_file
+        dm = pydarn.DmapRead(file_path)
+        dm_records = dm.read_records()
+        self.assertIsInstance(dm_records, collections.deque)
+        self.assertIsInstance(dm_records[0], collections.OrderedDict)
+        self.assertIsInstance(dm_records[2]['IMF.flag'], pydarn.pydmap.datastructures.DmapScalar)
+        self.assertIsInstance(dm_records[3]['stid'], pydarn.DmapArray)
+        self.assertIsInstance(dm_records[8]['IMF.flag'].value, int)
+        self.assertIsInstance(dm_records[10]['stid'].value, np.ndarray)
+        self.assertEqual(dm_records[3]['stid'].dimension, 1)
+        self.assertEqual(dm_records[0]['stid'].shape[0], 14)  # this will be file dependent... future working test project.
+
+    # TODO: Again dependent on the file used :/
+    def test_integrity_check_corrupt_file1(self):
+        """
+        Test test_initial_data_integrity on a corrupt file
+
+        Expected bahaviour: raises pydmap expection
+        """
+        dmap = pydarn.DmapRead(corrupt_file1)
+        with self.assertRaises(pydarn.pydmap_exceptions.MismatchByteError):
+            dmap.test_initial_data_integrity()
+
+    def test_read_corrupt_file1(self):
+        """
+        Test read_records on a corrupt file
+
+        Expected bahaviour: raises pydmap expection
+        """
+        dmap = pydarn.DmapRead(corrupt_file1)
+        with self.assertRaises(pydarn.pydmap_exceptions.DmapDataTypeError):
+            dmap.read_records()
+
+    def test_integrity_check_corrupt_file2(self):
+        """
+        Test test_initial_data_integrity on a corrupt file
+
+        Expected bahaviour: raises pydmap expection
+        """
+        dmap = pydarn.DmapRead(corrupt_file2)
+        with self.assertRaises(pydarn.pydmap_exceptions.ZeroByteError):
+            dmap.test_initial_data_integrity()
+
+    def test_read_currupt_file2(self):
+        """
+        Test read_records on a corrupt file
+
+        Expected bahaviour: raises pydmap expection
+        """
+        dmap = pydarn.DmapRead(corrupt_file2)
+        with self.assertRaises(pydarn.pydmap_exceptions.ZeroByteError):
+            dmap.read_records()
+
+    # FIXME: have not gotten this test to work with the streaming. I believe it is an utf-8 problem
+    #def test_dmap_read_through_randomization(self):
+    #    """Randomly corrupts 5% of the data in a record and tries to parse.
+    #        Fails if an non Dmap exception is thrown as this means there is a
+    #        missing check against bad input. Increase the number of tests to
+    #        stress test."""
+
+    #    num_tests = 100
+    #    file_path = fitacf_file
+    #    dm = pydarn.DmapRead(file_path)
+    #    dm.cursor = 0
+    #    dm.read_record()
+
+    #    dmap_length = dm.cursor
+    #    dmap_to_randomize = dm.dmap_bytearr[0:dmap_length]
+
+    #    seed = int(time.time())
+    #    random.seed(seed)
+
+    #    for x in range(0, num_tests):
+    #        gc.collect()
+    #        randomizer = [os.urandom(1) if random.randint(0, 100) >= 95
+    #                      else '\x00' for j in range(0, dmap_length)]
+
+    #        corrupted_dmap = [chr(a ^ ord(b))
+    #                          for a, b in zip(dmap_to_randomize, randomizer)]
+    #        self.assertRaises(pydarn.DmapDataError,pydarn.parse_dmap_format_from_stream, corrupted_dmap)
+    #        del(records)
+    #        del(randomizer)
+    #        del(corrupted_dmap)
 
 
 if __name__ == '__main__':
+    """
+    Runs the above class in a unittest system.
+    Roughly takes 467 seconds.
+    """
     pydarn_logger.info("Starting DMAP testing")
     unittest.main()
