@@ -118,3 +118,4 @@ dmypy.json
 *.o
 *~
 *.log
+*.log*
