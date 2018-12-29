@@ -13,12 +13,15 @@ import logging.config
 import yaml
 
 # Importing pydarn exception classes
-from .exceptions.pydmap_exceptions import EmptyFileError
-from .exceptions.pydmap_exceptions import DmapDataError
+from .exceptions import pydmap_exceptions
+
+# Importing pydarn pydmap data structure classes
+from .pydmap.datastructures import DmapScalar
+from .pydmap.datastructures import DmapArray
+from .pydmap.datastructures import DmapRecord
 
 # Importing pydarn pydmap classes
-from .io.pydmap.dmap import RawDmapRead
-from .io.pydmap.dmap import parse_dmap_format_from_file
+from .pydmap.io import DmapRead
 
 """
 Pydarn uses yaml for logging configuration because it is the
