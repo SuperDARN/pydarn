@@ -49,7 +49,6 @@ from pydarn import pydmap_exceptions
 
 from pydarn import DmapArray
 from pydarn import DmapScalar
-from pydarn import DmapRecord
 
 # Keeping these global definitions for readability purposes
 # Data types use in DMAP files
@@ -82,7 +81,6 @@ DMAP_DATA_TYPES = {DMAP: ('', 0),
                    ULONG: ('Q', 8)}
 
 #pydarn_logger = logging.getLogger('pydarn')
-
 
 class DmapRead():
     """
@@ -177,6 +175,7 @@ class DmapRead():
             self.dmap_bytearr = bytearray(self.dmap_file)
             self.dmap_file = "stream"
             #pydarn_logger.info("DMAP Read file: Stream")
+        self.dmap_buffer = memoryview(self.dmap_bytearr)
         self.dmap_end_bytes = len(self.dmap_bytearr)
         if self.dmap_end_bytes == 0:
             raise pydmap_exceptions.EmptyFileError(self.dmap_file)
@@ -402,17 +401,23 @@ class DmapRead():
                          block_size, "block size")
 
         #pydarn_logger.info("Reading record: reading scalars\n")
-        scalars = [self.read_scalar() for i in range(num_scalars)]
+        # originally called DmapRecord but then was just returning the ordered dict
+        # thus I am constructing it here instead for better speed performance.
+        record = collections.OrderedDict()
+        for i in range(num_scalars):
+            scalar = self.read_scalar()
+            record[scalar.name] = scalar
 
         #pydarn_logger.info("Reading record: reading arrays\n")
-        arrays = [self.read_array(block_size) for i in range(num_arrays)]
+        for i in range(num_arrays):
+            array = self.read_array(block_size)
+            record[array.name] = array
 
         # check for a cursor error
         if (self.cursor - start_cursor_value) != block_size:
             raise pydmap_exceptions.CursorError(self.cursor, block_size)
 
-        dmap_record = DmapRecord(scalars, arrays)
-        return dmap_record.record
+        return record
 
     def read_scalar(self) -> DmapScalar:
         """
@@ -524,7 +529,11 @@ class DmapRead():
         #pydarn_logger.info("Read array: shape is {0}\n"
         #                   .format(array_shape))
 
-        total_num_cells = np.prod(array_shape)
+        # We could use np.prod(array_shape) but the for loop has a better
+        # time performance.
+        total_num_cells = 1
+        for i in array_shape:
+            total_num_cells *= i
         self.bytes_check(total_num_cells, "total number of cells",
                          record_size, "record size")
 
@@ -545,17 +554,15 @@ class DmapRead():
         # time to make sense.
 
         # what is DMAP format? Can we get an example that has a
-        # list of Strings or DMAP?
+        # list of DMAPs?
         # Also why is char also included?
-        if array_type_fmt == 's' or array_type_fmt == 'c' or\
-           array_type_fmt == DMAP:
-            array_value = self.read_string_DMAP_array(array_shape,
-                                                      array_type_fmt,
-                                                      array_fmt_bytes,
-                                                      array_type)
+        if array_type_fmt == 's' or array_type_fmt == 'c':
+            array_value = self.read_string_array(array_shape,
+                                                 array_type_fmt,
+                                                 array_fmt_bytes,
+                                                 array_type)
         else:
-            array_value = self.read_numerical_array(array_shape,
-                                                    array_type_fmt,
+            array_value = self.read_numerical_array(array_type_fmt,
                                                     total_num_cells,
                                                     array_fmt_bytes)
 
@@ -620,37 +627,30 @@ class DmapRead():
             return data
         elif data_type_fmt == 's':
             byte_counter = 0
-            while self.dmap_bytearr[self.cursor + byte_counter] != 0:
+            while self.dmap_bytearr[self.cursor + byte_counter] != 0 or self.cursor + byte_counter >= self.dmap_end_bytes:
                 # add 1 byte to byte_counter because a string is a list of chars
                 byte_counter += 1  # 1 is the number of bytes of a char
-                if self.cursor + byte_counter >= self.dmap_end_bytes:
-                    message = "Error: Cursor {cursor} + byte counter >="\
-                            " {end_bytes} end number"\
-                            " of bytes"\
-                            "".format(cursor=self.cursor + byte_counter,
-                                      end_bytes=self.dmap_end_bytes)
-                    raise pydmap_exceptions.CursorError(self.cursor,
-                                                        message=message)
+            self.bytes_check(self.cursor+byte_counter, 'cursor', self.dmap_end_bytes, 'Total number of Bytes')
 
             # format byte counter to a string format for unpacking
-            char_count = '{0}s'.format(byte_counter)
+            # WARNING: not using format for performance purposes
+            char_count = '%ss'%byte_counter
             data = struct.unpack_from(char_count,
-                                      memoryview(self.dmap_bytearr),
+                                      self.dmap_buffer,
                                       self.cursor)
-            # 1 is the number of bytes in a char
+            ## 1 is the number of bytes in a char
             self.cursor = self.cursor + byte_counter + 1
-            return str(data[0], 'utf-8')
+            return data[0].decode('utf-8')
         else:
             data = struct.unpack_from(data_type_fmt,
-                                      memoryview(self.dmap_bytearr),
+                                      self.dmap_buffer,
                                       self.cursor)
             self.cursor += data_fmt_bytes
             return data[0]
 
-    # TODO: Again do we ever get lists of strings or DMAPs?
-    def read_string_DMAP_array(self, shape: list,
-                               array_type_fmt: str,
-                               array_fmt_bytes: int) -> np.ndarray:
+    def read_string_array(self, shape: list,
+                          array_type_fmt: str,
+                          array_fmt_bytes: int) -> np.ndarray:
         """
         Reads and builds a N-D array of string/DMAP data types.
 
@@ -658,8 +658,8 @@ class DmapRead():
         ---------
         shape : list
             list of the arrays dimension size
-        array_type : int
-            DMAP data type
+        array_fmt_bytes : int
+            String or char
 
         Return
         ------
@@ -682,7 +682,7 @@ class DmapRead():
         #                 for i in range(0, dimension)]
         return np.array(data)
 
-    def read_numerical_array(self, shape: list, data_type_fmt: str,
+    def read_numerical_array(self, data_type_fmt: str,
                              total_number_cells: int,
                              data_fmt_bytes: int) -> np.ndarray:
         """
@@ -707,25 +707,8 @@ class DmapRead():
         DmapDataError
             Mismatch on the data type and the size specified in the byte array.
         """
-        # array_buffer_start = self.cursor
-        array_buffer_end = self.cursor + total_number_cells * data_fmt_bytes
-        self.bytes_check(array_buffer_end, "array buffer end",
-                         self.dmap_end_bytes, "number of bytes in the file")
-
-        array_buffer = self.dmap_bytearr[self.cursor:self.cursor +
-                                         total_number_cells * data_fmt_bytes]
-
-        try:
-            array = np.frombuffer(array_buffer, dtype=data_type_fmt)
-        except ValueError as v:
-            message = "Error: the following ValueError was raised {error}\n"\
-                    "Array buffer {buf} is not a multiple"\
-                    " of the data size {size}".format(error=v,
-                                                      buf=array_buffer,
-                                                      size=data_fmt_bytes)
-            raise pydmap_exceptions.DmapDataError(self.dmap_file, message)
-
-        self.cursor = self.cursor + total_number_cells * data_fmt_bytes
+        array = np.frombuffer(self.dmap_buffer, data_type_fmt, total_number_cells, self.cursor)
+        self.cursor += total_number_cells * data_fmt_bytes
 
         #pydarn_logger.info("Read numerical array: Successfully read array\n")
         return array
