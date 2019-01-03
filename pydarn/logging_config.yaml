@@ -29,9 +29,9 @@ handlers:
         formatter: pydarn_fmt
         stream: ext://sys.stdout 
     # should always be used in the code 
-    info_file_handler:
+    debug_file_handler:
         class: logging.handlers.RotatingFileHandler # logs information to a file
-        level: INFO
+        level: DEBUG
         formatter: pydarn_fmt
         filename: pydarn.log # defines the file to log information on the code 
         maxBytes: 10485760 
@@ -51,12 +51,12 @@ loggers:
     # Specific for the pydarn library 
     pydarn:
         level: INFO
-        handlers: [info_file_handler, error_file_handler]
-        propagate: yes
+        handlers: [debug_file_handler, error_file_handler]
+        propagate: no
     # logger of choice for testing. 
-    pydarn_debug:
+    pydarn_error:
         level: DEBUG
-        handlers: [console, info_file_handler, error_file_handler]
+        handlers: [console, debug_file_handler, error_file_handler]
         propagate: no
     # needs to be specified, requirement of the logging library. 
     # DO NOT USE! Libraries should not use the root as this will 
