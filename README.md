@@ -9,14 +9,21 @@ The following instructions will allow you to install and give some examples on h
 
 ### Prerequisites
 
-**python 3+**
+**python 3.6+**
 
+| Ubuntu      | OpenSuse       |
+| ----------- | -------------- |
+| libyaml-dev | python3-PyYAML |
+
+You can check your python version with  
+`$ python --version` or 
+`$ python3 --version`
 ### Installing 
 
 1. Clone git repository:   
    `git clone https://github.com/SuperDARN/pydarn.git`
 
-2. Installing pydarn
+2. Installing pydarn  
     1. **Recommended**: Installing a [virtual environment](https://packaging.python.org/guides/installing-using-pip-and-virtualenv/), this option allows the library to install needed version of libraries without affecting system libraries.  
         * First install the environment:  
       `$ python3 -m pip install --user virtualenv`  
