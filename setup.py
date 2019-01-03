@@ -28,7 +28,7 @@ setup(
     # used to import the logging config file into pydarn.
     data_files=[('pydarn',['pydarn/logging_config.yaml'])],
     # pyyaml library install
-    install_requires=['pyyaml']
+    install_requires=['pyyaml','numpy']
     # commented out due to not implemented yet.
     #ext_modules = [rstmodule]
 )
