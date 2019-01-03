@@ -32,6 +32,7 @@ Review DmapRecord and its structure
 See DEVELOPER_README.md on more information regarding the data structures
 and their organization pertaining to DMAP records.
 """
+from typing import NamedTuple, Type
 from collections import OrderedDict, namedtuple
 import numpy as np
 
@@ -49,7 +50,10 @@ value : data type
 data_type : int
     the DMAP numerical value for the data_type
 """
-DmapScalar = namedtuple('DmapScalar', ['name','value','data_type'])
+class DmapScalar(NamedTuple):
+    name: str
+    value: Type[object]
+    data_type: str
 
 """
 NamedTuple class that defines the structure of a DMAP Array.
@@ -69,7 +73,13 @@ dimension : int
 shape : list
     A list of dimension sizes of the array
 """
-DmapArray = namedtuple('DmapArray', ['name', 'value', 'data_type', 'dimension', 'shape'])
+class DmapArray(NamedTuple):
+    name: str
+    value: np.ndarray
+    data_type: str
+    dimension: int
+    shape: list
+
 
 # TODO: May not be used anymore.
 class DmapRecord():
