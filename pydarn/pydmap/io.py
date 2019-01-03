@@ -699,7 +699,7 @@ class DmapRead():
 
 
 # TODO: Clean up
-class RawDmapWrite(object):
+class DmapWrite(object):
     """Contains members and methods relating to encoding dictionaries into a raw
     dmap buffer.
 
@@ -707,18 +707,12 @@ class RawDmapWrite(object):
     if you want to write a number as a char instead of an int for example
 
     """
-    def __init__(self, data_dicts, file_path, ud_types={}):
-        super(RawDmapWrite, self).__init__()
-        self.data_dict = data_dicts
-        self.records = []
+    def __init__(self, dmap_records: list, filename: str, ud_types={}: dict):
+        self.data_records = data_records
         self.ud_types = ud_types
         self.dmap_bytearr = bytearray()
 
-        for dd in data_dicts:
-            self.data_dict_to_dmap_rec(dd)
-
-        for rc in self.records:
-            self.dmap_record_to_bytes(rc)
+        self.write_dmap_record_to_bytes()
 
         with open(file_path, 'wb') as f:
             f.write(self.dmap_bytearr)
