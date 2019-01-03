@@ -32,58 +32,56 @@ Review DmapRecord and its structure
 See DEVELOPER_README.md on more information regarding the data structures
 and their organization pertaining to DMAP records.
 """
-from typing import NamedTuple
-from typing import Type
-from collections import OrderedDict
+from typing import NamedTuple, Type
+from collections import OrderedDict, namedtuple
 import numpy as np
 
+"""
+NamedTuple class that defines the structure of a DMAP scalar.
+All fields can be accessed using the dot syntax. See DEVELOPER_README
+for more information on NamedTuples.
 
+Fields
+-------
+name : str
+    the name of the scalar variable
+value : data type
+    the measure data value for the scalar
+data_type : int
+    the DMAP numerical value for the data_type
+"""
 class DmapScalar(NamedTuple):
-    """
-    NamedTuple class that defines the structure of a DMAP scalar.
-    All fields can be accessed using the dot syntax. See DEVELOPER_README
-    for more information on NamedTuples.
-
-    Fields
-    -------
-    name : str
-        the name of the scalar variable
-    value : data type
-        the measure data value for the scalar
-    data_type : int
-        the DMAP numerical value for the data_type
-    """
     name: str
-    value: Type[object]  # This allows for any type to be passed in
-    data_type: int
+    value: Type[object]
+    data_type: str
 
+"""
+NamedTuple class that defines the structure of a DMAP Array.
+All fields can be accessed using the dot syntax. See DEVELOPER_README
+for more information on NamedTuple.
 
+Fields
+-------
+name : str
+    the name of the scalar variable
+value : data type
+    the measure data value for the scalar
+data_type : int
+    the DMAP numerical value for the data_type
+dimension : int
+    The number of dimensions of the array, e.i., 1D, 2D, 3D
+shape : list
+    A list of dimension sizes of the array
+"""
 class DmapArray(NamedTuple):
-    """
-    NamedTuple class that defines the structure of a DMAP Array.
-    All fields can be accessed using the dot syntax. See DEVELOPER_README
-    for more information on NamedTuple.
-
-    Fields
-    -------
-    name : str
-        the name of the scalar variable
-    value : data type
-        the measure data value for the scalar
-    data_type : int
-        the DMAP numerical value for the data_type
-    dimension : int
-        The number of dimensions of the array, e.i., 1D, 2D, 3D
-    shape : list
-        A list of dimension sizes of the array
-    """
     name: str
-    value: np.array
-    data_type: int
+    value: np.ndarray
+    data_type: str
     dimension: int
     shape: list
 
 
+# TODO: May not be used anymore.
 class DmapRecord():
     """
     DMAP Record class that store scalar data and array data into an ordered
@@ -154,6 +152,7 @@ class DmapRecord():
         scalar_list: list
             Is a list of DmapScalar namedtuples.
         """
+
         for scalar in scalar_list:
             self.record[scalar.name] = scalar
             self.num_scalars += 1
