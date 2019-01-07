@@ -1,0 +1,8 @@
+# Include the README
+include *.md 
+
+# Include the licesnse file 
+include LICENSE
+
+# Include data files (metadata for pydarn package)
+include pydarn/logging_config.yaml
