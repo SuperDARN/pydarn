@@ -325,7 +325,7 @@ class DmapRead():
                     "".format(total_size=total_block_size,
                               end_bytes=self.dmap_end_bytes,
                               cursor=self.cursor)
-            raise pydmap_exceptions.DmapDataError(self.date_file, message)
+            raise pydmap_exceptions.DmapDataError(self.data_file, message)
         self.cursor = 0
 
     def read_records(self) -> collections.deque:
