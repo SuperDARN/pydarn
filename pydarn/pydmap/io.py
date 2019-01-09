@@ -213,7 +213,8 @@ class DmapRead():
     def bytes_check(self, element: int, element_name: str, byte_check: int,
                     byte_check_name: str):
         """
-        Checks if the element greater than the byte_check.
+        Checks if the element greater than the value comparing against
+        (byte_check).
 
         Parameter
         ---------
