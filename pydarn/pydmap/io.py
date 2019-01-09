@@ -518,7 +518,8 @@ class DmapRead():
                     " cursor: {cursor}".format(shape=array_shape,
                                                cursor=self.cursor)
             raise pydmap_exceptions.DmapDataError(self.dmap_file, message)
-        # TODO Explain where does slist come from?
+        # slist is the array that holds the range gates that have valid data
+        # when qflg is 1
         elif any(x <= 0 for x in array_shape) and array_name != "slist":
             message = "Error: Array shape {shape} contains "\
                     "dimension size <= 0."\
