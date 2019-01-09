@@ -90,7 +90,7 @@ class DmapRead():
     Attributes
     ----------
     dmap_file : str
-        DMAP file/stream name/data
+        DMAP file name or data stream (give data_stream=True)
     cursor : int
         Current position in the byte array
     dmap_end_bytes : int
@@ -128,7 +128,8 @@ class DmapRead():
         Parameters
         ----------
         dmap_file : str
-                    file/stream of dmap data
+                    file name or data stream (given data_stream=True)
+                    containing dmap data.
         data_stream : bool
                  default to false, boolean that indicates if dmap_file is a
                  data stream
