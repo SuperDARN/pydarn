@@ -203,7 +203,7 @@ class DmapRead():
                                                   size=element)
             raise pydmap_exceptions.ZeroByteError(self.dmap_file, element_info,
                                                   self.cursor)
-         elif element < 0:
+        elif element < 0:
             element_info = "{name} {size}".format(name=element_name,
                                                   size=element)
             raise pydmap_exceptions.NegativeByteError(self.dmap_file, element_info,
