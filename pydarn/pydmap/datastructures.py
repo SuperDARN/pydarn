@@ -76,7 +76,8 @@ shape : list
 class DmapArray(NamedTuple):
     name: str
     value: np.ndarray
-    data_type: str
+    data_type: chr
+    data_type_fmt: str
     dimension: int
     shape: list
 

@@ -46,7 +46,7 @@ import logging
 import collections
 
 from pydarn import pydmap_exceptions
-
+from pydarn import superdarn_formats
 from pydarn import DmapArray
 from pydarn import DmapScalar
 
@@ -439,6 +439,7 @@ class DmapRead():
         read_data : reads the data stored in the byte array
         """
 
+        # String and char have a byte size of 1
         scalar_name = self.read_data('s', 1)
         scalar_type = self.read_data('c', 1)
 
@@ -457,7 +458,8 @@ class DmapRead():
             # so better to raise an error
             raise pydmap_exceptions.DmapDataError(self.dmap_file, message)
 
-        return DmapScalar(scalar_name, scalar_value, scalar_type)
+        return DmapScalar(scalar_name, scalar_value,
+                          scalar_type, scalar_type_fmt)
 
     def read_array(self, record_size) -> DmapArray:
         """
@@ -698,7 +700,7 @@ class DmapRead():
         return array
 
 
-# TODO: Clean up
+# TODO: Test, document
 class DmapWrite(object):
     """Contains members and methods relating to encoding dictionaries into a raw
     dmap buffer.
@@ -707,119 +709,103 @@ class DmapWrite(object):
     if you want to write a number as a char instead of an int for example
 
     """
-    def __init__(self, dmap_records: list, filename: str, ud_types={}: dict):
-        self.data_records = data_records
-        self.ud_types = ud_types
+
+    def __init__(self, dmap_records: list, filename: str, dmap_file_fmt=None):
+        self.dmap_records = dmap_records
         self.dmap_bytearr = bytearray()
+        self.filename = filename
+
+        if dmap_file_fmt is None:
+            pass
+        elif dmap_file_fmt == "iqdat":
+            self.write_iqdat()
+        elif dmap_file_fmt == "rawacf":
+            self.write_rawacf()
+        elif dmap_file_fmt == "fitacf":
+            self.write_fitacf()
+        elif dmap_file_fmt == "grid":
+            self.write_grid()
+        elif dmap_file_fmt == "map":
+            self.write_map()
+        elif dmap_file_fmt == "dmap":
+            self.write_dmap()
+        else:
+            raise pydmap_exceptions.DmapFileFormatType(dmap_file_fmt, self.filename)
+
 
         self.write_dmap_record_to_bytes()
 
         with open(file_path, 'wb') as f:
             f.write(self.dmap_bytearr)
 
-    def data_dict_to_dmap_rec(self, data_dict):
-        """ This method converts a data dictionary to a dmap record.
+    # Methods are used and strings for versatility amongst users
+    # some prefer string input some rather not due to typos :)
+    def write_iqdat(self):
+        self.superDARN_file_structure_check(superdarn_formats.Iqdat.types)
 
-        The user defined dictionary specifies if any default types are to be
-        overridden with your own type. This functions runs through each key/val
-        element of the dictionary and creates a DmapArray or DmapScalar
-        and adds them to a RawDmapRecord. Any python lists are converted to
-        numpy arrays for fast and efficient conversion to bytes
+    def write_rawacf(self):
+        self.superDARN_file_structure_check(superdarn_formats.Rawacf.types)
 
-        :param data_dict: a dictionary of data to encode
+    def write_fitacf(self):
+        self.superDARN_file_structure_check(superdarn_formats.Fitacf.types)
 
-        """
-        record = DmapRecord()
-        for name, value in data_dict.items():
+    def write_grid(self):
+        self.superDARN_file_structure_check(superdarn_formats.Grid.types)
 
-            if name in self.ud_types:
-                data_type_fmt = self.ud_types[name]
-            else:
-                data_type_fmt = self.find_datatype_fmt(value)
-                if data_type_fmt == '':
-                    # TODO: handle recursive dmap writing
-                    # recursive is slow so we should look at other options
-                    pass
+    def write_map(self):
+        self.superDARN_file_structure_check(superdarn_formats.Map.types)
 
-            if isinstance(value, (list, np.ndarray)):
-                if isinstance(value, list):
-                    if data_type_fmt == 'c':
-                        data = np.asarray([chr(x) for x in value], dtype='c')
-                    elif data_type_fmt == 's':
-                        data = np.asarray(value, dtype=object)
-                    else:
-                        data = np.asarray(value, dtype=data_type_fmt)
-                if isinstance(value, np.ndarray):
-                    if data_type_fmt == 'c' and value.dtype != 'S1':
-                        data = np.asarray([chr(x) for x in value], dtype='c')
-                    else:
-                        data = np.asarray(value, dtype=data_type_fmt)
+    def write_dmap(self):
+        self.dmap_records_to_bytes()
 
-                dmap_type = self.convert_fmt_to_dmap_type(data_type_fmt)
+    def superDARN_file_structure_check(self, file_format):
+        for record in self.dmap_records:
+            missing = { param: file_format[param] for param in set(file_format) -\
+                     set(record)}
+            extra = { param: record[param] for param in set(record) -\
+                     set(file_format)}
+            if len(missing) > 0:
+                raise pydmap_exceptions.SuperDARNFieldMissing(self.filename,
+                                                              file_format,
+                                                              missing.keys())
+            if len(extra) > 0:
+                raise pydmap_exceptions.SuperDARNFieldExtra(self.filename,
+                                                            file_format,
+                                                            extra.keys())
+            self.dmap_record_to_bytes()
 
-                # dimensions need to be reversed to match what dmap expects
-                shape = data.shape[::-1]
-                dimension = len(shape)
-                array = DmapArray(name, value, dmap_type,
-                                  dimension, shape)
-                record.add_array(array)
+    def dmap_records_to_bytes(self):
 
-            else:
-                dmap_type = self.convert_fmt_to_dmap_type(data_type_fmt)
-                scalar = DmapScalar(name, value, dmap_type)
-                record.add_scalar(scalar)
-
-        self.records.append(record)
-
-    def find_datatype_fmt(self, data):
-        """Input could be an array of any dimensions so will recursive until
-        fundamental type is found
-
-        :param data: data for which to find its type format
-        :returns: a string format identifier for the python data type
-
-        """
-        if isinstance(data, np.ndarray) or isinstance(data, list):
-            return self.find_datatype_fmt(data[0])
-        else:
-            return self.type_to_fmt(data)
+        for record in self.dmap_records:
+            self.dmap_record_to_bytes(record)
 
     def dmap_record_to_bytes(self, record):
-        """This method converts a dmap record to the byte format
-        that is written to file.
 
-        Format is code,length of record,number of scalars,
-        number of arrays, followed by
-        the scalars and then the arrays
+        encoding_identifier = 65537 # TODO: determine where this is documented for reference
+        num_scalars = 0
+        num_arrays = 0
+        data_bytearray = bytearray()
+        for name, data_info in record.items():
+            if isinstance(data_info, DmapScalar):
+                data_bytearray.extend(seld.dmap_scalar_to_bytes(data_info))
+                num_scalars += 1
+            elif isinstance(data_info, DmapArray):
+                data_bytearray.extend(seld.dmap_array_to_bytes(data_info))
+                num_arrays += 1
+            else:
+                raise pydmap_exceptions.DmapTypeError(self.filename, type(data_info))
 
-        :param record: a RawDmapRecord
+        # TODO: look over this break down again
+        # 16 = encoding_identifier (int - 4 bytes) + num_scalars (int - 4) +
+        #      num_arrays (int - 4) + size of the block (int - 4)
+        block_size = len(data_bytearray) + 16
 
-        """
-        scalars = record.get_scalars()
-        arrays = record.get_arrays()
-
-        code = 65537  # TODO: what is this value?
-        num_scalars = record.get_num_scalars()
-        num_arrays = record.get_num_arrays()
-
-        byte_arr = bytearray()
-        for sc in scalars:
-            byte_arr.extend(self.dmap_scalar_to_bytes(sc))
-        for ar in arrays:
-            byte_arr.extend(self.dmap_array_to_bytes(ar))
-
-        # + 16 for length,code,num scalars, and num arrays fields
-        length = len(byte_arr) + 16
-
-        code_bytes = struct.pack('i', code)
-        length_bytes = struct.pack('i', length)
-        num_scalars_bytes = struct.pack('i', num_scalars)
-        num_arrays_bytes = struct.pack('i', num_arrays)
-        self.dmap_bytearr.extend(code_bytes)
-        self.dmap_bytearr.extend(length_bytes)
-        self.dmap_bytearr.extend(num_scalars_bytes)
-        self.dmap_bytearr.extend(num_arrays_bytes)
-        self.dmap_bytearr.extend(byte_arr)
+        # TODO: potential performance increase by saving the extend object
+        self.dmap_bytearr.extend(struct.pack('i', encoding_identifier))
+        self.dmap_bytearr.extend(struct.pack('i', block_size))
+        self.dmap_bytearr.extend(struct.pack('i', num_scalars))
+        self.dmap_bytearr.extend(struct.pack('i', num_arrays))
+        self.dmap_bytearr.extend(data_bytearray)
 
     def dmap_scalar_to_bytes(self, scalar):
         """This method converts a DmapScalar to the byte format written out.
@@ -831,24 +817,25 @@ class DmapWrite(object):
 
         """
 
-        name = "{0}\0".format(scalar.get_name())
-        struct_fmt = '{0}s'.format(len(name))
-        name_bytes = struct.pack(struct_fmt, name.encode('utf-8'))
-        dmap_type_bytes = struct.pack('c',
-                                      chr(scalar.get_type()).encode('utf-8'))
+        scalar_name = "{0}\0".format(scalar.name)
+        scalar_name_format = '{0}s'.format(len(name))
+        scalar_name_bytes = struct.pack(scalar_name_format,
+                                        name.encode('utf-8'))
 
-        data_type_fmt = scalar.get_datatype_fmt()
+        scalar_type_bytes = struct.pack('c', scalar.data_type.encode('utf-8'))
+        scalar_type_fmt = scalar.data_type_fmt
 
         if data_type_fmt == 's':
-            data = "{0}\0".format(scalar.get_data())
-            struct_fmt = '{0}s'.format(len(data))
-            data_bytes = struct.pack(struct_fmt, data.encode('utf-8'))
+            scalar_data = "{0}\0".format(scalar.value)
+            scalar_data_format = '{0}s'.format(len(data))
+            scalar_data_bytes = struct.pack(data_format, data.encode('utf-8'))
         elif data_type_fmt == 'c':
-            data_bytes = chr(scalar.get_data()).encode('utf-8')
+            scalar_data_bytes = chr(scalar.value).encode('utf-8')
         else:
-            data_bytes = struct.pack(data_type_fmt, scalar.get_data())
+            scalar_data_bytes = struct.pack(scalar_type_fmt, scalar.value)
 
-        total_bytes = name_bytes + dmap_type_bytes + data_bytes
+        scalar_total_bytes = scalar_name_bytes + scalar_type_bytes +\
+                scalar_data_bytes
 
         return total_bytes
 
@@ -864,427 +851,20 @@ class DmapWrite(object):
 
         """
 
-        name = "{0}\0".format(array.get_name())
-        struct_fmt = '{0}s'.format(len(name))
-        name_bytes = struct.pack(struct_fmt, name.encode('utf-8'))
+        array_name = "{0}\0".format(array.name())
+        array_name_format = '{0}s'.format(len(name))
+        array_name_bytes = struct.pack(array_name_format, name.encode('utf-8'))
 
-        dmap_type_bytes = struct.pack('c',
-                                      chr(array.get_type()).encode('utf-8'))
+        array_type_bytes = struct.pack('c', array.data_type.encode('utf-8'))
 
-        dimension_bytes = struct.pack('i', array.get_dimension())
-        arr_dimensions_bytes = bytes()
-        for dim in array.get_arr_dimensions():
-            arr_dimensions_bytes = arr_dimensions_bytes + struct.pack('i', dim)
+        array_dim_bytes = struct.pack('i', array.dimension)
+        array_shape_bytes = bytes()
+        for size in array.shape:
+            array_shape_bytes += struct.pack('i', size)
 
-        data_bytes = array.get_data().tostring()
+        array_data_bytes = array.value.tostring()
 
-        total_bytes = name_bytes + dmap_type_bytes + dimension_bytes +\
-            arr_dimensions_bytes + data_bytes
-        return total_bytes
+        array_total_bytes = array_name_bytes + array_type_bytes +\
+                array_dim_bytes + array_shape_bytes + array_data_bytes
 
-    def type_to_fmt(self, data):
-        """Finds data types and converts them to a format specifier for
-        struct or numpy
-        packing methods
-
-        :param data: data for which to find type
-        :returns: a string format identifier for the python data type
-
-        """
-        if isinstance(data, int):
-            return 'i'
-        elif isinstance(data, str):
-            return 's'
-        elif isinstance(data, float):
-            return 'f'
-        elif isinstance(data, np.float32):
-            return 'f'
-        elif isinstance(data, np.float64):
-            return 'd'
-        elif isinstance(data, np.char):
-            return 'c'
-        elif isinstance(data, np.int8):
-            return 'c'
-        elif isinstance(data, np.int16):
-            return 'h'
-        elif isinstance(data, np.int32):
-            return 'i'
-        elif isinstance(data, np.int64):
-            return 'q'
-        elif isinstance(data, np.uint8):
-            return 'B'
-        elif isinstance(data, np.uint16):
-            return 'H'
-        elif isinstance(data, np.uint32):
-            return 'I'
-        elif isinstance(data, np.uint64):
-            return 'Q'
-        else:
-            return ''
-
-    def convert_fmt_to_dmap_type(self, fmt):
-        """Converts a format specifier to a dmap type to be written
-        as part of buffer
-
-        :param fmt: a string format identifier for the DMAP data type
-        :returns: DMAP type
-
-        """
-        return {
-                'c': CHAR,
-                'h': SHORT,
-                'i': INT,
-                'f': FLOAT,
-                'd': DOUBLE,
-                's': STRING,
-                'q': LONG,
-                'B': UCHAR,
-                'H': USHORT,
-                'I': UINT,
-                'Q': ULONG,
-            }.get(fmt, None)
-
-
-# TODO: consider removing this function and get the user to call RawDmapWrite
-def dicts_to_file(data_dicts, file_path, file_type=''):
-    """This function abstracts the type overrides for the main SuperDARN
-    file types. These dictionaries write out the types to be compatible
-    with C DMAP reading
-
-    :param data_dicts: python dictionaries to write out
-    :param file_path: path for which to write the data to file
-    :param file_type: type of SuperDARN file with what the data is
-
-    """
-    # TODO: move to another file to make it shorter to search through
-    # this will also clean up the file so it is nicer to look at
-    rawacf_types = {
-     'radar.revision.major': 'c',
-     'radar.revision.minor': 'c',
-     'origin.code': 'c',
-     'origin.time': 's',
-     'origin.command': 's',
-     'cp': 'h',
-     'stid': 'h',
-     'time.yr': 'h',
-     'time.mo': 'h',
-     'time.dy': 'h',
-     'time.hr': 'h',
-     'time.mt': 'h',
-     'time.sc': 'h',
-     'time.us': 'i',
-     'txpow': 'h',
-     'nave': 'h',
-     'atten': 'h',
-     'lagfr': 'h',
-     'smsep': 'h',
-     'ercod': 'h',
-     'stat.agc': 'h',
-     'stat.lopwr': 'h',
-     'noise.search': 'f',
-     'noise.mean': 'f',
-     'channel': 'h',
-     'bmnum': 'h',
-     'bmazm': 'f',
-     'scan': 'h',
-     'offset': 'h',
-     'rxrise': 'h',
-     'intt.sc': 'h',
-     'intt.us': 'i',
-     'txpl': 'h',
-     'mpinc': 'h',
-     'mppul': 'h',
-     'mplgs': 'h',
-     'nrang': 'h',
-     'frang': 'h',
-     'rsep': 'h',
-     'xcf': 'h',
-     'tfreq': 'h',
-     'mxpwr': 'i',
-     'lvmax': 'i',
-     'rawacf.revision.major': 'i',
-     'rawacf.revision.minor': 'i',
-     'combf': 's',
-     'thr': 'f',
-     'ptab': 'h',
-     'ltab': 'h',
-     'slist': 'h',
-     'pwr0': 'f',
-     'acfd': 'f',
-     'xcfd': 'f',
-    }
-
-    mapfile_types = {
-     'start.year': 'h',
-     'start.month': 'h',
-     'start.day': 'h',
-     'start.hour': 'h',
-     'start.minute': 'h',
-     'start.second': 'd',
-     'end.year': 'h',
-     'end.month': 'h',
-     'end.day': 'h',
-     'end.hour': 'h',
-     'end.minute': 'h',
-     'end.second': 'd',
-     'map.major.revision': 'h',
-     'map.minor.revision': 'h',
-     'source': 's',
-     'doping.level': 'h',
-     'model.wt': 'h',
-     'error.wt': 'h',
-     'IMF.flag': 'h',
-     'IMF.delay': 'h',
-     'IMF.Bx': 'd',
-     'IMF.By': 'd',
-     'IMF.Bz': 'd',
-     'model.angle': 's',
-     'model.level': 's',
-     'hemisphere': 'h',
-     'fit.order': 'h',
-     'latmin': 'f',
-     'chi.sqr': 'd',
-     'chi.sqr.dat': 'd',
-     'rms.err': 'd',
-     'lon.shft': 'f',
-     'lat.shft': 'f',
-     'mlt.start': 'd',
-     'mlt.end': 'd',
-     'mlt.av': 'd',
-     'pot.drop': 'd',
-     'pot.drop.err': 'd',
-     'pot.max': 'd',
-     'pot.max.err': 'd',
-     'pot.min': 'd',
-     'pot.min.err': 'd',
-     'stid': 'h',
-     'channel': 'h',
-     'nvec': 'h',
-     'freq': 'f',
-     'major.revision': 'h',
-     'minor.revision': 'h',
-     'program.id': 'h',
-     'noise.mean': 'f',
-     'noise.sd': 'f',
-     'gsct': 'h',
-     'v.min': 'f',
-     'v.max': 'f',
-     'p.min': 'f',
-     'p.max': 'f',
-     'w.min': 'f',
-     'w.max': 'f',
-     've.min': 'f',
-     've.max': 'f',
-     'vector.mlat': 'f',
-     'vector.mlon': 'f',
-     'vector.kvect': 'f',
-     'vector.stid': 'h',
-     'vector.channel': 'h',
-     'vector.index': 'i',
-     'vector.vel.median': 'f',
-     'vector.vel.sd': 'f',
-     'N': 'd',
-     'N+1': 'd',
-     'N+2': 'd',
-     'N+3': 'd',
-     'model.mlat': 'f',
-     'model.mlon': 'f',
-     'model.kvect': 'f',
-     'model.vel.median': 'f',
-     'boundary.mlat': 'f',
-     'boundary.mlon': 'f',
-    }
-
-    fitacf_types = {
-     'radar.revision.major': 'c',
-     'radar.revision.minor': 'c',
-     'origin.code': 'c',
-     'origin.time': 's',
-     'origin.command': 's',
-     'cp': 'h',
-     'stid': 'h',
-     'time.yr': 'h',
-     'time.mo': 'h',
-     'time.dy': 'h',
-     'time.hr': 'h',
-     'time.mt': 'h',
-     'time.sc': 'h',
-     'time.us': 'i',
-     'txpow': 'h',
-     'nave': 'h',
-     'atten': 'h',
-     'lagfr': 'h',
-     'smsep': 'h',
-     'ercod': 'h',
-     'stat.agc': 'h',
-     'stat.lopwr': 'h',
-     'noise.search': 'f',
-     'noise.mean': 'f',
-     'channel': 'h',
-     'bmnum': 'h',
-     'bmazm': 'f',
-     'scan': 'h',
-     'offset': 'h',
-     'rxrise': 'h',
-     'intt.sc': 'h',
-     'intt.us': 'i',
-     'txpl': 'h',
-     'mpinc': 'h',
-     'mppul': 'h',
-     'mplgs': 'h',
-     'nrang': 'h',
-     'frang': 'h',
-     'rsep': 'h',
-     'xcf': 'h',
-     'tfreq': 'h',
-     'mxpwr': 'i',
-     'lvmax': 'i',
-     'fitacf.revision.major': 'i',
-     'fitacf.revision.minor': 'i',
-     'combf': 's',
-     'noise.sky': 'f',
-     'noise.lag0': 'f',
-     'noise.vel': 'f',
-     'ptab': 'h',
-     'ltab': 'h',
-     'pwr0': 'f',
-     'slist': 'h',
-     'nlag': 'h',
-     'qflg': 'c',
-     'gflg': 'c',
-     'p_l': 'f',
-     'p_l_e': 'f',
-     'p_s': 'f',
-     'p_s_e': 'f',
-     'v': 'f',
-     'v_e': 'f',
-     'w_l': 'f',
-     'w_l_e': 'f',
-     'w_s': 'f',
-     'w_s_e': 'f',
-     'sd_l': 'f',
-     'sd_s': 'f',
-     'sd_phi': 'f',
-     'x_qflg': 'c',
-     'x_gflg': 'c',
-     'x_p_l': 'f',
-     'x_p_l_e': 'f',
-     'x_p_s': 'f',
-     'x_p_s_e': 'f',
-     'x_v': 'f',
-     'x_v_e': 'f',
-     'x_w_l': 'f',
-     'x_w_l_e': 'f',
-     'x_w_s': 'f',
-     'x_w_s_e': 'f',
-     'phi0': 'f',
-     'phi0_e': 'f',
-     'elv': 'f',
-     'elv_low': 'f',
-     'elv_high': 'f',
-     'x_sd_l': 'f',
-     'x_sd_s': 'f',
-     'x_sd_phi': 'f',
-    }
-
-    iqdat_types = {
-     'radar.revision.major': 'c',
-     'radar.revision.minor': 'c',
-     'origin.code': 'c',
-     'origin.time': 's',
-     'origin.command': 's',
-     'cp': 'h',
-     'stid': 'h',
-     'time.yr': 'h',
-     'time.mo': 'h',
-     'time.dy': 'h',
-     'time.hr': 'h',
-     'time.mt': 'h',
-     'time.sc': 'h',
-     'time.us': 'i',
-     'txpow': 'h',
-     'nave': 'h',
-     'atten': 'h',
-     'lagfr': 'h',
-     'smsep': 'h',
-     'ercod': 'h',
-     'stat.agc': 'h',
-     'stat.lopwr': 'h',
-     'noise.search': 'f',
-     'noise.mean': 'f',
-     'channel': 'h',
-     'bmnum': 'h',
-     'bmazm': 'f',
-     'scan': 'h',
-     'offset': 'h',
-     'rxrise': 'h',
-     'intt.sc': 'h',
-     'intt.us': 'i',
-     'txpl': 'h',
-     'mpinc': 'h',
-     'mppul': 'h',
-     'mplgs': 'h',
-     'nrang': 'h',
-     'frang': 'h',
-     'rsep': 'h',
-     'xcf': 'h',
-     'tfreq': 'h',
-     'mxpwr': 'i',
-     'lvmax': 'i',
-     'iqdata.revision.major': 'i',
-     'iqdata.revision.minor': 'i',
-     'combf': 's',
-     'seqnum': 'i',
-     'chnnum': 'i',
-     'smpnum': 'i',
-     'skpnum': 'i',
-     'ptab': 'h',
-     'ltab': 'h',
-     'tsc': 'i',
-     'tus': 'i',
-     'tatten': 'h',
-     'tnoise': 'f',
-     'toff': 'i',
-     'tsze': 'i',
-     'data': 'h',
-    }
-
-    ud_types = {
-        'iqdat': iqdat_types,
-        'fitacf': fitacf_types,
-        'rawacf': rawacf_types,
-        'map': mapfile_types
-    }.get(file_type, None)
-
-    if ud_types is None:
-        raise ValueError("Incorrect or missing file type")
-
-    for dd in data_dicts:
-        for k, v in dd.items():
-            if k not in ud_types:
-                message = "DICTS_TO_FILE: A supplied dictionary contains"\
-                        " extra field {}".format(k)
-                raise pydmap_exceptions.DmapDataError(file_path, message)
-
-    for k, v in ud_types.items():
-        if k not in dd:
-            message = "DICTS_TO_FILE: Supplied dictionary is missing field {}"\
-                    "".format(k)
-            raise pydmap_exceptions.DmapDataError(file_path, message)
-    RawDmapWrite(data_dicts, file_path, ud_types)
-
-
-def dmap_rec_to_dict(rec):
-    """Converts the dmap record data to a easy to use dictionary
-
-    :param rec: a RawDmapRecord
-    :returns: a dictionary of all data contained in the record
-
-    """
-    scalars = rec.get_scalars()
-    arrays = rec.get_arrays()
-
-    merged_lists = scalars + arrays
-
-    record_dict = {ml.get_name(): ml.get_data() for ml in merged_lists}
-    return record_dict
+        return array_total_bytes
