@@ -19,6 +19,7 @@ from .exceptions import pydmap_exceptions
 from .pydmap.datastructures import DmapScalar
 from .pydmap.datastructures import DmapArray
 from .pydmap.datastructures import DmapRecord
+from .pydmap import superdarn_formats
 
 # Importing pydarn pydmap classes
 from .pydmap.io import DmapRead

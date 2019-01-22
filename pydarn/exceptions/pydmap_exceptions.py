@@ -96,6 +96,42 @@ class DmapDataError(Exception):
                                                                      message))
 
 
+class DmapFileFormatType(Exception):
+    """
+    """
+    def __init__(self, filename, file_type):
+        self.filename = filename
+        self.file_type = file_type
+        self.message = "Error: {file_type} is not a DMAP file format type. {filename} was not created. Please check the spelling of the file type is correct or is implemented.".format(file_type=self.file_type,
+                                                                                                                                                                                       filename=self.filename)
+
+class SuperDARNFieldMissing(Exception):
+    """
+    """
+    def __init__(self, filename, file_format, fields):
+        self.filename = filename
+        self.file_format = file_format
+        self.fields = fields
+        self.message = "Error: Cannot write to {filename}. The following fields are missing: {fields} for the file format structure: {file_fmt}".format(filename=self.filename, fields=self.fields, file_fmt=self.file_format)
+
+class SuperDARNFieldExtra(Exception):
+    """
+    """
+    def __init__(self, filename, file_format, fields):
+        self.filename = filename
+        self.file_format = file_format
+        self.fields = fields
+        self.message = "Error: Cannot write to {filename}. The following fields are not allowed: {fields} for the file format structure: {file_fmt}".format(filename=self.filename, fields=self.fields, file_fmt=self.file_format)
+
+
+class DmapTypeError(Exception):
+    """
+    """
+    def __init__(self, filename, data_type):
+        self.filename = filename
+        self.data_type = data_type
+        self.message = "Error: {data_type} does not match the DMAP data type structures: DmapRecord, DmapScalar, DmapArray. Please make sure you have the correct Data Structure.".format(data_type=self.data_type, filename=self.filename)
+
 class CorruptDataError(Exception):
     """
     Raise when data is corrupt in the file
