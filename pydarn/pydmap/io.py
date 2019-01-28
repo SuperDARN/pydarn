@@ -556,7 +556,7 @@ class DmapRead():
                                                     total_num_cells,
                                                     array_fmt_bytes)
 
-        return DmapArray(array_name, array_value, array_type,
+        return DmapArray(array_name, array_value, array_type, array_type_fmt,
                          array_dimension, array_shape)
 
     def read_data(self, data_type_fmt, data_fmt_bytes: int):

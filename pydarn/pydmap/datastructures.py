@@ -53,7 +53,8 @@ data_type : int
 class DmapScalar(NamedTuple):
     name: str
     value: Type[object]
-    data_type: str
+    data_type: chr
+    data_type_fmt: str
 
 """
 NamedTuple class that defines the structure of a DMAP Array.
