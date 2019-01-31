@@ -49,7 +49,7 @@ def test_write_integrity(parsed_record, dict_to_test):
                         return k
         return None
 
-class TestDmapRead(unittest.TestCase):
+class TestDmapWrite(unittest.TestCase):
     def setUp(self):
         pass
 

@@ -124,11 +124,11 @@ class DmapRecord():
         self.num_scalars = 0  # may be useless attributes?
         self.num_arrays = 0
 
-        # store scalars first into the
-        self._add_scalar_list(scalar_list)
+        # store scalars first into the record
+        self.add_scalar(scalar_list)
 
         # store arrays second into the record
-        self._add_array_list(array_list)
+        self.add_array(array_list)
 
     @property
     def record(self) -> OrderedDict():
@@ -141,37 +141,6 @@ class DmapRecord():
             returns the private dmap record attribute.
         """
         return self.__record
-
-    # TODO If we find num_scalars and num_arrays unused then we
-    # should look into encapsulating more of this.
-    def _add_scalar_list(self, scalar_list=[]):
-        """
-        Private method to iterate over a DmapScalar list to add each
-        DmapScalar namedtuple into the record using the name as the key.
-
-        Parameter
-        ---------
-        scalar_list: list
-            Is a list of DmapScalar namedtuples.
-        """
-
-        for scalar in scalar_list:
-            self.record[scalar.name] = scalar
-            self.num_scalars += 1
-
-    def _add_array_list(self, array_list=[]):
-        """
-        Private method to iterate over a DmapArray list to add each
-        DmapArray namedtuple into the record using the name as the key.
-
-        Parameter
-        ---------
-        array_list: list
-            Is a list of DmapArray namedtuples.
-        """
-        for array in array_list:
-            self.record[array.name] = array
-            self.num_arrays = 0
 
     def add_scalar(self, scalar):
         """
@@ -188,7 +157,9 @@ class DmapRecord():
         DmapScalar : named tuple for dmap array variable
         """
         if isinstance(scalar, list):
-            self._add_scalar_list(scalar)
+            self.num_scalars += len(scalar_list)
+            for scalar in scalar_list:
+                self.record[scalar.name] = scalar
         else:
             self.record[scalar.name] = scalar
             self.num_scalars += 1
@@ -208,7 +179,9 @@ class DmapRecord():
         DmapArray : named tuple for dmap array variables
         """
         if isinstance(array, list):
-            self._add_array_list(array)
+            num_arrays += len(array_list)
+            for array in array_list:
+                self.record[array.name] = array
         else:
             self.record[array.name] = array
             self.num_array += 1
