@@ -208,6 +208,14 @@ class SuperDARNFieldExtra(Exception):
                                      fields=self.fields,
                                      file_fmt=self.file_format)
 
+class SuperDARNDataTypeError(Exception):
+    """
+    """
+    def __init__(self, incorrect_types):
+        self.incorrect_params = incorrect_types
+        self.message = "Error: The following parameters need to be the"\
+                " data type: {incorrect}".format(incorrect=self.incorrect_params)
+
 
 class DmapTypeError(Exception):
     """
@@ -227,3 +235,9 @@ class CorruptDataError(Exception):
     """
     def __init__():
         pass
+
+class FilenameRequiredError(Exception):
+    """
+    """
+    def __init__():
+        self.message = "Error: Filename is required"
