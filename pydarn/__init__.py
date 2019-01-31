@@ -23,6 +23,7 @@ from .pydmap import superdarn_formats
 
 # Importing pydarn pydmap classes
 from .pydmap.io import DmapRead
+from .pydmap.io import DmapWrite
 
 """
 Pydarn uses yaml for logging configuration because it is the

@@ -208,7 +208,7 @@ class SuperDARNFieldExtra(Exception):
                                      fields=self.fields,
                                      file_fmt=self.file_format)
 
-class SuperDARNDataTypeError(Exception):
+class SuperDARNDataFormatError(Exception):
     """
     """
     def __init__(self, incorrect_types):
@@ -233,11 +233,11 @@ class CorruptDataError(Exception):
     """
     Raise when data is corrupt in the file
     """
-    def __init__():
+    def __init__(self):
         pass
 
 class FilenameRequiredError(Exception):
     """
     """
-    def __init__():
+    def __init__(self):
         self.message = "Error: Filename is required"
