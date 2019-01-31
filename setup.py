@@ -21,14 +21,21 @@ from setuptools import setup, find_packages
 # Setup information
 setup(
     name="pydarn",
-    version="0.1dev",
-    license="GNU",
+    version="0.1.dev",
+    description="Data visualization library for SuperDARN data",
+    url='https://github.com/SuperDARN/pydarn.git',
+    classifiers=[
+        'Development status :: 3 - Alpha',
+        'LICENSE :: GNU license',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7'],
+    python_requires='>=3.6',
     packages=find_packages(exclude=['docs', 'test']),
     author="SuperDARN",
     # used to import the logging config file into pydarn.
-    data_files=[('pydarn',['pydarn/logging_config.yaml'])],
+    include_package_data=True,
     # pyyaml library install
-    install_requires=['pyyaml']
+    install_requires=['pyyaml','numpy']
     # commented out due to not implemented yet.
     #ext_modules = [rstmodule]
 )
