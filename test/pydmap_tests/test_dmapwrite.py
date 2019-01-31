@@ -53,37 +53,30 @@ class TestDmapWrite(unittest.TestCase):
 
     def test_wrong_file_format(self):
         rawacf_data = rawacf_data_sets.rawacf_data
-        self.assertRaises(pydarn.pydmap_exceptions.DmapFileFormatType,
-                          pydarn.DmapWrite(), rawacf_data,
-                          "rawacf_test.rawacf", 'dog')
+        with self.assertRaises(pydarn.pydmap_exceptions.DmapFileFormatType):
+            pydarn.DmapWrite(rawacf_data, "rawacf_test.rawacf", 'dog')
 
     def test_empty_record(self):
-        self.assertRaises(pydarn.pydmap_exceptions.DmapDataError,
-                          pydarn.DmapWrite([], 'dummy_file.acf', 'fitacf'))
+        with self.assertRaises(pydarn.pydmap_exceptions.DmapDataError):
+            pydarn.DmapWrite([], 'dummy_file.acf', 'fitacf')
 
     def test_incorrect_filename_input_using_DmapWrite(self):
         rawacf_data = rawacf_data_sets.rawacf_data
-        self.assertRaises(pydarn.pydmap_exceptions.FilenameRequiredError,
-                          pydarn.DmapWrite(), rawacf_data, "", 'fitacf')
+        with self.assertRaises(pydarn.pydmap_exceptions.FilenameRequiredError):
+            pydarn.DmapWrite(rawacf_data, "", 'fitacf')
 
     def test_incorrect_filename_input_using_write_methods(self):
         rawacf_data = rawacf_data_sets.rawacf_data
         dmap_data = pydarn.DmapWrite(rawacf_data)
-        self.assertRaises(pydarn.pydmap_exceptions.FilenameRequiredError,
-                          dmap_data.write_rawacf())
-        self.assertRaises(pydarn.pydmap_exceptions.FilenameRequiredError,
-                          dmap_data.write_fitacf)
-        self.assertRaises(pydarn.pydmap_exceptions.FilenameRequiredError,
-                          dmap_data.write_iqdat)
-        self.assertRaises(pydarn.pydmap_exceptions.FilenameRequiredError,
-                          dmap_data.write_grid)
-        self.assertRaises(pydarn.pydmap_exceptions.FilenameRequiredError,
-                          dmap_data.write_map)
-        self.assertRaises(pydarn.pydmap_exceptions.FilenameRequiredError,
-                          dmap_data.write_dmap)
+        with self.assertRaises(pydarn.pydmap_exceptions.FilenameRequiredError):
+            dmap_data.write_rawacf()
+            dmap_data.write_fitacf()
+            dmap_data.write_iqdat()
+            dmap_data.write_grid()
+            dmap_data.write_map()
+            dmap_data.write_dmap()
 
-
-    def test_RawDmapWrite_missing_field_rawacf(self):
+    def test_DmapWrite_missing_field_rawacf(self):
         """
             Tests RawDmapWite to write to rawacf:
                 Expected behaviour to raise a DmapDataError
@@ -93,11 +86,11 @@ class TestDmapWrite(unittest.TestCase):
 
         dmap = pydarn.DmapWrite(rawacf_data)
 
-        self.assertRaises(pydarn.pydmap_exceptions.SuperDARNFieldMissing,
-                          dmap.write_rawacf(), "test_rawacf.rawacf")
-        self.assertRaises(pydarn.pydmap_exceptions.SuperDARNFieldMissing,
-                          pydarn.DmapWrite(), rawacf_data,
-                          "test_rawacf.rawacf", 'rawacf')
+        with self.assertRaises(pydarn.pydmap_exceptions.SuperDARNFieldMissing):
+            dmap.write_rawacf("test_rawacf.rawacf")
+
+        with self.assertRaises(pydarn.pydmap_exceptions.SuperDARNFieldMissing):
+            pydarn.DmapWrite(rawacf_data, "test_rawacf.rawacf", 'rawacf')
 
 
     def test_extra_field_rawacf(self):
@@ -110,38 +103,38 @@ class TestDmapWrite(unittest.TestCase):
 
         dmap = pydarn.DmapWrite(rawacf_data)
 
-        self.assertRaises(pydarn.pydmap_exceptions.SuperDARNFieldExtra,
-                          dmap.write_rawacf(), "test_rawacf.rawacf")
-        self.assertRaises(pydarn.pydmap_exceptions.SuperDARNFieldExtra,
-                          pydarn.DmapWrite(), rawacf_data,
-                          "test_rawacf.rawacf", 'rawacf')
+        with self.assertRaises(pydarn.pydmap_exceptions.SuperDARNFieldExtra):
+            dmap.write_rawacf("test_rawacf.rawacf")
+
+        with self.assertRaises(pydarn.pydmap_exceptions.SuperDARNFieldExtra):
+            pydarn.DmapWrite(rawacf_data, "test_rawacf.rawacf", 'rawacf')
 
     def test_incorrect_data_format_rawacf(self):
         rawacf_data = rawacf_data_sets.incorrect_data_type
 
         dmap = pydarn.DmapWrite(rawacf_data)
 
-        self.assertRaises(pydarn.pydmap_exceptions.SuperDARNDataFormatError,
-                          dmap.write_rawacf(), "test_rawacf.rawacf")
-        self.assertRaises(pydarn.pydmap_exceptions.SuperDARNDataFormatError,
-                          pydarn.DmapWrite(), rawacf_data,
-                          "test_rawacf.rawacf", 'rawacf')
+        with self.assertRaises(pydarn.pydmap_exceptions.SuperDARNDataFormatError):
+            dmap.write_rawacf("test_rawacf.rawacf")
 
+        with self.assertRaises(pydarn.pydmap_exceptions.SuperDARNDataFormatError):
+            pydarn.DmapWrite(rawacf_data, "test_rawacf.rawacf", 'rawacf')
 
     def test_writing_to_rawacf(self):
-        """tests using RawDmapWrite to write to rawacf"""
+        """tests using DmapWrite to write to rawacf"""
         rawacf_data = rawacf_data_sets.rawacf_data
 
         dmap = pydarn.DmapWrite(rawacf_data)
 
         dmap.write_rawacf("test_rawacf.rawacf")
-        self.asserttrue(os.path.isfile("test_rawacf.rawacf"))
+        self.assertTrue(os.path.isfile("test_rawacf.rawacf"))
+
         os.remove("test_rawacf.rawacf")
-        self.assertRaises(pydarn.pydmap_exceptions.SuperDARNFieldMissing,
-                          pydarn.DmapWrite(), rawacf_data,
-                          "test_rawacf.rawacf", 'rawacf')
-        self.asserttrue(os.path.isfile("test_rawacf.rawacf"))
+
+        pydarn.DmapWrite(rawacf_data, "test_rawacf.rawacf", 'rawacf')
+        self.assertTrue(os.path.isfile("test_rawacf.rawacf"))
         os.remove("test_rawacf.rawacf")
+
 
 if __name__ == '__main__':
     """
