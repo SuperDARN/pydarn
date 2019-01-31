@@ -729,7 +729,7 @@ class DmapWrite(object):
 
     """
 
-    def __init__(self, dmap_records: list, filename: str, dmap_file_fmt=None):
+    def __init__(self, dmap_records: list, filename="", dmap_file_fmt=None):
         self.dmap_records = dmap_records
         self.dmap_bytearr = bytearray()
         self.filename = filename
@@ -759,38 +759,56 @@ class DmapWrite(object):
 
     # Methods are used and strings for versatility amongst users
     # some prefer string input some rather not due to typos :)
-    def write_iqdat(self):
+    def write_iqdat(self, filename=""):
+        self.__filename_check(filename)
         self.superDARN_file_structure_check(superdarn_formats.Iqdat.types)
 
-    def write_rawacf(self):
+    def write_rawacf(self, filename=""):
+        self.__filename_check(filename)
         self.superDARN_file_structure_check(superdarn_formats.Rawacf.types)
 
-    def write_fitacf(self):
+    def write_fitacf(self, filename=""):
+        self.__filename_check(filename)
         self.superDARN_file_structure_check(superdarn_formats.Fitacf.types)
 
-    def write_grid(self):
+    def write_grid(self, filename=""):
+        self.__filename_check(filename)
         self.superDARN_file_structure_check(superdarn_formats.Grid.types)
 
-    def write_map(self):
+    def write_map(self, filename=""):
+        self.__filename_check(filename)
         self.superDARN_file_structure_check(superdarn_formats.Map.types)
 
-    def write_dmap(self):
+    def write_dmap(self, filename=""):
+        self.__filename_check(filename)
         self.dmap_records_to_bytes()
+
+    def __filename_check(self, filename=""):
+        if self.filename == "" and filename == "":
+            raise pydmap_exceptions.FilenameRequiredError
+        elif filename != "":
+            self.filename = filename
+
 
     def superDARN_file_structure_check(self, file_format):
         for record in self.dmap_records:
-            missing = { param: file_format[param] for param in set(file_format) -\
-                     set(record)}
-            extra = { param: record[param] for param in set(record) -\
-                     set(file_format)}
+            incorrect_types = { param :  data_type\
+                              for param, data_type in file_format.items() \
+                              if record[param].data_type != file_format[param]}
+            missing_fields = { param: file_format[param] \
+                              for param in set(file_format) - set(record)}
+            extra_fields = { param: record[param] \
+                            for param in set(record) - set(file_format)}
             if len(missing) > 0:
                 raise pydmap_exceptions.SuperDARNFieldMissing(self.filename,
                                                               file_format,
-                                                              missing.keys())
+                                                              missing_fields.keys())
             if len(extra) > 0:
                 raise pydmap_exceptions.SuperDARNFieldExtra(self.filename,
                                                             file_format,
-                                                            extra.keys())
+                                                            extra_fields.keys())
+            if len(incorrect_type) > 0:
+                raise pydmap_exceptions.SuperDARNDataTypeError(incorrecty_types)
             self.dmap_record_to_bytes()
 
     def dmap_records_to_bytes(self):
