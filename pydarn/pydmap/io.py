@@ -87,22 +87,22 @@ class DmapRead():
     Reading and testing the integrity of DMAP files/stream.
     ...
 
-    Attributes:
+    Attributes
     ----------
     dmap_file : str
-        DMAP file/stream name/data
+        DMAP file name or data stream (give data_stream=True)
     cursor : int
         Current position in the byte array
     dmap_end_bytes : int
         The length of the byte array
 
-    Methods:
+    Methods
     --------
     test_initial_data_integrity()
         Quickly reads the byte array for any errors
     read_records()
         Reads the byte array to obtain the DMAP records
-    zero_check(element, element_name)
+    zero_negative_check(element, element_name)
         Checks if the element is equal to zero
     check_data_type(data_type, data_name)
         Checks if the data_type exists in DMAP_DATA_TYPE dictionary
@@ -128,7 +128,8 @@ class DmapRead():
         Parameters
         ----------
         dmap_file : str
-                    file/stream of dmap data
+                    file name or data stream (given data_stream=True)
+                    containing dmap data.
         data_stream : bool
                  default to false, boolean that indicates if dmap_file is a
                  data stream
@@ -180,7 +181,7 @@ class DmapRead():
         if self.dmap_end_bytes == 0:
             raise pydmap_exceptions.EmptyFileError(self.dmap_file)
 
-    def zero_check(self, element: int, element_name: str):
+    def zero_negative_check(self, element: int, element_name: str):
         """
         Checks if the element <= 0 bytes. If true then raise a ZeroByteError.
 
@@ -189,7 +190,7 @@ class DmapRead():
         element : int
             An element to check if it is zero
         element_name : str
-            The element's name title for a more detailed exception message.
+            The element's name title for a more detailed exception message
 
         Raises
         ------
@@ -197,16 +198,23 @@ class DmapRead():
             if element <= 0
         """
 
-        if element <= 0:
+        if element == 0:
             element_info = "{name} {size}".format(name=element_name,
                                                   size=element)
             raise pydmap_exceptions.ZeroByteError(self.dmap_file, element_info,
                                                   self.cursor)
+        elif element < 0:
+            element_info = "{name} {size}".format(name=element_name,
+                                                  size=element)
+            raise pydmap_exceptions.NegativeByteError(self.dmap_file, element_info,
+                                                  self.cursor)
+
 
     def bytes_check(self, element: int, element_name: str, byte_check: int,
                     byte_check_name: str):
         """
-        Checks if the element greater than the byte_check.
+        Checks if the element greater than the value comparing against
+        (byte_check).
 
         Parameter
         ---------
@@ -215,10 +223,10 @@ class DmapRead():
         element_name : str
             Name of the element for a more detailed exception message
         byte_check : int
-            The byte value for the element to compare against.
+            The byte value for the element to compare against
         byte_check_name : str
             Name of the byte value to be compared too for a more detailed
-            exception message.
+            exception message
 
         Raises
         ------
@@ -299,13 +307,14 @@ class DmapRead():
             # encoding_identifier = self.read_data('i',4)
             self.cursor += 4
             block_size = self.read_data('i',4)
-            self.zero_check(block_size, "block size")
+            self.zero_negative_check(block_size, "block size")
 
             total_block_size += block_size
             self.bytes_check(total_block_size, "total block size",
                              self.dmap_end_bytes, "total bytes in file")
 
-            # why minus 2?
+            # 2 is to include the encoding_identifier and size of data which
+            # are both int types.
             self.cursor = self.cursor + block_size - 2 * DMAP_DATA_TYPES[INT][1]
 
         if total_block_size != self.dmap_end_bytes:
@@ -316,7 +325,7 @@ class DmapRead():
                     "".format(total_size=total_block_size,
                               end_bytes=self.dmap_end_bytes,
                               cursor=self.cursor)
-            raise pydmap_exceptions.DmapDataError(self.date_file, message)
+            raise pydmap_exceptions.DmapDataError(self.data_file, message)
         self.cursor = 0
 
     def read_records(self) -> collections.deque:
@@ -377,6 +386,9 @@ class DmapRead():
 
         # Need to get encoder for cursor movement though it is not moved.
         #encoding_identifier = self.read_data('i',4)
+        # WARNING: normally would call encoding_identifier but since it is not
+        # used the extra function call is point less so best just to move the
+        # cursor for performance :)
         self.cursor += 4
         block_size = self.read_data('i',4)
 
@@ -385,16 +397,16 @@ class DmapRead():
 
         # adding 8 bytes because code+size are part of the record.
         # 4 is the number bytes for int format
-        remaining_bytes = self.dmap_end_bytes - self.cursor + 2 * 4
+        remaining_bytes = self.dmap_end_bytes - self.cursor + 2 * DMAP_DATA_TYPES[INT][1]
         self.bytes_check(block_size, "block size",
                          remaining_bytes, "remaining bytes")
-        self.zero_check(block_size, "block size")
+        self.zero_negative_check(block_size, "block size")
 
         num_scalars = self.read_data('i', 4)
         num_arrays = self.read_data('i', 4)
 
-        self.zero_check(num_scalars, "number of scalars")
-        self.zero_check(num_arrays, "number of arrays")
+        self.zero_negative_check(num_scalars, "number of scalars")
+        self.zero_negative_check(num_arrays, "number of arrays")
         self.bytes_check(num_scalars + num_arrays,
                          "number of scalars + arrays",
                          block_size, "block size")
@@ -426,12 +438,15 @@ class DmapRead():
         ------
         DmapScalar: namedtuple
             data structure that contains the data properties of
-            the scalar read in.
+            the scalar read in
 
         Raises
         ------
         DmapDataError
             if the data type format is DMAP
+            NOTE: In RST, this is allowed, if an example shows up where this is
+            allowed DMAP files raise as an issue in the GitHub so the code can
+            be re-accessed.
 
         See Also
         --------
@@ -448,14 +463,13 @@ class DmapRead():
         scalar_type_fmt = DMAP_DATA_TYPES[scalar_type][0]
         scalar_fmt_byte = DMAP_DATA_TYPES[scalar_type][1]
 
-        # What is a DMAP type?
         if scalar_type_fmt != DMAP:
             scalar_value = self.read_data(scalar_type_fmt, scalar_fmt_byte)
         else:
-            message = "Error: Trying to read DMAP format."\
+            message = "Error: Trying to read DMAP data type for a scalar."\
                     " cursor at {}".format(self.cursor)
             # Not sure when this is used in a dmap file
-            # so better to raise an error
+            # so better to raise an error if used re-access the code.
             raise pydmap_exceptions.DmapDataError(self.dmap_file, message)
 
         return DmapScalar(scalar_name, scalar_value,
@@ -495,7 +509,7 @@ class DmapRead():
         array_dimension = self.read_data('i', 4)
         self.bytes_check(array_dimension, "array dimension",
                          record_size, "record size")
-        self.zero_check(array_dimension, "array dimension")
+        self.zero_negative_check(array_dimension, "array dimension")
 
         array_shape = [self.read_data('i', 4) for i in range(0, array_dimension)]
         array_shape.reverse()
@@ -506,7 +520,8 @@ class DmapRead():
                     " cursor: {cursor}".format(shape=array_shape,
                                                cursor=self.cursor)
             raise pydmap_exceptions.DmapDataError(self.dmap_file, message)
-        # TODO Explain where does slist come from?
+        # slist is the array that holds the range gates that have valid data
+        # when qflg is 1
         elif any(x <= 0 for x in array_shape) and array_name != "slist":
             message = "Error: Array shape {shape} contains "\
                     "dimension size <= 0."\
@@ -524,7 +539,8 @@ class DmapRead():
                 raise pydmap_exceptions.DmapDataError(self.dmap_file, message)
 
         # We could use np.prod(array_shape) but the for loop has a better
-        # time performance.
+        # time performance. Note: cells can also be read as number of elements
+        # depending on your background.
         total_num_cells = 1
         for i in array_shape:
             total_num_cells *= i
@@ -544,13 +560,16 @@ class DmapRead():
         # are encoded as hex literals, they have to be read one at a
         # time to make sense.
 
-        # what is DMAP format? Can we get an example that has a
-        # list of DMAPs?
-        # Also why is char also included?
         if array_type_fmt == 's' or array_type_fmt == 'c':
             array_value = self.read_string_array(array_shape,
                                                  array_type_fmt,
                                                  array_fmt_bytes)
+        elif array_type == DMAP:
+            message = "Error: Trying to read DMAP array data type."\
+                    " cursor at {}".format(self.cursor)
+            # Not sure when this is used in a dmap file
+            # so better to raise an error if used re-access the code.
+            raise pydmap_exceptions.DmapDataError(self.dmap_file, message)
         else:
             array_value = self.read_numerical_array(array_type_fmt,
                                                     total_num_cells,

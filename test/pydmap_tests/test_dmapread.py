@@ -7,12 +7,7 @@ DMAP files: rawacf, fitacf, map, ... etc
 """
 
 import unittest
-import test_data
 import numpy as np
-import os
-import random
-import gc
-import time
 import logging
 import collections
 
