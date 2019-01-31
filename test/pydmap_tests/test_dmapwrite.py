@@ -12,11 +12,9 @@ import time
 import logging
 
 import pydarn
+import rawacf_data_sets
 
 pydarn_logger = logging.getLogger('pydarn')
-rawacf_file = "./testfiles/20170410.1801.00.sas.rawacf"
-fitacf_file = "./testfiles/20180220.C0.rkn.fitacf"
-map_file = "./testfiles/20170114.map"
 
 def compare_arrays(arr1, arr2):
     for a, b in zip(arr1, arr2):
@@ -53,169 +51,102 @@ class TestDmapWrite(unittest.TestCase):
     def setUp(self):
         pass
 
+    def test_wrong_file_format(self):
+        rawacf_data = rawacf_data_sets.rawacf_data
+        self.assertRaises(pydarn.pydmap_exceptions.DmapFileFormatType,
+                          pydarn.DmapWrite(), rawacf_data,
+                          "rawacf_test.rawacf", 'dog')
+
+    def test_empty_record(self):
+        self.assertRaises(pydarn.pydmap_exceptions.DmapDataError,
+                          pydarn.DmapWrite([], 'dummy_file.acf', 'fitacf'))
+
+    def test_incorrect_filename_input_using_DmapWrite(self):
+        rawacf_data = rawacf_data_sets.rawacf_data
+        self.assertRaises(pydarn.pydmap_exceptions.FilenameRequiredError,
+                          pydarn.DmapWrite(), rawacf_data, "", 'fitacf')
+
+    def test_incorrect_filename_input_using_write_methods(self):
+        rawacf_data = rawacf_data_sets.rawacf_data
+        dmap_data = pydarn.DmapWrite(rawacf_data)
+        self.assertRaises(pydarn.pydmap_exceptions.FilenameRequiredError,
+                          dmap_data.write_rawacf())
+        self.assertRaises(pydarn.pydmap_exceptions.FilenameRequiredError,
+                          dmap_data.write_fitacf)
+        self.assertRaises(pydarn.pydmap_exceptions.FilenameRequiredError,
+                          dmap_data.write_iqdat)
+        self.assertRaises(pydarn.pydmap_exceptions.FilenameRequiredError,
+                          dmap_data.write_grid)
+        self.assertRaises(pydarn.pydmap_exceptions.FilenameRequiredError,
+                          dmap_data.write_map)
+        self.assertRaises(pydarn.pydmap_exceptions.FilenameRequiredError,
+                          dmap_data.write_dmap)
+
+
     def test_RawDmapWrite_missing_field_rawacf(self):
         """
             Tests RawDmapWite to write to rawacf:
                 Expected behaviour to raise a DmapDataError
                 because the rawtacf file is missing field.
         """
-        file_path = "test_rawacf.rawacf"
+        rawacf_data = rawacf_data_sets.missing_rawacf_field
 
-        dict_list = [test_data.rawacf_missing_field]
+        dmap = pydarn.DmapWrite(rawacf_data)
 
-        self.assertRaises(pydarn.DmapDataError, pydarn.dicts_to_file,
-                          dict_list, file_path, file_type='rawacf')
+        self.assertRaises(pydarn.pydmap_exceptions.SuperDARNFieldMissing,
+                          dmap.write_rawacf(), "test_rawacf.rawacf")
+        self.assertRaises(pydarn.pydmap_exceptions.SuperDARNFieldMissing,
+                          pydarn.DmapWrite(), rawacf_data,
+                          "test_rawacf.rawacf", 'rawacf')
 
 
-    def test_RawDmapWrite_extra_field_rawacf(self):
+    def test_extra_field_rawacf(self):
         """
             Tests RawDmapWite to write to rawacf:
                 Expected behaviour to raise a DmapDataError
                 because the rawacf file data has an extra field.
         """
-        file_path = "test_rawacf.rawacf"
+        rawacf_data = rawacf_data_sets.extra_rawacf_field
 
-        dict_list = [test_data.rawacf_extra_field]
+        dmap = pydarn.DmapWrite(rawacf_data)
 
-        self.assertRaises(pydarn.DmapDataError, pydarn.dicts_to_file,
-                          dict_list, file_path, file_type='rawacf')
+        self.assertRaises(pydarn.pydmap_exceptions.SuperDARNFieldExtra,
+                          dmap.write_rawacf(), "test_rawacf.rawacf")
+        self.assertRaises(pydarn.pydmap_exceptions.SuperDARNFieldExtra,
+                          pydarn.DmapWrite(), rawacf_data,
+                          "test_rawacf.rawacf", 'rawacf')
+
+    def test_incorrect_data_format_rawacf(self):
+        rawacf_data = rawacf_data_sets.incorrect_data_type
+
+        dmap = pydarn.DmapWrite(rawacf_data)
+
+        self.assertRaises(pydarn.pydmap_exceptions.SuperDARNDataFormatError,
+                          dmap.write_rawacf(), "test_rawacf.rawacf")
+        self.assertRaises(pydarn.pydmap_exceptions.SuperDARNDataFormatError,
+                          pydarn.DmapWrite(), rawacf_data,
+                          "test_rawacf.rawacf", 'rawacf')
 
 
     def test_writing_to_rawacf(self):
         """tests using RawDmapWrite to write to rawacf"""
-        dict_list = [test_data.good_rawacf]
-        file_path = "test_rawacf.rawacf"
+        rawacf_data = rawacf_data_sets.rawacf_data
 
-        pydarn.dicts_to_file(dict_list, file_path, file_type='rawacf')
+        dmap = pydarn.DmapWrite(rawacf_data)
 
-        rec = pydarn.parse_dmap_format_from_file(file_path)
+        dmap.write_rawacf("test_rawacf.rawacf")
+        self.asserttrue(os.path.isfile("test_rawacf.rawacf"))
+        os.remove("test_rawacf.rawacf")
+        self.assertRaises(pydarn.pydmap_exceptions.SuperDARNFieldMissing,
+                          pydarn.DmapWrite(), rawacf_data,
+                          "test_rawacf.rawacf", 'rawacf')
+        self.asserttrue(os.path.isfile("test_rawacf.rawacf"))
+        os.remove("test_rawacf.rawacf")
 
-        parsed_record = rec[0]
-        k = test_write_integrity(parsed_record, test_data.good_rawacf)
-
-        if k is not None:
-            self.fail("Parsed field {0} data does not match data to be written out".format(k))
-
-        os.remove(file_path)
-
-    def test_RawDmapWrite_missing_field(self):
-        """
-            Tests RawDmapWite to write to fitacf:
-                Expected behaviour to raise a DmapDataError
-                because the fitacf file is missing field.
-        """
-        file_path = "test_fitacf.fitacf"
-
-        dict_list = [test_data.fitacf_missing_field]
-
-        self.assertRaises(pydarn.DmapDataError, pydarn.dicts_to_file,
-                          dict_list, file_path, file_type='fitacf')
-
-
-    def test_RawDmapWrite_extra_field(self):
-        """
-            Tests RawDmapWite to write to fitacf:
-                Expected behaviour to raise a DmapDataError
-                because the fitacf file data has an extra field.
-        """
-        file_path = "test_fitacf.fitacf"
-
-        dict_list = [test_data.fitacf_extra_field]
-
-        self.assertRaises(pydarn.DmapDataError, pydarn.dicts_to_file,
-                          dict_list, file_path, file_type='fitacf')
-
-
-    def test_writing_to_fitacf(self):
-        """
-            tests using RawDmapWrite to write to fitacf
-            Excpected behaviour test_fitacf.fitacf is produced
-            with no errors.
-        """
-
-        file_path = "test_fitacf.fitacf"
-
-        dict_list = [test_data.good_fitacf]
-        pydarn.dicts_to_file(dict_list, file_path,'fitacf')
-        rec = pydarn.parse_dmap_format_from_file(file_path)
-
-        parsed_record = rec[0]
-
-        k = test_write_integrity(parsed_record, test_data.good_fitacf)
-
-        if k is not None:
-            self.fail("Parsed field {0} data does not match data to be written out".format(k))
-
-        os.remove(file_path)
-
-    def test_writing_to_iq(self):
-        """tests using RawDmapWrite to write to iqdat"""
-        file_path = "test_iq.iqdat"
-
-        dict_list = [test_data.iq_missing_field]
-
-        self.assertRaises(pydarn.DmapDataError, pydarn.dicts_to_file, dict_list,
-                          file_path, file_type='iqdat')
-
-        dict_list = [test_data.iq_extra_field]
-
-        self.assertRaises(pydarn.DmapDataError, pydarn.dicts_to_file,
-                          dict_list, file_path, file_type='iqdat')
-
-        dict_list = [test_data.good_iq]
-
-        try:
-            pydarn.dicts_to_file(dict_list, file_path,
-                                 file_type='iqdat')
-        except pydarn.DmapDataError as e:
-            self.fail(str(e))
-
-        try:
-            rec = pydarn.parse_dmap_format_from_file(file_path)
-        except pydarn.DmapDataError as e:
-            self.fail(str(e))
-
-        parsed_record = rec[0]
-
-        k = test_write_integrity(parsed_record, test_data.good_iq)
-
-        if k is not None:
-            self.fail("Parsed field {0} data does not match data to be written out".format(k))
-
-        os.remove(file_path)
-
-    def test_writing_to_map(self):
-        """tests using RawDmapWrite to write to map"""
-        file_path = "test_map.map"
-
-        dict_list = [test_data.map_missing_field]
-
-        self.assertRaises(pydarn.DmapDataError, pydarn.dicts_to_file,
-                          dict_list, file_path, file_type='map')
-
-        dict_list = [test_data.map_extra_field]
-
-        self.assertRaises(pydarn.DmapDataError, pydarn.dicts_to_file,
-                          dict_list, file_path, file_type='map')
-
-        dict_list = [test_data.good_map]
-
-        try:
-            pydarn.dicts_to_file(dict_list, file_path, file_type='map')
-        except pydarn.DmapDataError as e:
-            self.fail(str(e))
-
-        try:
-            rec = pydarn.parse_dmap_format_from_file(file_path)
-        except pydarn.DmapDataError as e:
-            self.fail(str(e))
-
-        parsed_record = rec[0]
-
-        k = test_write_integrity(parsed_record, test_data.good_map)
-
-        if k is not None:
-            self.fail("Parsed field {0} data does not match data to be written out".format(k))
-
-        os.remove(file_path)
-
+if __name__ == '__main__':
+    """
+    Runs the above class in a unittest system.
+    Roughly takes 467 seconds.
+    """
+    pydarn_logger.info("Starting DMAP testing")
+    unittest.main()
