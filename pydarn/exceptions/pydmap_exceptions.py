@@ -182,39 +182,39 @@ class DmapFileFormatType(Exception):
 class SuperDARNFieldMissing(Exception):
     """
     """
-    def __init__(self, filename, file_format, fields):
+    def __init__(self, filename, record_num, fields):
         self.filename = filename
-        self.file_format = file_format
+        self.record_number = record_num
         self.fields = fields
         self.message = "Error: Cannot write to {filename}."\
-                " The following fields are missing: {fields}"\
-                " for the file format structure:"\
-                " {file_fmt}".format(filename=self.filename,
-                                     fields=self.fields,
-                                     file_fmt=self.file_format)
+                " The following fields in record {num} are missing:"\
+                " {fields}".format(filename=self.filename,
+                                     num=self.record_number,
+                                     fields=self.fields)
 
 
 class SuperDARNFieldExtra(Exception):
     """
     """
-    def __init__(self, filename, file_format, fields):
+    def __init__(self, filename, record_num, fields):
         self.filename = filename
-        self.file_format = file_format
+        self.record_number = record_num
         self.fields = fields
         self.message = "Error: Cannot write to {filename}."\
-                " The following fields are not allowed: {fields}"\
-                " for the file format structure:"\
-                " {file_fmt}".format(filename=self.filename,
-                                     fields=self.fields,
-                                     file_fmt=self.file_format)
+                " The following fields in record {num} are not allowed:"\
+                " {fields}".format(filename=self.filename,
+                                     num=self.record_number,
+                                     fields=self.fields)
 
 class SuperDARNDataFormatError(Exception):
     """
     """
-    def __init__(self, incorrect_types):
+    def __init__(self, incorrect_types, record_num):
         self.incorrect_params = incorrect_types
-        self.message = "Error: The following parameters need to be the"\
-                " data type: {incorrect}".format(incorrect=self.incorrect_params)
+        self.record_number = record_num
+        self.message = "Error: In record {num}, following parameters need to be the"\
+                " data type: {incorrect}".format(num=self.record_number,
+                                                 incorrect=self.incorrect_params)
 
 
 class DmapTypeError(Exception):

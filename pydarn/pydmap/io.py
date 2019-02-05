@@ -802,26 +802,28 @@ class DmapWrite(object):
 
 
     def superDARN_file_structure_check(self, file_format):
-        for record in self.dmap_records:
+        # TODO: if this is a slow progress go back to record in dmap_records and then add a counter
+        for rec_num in range(len(self.dmap_records)):
+            record = self.dmap_records[rec_num]
             missing_fields = { param: file_format[param] \
                               for param in set(file_format) - set(record)}
 
             if len(missing_fields) > 0:
                 raise pydmap_exceptions.SuperDARNFieldMissing(self.filename,
-                                                              file_format,
+                                                              rec_num,
                                                               missing_fields.keys())
             extra_fields = { param: record[param] \
                             for param in set(record) - set(file_format)}
             if len(extra_fields) > 0:
                 raise pydmap_exceptions.SuperDARNFieldExtra(self.filename,
-                                                            file_format,
+                                                            rec_num,
                                                             extra_fields.keys())
             incorrect_types = { param :  data_type\
                   for param, data_type in file_format.items() \
                   if record[param].data_type_fmt != file_format[param]}
 
             if len(incorrect_types) > 0:
-                raise pydmap_exceptions.SuperDARNDataFormatError(incorrect_types)
+                raise pydmap_exceptions.SuperDARNDataFormatError(incorrect_types, rec_num)
             self.dmap_record_to_bytes(record)
 
     def dmap_records_to_bytes(self):
