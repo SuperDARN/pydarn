@@ -65,7 +65,6 @@ class Rawacf():
 
 
 class Fitacf():
-
     types = {
         'radar.revision.major': 'c',
         'radar.revision.minor': 'c',
@@ -157,8 +156,7 @@ class Fitacf():
         'elv_high': 'f',
         'x_sd_l': 'f',
         'x_sd_s': 'f',
-        'x_sd_phi': 'f',
-        }
+        'x_sd_phi': 'f'}
 
 class Grid():
     types = {
@@ -199,7 +197,9 @@ class Grid():
         'vector.channel': 'h',
         'vector.index': 'i',
         'vector.vel.median': 'f',
-        'vector.vel.sd': 'f',
+        'vector.vel.sd': 'f'}
+    extra_fields =
+    {
         'vector.pwr.median': 'f',
         'vector.pwr.sd': 'f',
         'vector.wdt.median': 'f',
@@ -223,7 +223,6 @@ class Map():
         'end.second': 'd',
         'map.major.revision': 'h',
         'map.minor.revision': 'h',
-        'source': 's',
         'doping.level': 'h',
         'model.wt': 'h',
         'error.wt': 'h',
@@ -234,10 +233,7 @@ class Map():
         'IMF.Bz': 'd',
         'IMF.Vx': 'd',
         'IMF.tilt': 'd',
-        'model.angle': 's',
-        'model.level': 's',
-        'model.tilt': 's',
-        'model.name': 's',
+        'IMF.Kp': 'd',
         'hemisphere': 'h',
         'noigrf': 'h',
         'fit.order': 'h',
@@ -282,21 +278,31 @@ class Map():
         'vector.index': 'i',
         'vector.vel.median': 'f',
         'vector.vel.sd': 'f',
-        'vector.pwr.median': 'f',
-        'vector.pwr.sd': 'f',
-        'vector.wdt.median': 'f',
-        'vector.wdt.sd': 'f',
-        'N': 'd',
-        'N+1': 'd',
-        'N+2': 'd',
-        'N+3': 'd',
-        'model.mlat': 'f',
-        'model.mlon': 'f',
-        'model.kvect': 'f',
-        'model.vel.median': 'f',
-        'boundary.mlat': 'f',
-        'boundary.mlon': 'f',
+
         }
+    extra_fields:
+        {'source':'s',
+         'model.angle': 's',
+         'model.level': 's',
+         'model.tilt': 's',
+         'model.name': 's',
+         'vector.pwr.median': 'f',
+         'vector.pwr.sd': 'f',
+         'vector.wdt.median': 'f',
+         'vector.wdt.sd': 'f',
+         'N': 'd',
+         'N+1': 'd',
+         'N+2': 'd',
+         'N+3': 'd',
+         'model.mlat': 'f',
+         'model.mlon': 'f',
+         'model.kvect': 'f',
+         'model.vel.median': 'f',
+         'boundary.mlat': 'f',
+         'boundary.mlon': 'f',
+        }
+
+
 
 class Iqdat():
     types = {
