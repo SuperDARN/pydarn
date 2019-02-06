@@ -280,27 +280,37 @@ class Map():
         'vector.vel.sd': 'f',
 
         }
-    extra_fields:
-        {'source':'s',
+
+    hmb_fields = {
+        'model.mlat': 'f',
+        'model.mlon': 'f',
+        'model.kvect': 'f',
+        'model.vel.median': 'f',
+        'boundary.mlat': 'f',
+        'boundary.mlon': 'f',
+    }
+
+    model_fields = {
          'model.angle': 's',
          'model.level': 's',
          'model.tilt': 's',
          'model.name': 's',
-         'vector.pwr.median': 'f',
-         'vector.pwr.sd': 'f',
-         'vector.wdt.median': 'f',
-         'vector.wdt.sd': 'f',
-         'N': 'd',
-         'N+1': 'd',
-         'N+2': 'd',
-         'N+3': 'd',
-         'model.mlat': 'f',
-         'model.mlon': 'f',
-         'model.kvect': 'f',
-         'model.vel.median': 'f',
-         'boundary.mlat': 'f',
-         'boundary.mlon': 'f',
-        }
+    }
+
+    fit_fields = {
+        'source':'s',
+        'N': 'd',
+        'N+1': 'd',
+        'N+2': 'd',
+        'N+3': 'd',
+    }
+
+    extra_fields = {
+        'vector.pwr.median': 'f',
+        'vector.pwr.sd': 'f',
+        'vector.wdt.median': 'f',
+        'vector.wdt.sd': 'f',
+    }
 
 
 
