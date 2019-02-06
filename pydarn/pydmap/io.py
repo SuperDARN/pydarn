@@ -800,11 +800,48 @@ class DmapWrite(object):
         elif filename != "":
             self.filename = filename
 
+    def _dict_diff(self, dict1, dict2):
+        diff_dict = set(dict1) - set(dict2)
+        return diff_dict
+
+    def missing_field_check(self, file_struct, record, rec_num):
+        if len(self._dict_diff(file_struct, record)) > 0:
+            raise pydmap_exceptions.SuperDARNFieldMissing(self.filename,
+                                                          rec_num,
+                                                          missing_fields.keys())
+
+    def _incorrect_types(self, record, strtuture, rec_num):
+        incorrect_types = { param :  structure[param]\
+                           for param  in record.items() \
+                           if record[param].data_type_fmt != file_struct[param]}
+
+        if len(incorrect_types) > 0:
+            raise pydmap_exceptions.SuperDARNDataFormatError(incorrect_types, rec_num)
+
+    # Needed because Map files have corner cases since
+    # fields are added various points of the map file processing
+    # procedure.
+    def supeDARN_Map_structure_check(self):
+        map_structure = superdarn_formats.Map
+        for rec_num in range(len(self.dmap_records)))
+            record = self.dmap_records[rec_num]
+            # checks for missing fields
+            self.missing_field_check(map_structure.types, record, rec_num)
+
+            #Because map files can have later added fields we need to recheck
+            # possible type of map file fields
+            extra_fields = self._dict_diff(record, map_structure.types)
+            if len(extra_fields) > 0:
+                self.missing_field_check(map_structure.types, record, rec_num)
+                ext_fields = self._dict_diff(record, )
+                extra_fields = { param: record[param] \
+                            for param in set(extra_fields) - set(file_format)}
 
     def superDARN_file_structure_check(self, file_format):
         # TODO: if this is a slow progress go back to record in dmap_records and then add a counter
         for rec_num in range(len(self.dmap_records)):
             record = self.dmap_records[rec_num]
+
             missing_fields = { param: file_format[param] \
                               for param in set(file_format) - set(record)}
 
@@ -818,12 +855,6 @@ class DmapWrite(object):
                 raise pydmap_exceptions.SuperDARNFieldExtra(self.filename,
                                                             rec_num,
                                                             extra_fields.keys())
-            incorrect_types = { param :  data_type\
-                  for param, data_type in file_format.items() \
-                  if record[param].data_type_fmt != file_format[param]}
-
-            if len(incorrect_types) > 0:
-                raise pydmap_exceptions.SuperDARNDataFormatError(incorrect_types, rec_num)
             self.dmap_record_to_bytes(record)
 
     def dmap_records_to_bytes(self):
