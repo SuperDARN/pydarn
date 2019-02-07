@@ -158,7 +158,9 @@ class Fitacf():
         'x_sd_s': 'f',
         'x_sd_phi': 'f'}
 
+
 class Grid():
+
     types = {
         'start.year': 'h',
         'start.month': 'h',
@@ -198,8 +200,7 @@ class Grid():
         'vector.index': 'i',
         'vector.vel.median': 'f',
         'vector.vel.sd': 'f'}
-    extra_fields =
-    {
+    extra_fields = {
         'vector.pwr.median': 'f',
         'vector.pwr.sd': 'f',
         'vector.wdt.median': 'f',
@@ -208,7 +209,7 @@ class Grid():
 
 
 class Map():
-    types= {
+    types = {
         'start.year': 'h',
         'start.month': 'h',
         'start.day': 'h',
@@ -298,7 +299,7 @@ class Map():
     }
 
     fit_fields = {
-        'source':'s',
+        'source': 's',
         'N': 'd',
         'N+1': 'd',
         'N+2': 'd',
@@ -311,7 +312,6 @@ class Map():
         'vector.wdt.median': 'f',
         'vector.wdt.sd': 'f',
     }
-
 
 
 class Iqdat():

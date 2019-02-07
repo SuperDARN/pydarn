@@ -207,9 +207,9 @@ class DmapRead():
         elif element < 0:
             element_info = "{name} {size}".format(name=element_name,
                                                   size=element)
-            raise pydmap_exceptions.NegativeByteError(self.dmap_file, element_info,
-                                                  self.cursor)
-
+            raise pydmap_exceptions.NegativeByteError(self.dmap_file,
+                                                      element_info,
+                                                      self.cursor)
 
     def bytes_check(self, element: int, element_name: str, byte_check: int,
                     byte_check_name: str):
@@ -307,7 +307,7 @@ class DmapRead():
             # TODO: Possible check that uses the encoding identifier
             # encoding_identifier = self.read_data('i',4)
             self.cursor += 4
-            block_size = self.read_data('i',4)
+            block_size = self.read_data('i', 4)
             self.zero_negative_check(block_size, "block size")
 
             total_block_size += block_size
@@ -316,7 +316,8 @@ class DmapRead():
 
             # 2 is to include the encoding_identifier and size of data which
             # are both int types.
-            self.cursor = self.cursor + block_size - 2 * DMAP_DATA_TYPES[INT][1]
+            self.cursor = self.cursor + block_size - 2 *\
+                DMAP_DATA_TYPES[INT][1]
 
         if total_block_size != self.dmap_end_bytes:
             message = "Error: Initial integrity check shows"\
@@ -347,7 +348,8 @@ class DmapRead():
         DmapScalar : dmap record's scalar data structure
         DmapArray  : dmap record's array data structure
 
-        See DEVELOPER_README.md for more information DmapRecords data structure.
+        See DEVELOPER_README.md for more information on
+        DmapRecords data structure.
         """
 
         # read bytes until end of byte array
@@ -386,19 +388,20 @@ class DmapRead():
         start_cursor_value = self.cursor
 
         # Need to get encoder for cursor movement though it is not moved.
-        #encoding_identifier = self.read_data('i',4)
+        # encoding_identifier = self.read_data('i',4)
         # WARNING: normally would call encoding_identifier but since it is not
         # used the extra function call is point less so best just to move the
         # cursor for performance :)
         self.cursor += 4
-        block_size = self.read_data('i',4)
+        block_size = self.read_data('i', 4)
 
         pydarn_logger.debug("Reading Record {record}"
                             .format(record=len(self.__dmap_records)))
 
         # adding 8 bytes because code+size are part of the record.
         # 4 is the number bytes for int format
-        remaining_bytes = self.dmap_end_bytes - self.cursor + 2 * DMAP_DATA_TYPES[INT][1]
+        remaining_bytes = self.dmap_end_bytes - self.cursor + \
+            DMAP_DATA_TYPES[INT][1]
         self.bytes_check(block_size, "block size",
                          remaining_bytes, "remaining bytes")
         self.zero_negative_check(block_size, "block size")
@@ -413,8 +416,9 @@ class DmapRead():
                          block_size, "block size")
 
         pydarn_logger.debug("Reading record: reading scalars\n")
-        # originally called DmapRecord but then was just returning the ordered dict
-        # thus I am constructing it here instead for better speed performance.
+        # originally called DmapRecord but then was just returning the ordered
+        # dict thus I am constructing it here instead
+        # for better speed performance.
         record = collections.OrderedDict()
         for i in range(num_scalars):
             scalar = self.read_scalar()
@@ -512,7 +516,8 @@ class DmapRead():
                          record_size, "record size")
         self.zero_negative_check(array_dimension, "array dimension")
 
-        array_shape = [self.read_data('i', 4) for i in range(0, array_dimension)]
+        array_shape = [self.read_data('i', 4)
+                       for i in range(0, array_dimension)]
         array_shape.reverse()
 
         # if shape list is empty
@@ -624,8 +629,9 @@ class DmapRead():
                                                fmt=data_fmt_bytes)
             raise pydmap_exceptions.CursorError(self.cursor, message=message)
 
-        # struct.unpack is a python method the converts C struct as python bytes
-        # to python values. See DEVELOPER_README.md for more information.
+        # struct.unpack is a python method the converts C struct
+        # as python bytes to python values. See DEVELOPER_README.md
+        # for more information.
         # TODO: how to handle this gracefully? Return None and check later than
         #       continue in the loop?
         if data_type_fmt == 'c':
@@ -634,18 +640,22 @@ class DmapRead():
             return data
         elif data_type_fmt == 's':
             byte_counter = 0
-            while self.dmap_bytearr[self.cursor + byte_counter] != 0 or self.cursor + byte_counter >= self.dmap_end_bytes:
-                # add 1 byte to byte_counter because a string is a list of chars
+            while self.dmap_bytearr[self.cursor + byte_counter] != 0 or \
+                    self.cursor + byte_counter >= self.dmap_end_bytes:
+                # add 1 byte to byte_counter because
+                # a string is a list of chars
                 byte_counter += 1  # 1 is the number of bytes of a char
-            self.bytes_check(self.cursor+byte_counter, 'cursor', self.dmap_end_bytes, 'Total number of Bytes')
+
+            self.bytes_check(self.cursor+byte_counter, 'cursor',
+                             self.dmap_end_bytes, 'Total number of Bytes')
 
             # format byte counter to a string format for unpacking
             # WARNING: not using format for performance purposes
-            char_count = '%ss'%byte_counter
+            char_count = '%ss' % byte_counter
             data = struct.unpack_from(char_count,
                                       self.dmap_buffer,
                                       self.cursor)
-            ## 1 is the number of bytes in a char
+            # 1 is the number of bytes in a char
             self.cursor = self.cursor + byte_counter + 1
             return data[0].decode('utf-8')
         else:
@@ -714,7 +724,8 @@ class DmapRead():
         DmapDataError
             Mismatch on the data type and the size specified in the byte array.
         """
-        array = np.frombuffer(self.dmap_buffer, data_type_fmt, total_number_cells, self.cursor)
+        array = np.frombuffer(self.dmap_buffer, data_type_fmt,
+                              total_number_cells, self.cursor)
         self.cursor += total_number_cells * data_fmt_bytes
 
         return array
@@ -722,8 +733,8 @@ class DmapRead():
 
 # TODO: Test, document
 class DmapWrite(object):
-    """Contains members and methods relating to encoding dictionaries into a raw
-    dmap buffer.
+    """Contains members and methods relating to encoding dictionaries
+    into a raw dmap buffer.
 
     The ud_types are use to override the default types for riding. Useful
     if you want to write a number as a char instead of an int for example
@@ -733,7 +744,7 @@ class DmapWrite(object):
     def __init__(self, dmap_records: list, filename="", dmap_file_fmt=None):
         if dmap_records == []:
             raise pydmap_exceptions.DmapDataError(filename,
-                                                  "Dmap record is empty"\
+                                                  "Dmap record is empty "
                                                   "there is nothing to write.")
         self.dmap_records = dmap_records
         self.dmap_bytearr = bytearray()
@@ -754,37 +765,48 @@ class DmapWrite(object):
         elif dmap_file_fmt == "dmap":
             self.write_dmap()
         else:
-            raise pydmap_exceptions.DmapFileFormatType(dmap_file_fmt, self.filename)
+            raise pydmap_exceptions.DmapFileFormatType(dmap_file_fmt,
+                                                       self.filename)
 
     # Methods are used and strings for versatility amongst users
     # some prefer string input some rather not due to typos :)
     def write_iqdat(self, filename=""):
         self.__filename_check(filename)
-        self.superDARN_file_structure_check(superdarn_formats.Iqdat.types)
+        file_struct_list = [superdarn_formats.Iqdat.types]
+        self.superDARN_file_structure_check(file_struct_list)
         with open(self.filename, 'wb') as f:
             f.write(self.dmap_bytearr)
 
     def write_rawacf(self, filename=""):
         self.__filename_check(filename)
-        self.superDARN_file_structure_check(superdarn_formats.Rawacf.types)
+        file_struct_list = [superdarn_formats.Rawacf.types]
+        self.superDARN_file_structure_check(file_struct_list)
         with open(self.filename, 'wb') as f:
             f.write(self.dmap_bytearr)
 
     def write_fitacf(self, filename=""):
         self.__filename_check(filename)
-        self.superDARN_file_structure_check(superdarn_formats.Fitacf.types)
+        file_struct_list = [superdarn_formats.Fitacf.types]
+        self.superDARN_file_structure_check(file_struct_list)
         with open(self.filename, 'wb') as f:
             f.write(self.dmap_bytearr)
 
     def write_grid(self, filename=""):
         self.__filename_check(filename)
-        self.superDARN_file_structure_check(superdarn_formats.Grid.types)
+        file_struct_list = [superdarn_formats.Grid.types,
+                            superdarn_formats.Grid.extra_fields]
+        self.superDARN_file_structure_check(file_struct_list)
         with open(self.filename, 'wb') as f:
             f.write(self.dmap_bytearr)
 
     def write_map(self, filename=""):
         self.__filename_check(filename)
-        self.superDARN_file_structure_check(superdarn_formats.Map.types)
+        file_struct_list = [superdarn_formats.Map.types,
+                            superdarn_formats.Map.extra_fields,
+                            superdarn_formats.Map.fit_fields,
+                            superdarn_formats.Map.model_fields,
+                            superdarn_formats.Map.hmb_fields]
+        self.superDARN_file_structure_check(file_struct_list)
         with open(self.filename, 'wb') as f:
             f.write(self.dmap_bytearr)
 
@@ -800,61 +822,76 @@ class DmapWrite(object):
         elif filename != "":
             self.filename = filename
 
+    # TODO: may move this to a utility class for future use
     def _dict_diff(self, dict1, dict2):
         diff_dict = set(dict1) - set(dict2)
         return diff_dict
 
-    def missing_field_check(self, file_struct, record, rec_num):
-        if len(self._dict_diff(file_struct, record)) > 0:
+    def missing_field_check(self, file_struct_list, record, rec_num):
+        # Needed to get the intersection between the record and complete
+        # file structure types
+        complete_set = self.dict_list2set(file_struct_list)
+        missing_fields = set()
+        for file_struct in file_struct_list:
+            # An intersection of a set returns what both sets have in common
+            # then comparing the difference from the subset of types
+            # you can determine what is missing.
+            diff_fields = self._dict_diff(file_struct,
+                                          set(record).
+                                          intersection(complete_set))
+            # For Grid and Map files this is needed because depending
+            # on command line options to generate the grid and map files
+            # some fields are added in.
+            # If 0 nothing missing, if len(file_struct) then
+            # that subset is missing only meaning that command option was
+            # not used, not necessarily meaning that it is a record.
+            if len(diff_fields) not in (0, len(file_struct)):
+                missing_fields = missing_fields.union(diff_fields)
+
+        if len(missing_fields) > 0:
             raise pydmap_exceptions.SuperDARNFieldMissing(self.filename,
                                                           rec_num,
-                                                          missing_fields.keys())
+                                                          missing_fields)
 
-    def _incorrect_types(self, record, strtuture, rec_num):
-        incorrect_types = { param :  structure[param]\
-                           for param  in record.items() \
-                           if record[param].data_type_fmt != file_struct[param]}
+    # TODO: might be moved to utility class as a static method
+    # Also, might not be needed if we do not use the data types
+    # in the structure  dictionaries
+    def dict_list2set(self, dict_list):
+        # convert dictionaries to set to do some set magic
+        sets = [set(dic) for dic in dict_list]  # TODO: if data types don't matter in the structure format then they can become sets instead of dictionaries.
+        # create a complete set list
+        complete_set = set.union(*sets)
+        return complete_set
 
+    def extra_field_check(self, file_struct_list, record, rec_num):
+        file_struct = self.dict_list2set(file_struct_list)
+        extra_fields = self._dict_diff(record, file_struct)
+
+        if len(extra_fields) > 0:
+            raise pydmap_exceptions.SuperDARNFieldExtra(self.filename,
+                                                        rec_num,
+                                                        extra_fields)
+
+    # TODO: Do we want to check this? If not, then change SuperDARN_format_structure types to sets to get rid of dict_list2set method.
+    def _incorrect_types(self, file_struct_list, record, rec_num):
+        complete_dict = {}
+        for file_struct in file_struct_list:
+            complete_dict.update(file_struct)
+        incorrect_types = {param: complete_dict[param] for param in record.keys() if record[param].data_type_fmt != complete_dict[param]}
         if len(incorrect_types) > 0:
-            raise pydmap_exceptions.SuperDARNDataFormatError(incorrect_types, rec_num)
+            raise pydmap_exceptions.SuperDARNDataFormatError(incorrect_types,
+                                                             rec_num)
 
-    # Needed because Map files have corner cases since
-    # fields are added various points of the map file processing
-    # procedure.
-    def supeDARN_Map_structure_check(self):
-        map_structure = superdarn_formats.Map
-        for rec_num in range(len(self.dmap_records)))
-            record = self.dmap_records[rec_num]
-            # checks for missing fields
-            self.missing_field_check(map_structure.types, record, rec_num)
-
-            #Because map files can have later added fields we need to recheck
-            # possible type of map file fields
-            extra_fields = self._dict_diff(record, map_structure.types)
-            if len(extra_fields) > 0:
-                self.missing_field_check(map_structure.types, record, rec_num)
-                ext_fields = self._dict_diff(record, )
-                extra_fields = { param: record[param] \
-                            for param in set(extra_fields) - set(file_format)}
-
-    def superDARN_file_structure_check(self, file_format):
-        # TODO: if this is a slow progress go back to record in dmap_records and then add a counter
+    def superDARN_file_structure_check(self, file_struct_list: list):
+        # TODO: might make rec_num a field in the class as it may be
+        # useful in error messages for both DmapRead and DmapWrite
         for rec_num in range(len(self.dmap_records)):
             record = self.dmap_records[rec_num]
-
-            missing_fields = { param: file_format[param] \
-                              for param in set(file_format) - set(record)}
-
-            if len(missing_fields) > 0:
-                raise pydmap_exceptions.SuperDARNFieldMissing(self.filename,
-                                                              rec_num,
-                                                              missing_fields.keys())
-            extra_fields = { param: record[param] \
-                            for param in set(record) - set(file_format)}
-            if len(extra_fields) > 0:
-                raise pydmap_exceptions.SuperDARNFieldExtra(self.filename,
-                                                            rec_num,
-                                                            extra_fields.keys())
+            # field checks
+            self.extra_field_check(file_struct_list, record, rec_num)
+            self.missing_field_check(file_struct_list, record, rec_num)
+            self._incorrect_types(file_struct_list, record, rec_num)
+            # start converting
             self.dmap_record_to_bytes(record)
 
     def dmap_records_to_bytes(self):
@@ -864,7 +901,7 @@ class DmapWrite(object):
 
     def dmap_record_to_bytes(self, record):
 
-        encoding_identifier = 65537 # TODO: determine where this is documented for reference
+        encoding_identifier = 65537  # TODO: determine where this is documented for reference
         num_scalars = 0
         num_arrays = 0
         data_bytearray = bytearray()
@@ -876,7 +913,8 @@ class DmapWrite(object):
                 data_bytearray.extend(self.dmap_array_to_bytes(data_info))
                 num_arrays += 1
             else:
-                raise pydmap_exceptions.DmapTypeError(self.filename, type(data_info))
+                raise pydmap_exceptions.DmapTypeError(self.filename,
+                                                      type(data_info))
 
         # TODO: look over this break down again
         # 16 = encoding_identifier (int - 4 bytes) + num_scalars (int - 4) +
@@ -905,20 +943,22 @@ class DmapWrite(object):
         scalar_name_bytes = struct.pack(scalar_name_format,
                                         scalar_name.encode('utf-8'))
 
-        scalar_type_bytes = struct.pack('c', chr(scalar.data_type).encode('utf-8'))
+        scalar_type_bytes = struct.pack('c',
+                                        chr(scalar.data_type).encode('utf-8'))
         scalar_type_fmt = scalar.data_type_fmt
 
         if scalar_type_fmt == 's':
             scalar_data = "{0}\0".format(scalar.value)
             scalar_data_format = '{0}s'.format(len(scalar_data))
-            scalar_data_bytes = struct.pack(scalar_data_format, scalar_data.encode('utf-8'))
+            scalar_data_bytes = struct.pack(scalar_data_format,
+                                            scalar_data.encode('utf-8'))
         elif scalar_type_fmt == 'c':
             scalar_data_bytes = chr(scalar.value).encode('utf-8')
         else:
             scalar_data_bytes = struct.pack(scalar_type_fmt, scalar.value)
 
         scalar_total_bytes = scalar_name_bytes + scalar_type_bytes +\
-                scalar_data_bytes
+            scalar_data_bytes
 
         return scalar_total_bytes
 
@@ -936,9 +976,11 @@ class DmapWrite(object):
 
         array_name = "{0}\0".format(array.name)
         array_name_format = '{0}s'.format(len(array_name))
-        array_name_bytes = struct.pack(array_name_format, array_name.encode('utf-8'))
+        array_name_bytes = struct.pack(array_name_format,
+                                       array_name.encode('utf-8'))
 
-        array_type_bytes = struct.pack('c', chr(array.data_type).encode('utf-8'))
+        array_type_bytes = struct.pack('c',
+                                       chr(array.data_type).encode('utf-8'))
 
         array_dim_bytes = struct.pack('i', array.dimension)
         array_shape_bytes = bytes()
@@ -947,7 +989,7 @@ class DmapWrite(object):
 
         array_data_bytes = array.value.tostring()
 
-        array_total_bytes = array_name_bytes + array_type_bytes +\
-                array_dim_bytes + array_shape_bytes + array_data_bytes
+        array_total_bytes = array_name_bytes + array_type_bytes + \
+            array_dim_bytes + array_shape_bytes + array_data_bytes
 
         return array_total_bytes

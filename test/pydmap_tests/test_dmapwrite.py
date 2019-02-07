@@ -157,7 +157,7 @@ class TestDmapWrite(unittest.TestCase):
     def test_incorrect_fitacf_data_type(self):
         """tests using DmapWrite to write to rawacf"""
         fitacf_incorrect_fmt = copy.deepcopy(fitacf_data_sets.fitacf_data)
-        fitacf_incorrect_fmy[1]['ltab'] = fitacf_incorrect_fmt[1]['ltab']._replace(data_type_fmt='s')
+        fitacf_incorrect_fmt[1]['ltab'] = fitacf_incorrect_fmt[1]['ltab']._replace(data_type_fmt='s')
         dmap = pydarn.DmapWrite(fitacf_incorrect_fmt)
         with self.assertRaises(pydarn.pydmap_exceptions.SuperDARNDataFormatError):
             dmap.write_fitacf("test_fitacf.fitacf")
@@ -224,12 +224,12 @@ class TestDmapWrite(unittest.TestCase):
     def test_missing_map_field(self):
         """tests using DmapWrite to write to rawacf"""
         map_missing_field = copy.deepcopy(map_data_sets.map_data)
-        del map_missing_field[0]['IMF.flag']
+        del map_missing_field[0]['IMF.Kp']
         dmap = pydarn.DmapWrite(map_missing_field)
 
         with self.assertRaises(pydarn.pydmap_exceptions.SuperDARNFieldMissing):
             dmap.write_map("test_map.map")
-            pydarn.DmapWrite(map_data, "test_map.map", 'map')
+            pydarn.DmapWrite(map_missing_field, "test_map.map", 'map')
 
     def test_extra_map_field(self):
         """tests using DmapWrite to write to rawacf"""
