@@ -17,23 +17,11 @@ import fitacf_data_sets
 import iqdat_data_sets
 import map_data_sets
 import grid_data_sets
+import dmap_data_sets
 import copy
 
 pydarn_logger = logging.getLogger('pydarn')
 
-def test_write_integrity(parsed_record, dict_to_test):
-        for k, v in dict_to_test.items():
-            if isinstance(parsed_record[k], np.ndarray):
-                if compare_arrays(parsed_record[k], v):
-                    return k
-            else:
-                if isinstance(parsed_record[k], float):
-                    if abs(parsed_record[k] - v) >= 1e-05:
-                        return k
-                else:
-                    if parsed_record[k] != v:
-                        return k
-        return None
 
 class TestDmapWrite(unittest.TestCase):
     def setUp(self):
@@ -63,6 +51,150 @@ class TestDmapWrite(unittest.TestCase):
             dmap_data.write_grid()
             dmap_data.write_map()
             dmap_data.write_dmap()
+
+    def test_dict_list2set(self):
+        dict1 = {'a': 1, 'b': 2, 'c': 3}
+        dict2 = {'rst': '4.1', 'stid': 3, 'vel': [2.3, 4.5]}
+        dict3 = {'fitacf': 'f', 'rawacf': 's', 'map': 'm'}
+
+        complete_set = {'a', 'b', 'c',
+                        'rst', 'stid', 'vel',
+                        'fitacf', 'rawacf', 'map'}
+
+        dmap_data = copy.deepcopy(dmap_data_sets.dmap_data)
+
+        dmap = pydarn.DmapWrite(dmap_data)
+        dict_set = dmap.dict_list2set([dict1, dict2, dict3])
+        self.assertEqual(dict_set, complete_set)
+
+    def test_extra_field_check_pass(self):
+        dict1 = {'a': 1, 'b': 2, 'c': 3}
+        dict2 = {'rst': '4.1', 'stid': 3, 'vel': [2.3, 4.5]}
+        dict3 = {'fitacf': 'f', 'rawacf': 's', 'map': 'm'}
+
+        test_dict = {'a': 3, 'b': 3, 'c': 3, 'rst': 1, 'vel': 'd'}
+
+        dmap_data = copy.deepcopy(dmap_data_sets.dmap_data)
+
+        dmap = pydarn.DmapWrite(dmap_data)
+        dict_set = dmap.extra_field_check([dict1, dict2, dict3], test_dict)
+
+    def test_extra_field_check_pass(self):
+        dict1 = {'a': 1, 'b': 2, 'c': 3}
+        dict2 = {'rst': '4.1', 'stid': 3, 'vel': [2.3, 4.5]}
+        dict3 = {'fitacf': 'f', 'rawacf': 's', 'map': 'm'}
+
+        test_dict = {'a': 3, 'b': 3, 'c': 2, 'd': 3, 'rst': 1, 'vel': 'd'}
+
+        dmap_data = copy.deepcopy(dmap_data_sets.dmap_data)
+
+        try:
+            dmap = pydarn.DmapWrite(dmap_data)
+            dict_set = dmap.extra_field_check([dict1, dict2, dict3], test_dict)
+        except pydarn.pydmap_exceptions.SuperDARNFieldExtra as err:
+            self.assertEqual(err.fields, {'d'})
+
+    def test_missing_field_check_pass_mixed_dict(self):
+        dict1 = {'a': 1, 'b': 2, 'c': 3}
+        dict2 = {'rst': '4.1', 'stid': 3, 'vel': [2.3, 4.5]}
+        dict3 = {'fitacf': 'f', 'rawacf': 's', 'map': 'm'}
+
+        dmap_data = copy.deepcopy(dmap_data_sets.dmap_data)
+
+        dmap = pydarn.DmapWrite(dmap_data)
+        test_dict = {}
+        test_dict.update(dict1)
+        test_dict.update(dict3)
+        dict_set = dmap.missing_field_check([dict1, dict2, dict3], test_dict)
+
+    def test_missing_field_check_pass_mixed_subset(self):
+        dict1 = {'a': 1, 'b': 2, 'c': 3}
+        dict2 = {'rst': '4.1', 'stid': 3, 'vel': [2.3, 4.5]}
+        dict3 = {'fitacf': 'f', 'rawacf': 's', 'map': 'm'}
+
+        test_dict = {'a': 3, 'b': 3, 'c': 2, 'd': 2,
+                     'stid': 's', 'rst': 1, 'vel': 'd'}
+
+        dmap_data = copy.deepcopy(dmap_data_sets.dmap_data)
+
+        dmap = pydarn.DmapWrite(dmap_data)
+        dict_set = dmap.missing_field_check([dict1, dict2, dict3], test_dict)
+        test_dict = {}
+        test_dict.update(dict1)
+        test_dict.update(dict3)
+        dict_set = dmap.missing_field_check([dict1, dict2, dict3], test_dict)
+
+    def test_missing_field_check_fail(self):
+        dict1 = {'a': 1, 'b': 2, 'c': 3}
+        dict2 = {'rst': '4.1', 'stid': 3, 'vel': [2.3, 4.5]}
+        dict3 = {'fitacf': 'f', 'rawacf': 's', 'map': 'm'}
+
+        test_dict = {'a': 3, 'b': 3, 'd': 2,
+                     'stid': 's', 'rst': 1, 'vel': 'd',
+                     'fitacf': 3, 'map': 4}
+
+        dmap_data = copy.deepcopy(dmap_data_sets.dmap_data)
+
+        dmap = pydarn.DmapWrite(dmap_data)
+        try:
+            dict_set = dmap.missing_field_check([dict1, dict2, dict3],
+                                                test_dict)
+        except pydarn.pydmap_exceptions.SuperDARNFieldMissing as err:
+            self.assertEqual(err.fields, {'c', 'rawacf'})
+
+    def test_incorrect_types_check_pass(self):
+        dict1 = {'a': 's', 'b': 'i', 'c': 'f'}
+        dict3 = {'fitacf': 'f', 'rawacf': 's', 'map': 'm'}
+
+        test_dict = {'a': pydarn.DmapScalar('a', 1, 1, 's'),
+                     'b': pydarn.DmapScalar('a', 1, 1, 'i'),
+                     'c': pydarn.DmapArray('a', np.array([2.4, 2.4]), 1,
+                                           'f', 1, [3]),
+                     'fitacf': pydarn.DmapScalar('a', 1, 1, 'f'),
+                     'rawacf': pydarn.DmapScalar('a', 1, 1, 's'),
+                     'map': pydarn.DmapScalar('a', 1, 1, 'm')}
+
+        dmap_data = copy.deepcopy(dmap_data_sets.dmap_data)
+
+        dmap = pydarn.DmapWrite(dmap_data)
+        dict_set = dmap.incorrect_types_check([dict1, dict3], test_dict)
+
+    def test_incorrect_types_check_fail(self):
+        dict1 = {'a': 's', 'b': 'i', 'c': 'f'}
+        dict3 = {'fitacf': 'f', 'rawacf': 's', 'map': 'm'}
+
+        test_dict = {'a': pydarn.DmapScalar('a', 1, 1, 's'),
+                     'b': pydarn.DmapScalar('a', 1, 1, 'i'),
+                     'c': pydarn.DmapArray('a', np.array([2.4, 2.4]),
+                                           1, 'f', 1, [3]),
+                     'fitacf': pydarn.DmapScalar('a', 1, 1, 's'),
+                     'rawacf': pydarn.DmapScalar('a', 1, 1, 's'),
+                     'map': pydarn.DmapScalar('a', 1, 1, 'm')}
+
+        dmap_data = copy.deepcopy(dmap_data_sets.dmap_data)
+        dmap = pydarn.DmapWrite(dmap_data)
+
+        try:
+            dict_set = dmap.incorrect_types_check([dict1, dict3], test_dict)
+        except pydarn.pydmap_exceptions.SuperDARNDataFormatError as err:
+            self.assertEqual(err.incorrect_params, {'fitacf','f'})
+
+    def test_dict_diff(self):
+        dict1 = {'a': 's', 'b': 'i', 'c': 'f'}
+        dict3 = {'fitacf': 'f', 'rawacf': 's', 'map': 'm'}
+
+        test_dict = {'a': pydarn.DmapScalar('a', 1, 1, 's'),
+                     'b': pydarn.DmapScalar('a', 1, 1, 'i'),
+                     'c': pydarn.DmapArray('a', np.array([2.4, 2.4]), 1,
+                                           'f', 1, [3]),
+                     'fitacf': pydarn.DmapScalar('a', 1, 1, 'f'),
+                     'rawacf': pydarn.DmapScalar('a', 1, 1, 's'),
+                     'map': pydarn.DmapScalar('a', 1, 1, 'm')}
+
+        dmap_data = copy.deepcopy(dmap_data_sets.dmap_data)
+
+        dmap = pydarn.DmapWrite(dmap_data)
+        dict_set = dmap.incorrect_types_check([dict1, dict3], test_dict)
 
     def test_DmapWrite_missing_field_rawacf(self):
         """
@@ -294,6 +426,20 @@ class TestDmapWrite(unittest.TestCase):
         with self.assertRaises(pydarn.pydmap_exceptions.SuperDARNDataFormatError):
             dmap.write_grid("test_grid.grid")
             pydarn.DmapWrite(grid_incorrect_fmt, "test_grid.grid", 'grid')
+
+    def test_writing_to_dmap(self):
+        """tests using DmapWrite to write to rawacf"""
+        dmap_data = copy.deepcopy(dmap_data_sets.dmap_data)
+        dmap = pydarn.DmapWrite(dmap_data)
+
+        dmap.write_dmap("test_dmap.dmap")
+        self.assertTrue(os.path.isfile("test_dmap.dmap"))
+
+        os.remove("test_dmap.dmap")
+
+        pydarn.DmapWrite(dmap_data, "test_dmap.dmap", 'dmap')
+        self.assertTrue(os.path.isfile("test_dmap.dmap"))
+        os.remove("test_dmap.dmap")
 
 
 if __name__ == '__main__':
