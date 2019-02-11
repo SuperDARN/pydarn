@@ -274,7 +274,7 @@ class TestDmapRead(unittest.TestCase):
         Expected bahaviour: raises pydmap expection
         """
         dmap = pydarn.DmapRead(corrupt_file2)
-        with self.assertRaises(pydarn.pydmap_exceptions.ZeroByteError):
+        with self.assertRaises(pydarn.pydmap_exceptions.NegativeByteError):
             dmap.test_initial_data_integrity()
 
     def test_read_currupt_file2(self):
@@ -287,28 +287,31 @@ class TestDmapRead(unittest.TestCase):
         with self.assertRaises(pydarn.pydmap_exceptions.NegativeByteError):
             dmap.read_records()
 
-    #def test_dmap_read_stream(self):
-    #    # bz2 opens the compressed file into a data
-    #    # stream of bytes without actually uncompressing the file
-    #    with bz2.open(rawacf_stream) as fp:
-    #        dmap_stream = fp.read()
-    #    dmap = pydarn.DmapRead(rawacf_stream, True)
-    #    dmap_data = dmap.read_records()
-    #    self.assertIsInstance(dm_records, collections.deque)
-    #    self.assertIsInstance(dm_records[0], collections.OrderedDict)
-    #    self.assertIsInstance(dm_records[4]['channel'], pydarn.DmapScalar)
-    #    self.assertIsInstance(dm_records[1]['ptab'], pydarn.DmapArray)
-    #    self.assertIsInstance(dm_records[7]['channel'].value, int)
-    #    self.assertIsInstance(dm_records[2]['xcfd'].value, np.ndarray)
-    #    self.assertEqual(dm_records[0]['xcfd'].dimension, 3)
+    def test_dmap_read_stream(self):
+        # bz2 opens the compressed file into a data
+        # stream of bytes without actually uncompressing the file
+        with bz2.open(rawacf_stream) as fp:
+            dmap_stream = fp.read()
+        dmap = pydarn.DmapRead(dmap_stream, True)
+        dmap_data = dmap.read_records()
+        self.assertIsInstance(dmap_data, collections.deque)
+        self.assertIsInstance(dmap_data[0], collections.OrderedDict)
+        self.assertIsInstance(dmap_data[4]['channel'], pydarn.DmapScalar)
+        self.assertIsInstance(dmap_data[1]['ptab'], pydarn.DmapArray)
+        self.assertIsInstance(dmap_data[7]['channel'].value, int)
+        self.assertIsInstance(dmap_data[2]['xcfd'].value, np.ndarray)
+        self.assertEqual(dmap_data[0]['xcfd'].dimension, 3)
 
-    #def test_dmap_read_corrupt_stream(self):
-    #    with bz2.open(rawacf_stream) as fp:
-    #        dmap_stream = fp.read()
-    #    dmap_stream[14] = os.urandom(4) # randomly insert 4 bytes
-    #    dmap = pydarn.DmapRead(dmap_stream, True)
-    #    with self.assertRaises(pydarn.pydmap_exceptions.MismatchByteError):
-    #        dmap_data = dmap.read_records()
+    def test_dmap_read_corrupt_stream(self):
+        with bz2.open(rawacf_stream) as fp:
+            dmap_stream = fp.read()
+
+        corrupt_stream = bytearray(dmap_stream[0:36])
+        corrupt_stream[36:40] = bytearray(str(os.urandom(4)).encode('utf-8'))
+        corrupt_stream[40:] = dmap_stream[37:]
+        dmap = pydarn.DmapRead(corrupt_stream, True)
+        with self.assertRaises(pydarn.pydmap_exceptions.DmapDataError):
+            dmap_data = dmap.read_records()
 
 
 if __name__ == '__main__':

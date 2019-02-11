@@ -2,7 +2,7 @@ import pydarn
 import unittest
 import numpy as np
 import logging
-import collection
+import collections
 import bz2
 import os
 
@@ -25,6 +25,8 @@ zip_file = ""
 corrupt_file1 = "./testfiles/20070117.1001.00.han.rawacf"
 corrupt_file2 = "./testfiles/20090320.1601.00.pgr.rawacf"
 
+pydarn_logger = logging.getLogger('pydarn')
+
 class IntegrationPydmap(unittest.TestCase):
     def setUp(self):
         pass
@@ -33,21 +35,38 @@ class IntegrationPydmap(unittest.TestCase):
         # Quick simple tests that can be done before looping
         # over the list
         self.assertEqual(len(dmap1), len(dmap2))
-        diff_fields1 = set(dmap1) - set(dmap2)
-        self.assertEqual(len(diff_fields1), 0)
-        diff_fields2 = set(dmap2) - set(dmap1)
-        self.assertEqual(len(diff_fields2), 0)
 
         #NamedTuple are comparison capabilities
         for record1, record2 in zip(dmap1, dmap2):
-            for field, value in record1.items():
-                self.assertAlmostEqual(dmap1[field], value)
+            diff_fields1 = set(record1) - set(record2)
+            self.assertEqual(len(diff_fields1), 0)
+            diff_fields2 = set(record2) - set(record1)
+            self.assertEqual(len(diff_fields2), 0)
+            for field, val_obj in record1.items():
+                if isinstance(val_obj, pydarn.DmapScalar):
+                    self.assertEqual(record2[field], val_obj)
+                else:
+                    self.compare_dmap_array(record2[field], val_obj)
+
+    def compare_dmap_array(self, dmaparr1, dmaparr2):
+        self.assertEqual(dmaparr1.name, dmaparr2.name)
+        self.assertEqual(dmaparr1.data_type, dmaparr2.data_type)
+        self.assertEqual(dmaparr1.data_type_fmt, dmaparr2.data_type_fmt)
+        self.assertEqual(dmaparr1.dimension, dmaparr2.dimension)
+        if np.array_equiv(dmaparr1, dmaparr2):
+            self.assertTrue(np.array_equal(dmaparr1.value, dmaparr2.value))
+        else:
+            print(np.shape(dmaparr1.value),np.shape(dmaparr2.value))
+            print(dmaparr1.value, dmaparr2.value)
+            self.assertTrue(np.array_equal(dmaparr1.value, dmaparr2.value))
 
     def test_dmap_write_read_scalar(self):
         scalar = pydarn.DmapScalar('stid', 5, 3, 'i')
         dmap_write = pydarn.DmapWrite()
         dmap_scalar_bytes = dmap_write.dmap_scalar_to_bytes(scalar)
-        dmap_scalar = pydarn.DmapRead(dmap_scalar, True)
+        dmap = pydarn.DmapRead(dmap_scalar_bytes, True)
+        dmap_scalar = dmap.read_scalar()
+        print(dmap_scalar)
         self.assertEqual(scalar, dmap_scalar)
 
     def test_dmap_write_read_array(self):
@@ -55,16 +74,18 @@ class IntegrationPydmap(unittest.TestCase):
                                  4, 'f', 1, [3])
         dmap_write = pydarn.DmapWrite()
         dmap_array_bytes = dmap_write.dmap_array_to_bytes(array)
-        dmap_array = pydarn.DmapArray(dmap_array, True)
-        self.assertEqual(array, dmap_array)
+        dmap = pydarn.DmapRead(dmap_array_bytes, True)
+        dmap_array = dmap.read_array(len(dmap_array_bytes))
+        self.compare_dmap_array(array, dmap_array)
 
     def test_write_read_string_array(self):
         array = pydarn.DmapArray('xcf', np.array(['dog', 'cat', 'mouse']),
                                  9, 's', 1, [3])
         dmap_write = pydarn.DmapWrite()
         dmap_array_bytes = dmap_write.dmap_array_to_bytes(array)
-        dmap_array = pydarn.DmapArray(dmap_array, True)
-        self.assertEqual(array, dmap_array)
+        dmap = pydarn.DmapRead(dmap_array_bytes, True)
+        dmap_array = dmap.read_array(len(dmap_array_bytes))
+        self.compare_dmap_array(dmap_array, array)
 
     def test_read_write_rawacf(self):
         dmap = pydarn.DmapRead(rawacf_file)
@@ -94,7 +115,7 @@ class IntegrationPydmap(unittest.TestCase):
         dmap_stream_data = dmap.read_records()
         dmap_write = pydarn.DmapWrite()
         dmap_write_stream = dmap_write.write_dmap_stream(dmap_stream_data)
-        self.assertEqual(dmap_write_stream, dmap_stream)
+        self.assertEqual(dmap_write_stream, bytearray(dmap_stream))
 
     def test_read_stream_write_file_rawacf(self):
         with bz2.open(rawacf_stream) as fp:
