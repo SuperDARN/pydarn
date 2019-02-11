@@ -10,12 +10,15 @@ import unittest
 import numpy as np
 import logging
 import collections
+import bz2
+import os
 
 import pydarn
 
 pydarn_logger = logging.getLogger('pydarn')
 
 # Test files
+rawacf_stream = "./testfiles/20170410.1801.00.sas.stream.rawacf.bz2"
 rawacf_file = "./testfiles/20170410.1801.00.sas.rawacf"
 fitacf_file = "./testfiles/20180220.C0.rkn.fitacf"
 map_file = "./testfiles/20170114.map"
@@ -281,39 +284,31 @@ class TestDmapRead(unittest.TestCase):
         Expected bahaviour: raises pydmap expection
         """
         dmap = pydarn.DmapRead(corrupt_file2)
-        with self.assertRaises(pydarn.pydmap_exceptions.ZeroByteError):
+        with self.assertRaises(pydarn.pydmap_exceptions.NegativeByteError):
             dmap.read_records()
 
-    # FIXME: have not gotten this test to work with the streaming. I believe it is an utf-8 problem
-    #def test_dmap_read_through_randomization(self):
-    #    """Randomly corrupts 5% of the data in a record and tries to parse.
-    #        Fails if an non Dmap exception is thrown as this means there is a
-    #        missing check against bad input. Increase the number of tests to
-    #        stress test."""
+    #def test_dmap_read_stream(self):
+    #    # bz2 opens the compressed file into a data
+    #    # stream of bytes without actually uncompressing the file
+    #    with bz2.open(rawacf_stream) as fp:
+    #        dmap_stream = fp.read()
+    #    dmap = pydarn.DmapRead(rawacf_stream, True)
+    #    dmap_data = dmap.read_records()
+    #    self.assertIsInstance(dm_records, collections.deque)
+    #    self.assertIsInstance(dm_records[0], collections.OrderedDict)
+    #    self.assertIsInstance(dm_records[4]['channel'], pydarn.DmapScalar)
+    #    self.assertIsInstance(dm_records[1]['ptab'], pydarn.DmapArray)
+    #    self.assertIsInstance(dm_records[7]['channel'].value, int)
+    #    self.assertIsInstance(dm_records[2]['xcfd'].value, np.ndarray)
+    #    self.assertEqual(dm_records[0]['xcfd'].dimension, 3)
 
-    #    num_tests = 100
-    #    file_path = fitacf_file
-    #    dm = pydarn.DmapRead(file_path)
-    #    dm.cursor = 0
-    #    dm.read_record()
-
-    #    dmap_length = dm.cursor
-    #    dmap_to_randomize = dm.dmap_bytearr[0:dmap_length]
-
-    #    seed = int(time.time())
-    #    random.seed(seed)
-
-    #    for x in range(0, num_tests):
-    #        gc.collect()
-    #        randomizer = [os.urandom(1) if random.randint(0, 100) >= 95
-    #                      else '\x00' for j in range(0, dmap_length)]
-
-    #        corrupted_dmap = [chr(a ^ ord(b))
-    #                          for a, b in zip(dmap_to_randomize, randomizer)]
-    #        self.assertRaises(pydarn.DmapDataError,pydarn.parse_dmap_format_from_stream, corrupted_dmap)
-    #        del(records)
-    #        del(randomizer)
-    #        del(corrupted_dmap)
+    #def test_dmap_read_corrupt_stream(self):
+    #    with bz2.open(rawacf_stream) as fp:
+    #        dmap_stream = fp.read()
+    #    dmap_stream[14] = os.urandom(4) # randomly insert 4 bytes
+    #    dmap = pydarn.DmapRead(dmap_stream, True)
+    #    with self.assertRaises(pydarn.pydmap_exceptions.MismatchByteError):
+    #        dmap_data = dmap.read_records()
 
 
 if __name__ == '__main__':
