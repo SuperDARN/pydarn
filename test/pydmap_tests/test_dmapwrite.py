@@ -77,7 +77,7 @@ class TestDmapWrite(unittest.TestCase):
         dmap_data = copy.deepcopy(dmap_data_sets.dmap_data)
 
         dmap = pydarn.DmapWrite(dmap_data)
-        dict_set = dmap.extra_field_check([dict1, dict2, dict3], test_dict)
+        dict_set = dmap.extra_field_check([dict1, dict2, dict3], test_dict, 1)
 
     def test_extra_field_check_pass(self):
         dict1 = {'a': 1, 'b': 2, 'c': 3}
@@ -90,7 +90,8 @@ class TestDmapWrite(unittest.TestCase):
 
         try:
             dmap = pydarn.DmapWrite(dmap_data)
-            dict_set = dmap.extra_field_check([dict1, dict2, dict3], test_dict)
+            dict_set = dmap.extra_field_check([dict1, dict2, dict3],
+                                              test_dict, 1)
         except pydarn.pydmap_exceptions.SuperDARNFieldExtra as err:
             self.assertEqual(err.fields, {'d'})
 
@@ -105,7 +106,7 @@ class TestDmapWrite(unittest.TestCase):
         test_dict = {}
         test_dict.update(dict1)
         test_dict.update(dict3)
-        dict_set = dmap.missing_field_check([dict1, dict2, dict3], test_dict)
+        dict_set = dmap.missing_field_check([dict1, dict2, dict3], test_dict, 1)
 
     def test_missing_field_check_pass_mixed_subset(self):
         dict1 = {'a': 1, 'b': 2, 'c': 3}
@@ -118,11 +119,11 @@ class TestDmapWrite(unittest.TestCase):
         dmap_data = copy.deepcopy(dmap_data_sets.dmap_data)
 
         dmap = pydarn.DmapWrite(dmap_data)
-        dict_set = dmap.missing_field_check([dict1, dict2, dict3], test_dict)
+        dict_set = dmap.missing_field_check([dict1, dict2, dict3], test_dict, 1)
         test_dict = {}
         test_dict.update(dict1)
         test_dict.update(dict3)
-        dict_set = dmap.missing_field_check([dict1, dict2, dict3], test_dict)
+        dict_set = dmap.missing_field_check([dict1, dict2, dict3], test_dict,1)
 
     def test_missing_field_check_fail(self):
         dict1 = {'a': 1, 'b': 2, 'c': 3}
@@ -138,7 +139,7 @@ class TestDmapWrite(unittest.TestCase):
         dmap = pydarn.DmapWrite(dmap_data)
         try:
             dict_set = dmap.missing_field_check([dict1, dict2, dict3],
-                                                test_dict)
+                                                test_dict, 1)
         except pydarn.pydmap_exceptions.SuperDARNFieldMissing as err:
             self.assertEqual(err.fields, {'c', 'rawacf'})
 
@@ -157,7 +158,7 @@ class TestDmapWrite(unittest.TestCase):
         dmap_data = copy.deepcopy(dmap_data_sets.dmap_data)
 
         dmap = pydarn.DmapWrite(dmap_data)
-        dict_set = dmap.incorrect_types_check([dict1, dict3], test_dict)
+        dict_set = dmap.incorrect_types_check([dict1, dict3], test_dict, 1)
 
     def test_incorrect_types_check_fail(self):
         dict1 = {'a': 's', 'b': 'i', 'c': 'f'}
@@ -175,9 +176,21 @@ class TestDmapWrite(unittest.TestCase):
         dmap = pydarn.DmapWrite(dmap_data)
 
         try:
-            dict_set = dmap.incorrect_types_check([dict1, dict3], test_dict)
+            dict_set = dmap.incorrect_types_check([dict1, dict3], test_dict, 1)
         except pydarn.pydmap_exceptions.SuperDARNDataFormatError as err:
-            self.assertEqual(err.incorrect_params, {'fitacf','f'})
+            self.assertEqual(err.incorrect_params, {'fitacf':'f'})
+
+    def test_empty_data_check(self):
+        empty_data = []
+        dmap_write = pydarn.DmapWrite()
+        with self.assertRaises(pydarn.pydmap_exceptions.DmapDataError):
+            dmap_write.write_dmap()
+            dmap_write.write_dmap_stream()
+            dmap_write.write_fitacf()
+            dmap_write.write_iqdat()
+            dmap_write.write_map()
+            dmap_write.write_rawacf()
+            dmap_write.write_grid()
 
     def test_dict_diff(self):
         dict1 = {'a': 's', 'b': 'i', 'c': 'f'}
@@ -185,16 +198,17 @@ class TestDmapWrite(unittest.TestCase):
 
         test_dict = {'a': pydarn.DmapScalar('a', 1, 1, 's'),
                      'b': pydarn.DmapScalar('a', 1, 1, 'i'),
-                     'c': pydarn.DmapArray('a', np.array([2.4, 2.4]), 1,
-                                           'f', 1, [3]),
                      'fitacf': pydarn.DmapScalar('a', 1, 1, 'f'),
                      'rawacf': pydarn.DmapScalar('a', 1, 1, 's'),
                      'map': pydarn.DmapScalar('a', 1, 1, 'm')}
 
+        resulting_diff = {'c'}
+
         dmap_data = copy.deepcopy(dmap_data_sets.dmap_data)
 
         dmap = pydarn.DmapWrite(dmap_data)
-        dict_set = dmap.incorrect_types_check([dict1, dict3], test_dict)
+        diff_set = dmap.dict_key_diff(dict1, test_dict)
+        self.assertEqual(resulting_diff, diff_set)
 
     def test_DmapWrite_missing_field_rawacf(self):
         """
@@ -207,10 +221,17 @@ class TestDmapWrite(unittest.TestCase):
 
         dmap = pydarn.DmapWrite(rawacf_missing_field)
 
-        with self.assertRaises(pydarn.pydmap_exceptions.SuperDARNFieldMissing):
+        try:
             dmap.write_rawacf("test_rawacf.rawacf")
-            pydarn.DmapWrite(rawacf_missing_field, "test_rawacf.rawacf", 'rawacf')
+        except pydarn.pydmap_exceptions.SuperDARNFieldMissing as err:
+            self.assertEqual(err.fields, {'nave'})
+            self.assertEqual(err.record_number, 2)
 
+        try:
+            pydarn.DmapWrite(rawacf_missing_field, "test_rawacf.rawacf", 'rawacf')
+        except pydarn.pydmap_exceptions.SuperDARNFieldMissing as err:
+            self.assertEqual(err.fields, {'nave'})
+            self.assertEqual(err.record_number, 2)
 
     def test_extra_field_rawacf(self):
         """
@@ -223,18 +244,34 @@ class TestDmapWrite(unittest.TestCase):
                                                            chr(1), 's')
         dmap = pydarn.DmapWrite(rawacf_extra_field)
 
-        with self.assertRaises(pydarn.pydmap_exceptions.SuperDARNFieldExtra):
+        try:
             dmap.write_rawacf("test_rawacf.rawacf")
+        except pydarn.pydmap_exceptions.SuperDARNFieldExtra as err:
+            self.assertEqual(err.fields, {'dummy'})
+            self.assertEqual(err.record_number, 1)
+
+        try:
             pydarn.DmapWrite(rawacf_extra_field, "test_rawacf.rawacf", 'rawacf')
+        except pydarn.pydmap_exceptions.SuperDARNFieldExtra as err:
+            self.assertEqual(err.fields, {'dummy'})
+            self.assertEqual(err.record_number, 1)
 
     def test_incorrect_data_format_rawacf(self):
         rawacf_incorrect_fmt = copy.deepcopy(rawacf_data_sets.rawacf_data)
         rawacf_incorrect_fmt[2]['scan'] = rawacf_incorrect_fmt[2]['scan']._replace(data_type_fmt='c')
         dmap = pydarn.DmapWrite(rawacf_incorrect_fmt)
 
-        with self.assertRaises(pydarn.pydmap_exceptions.SuperDARNDataFormatError):
+        try:
             dmap.write_rawacf("test_rawacf.rawacf")
+        except pydarn.pydmap_exceptions.SuperDARNDataFormatError as err:
+            self.assertEqual(err.incorrect_params['scan'], 'h')
+            self.assertEqual(err.record_number, 2)
+
+        try:
             pydarn.DmapWrite(rawacf_incorrect_fmt, "test_rawacf.rawacf", 'rawacf')
+        except pydarn.pydmap_exceptions.SuperDARNDataFormatError as err:
+            self.assertEqual(err.incorrect_params['scan'], 'h')
+            self.assertEqual(err.record_number, 2)
 
     def test_writing_to_rawacf(self):
         """tests using DmapWrite to write to rawacf"""
@@ -271,9 +308,18 @@ class TestDmapWrite(unittest.TestCase):
         del fitacf_missing_field[2]['stid']
         dmap = pydarn.DmapWrite(fitacf_missing_field)
 
-        with self.assertRaises(pydarn.pydmap_exceptions.SuperDARNFieldMissing):
+        try:
             dmap.write_fitacf("test_fitacf.fitacf")
-            pydarn.DmapWrite(fitacf_data, "test_fitacf.fitacf", 'fitacf')
+        except pydarn.pydmap_exceptions.SuperDARNFieldMissing as err:
+            self.assertEqual(err.fields, {'stid'})
+            self.assertEqual(err.record_number, 2)
+
+        try:
+            pydarn.DmapWrite(fitacf_missing_field, "test_fitacf.fitacf", 'fitacf')
+        except pydarn.pydmap_exceptions.SuperDARNFieldMissing as err:
+            self.assertEqual(err.fields, {'stid'})
+            self.assertEqual(err.record_number, 2)
+
 
     def test_extra_fitacf_field(self):
         """tests using DmapWrite to write to rawacf"""
@@ -282,18 +328,35 @@ class TestDmapWrite(unittest.TestCase):
                 pydarn.DmapArray('dummy', np.array([1,2]), chr(1), 'c', 1, [2])
         dmap = pydarn.DmapWrite(fitacf_extra_field)
 
-        with self.assertRaises(pydarn.pydmap_exceptions.SuperDARNFieldExtra):
+        try:
             dmap.write_fitacf("test_fitacf.fitacf")
+        except pydarn.pydmap_exceptions.SuperDARNFieldExtra as err:
+            self.assertEqual(err.fields, {'dummy'})
+            self.assertEqual(err.record_number, 2)
+
+        try:
             pydarn.DmapWrite(fitacf_extra_field, "test_fitacf.fitacf", 'fitacf')
+        except pydarn.pydmap_exceptions.SuperDARNFieldExtra as err:
+            self.assertEqual(err.fields, {'dummy'})
+            self.assertEqual(err.record_number, 2)
 
     def test_incorrect_fitacf_data_type(self):
         """tests using DmapWrite to write to rawacf"""
         fitacf_incorrect_fmt = copy.deepcopy(fitacf_data_sets.fitacf_data)
         fitacf_incorrect_fmt[1]['ltab'] = fitacf_incorrect_fmt[1]['ltab']._replace(data_type_fmt='s')
         dmap = pydarn.DmapWrite(fitacf_incorrect_fmt)
-        with self.assertRaises(pydarn.pydmap_exceptions.SuperDARNDataFormatError):
+
+        try:
             dmap.write_fitacf("test_fitacf.fitacf")
+        except pydarn.pydmap_exceptions.SuperDARNDataFormatError as err:
+            self.assertEqual(err.incorrect_params['ltab'], 'h')
+            self.assertEqual(err.record_number, 1)
+
+        try:
             pydarn.DmapWrite(fitacf_incorrect_fmt, "test_fitacf.fitacf", 'fitacf')
+        except pydarn.pydmap_exceptions.SuperDARNDataFormatError as err:
+            self.assertEqual(err.incorrect_params['ltab'], 'h')
+            self.assertEqual(err.record_number,1)
 
     def test_writing_to_iqdat(self):
         """tests using DmapWrite to write to rawacf"""
@@ -315,9 +378,17 @@ class TestDmapWrite(unittest.TestCase):
         del iqdat_missing_field[1]['chnnum']
         dmap = pydarn.DmapWrite(iqdat_missing_field)
 
-        with self.assertRaises(pydarn.pydmap_exceptions.SuperDARNFieldMissing):
+        try:
             dmap.write_iqdat("test_iqdat.iqdat")
-            pydarn.DmapWrite(iqdat_data, "test_iqdat.iqdat", 'iqdat')
+        except pydarn.pydmap_exceptions.SuperDARNFieldMissing as err:
+            self.assertEqual(err.fields, {'chnnum'})
+            self.assertEqual(err.record_number, 1)
+
+        try:
+            pydarn.DmapWrite(iqdat_missing_field, "test_iqdat.iqdat", 'iqdat')
+        except pydarn.pydmap_exceptions.SuperDARNFieldMissing as err:
+            self.assertEqual(err.fields, {'chnnum'})
+            self.assertEqual(err.record_number, 1)
 
     def test_extra_iqdat_field(self):
         """tests using DmapWrite to write to rawacf"""
@@ -326,18 +397,35 @@ class TestDmapWrite(unittest.TestCase):
                 pydarn.DmapArray('dummy', np.array([1,2]), chr(1), 'c', 1, [2])
         dmap = pydarn.DmapWrite(iqdat_extra_field)
 
-        with self.assertRaises(pydarn.pydmap_exceptions.SuperDARNFieldExtra):
+        try:
             dmap.write_iqdat("test_iqdat.iqdat")
+        except pydarn.pydmap_exceptions.SuperDARNFieldExtra as err:
+            self.assertEqual(err.fields, {'dummy'})
+            self.assertEqual(err.record_number, 2)
+
+        try:
             pydarn.DmapWrite(iqdat_extra_field, "test_iqdat.iqdat", 'iqdat')
+        except pydarn.pydmap_exceptions.SuperDARNFieldExtra as err:
+            self.assertEqual(err.fields, {'dummy'})
+            self.assertEqual(err.record_number, 2)
 
     def test_incorrect_iqdat_data_type(self):
         """tests using DmapWrite to write to rawacf"""
         iqdat_incorrect_fmt = copy.deepcopy(iqdat_data_sets.iqdat_data)
         iqdat_incorrect_fmt[2]['lagfr'] = iqdat_incorrect_fmt[2]['lagfr']._replace(data_type_fmt='d')
         dmap = pydarn.DmapWrite(iqdat_incorrect_fmt)
-        with self.assertRaises(pydarn.pydmap_exceptions.SuperDARNDataFormatError):
+
+        try:
             dmap.write_iqdat("test_iqdat.iqdat")
+        except pydarn.pydmap_exceptions.SuperDARNDataFormatError as err:
+            self.assertEqual(err.incorrect_params['lagfr'], 'h')
+            self.assertEqual(err.record_number,2)
+
+        try:
             pydarn.DmapWrite(iqdat_incorrect_fmt, "test_iqdat.iqdat", 'iqdat')
+        except pydarn.pydmap_exceptions.SuperDARNDataFormatError as err:
+            self.assertEqual(err.incorrect_params['lagfr'], 'h')
+            self.assertEqual(err.record_number,2)
 
     def test_writing_to_map(self):
         """tests using DmapWrite to write to rawacf"""
@@ -359,9 +447,17 @@ class TestDmapWrite(unittest.TestCase):
         del map_missing_field[0]['IMF.Kp']
         dmap = pydarn.DmapWrite(map_missing_field)
 
-        with self.assertRaises(pydarn.pydmap_exceptions.SuperDARNFieldMissing):
+        try:
             dmap.write_map("test_map.map")
+        except pydarn.pydmap_exceptions.SuperDARNFieldMissing as err:
+            self.assertEqual(err.fields, {'IMF.Kp'})
+            self.assertEqual(err.record_number, 0)
+
+        try:
             pydarn.DmapWrite(map_missing_field, "test_map.map", 'map')
+        except pydarn.pydmap_exceptions.SuperDARNFieldMissing as err:
+            self.assertEqual(err.fields, {'IMF.Kp'})
+            self.assertEqual(err.record_number, 0)
 
     def test_extra_map_field(self):
         """tests using DmapWrite to write to rawacf"""
@@ -370,18 +466,35 @@ class TestDmapWrite(unittest.TestCase):
                 pydarn.DmapArray('dummy', np.array([1,2]), chr(1), 'c', 1, [2])
         dmap = pydarn.DmapWrite(map_extra_field)
 
-        with self.assertRaises(pydarn.pydmap_exceptions.SuperDARNFieldExtra):
+        try:
             dmap.write_map("test_map.map")
+        except pydarn.pydmap_exceptions.SuperDARNFieldExtra as err:
+            self.assertEqual(err.fields, {'dummy'})
+            self.assertEqual(err.record_number, 1)
+
+        try:
             pydarn.DmapWrite(map_extra_field, "test_map.map", 'map')
+        except pydarn.pydmap_exceptions.SuperDARNFieldExtra as err:
+            self.assertEqual(err.fields, {'dummy'})
+            self.assertEqual(err.record_number, 1)
 
     def test_incorrect_map_data_type(self):
         """tests using DmapWrite to write to rawacf"""
         map_incorrect_fmt = copy.deepcopy(map_data_sets.map_data)
         map_incorrect_fmt[2]['IMF.Bx'] = map_incorrect_fmt[2]['IMF.Bx']._replace(data_type_fmt='i')
         dmap = pydarn.DmapWrite(map_incorrect_fmt)
-        with self.assertRaises(pydarn.pydmap_exceptions.SuperDARNDataFormatError):
+
+        try:
             dmap.write_map("test_map.map")
+        except pydarn.pydmap_exceptions.SuperDARNDataFormatError as err:
+            self.assertEqual(err.incorrect_params.keys(), {'IMF.Bx'})
+            self.assertEqual(err.record_number,2)
+
+        try:
             pydarn.DmapWrite(map_incorrect_fmt, "test_map.map", 'map')
+        except pydarn.pydmap_exceptions.SuperDARNDataFormatError as err:
+            self.assertEqual(err.incorrect_params.keys(), {'IMF.Bx'})
+            self.assertEqual(err.record_number,2)
 
     def test_writing_to_grid(self):
         """tests using DmapWrite to write to rawacf"""
@@ -403,9 +516,17 @@ class TestDmapWrite(unittest.TestCase):
         del grid_missing_field[1]['start.year']
         dmap = pydarn.DmapWrite(grid_missing_field)
 
-        with self.assertRaises(pydarn.pydmap_exceptions.SuperDARNFieldMissing):
+        try:
             dmap.write_grid("test_grid.grid")
-            pydarn.DmapWrite(grid_data, "test_grid.grid", 'grid')
+        except pydarn.pydmap_exceptions.SuperDARNFieldMissing as err:
+            self.assertEqual(err.fields, {'start.year'})
+            self.assertEqual(err.record_number, 1)
+
+        try:
+            pydarn.DmapWrite(grid_missing_field, "test_grid.grid", 'grid')
+        except pydarn.pydmap_exceptions.SuperDARNFieldMissing as err:
+            self.assertEqual(err.fields, {'start.year'})
+            self.assertEqual(err.record_number, 1)
 
     def test_extra_grid_field(self):
         """tests using DmapWrite to write to rawacf"""
@@ -414,18 +535,35 @@ class TestDmapWrite(unittest.TestCase):
                 pydarn.DmapArray('dummy', np.array([1,2]), chr(1), 'c', 1, [2])
         dmap = pydarn.DmapWrite(grid_extra_field)
 
-        with self.assertRaises(pydarn.pydmap_exceptions.SuperDARNFieldExtra):
+        try:
             dmap.write_grid("test_grid.grid")
+        except pydarn.pydmap_exceptions.SuperDARNFieldExtra as err:
+            self.assertEqual(err.fields, {'dummy'})
+            self.assertEqual(err.record_number, 0)
+
+        try:
             pydarn.DmapWrite(grid_extra_field, "test_grid.grid", 'grid')
+        except pydarn.pydmap_exceptions.SuperDARNFieldExtra as err:
+            self.assertEqual(err.fields, {'dummy'})
+            self.assertEqual(err.record_number, 0)
 
     def test_incorrect_grid_data_type(self):
         """tests using DmapWrite to write to rawacf"""
         grid_incorrect_fmt = copy.deepcopy(grid_data_sets.grid_data)
         grid_incorrect_fmt[2]['v.min'] = grid_incorrect_fmt[2]['v.min']._replace(data_type_fmt='d')
         dmap = pydarn.DmapWrite(grid_incorrect_fmt)
-        with self.assertRaises(pydarn.pydmap_exceptions.SuperDARNDataFormatError):
+
+        try:
             dmap.write_grid("test_grid.grid")
+        except pydarn.pydmap_exceptions.SuperDARNDataFormatError as err:
+            self.assertEqual(err.incorrect_params.keys(), {'v.min'})
+            self.assertEqual(err.record_number,2)
+
+        try:
             pydarn.DmapWrite(grid_incorrect_fmt, "test_grid.grid", 'grid')
+        except pydarn.pydmap_exceptions.SuperDARNDataFormatError as err:
+            self.assertEqual(err.incorrect_params.keys(), {'v.min'})
+            self.assertEqual(err.record_number,2)
 
     def test_writing_to_dmap(self):
         """tests using DmapWrite to write to rawacf"""
@@ -441,6 +579,13 @@ class TestDmapWrite(unittest.TestCase):
         self.assertTrue(os.path.isfile("test_dmap.dmap"))
         os.remove("test_dmap.dmap")
 
+    def test_writing_dmap_stream(self):
+        """tests using DmapWrite to write to rawacf"""
+        dmap_data = copy.deepcopy(dmap_data_sets.dmap_data)
+        dmap = pydarn.DmapWrite()
+
+        dmap_stream = dmap.write_dmap_stream(dmap_data)
+        self.assertIsInstance(dmap_stream, bytearray)
 
 if __name__ == '__main__':
     """
