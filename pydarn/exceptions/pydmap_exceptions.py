@@ -160,12 +160,11 @@ class DmapDataError(Exception):
     """
     def __init__(self, filename: str, message: str):
         self.filename = filename
-        self.message = "Error: {filename} is data,"\
-            " is corrupt because: {msg}".format(filename=filename,
-                                                msg=message)
+        self.message = " The following error for {filename} was raised: "\
+                "{msg}".format(filename=self.filename,
+                               msg=message)
         super().__init__(self.message)
-        pydarn_logger.error("DmapDataError: {} is corrupt {}".format(filename,
-                                                                     message))
+        pydarn_logger.error("DmapDataError: {}".format(message))
 
 class DmapFileFormatType(Exception):
     """

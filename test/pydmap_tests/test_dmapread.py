@@ -23,6 +23,7 @@ rawacf_file = "./testfiles/20170410.1801.00.sas.rawacf"
 fitacf_file = "./testfiles/20180220.C0.rkn.fitacf"
 map_file = "./testfiles/20170114.map"
 iqdat_file = "testfiles/20160316.1945.01.rkn.iqdat"
+grid_file = "./testfiles/20180220.C0.rkn.grid"
 # Black listed files
 corrupt_file1 = "./testfiles/20070117.1001.00.han.rawacf"
 corrupt_file2 = "./testfiles/20090320.1601.00.pgr.rawacf"
@@ -104,6 +105,20 @@ class TestDmapRead(unittest.TestCase):
         self.assertIsInstance(dm.dmap_bytearr, bytearray)
         self.assertGreater(dm.dmap_end_bytes, 0)
 
+    def test_open_grid(self):
+        """
+        Tests DmapRead's constructor on opening a grid.
+        It should be able to open the file, read it and convert to bytearray.
+
+        Checks:
+            - bytearray instance is created from reading in the file
+            - bytearray is not empty
+        """
+        file_path = grid_file
+        dm = pydarn.DmapRead(file_path)
+        self.assertIsInstance(dm.dmap_bytearr, bytearray)
+        self.assertGreater(dm.dmap_end_bytes, 0)
+
     def test_open_iqdat(self):
         """
         Tests DmapRead's constructor on opening a iqdat.
@@ -153,6 +168,19 @@ class TestDmapRead(unittest.TestCase):
         file_path = map_file
         dm = pydarn.DmapRead(file_path)
         dm.test_initial_data_integrity()
+
+    def test_integrity_check_grid(self):
+        """
+        Tests DmapRead test_initial_data_integrity
+        It should be able to read through the bytearray quickly
+        ensureing no curruption has occured in the file.
+
+        Behaviours: raising no exceptions
+        """
+        file_path = grid_file
+        dm = pydarn.DmapRead(file_path)
+        dm.test_initial_data_integrity()
+
 
     def test_integrity_check_iqdat(self):
         """
@@ -226,6 +254,26 @@ class TestDmapRead(unittest.TestCase):
         self.assertEqual(dm_records[0]['scan'].value, 1)
         self.assertEqual(dm_records[7]['ltab'].dimension, 2)
 
+    def test_read_grid(self):
+        """
+        Test reading records from grid file.
+
+        Checks:
+            - returns correct data structures
+            - returns excpected values
+        """
+        file_path = grid_file
+        dm = pydarn.DmapRead(file_path)
+        dm_records = dm.read_records()
+        self.assertIsInstance(dm_records, collections.deque)
+        self.assertIsInstance(dm_records[0], collections.OrderedDict)
+        self.assertIsInstance(dm_records[2]['start.year'], pydarn.pydmap.datastructures.DmapScalar)
+        self.assertIsInstance(dm_records[3]['stid'], pydarn.DmapArray)
+        self.assertIsInstance(dm_records[8]['end.month'].value, int)
+        self.assertIsInstance(dm_records[10]['nvec'].value, np.ndarray)
+        self.assertEqual(dm_records[3]['nvec'].dimension, 1)
+        self.assertEqual(dm_records[0]['nvec'].shape[0], 1)  # this will be file dependent... future working test project.
+
     def test_read_map(self):
         """
         Test reading records from map file.
@@ -288,6 +336,15 @@ class TestDmapRead(unittest.TestCase):
             dmap.read_records()
 
     def test_dmap_read_stream(self):
+        """
+        Test read_records on dmap data stream.
+        The dmap data stream is formed from compressed
+        bzip2 file that returns a bytes object.
+
+         Checks:
+            - returns correct data structures
+            - returns excpected values
+        """
         # bz2 opens the compressed file into a data
         # stream of bytes without actually uncompressing the file
         with bz2.open(rawacf_stream) as fp:
@@ -303,9 +360,18 @@ class TestDmapRead(unittest.TestCase):
         self.assertEqual(dmap_data[0]['xcfd'].dimension, 3)
 
     def test_dmap_read_corrupt_stream(self):
+        """
+        Test read_records on a corrupt stream. Read in compressed
+        file which returns a byte object, then insert some random
+        bytes to produce a corrupt stream.
+
+        Expected bahaviour: raises pydmap expection
+        """
         with bz2.open(rawacf_stream) as fp:
             dmap_stream = fp.read()
 
+        # need to convert to byte array for mutability
+        # since bytes are immutable.
         corrupt_stream = bytearray(dmap_stream[0:36])
         corrupt_stream[36:40] = bytearray(str(os.urandom(4)).encode('utf-8'))
         corrupt_stream[40:] = dmap_stream[37:]
