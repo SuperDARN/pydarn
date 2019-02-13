@@ -116,7 +116,7 @@ class DmapRead():
         Reads an array into a numpy array
     """
 
-    def __init__(self, dmap_file: Union[str,bytes], data_stream=False):
+    def __init__(self, dmap_file: Union[str, bytes], data_stream=False):
         """
         Reads the dmap file/stream into a byte array for further reading of the
         dmap records.
@@ -312,7 +312,7 @@ class DmapRead():
             # 2 is to include the encoding_identifier and size of data which
             # are both int types.
             self.cursor = self.cursor + block_size - 2 *\
-                    DMAP_DATA_TYPES[INT][1]
+                DMAP_DATA_TYPES[INT][1]
 
         if total_block_size != self.dmap_end_bytes:
             message = "Error: Initial integrity check shows"\
@@ -396,7 +396,7 @@ class DmapRead():
         # adding 8 bytes because code+size are part of the record.
         # 4 is the number bytes for int format
         remaining_bytes = self.dmap_end_bytes - self.cursor + 2 *\
-                DMAP_DATA_TYPES[INT][1]
+            DMAP_DATA_TYPES[INT][1]
         self.bytes_check(block_size, "block size",
                          remaining_bytes, "remaining bytes")
         self.zero_negative_check(block_size, "block size")
@@ -526,9 +526,9 @@ class DmapRead():
         elif any(x <= 0 for x in array_shape) and array_name != "slist":
             message = "Error: Array shape {shape} contains "\
                     "dimension size <= 0."\
-                    " Cursor: {cursor}".format(dim=array_shape,
+                    " Cursor: {cursor}".format(shape=array_shape,
                                                cursor=self.cursor)
-            raise pydmap_exceptions.DmapDataError(self.filename, message)
+            raise pydmap_exceptions.DmapDataError(self.dmap_file, message)
 
         for i in range(array_dimension):
             if array_shape[i] >= record_size:
@@ -561,12 +561,19 @@ class DmapRead():
         # are encoded as hex literals, they have to be read one at a
         # time to make sense.
 
-        if array_type_fmt == 's' or array_type_fmt == 'c':
-            array_value = self.read_string_array(array_shape,
-                                                 array_type_fmt,
-                                                 array_fmt_bytes)
+        if array_type_fmt == 's':
+            message = "Trying to read array of strings."\
+                    " Currently not implemented."\
+                    " cursor at {}".format(self.cursor)
+            # Not sure when this is used in a dmap file
+            # so better to raise an error if used re-access the code.
+            raise pydmap_exceptions.DmapDataError(self.dmap_file, message)
+            # FIXME: Not working
+            # array_value = self.read_string_array(array_shape,
+            #                                     array_type_fmt,
+            #                                     array_fmt_bytes)
         elif array_type == DMAP:
-            message = "Error: Trying to read DMAP array data type."\
+            message = "Trying to read DMAP array data type."\
                     " cursor at {}".format(self.cursor)
             # Not sure when this is used in a dmap file
             # so better to raise an error if used re-access the code.
@@ -660,6 +667,20 @@ class DmapRead():
             self.cursor += data_fmt_bytes
             return data[0]
 
+    # FIXME: Currently this method is not working, thus there is no support
+    # for array[str], but may not be important. ¯\_(ツ)_/¯
+    # The problem is the padding between various string encodings:
+    # UTF-8 -> 4 bytes and ASCII -> 1 byte
+    # so either DMAP would have to incorporate that information plus
+    # string length would be a god send... If not one possible solution
+    # you would record the length of the record size and subtract the byte
+    # (or start at cursor point and increment to the end of the record size)
+    # information: encoding, data type, dimension, shape, name, then you
+    # should have the length of the array. Then by trial and error (unless we
+    # store the encoding information) determine the encoding size, if there is
+    # padding you will get "\x00", from there you can jump over the byte size
+    # and when a comma occurs then that is the end of your string and append to
+    # the array and continue until you reach the end of the record size.
     def read_string_array(self, shape: list,
                           array_type_fmt: str,
                           array_fmt_bytes: int) -> np.ndarray:
@@ -679,20 +700,23 @@ class DmapRead():
             an numpy N-D array of string read in from the byte array
         """
 
-        data = []
+        dim_data = []
+        dim = shape
+        dimension = dim.pop()
         # FIXME: still need to find a method for testing this... Or a file
         #        that contains a string/DMAP array
-        for dim_size in shape:
-            for i in range(dim_size):
-                data.append(self.read_data(array_type_fmt, array_fmt_bytes))
+        #for dim_size in shape:
+        #    for i in range(dim_size):
+        #        result = self.read_data(array_type_fmt, array_fmt_bytes)
+        #        data.append(result)
         # try to avoid using recursion, it is slow
-        # if not dim:
-        #     dim_data = [self.read_data(data_type_fmt)
-        #                 for i in range(0, dimension)]
-        # else:
-        #     dim_data = [self.build_n_dimension_list(list(dim), data_type_fmt)
-        #                 for i in range(0, dimension)]
-        return np.array(data)
+        if not dim:
+            dim_data = [self.read_data(array_type_fmt, array_fmt_bytes)
+                        for i in range(0, dimension)]
+        else:
+            dim_data = [self.build_n_dimension_list(list(dim), array_type_fmt)
+                        for i in range(0, dimension)]
+        return np.array(dim_data)
 
     def read_numerical_array(self, data_type_fmt: str,
                              total_number_cells: int,
@@ -764,16 +788,20 @@ class DmapWrite(object):
     dict_key_diff(dict1, dict2)
         Returns a set of the difference between dict1 and dict2 keys
     missing_field_check(file_struct_list, record, rec_num)
-        Checks if there is any missing fields in the record from a list of possible file fields
+        Checks if there is any missing fields in the record from
+        a list of possible file fields
     extra_field_check(file_struct_list, record, rec_num)
-        Checks if there is any extra fields in the record from a list of possible file fields
+        Checks if there is any extra fields in the record from
+        a list of possible file fields
     incorrect_types_check(file_struct_list, record)
-        Checks if there is any incorrect types in the record from a list of possible file
+        Checks if there is any incorrect types in the record from
+        a list of possible file
         fields and their data type formats
     dict_list2set(dict_list)
         Converts a list of dictionaries to a set containing their keys
     SuperDARN_file_structure_to_bytes(file_struct_list)
-        Converts dmap records to SuperDARN file structure bytes based on file_struct_list
+        Converts dmap records to SuperDARN file structure bytes based
+        on file_struct_list
     dmap_records_to_bytes()
         Converts dmap records to byte array stored in dmap_bytearr
     dmap_scalar_to_bytes(scalar)
@@ -784,29 +812,30 @@ class DmapWrite(object):
     def __init__(self, dmap_records: List[dict] = [], filename: str = "",
                  dmap_file_fmt: str = ""):
         """
-        Writes dmap records to a given filename of byte array in DMAP format, this includes the
-        following SuperDARN file types:
-                                - Iqdat
-                                - Rawacf
-                                - Fitacf
-                                - Grid
-                                - Map
+        Writes dmap records to a given filename of byte array in DMAP format,
+        this includes the following SuperDARN file types:
+                                                      - Iqdat
+                                                      - Rawacf
+                                                      - Fitacf
+                                                      - Grid
+                                                      - Map
 
         Parameters
         ----------
         dmap_records : List[dict]
-            list of dictionaries representing a list of dmap records containing DmapScalar and DmapArrays
+            list of dictionaries representing a list of dmap records containing
+            DmapScalar and DmapArrays
         filename : str
             The path and name of the file the user wants to write to
         dmap_file_fmt : str
             Dmap file types, the following are supported:
-                                                    - 'iqdat' : SuperDARN file type
-                                                    - 'rawacf' : SuperDARN file type
-                                                    - 'fitacf' : SuperDARN file type
-                                                    - 'grid' : SuperDARN file type
-                                                    - 'map' : SuperDARN file type
-                                                    - 'dmap' : writes a file in DMAP format
-                                                    - 'stream' : writing to dmap data stream
+                                     - 'iqdat' : SuperDARN file type
+                                     - 'rawacf' : SuperDARN file type
+                                     - 'fitacf' : SuperDARN file type
+                                     - 'grid' : SuperDARN file type
+                                     - 'map' : SuperDARN file type
+                                     - 'dmap' : writes a file in DMAP format
+                                     - 'stream' : writing to dmap data stream
 
         Raises
         ------
@@ -867,12 +896,18 @@ class DmapWrite(object):
         superdarn_formats.Iqdat - module contain the data types
                                  in each SuperDARN files types
         """
-        self.__empty_record_check()
         self.__filename_check(filename)
-        file_struct_list = [superdarn_formats.Iqdat.types]
-        self.superDARN_file_structure_to_bytes(file_struct_list)
+        self.write_iqdat_stream()
         with open(self.filename, 'wb') as f:
             f.write(self.dmap_bytearr)
+
+    def write_iqdat_stream(self, iqdat_data: List[dict] = []) -> bytearray:
+        if iqdat_data != []:
+            self.dmap_records = iqdat_data
+        self.__empty_record_check()
+        file_struct_list = [superdarn_formats.Iqdat.types]
+        self.superDARN_file_structure_to_bytes(file_struct_list)
+        return self.dmap_bytearr
 
     def write_rawacf(self, filename: str = ""):
         """
@@ -898,10 +933,8 @@ class DmapWrite(object):
         superdarn_formats.Rawacf - module contain the data types
                                  in each SuperDARN files types
         """
-        self.__empty_record_check()
         self.__filename_check(filename)
-        file_struct_list = [superdarn_formats.Rawacf.types]
-        self.superDARN_file_structure_to_bytes(file_struct_list)
+        self.write_rawacf_stream()
         with open(self.filename, 'wb') as f:
             f.write(self.dmap_bytearr)
 
@@ -937,10 +970,8 @@ class DmapWrite(object):
         superdarn_formats.Fitacf - module contain the data types
                                  in each SuperDARN files types
         """
-        self.__empty_record_check()
         self.__filename_check(filename)
-        file_struct_list = [superdarn_formats.Fitacf.types]
-        self.superDARN_file_structure_to_bytes(file_struct_list)
+        self.write_fitacf_stream()
         with open(self.filename, 'wb') as f:
             f.write(self.dmap_bytearr)
 
@@ -976,15 +1007,8 @@ class DmapWrite(object):
         superdarn_formats.Grid - module contain the data types
                                  in each SuperDARN files types
         """
-        self.__empty_record_check()
         self.__filename_check(filename)
-        # Grid files can have extra fields based on how they are processed.
-        # If the command line option used in make_grid (See RST documentation)
-        # uses the command line option -ext then power and spectral width fields
-        # are included as well.
-        file_struct_list = [superdarn_formats.Grid.types,
-                            superdarn_formats.Grid.extra_fields]
-        self.superDARN_file_structure_to_bytes(file_struct_list)
+        self.write_grid_stream()
         with open(self.filename, 'wb') as f:
             f.write(self.dmap_bytearr)
 
@@ -992,6 +1016,10 @@ class DmapWrite(object):
         if grid_data != []:
             self.dmap_records = grid_data
         self.__empty_record_check()
+        # Grid files can have extra fields based on how they are processed.
+        # If the command line option used in make_grid (See RST documentation)
+        # uses the command line option -ext then power and
+        # spectral width fields are included as well.
         file_struct_list = [superdarn_formats.Grid.types,
                             superdarn_formats.Grid.extra_fields]
         self.superDARN_file_structure_to_bytes(file_struct_list)
@@ -1021,19 +1049,8 @@ class DmapWrite(object):
         superdarn_formats.Map - module contain the data types
                                  in each SuperDARN files types
         """
-        self.__empty_record_check()
         self.__filename_check(filename)
-        # Map files can have extra fields based on how they are processed.
-        # If the command line option map_grid -ext (See RST documentation) is
-        # used then power and spectral width is included into the fields.
-        # Other fields are also included on which map_add<methods> are used on
-        # the map file processing.
-        file_struct_list = [superdarn_formats.Map.types,
-                            superdarn_formats.Map.extra_fields,
-                            superdarn_formats.Map.fit_fields,
-                            superdarn_formats.Map.model_fields,
-                            superdarn_formats.Map.hmb_fields]
-        self.superDARN_file_structure_to_bytes(file_struct_list)
+        self.write_map_stream()
         with open(self.filename, 'wb') as f:
             f.write(self.dmap_bytearr)
 
@@ -1041,6 +1058,11 @@ class DmapWrite(object):
         if map_data != []:
             self.dmap_records = map_data
         self.__empty_record_check()
+        # Map files can have extra fields based on how they are processed.
+        # If the command line option map_grid -ext (See RST documentation) is
+        # used then power and spectral width is included into the fields.
+        # Other fields are also included on which map_add<methods> are used on
+        # the map file processing.
         file_struct_list = [superdarn_formats.Map.types,
                             superdarn_formats.Map.extra_fields,
                             superdarn_formats.Map.fit_fields,
@@ -1064,9 +1086,8 @@ class DmapWrite(object):
         No checks are done, this up to the user to ensure their fields are
         correct.
         """
-        self.__empty_record_check()
         self.__filename_check(filename)
-        self.dmap_records_to_bytes()
+        self.write_dmap_stream()
         with open(self.filename, 'wb') as f:
             f.write(self.dmap_bytearr)
 
@@ -1096,8 +1117,6 @@ class DmapWrite(object):
                                                   "Dmap record is empty "
                                                   "there is nothing to write.")
 
-
-
     def __filename_check(self, filename: str = ""):
         """
         Checks if a filename is given and overrides the current
@@ -1121,7 +1140,8 @@ class DmapWrite(object):
     def dict_key_diff(self, dict1: Union[dict, set],
                       dict2: Union[dict, set]) -> set:
         """
-        Determines the difference in the key set from the first dictionary to the second dictionary.
+        Determines the difference in the key set from the
+        first dictionary to the second dictionary.
         ex) Let A = {a, b, c} and B = {d, a, b}
         Then A - B = {c}
 
@@ -1191,8 +1211,8 @@ class DmapWrite(object):
             # then comparing the difference from the subset of types
             # you can determine what is missing.
             diff_fields = self.dict_key_diff(file_struct,
-                                          set(record).
-                                          intersection(complete_set))
+                                             set(record).
+                                             intersection(complete_set))
             # For Grid and Map files this is needed because depending
             # on command line options to generate the grid and map files
             # some fields are added in.
@@ -1235,8 +1255,11 @@ class DmapWrite(object):
                                                         rec_num,
                                                         extra_fields)
 
-    # TODO: Do we want to check this? If not, then change SuperDARN_format_structure types to sets to get rid of dict_list2set method.
-    def incorrect_types_check(self, file_struct_list: List[dict], record: dict, rec_num: int):
+    # TODO: Do we want to check this? If not, then change
+    # SuperDARN_format_structure types to sets to get rid
+    # of dict_list2set method.
+    def incorrect_types_check(self, file_struct_list: List[dict],
+                              record: dict, rec_num: int):
         """
         Checks if the file structure fields data type formats are correct
         in the record.
@@ -1258,7 +1281,10 @@ class DmapWrite(object):
         complete_dict = {}
         for file_struct in file_struct_list:
             complete_dict.update(file_struct)
-        incorrect_types_check = {param: complete_dict[param] for param in record.keys() if record[param].data_type_fmt != complete_dict[param]}
+        incorrect_types_check = {param: complete_dict[param]
+                                 for param in record.keys()
+                                 if record[param].data_type_fmt
+                                 != complete_dict[param]}
         if len(incorrect_types_check) > 0:
             raise pydmap_exceptions.SuperDARNDataFormatError(incorrect_types_check,
                                                              rec_num)
@@ -1350,17 +1376,20 @@ class DmapWrite(object):
 
         scalar_type_bytes = struct.pack('c',
                                         chr(scalar.data_type).encode('utf-8'))
-        scalar_type_fmt = scalar.data_type_fmt
 
-        if scalar_type_fmt == 's':
+        if scalar.data_type_fmt == 's':
             scalar_data = "{0}\0".format(scalar.value)
             scalar_data_format = '{0}s'.format(len(scalar_data))
             scalar_data_bytes = struct.pack(scalar_data_format,
                                             scalar_data.encode('utf-8'))
-        elif scalar_type_fmt == 'c':
+        elif scalar.data_type_fmt == 'c':
             scalar_data_bytes = chr(scalar.value).encode('utf-8')
+        elif scalar.data_type_fmt == 'f':
+            scalar_data_value = np.float32(scalar.value)
+            scalar_data_bytes = struct.pack(scalar.data_type_fmt,
+                                            scalar_data_value)
         else:
-            scalar_data_bytes = struct.pack(scalar_type_fmt, scalar.value)
+            scalar_data_bytes = struct.pack(scalar.data_type_fmt, scalar.value)
 
         scalar_total_bytes = scalar_name_bytes + scalar_type_bytes +\
             scalar_data_bytes
