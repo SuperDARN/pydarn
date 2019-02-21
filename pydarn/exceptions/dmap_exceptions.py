@@ -1,8 +1,4 @@
-"""
-    Author:
-        Keith Kotyk
-        Marina Schmidt
-"""
+# Authors: Keith Kotyk and Marina Schmidt
 import logging
 pydarn_logger = logging.getLogger('pydarn')
 
@@ -161,59 +157,10 @@ class DmapDataError(Exception):
     def __init__(self, filename: str, message: str):
         self.filename = filename
         self.message = " The following error for {filename} was raised: "\
-                "{msg}".format(filename=self.filename,
-                               msg=message)
+            "{msg}".format(filename=self.filename,
+                           msg=message)
         super().__init__(self.message)
         pydarn_logger.error("DmapDataError: {}".format(message))
-
-class DmapFileFormatType(Exception):
-    """
-    """
-    def __init__(self, filename, file_type):
-        self.filename = filename
-        self.file_type = file_type
-        self.message = "Error: {file_type} is not a DMAP file format type."\
-                "{filename} was not created. Please check the spelling of"\
-                " the file type is correct or is"\
-                " implemented.".format(file_type=self.file_type,
-                                       filename=self.filename)
-
-class SuperDARNFieldMissing(Exception):
-    """
-    """
-    def __init__(self, filename, record_num, fields):
-        self.filename = filename
-        self.record_number = record_num
-        self.fields = fields
-        self.message = "Error: Cannot write to {filename}."\
-                " The following fields in record {num} are missing:"\
-                " {fields}".format(filename=self.filename,
-                                     num=self.record_number,
-                                     fields=self.fields)
-
-
-class SuperDARNFieldExtra(Exception):
-    """
-    """
-    def __init__(self, filename, record_num, fields):
-        self.filename = filename
-        self.record_number = record_num
-        self.fields = fields
-        self.message = "Error: Cannot write to {filename}."\
-                " The following fields in record {num} are not allowed:"\
-                " {fields}".format(filename=self.filename,
-                                     num=self.record_number,
-                                     fields=self.fields)
-
-class SuperDARNDataFormatError(Exception):
-    """
-    """
-    def __init__(self, incorrect_types, record_num):
-        self.incorrect_params = incorrect_types
-        self.record_number = record_num
-        self.message = "Error: In record {num}, following parameters need to be the"\
-                " data type: {incorrect}".format(num=self.record_number,
-                                                 incorrect=self.incorrect_params)
 
 
 class DmapTypeError(Exception):
@@ -223,17 +170,11 @@ class DmapTypeError(Exception):
         self.filename = filename
         self.data_type = data_type
         self.message = "Error: {data_type} does not match the DMAP data type"\
-                " structures: DmapRecord, DmapScalar, DmapArray."\
-                " Please make sure you have the correct"\
-                " Data Structure.".format(data_type=self.data_type,
-                                          filename=self.filename)
+            " structures: DmapRecord, DmapScalar, DmapArray."\
+            " Please make sure you have the correct"\
+            " Data Structure.".format(data_type=self.data_type,
+                                      filename=self.filename)
 
-class CorruptDataError(Exception):
-    """
-    Raise when data is corrupt in the file
-    """
-    def __init__(self):
-        pass
 
 class FilenameRequiredError(Exception):
     """
