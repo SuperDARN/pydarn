@@ -274,14 +274,6 @@ class DarnWrite(DmapWrite):
         with open(self.filename, 'wb') as f:
             f.write(self.dmap_bytearr)
 
-    def write_iqdat_stream(self, iqdat_data: List[dict] = []) -> bytearray:
-        if iqdat_data != []:
-            self.dmap_records = iqdat_data
-        self.__empty_record_check()
-        file_struct_list = [superdarn_formats.Iqdat.types]
-        self.superDARN_file_structure_to_bytes(file_struct_list)
-        return self.dmap_bytearr
-
     def write_rawacf(self, filename: str = ""):
         """
         Writes SuperDARN file type RAWACF
@@ -313,14 +305,6 @@ class DarnWrite(DmapWrite):
         with open(self.filename, 'wb') as f:
             f.write(self.dmap_bytearr)
 
-    def write_rawacf_stream(self, rawacf_data: List[dict] = []) -> bytearray:
-        if rawacf_data != []:
-            self.dmap_records = rawacf_data
-        self.__empty_record_check()
-        file_struct_list = [superdarn_formats.Rawacf.types]
-        self.superDARN_file_structure_to_bytes(file_struct_list)
-        return self.dmap_bytearr
-
     def write_fitacf(self, filename=""):
         """
         Writes SuperDARN file type FITACF
@@ -351,14 +335,6 @@ class DarnWrite(DmapWrite):
         self.superDARN_file_structure_to_bytes(file_struct_list)
         with open(self.filename, 'wb') as f:
             f.write(self.dmap_bytearr)
-
-    def write_fitacf_stream(self, fitacf_data: List[dict] = []) -> bytearray:
-        if fitacf_data != []:
-            self.dmap_records = fitacf_data
-        self.__empty_record_check()
-        file_struct_list = [superdarn_formats.Fitacf.types]
-        self.superDARN_file_structure_to_bytes(file_struct_list)
-        return self.dmap_bytearr
 
     def write_grid(self, filename=""):
         """
@@ -395,19 +371,6 @@ class DarnWrite(DmapWrite):
         self.superDARN_file_structure_to_bytes(file_struct_list)
         with open(self.filename, 'wb') as f:
             f.write(self.dmap_bytearr)
-
-    def write_grid_stream(self, grid_data: List[dict] = []) -> bytearray:
-        if grid_data != []:
-            self.dmap_records = grid_data
-        self.__empty_record_check()
-        # Grid files can have extra fields based on how they are processed.
-        # If the command line option used in make_grid (See RST documentation)
-        # uses the command line option -ext then power and
-        # spectral width fields are included as well.
-        file_struct_list = [superdarn_formats.Grid.types,
-                            superdarn_formats.Grid.extra_fields]
-        self.superDARN_file_structure_to_bytes(file_struct_list)
-        return self.dmap_bytearr
 
     def write_map(self, filename=""):
         """
@@ -449,26 +412,25 @@ class DarnWrite(DmapWrite):
         with open(self.filename, 'wb') as f:
             f.write(self.dmap_bytearr)
 
-    def write_map_stream(self, map_data: List[dict] = []) -> bytearray:
-        if map_data != []:
-            self.dmap_records = map_data
-        self.__empty_record_check()
-        # Map files can have extra fields based on how they are processed.
-        # If the command line option map_grid -ext (See RST documentation) is
-        # used then power and spectral width is included into the fields.
-        # Other fields are also included on which map_add<methods> are used on
-        # the map file processing.
-        file_struct_list = [superdarn_formats.Map.types,
-                            superdarn_formats.Map.extra_fields,
-                            superdarn_formats.Map.fit_fields,
-                            superdarn_formats.Map.model_fields,
-                            superdarn_formats.Map.hmb_fields]
-        self.superDARN_file_structure_to_bytes(file_struct_list)
-        return self.dmap_bytearr
-
     def superDARN_file_structure_to_bytes(self, file_struct_list: List[dict]):
-        # TODO: might make rec_num a field in the class as it may be
-        # useful in error messages for both DmapRead and DmapWrite
+        """
+        Checks the DMAP records are the correct structure of the file type and
+        then uses the DmapWrite writing method to covert the record to bytes. 
+
+        Parameters
+        ----------
+        file_struct_list : List[dict]
+        A list of possible fields for the given SuperDARN file type
+
+        Raises
+        ------
+        SuperDARNFieldMissingError - Missing fields in the DMAP record that is 
+        required for the SuperDARN file type
+        SuperDARNExtraFieldError - Extra fields in the DMAP record that are not
+        allowed in the SuperDARN file type
+        SuperDARNDataFormatTypeError - Wrong format data type error for the
+        SuperDARN file type fields in the DMAP record
+        """
         for rec_num in range(len(self.dmap_records)):
             record = self.dmap_records[rec_num]
             # field checks
@@ -476,4 +438,4 @@ class DarnWrite(DmapWrite):
             self.missing_field_check(file_struct_list, record, rec_num)
             self.incorrect_types_check(file_struct_list, record, rec_num)
             # start converting
-            self.__dmap_record_to_bytes(record)
+            self.__dmap_record_to_bytes(record, rec_num)
