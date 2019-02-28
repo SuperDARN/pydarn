@@ -129,8 +129,7 @@ class DarnUtilities():
                 missing_fields = missing_fields.union(diff_fields)
 
         if len(missing_fields) > 0:
-            raise superdarn_exceptions.SuperDARNFieldMissingError(rec_num,
-                                                             missing_fields)
+            raise superdarn_exceptions.SuperDARNFieldMissingError(rec_num, missing_fields)
 
     @staticmethod
     def extra_field_check(file_struct_list: List[dict],
@@ -157,15 +156,13 @@ class DarnUtilities():
         extra_fields = DarnUtilities.dict_key_diff(record, file_struct)
 
         if len(extra_fields) > 0:
-            raise superdarn_exceptions.SuperDARNExtraFieldError(rec_num,
-                                                           extra_fields)
+            raise superdarn_exceptions.SuperDARNExtraFieldError(rec_num, extra_fields)
 
     # TODO: Do we want to check this? If not, then change
     # SuperDARN_format_structure types to sets to get rid
     # of dict_list2set method.
     @staticmethod
-    def incorrect_types_check(self, file_struct_list: List[dict],
-                              record: dict, rec_num: int):
+    def incorrect_types_check(file_struct_list: List[dict], record: dict, rec_num: int):
         """
         Checks if the file structure fields data type formats are correct
         in the record.
@@ -205,7 +202,7 @@ class DarnRead(DmapRead):
         DarnUtilities.missing_field_check(format_fields, record, rec_num)
         DarnUtilities.extra_field_check(format_fields, record, rec_num)
         DarnUtilities.incorrect_types_check(format_fields, record, rec_num)
-        self.__dmap_records.append(record)
+        self._dmap_records.append(record)
 
     def _read_darn_records(self, file_struct_list: List[dict]):
         rec_num = 0  # record number, for exception info
@@ -216,27 +213,33 @@ class DarnRead(DmapRead):
     def read_iqdat(self):
         file_struct_list = [superdarn_formats.Iqdat.types]
         self._read_darn_records(file_struct_list)
-        return self.__dmap_records
+        return self._dmap_records
 
     def read_rawacf(self):
         file_struct_list = [superdarn_formats.Rawacf.types]
         self._read_darn_records(file_struct_list)
-        return self.__dmap_records
+        return self._dmap_records
 
     def read_fitacf(self):
-        file_struct_list = [superdarn_formats.Fitacf.types]
+        file_struct_list = [superdarn_formats.Fitacf.types,
+                            superdarn_formats.Fitacf.fitted_fields]
         self._read_darn_records(file_struct_list)
-        return self.__dmap_records
+        return self._dmap_records
 
     def read_grid(self):
-        file_struct_list = [superdarn_formats.Grid.types]
+        file_struct_list = [superdarn_formats.Grid.types,
+                            superdarn_formats.Grid.extra_fields]
         self._read_darn_records(file_struct_list)
-        return self.__dmap_records
+        return self._dmap_records
 
     def read_map(self):
-        file_struct_list = [superdarn_formats.Map.types]
+        file_struct_list = [superdarn_formats.Map.types,
+                            superdarn_formats.Map.extra_fields,
+                            superdarn_formats.Map.fit_fields,
+                            superdarn_formats.Map.hmb_fields,
+                            superdarn_formats.Map.model_fields]
         self._read_darn_records(file_struct_list)
-        return self.__dmap_records
+        return self._dmap_records
 
 
 class DarnWrite(DmapWrite):
@@ -415,7 +418,7 @@ class DarnWrite(DmapWrite):
     def superDARN_file_structure_to_bytes(self, file_struct_list: List[dict]):
         """
         Checks the DMAP records are the correct structure of the file type and
-        then uses the DmapWrite writing method to covert the record to bytes. 
+        then uses the DmapWrite writing method to covert the record to bytes.
 
         Parameters
         ----------
@@ -424,7 +427,7 @@ class DarnWrite(DmapWrite):
 
         Raises
         ------
-        SuperDARNFieldMissingError - Missing fields in the DMAP record that is 
+        SuperDARNFieldMissingError - Missing fields in the DMAP record that is
         required for the SuperDARN file type
         SuperDARNExtraFieldError - Extra fields in the DMAP record that are not
         allowed in the SuperDARN file type

@@ -149,8 +149,8 @@ class DmapRead():
         See DEVELOPER_README.md for more information.
         """
 
-        # __dmap_records are private to avoid tampering.
-        self.__dmap_records = collections.deque()
+        # _dmap_records are private to avoid tampering.
+        self._dmap_records = collections.deque()
         self.dmap_file = dmap_file
 
         # read the whole file/stream into a byte array
@@ -331,7 +331,7 @@ class DmapRead():
 
         Return
         -------
-        __dmap_records : collections.Deque
+        _dmap_records : collections.Deque
                 Deque list of DmapRecords (ordered dictionary)
 
 
@@ -349,12 +349,12 @@ class DmapRead():
         pydarn_logger.debug("Reading DMAP records")
         while self.cursor < self.dmap_end_bytes:
             new_record = self.read_record()
-            self.__dmap_records.append(new_record)
+            self._dmap_records.append(new_record)
             self.rec_num += 1
 
         self.bytes_check(self.cursor, "cursor",
                          self.dmap_end_bytes, "total bytes in the file")
-        return self.__dmap_records
+        return self._dmap_records
 
     def read_record(self) -> collections.OrderedDict:
         """
@@ -390,7 +390,7 @@ class DmapRead():
         block_size = self.read_data('i', 4)
 
         pydarn_logger.debug("Reading Record {record}"
-                            .format(record=len(self.__dmap_records)))
+                            .format(record=len(self._dmap_records)))
 
         # adding 8 bytes because code+size are part of the record.
         # 4 is the number bytes for int format
@@ -923,7 +923,7 @@ class DmapWrite(object):
 
         Future use of this function is for parallelization.
         """
-        # For performance increase len of the records can be 
+        # For performance increase len of the records can be
         # attribute value initialized in the class
         for self.rec_num in range(len(self.dmap_records)):
             self.__dmap_record_to_bytes(record)
