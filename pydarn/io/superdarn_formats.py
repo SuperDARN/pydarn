@@ -119,7 +119,9 @@ class Fitacf():
         'noise.vel': 'f',
         'ptab': 'h',
         'ltab': 'h',
-        'pwr0': 'f',
+        'pwr0': 'f'}
+
+    fitted_fields = {
         'slist': 'h',
         'nlag': 'h',
         'qflg': 'c',
