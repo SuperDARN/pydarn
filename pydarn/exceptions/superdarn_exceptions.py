@@ -19,28 +19,22 @@ class SuperDARNFileTypeError(Exception):
 class SuperDARNFieldMissingError(Exception):
     """
     """
-    def __init__(self, filename, record_num, fields):
-        self.filename = filename
+    def __init__(self, record_num, fields):
         self.record_number = record_num
         self.fields = fields
-        self.message = "Error: Cannot write to {filename}."\
-            " The following fields in record {num} are missing:"\
-            " {fields}".format(filename=self.filename,
-                               num=self.record_number,
+        self.message = "Error: The following fields in record {num} are missing:"\
+            " {fields}".format(num=self.record_number,
                                fields=self.fields)
 
 
 class SuperDARNExtraFieldError(Exception):
     """
     """
-    def __init__(self, filename, record_num, fields):
-        self.filename = filename
+    def __init__(self, record_num, fields):
         self.record_number = record_num
         self.fields = fields
-        self.message = "Error: Cannot write to {filename}."\
-            " The following fields in record {num} are not allowed:"\
-            " {fields}".format(filename=self.filename,
-                               num=self.record_number,
+        self.message = "Error: The following fields in record {num} are not allowed:"\
+            " {fields}".format(num=self.record_number,
                                fields=self.fields)
 
 
