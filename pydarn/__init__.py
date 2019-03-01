@@ -29,7 +29,7 @@ from .io.dmap import DmapWrite
 # Importing pydarn superdarn classes
 from .io.superdarn import DarnRead
 from .io.superdarn import DarnWrite
-
+from .io.superdarn import DarnUtilities
 
 """
 Pydarn uses yaml for logging configuration because it is the

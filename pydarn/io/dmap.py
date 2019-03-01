@@ -866,7 +866,7 @@ class DmapWrite(object):
         No checks are done, this up to the user to ensure their fields are
         correct.
         """
-        self.__filename_check(filename)
+        self._filename_check(filename)
         self.write_dmap_stream()
         with open(self.filename, 'wb') as f:
             f.write(self.dmap_bytearr)
@@ -887,17 +887,17 @@ class DmapWrite(object):
         """
         if self.dmap_records == []:
             self.dmap_records = dmap_records
-        self.__empty_record_check()
+        self._empty_record_check()
         self.dmap_records_to_bytes()
         return self.dmap_bytearr
 
-    def __empty_record_check(self):
+    def _empty_record_check(self):
         if self.dmap_records == []:
             raise dmap_exceptions.DmapDataError(self.filename,
                                                   "Dmap record is empty "
                                                   "there is nothing to write.")
 
-    def __filename_check(self, filename: str = ""):
+    def _filename_check(self, filename: str = ""):
         """
         Checks if a filename is given and overrides the current
         filename with the new one.
@@ -925,10 +925,12 @@ class DmapWrite(object):
         """
         # For performance increase len of the records can be
         # attribute value initialized in the class
+        self.rec_num = 0
         for self.rec_num in range(len(self.dmap_records)):
-            self.__dmap_record_to_bytes(record)
+            record = self.dmap_records[self.rec_num]
+            self._dmap_record_to_bytes(record)
 
-    def __dmap_record_to_bytes(self, record: dict):
+    def _dmap_record_to_bytes(self, record: dict):
         """
         Converts dmap record to byte stream and stores in the
         dmap byte array
