@@ -165,7 +165,16 @@ class DmapDataError(Exception):
 
 class DmapTypeError(Exception):
     """
-    Raised if there mismatch between DMAP data type 
+    Raised if there mismatch between DMAP data type
+
+    Parameters
+    ----------
+    filename : str
+        name of the file associated to the error
+    data_type : str
+        the data that does not match what DMAP can read
+    rec_num : int
+        the record number associated to the error
     """
     def __init__(self, filename: str, data_type: str, rec_num: int):
         self.filename = filename
@@ -184,6 +193,7 @@ class DmapTypeError(Exception):
 
 class FilenameRequiredError(Exception):
     """
+    Raised if a filename is not provided when needed for the procedure
     """
     def __init__(self):
         message = "Error: Filename is required"
