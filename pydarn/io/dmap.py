@@ -850,7 +850,8 @@ class DmapWrite(object):
         self.dmap_bytearr = bytearray()
         self.filename = filename
         self.rec_num = 0
-
+        pydarn_logger.debug("Initiating DmapWrite")
+    
     # HONEY BADGER method: Because dmap just don't care
     def write_dmap(self, filename=""):
         """
@@ -867,6 +868,7 @@ class DmapWrite(object):
         correct.
         """
         self._filename_check(filename)
+        pydarn_logger.debug("Writing dmap file: {}".format(self.filename))
         self.write_dmap_stream()
         with open(self.filename, 'wb') as f:
             f.write(self.dmap_bytearr)
@@ -888,6 +890,7 @@ class DmapWrite(object):
         if self.dmap_records == []:
             self.dmap_records = dmap_records
         self._empty_record_check()
+        pydarn_logger.debug("Writing to dmap stream")
         self.dmap_records_to_bytes()
         return self.dmap_bytearr
 
@@ -925,6 +928,7 @@ class DmapWrite(object):
         """
         # For performance increase len of the records can be
         # attribute value initialized in the class
+        pydarn_logger.debug("Converting DMAP records to bytes")
         self.rec_num = 0
         for self.rec_num in range(len(self.dmap_records)):
             record = self.dmap_records[self.rec_num]
