@@ -24,19 +24,23 @@ SuperDARNDataTypeError
 
 Future work
 -----------
+Persistent real-time methods
+    methods that can be called repetitively for reading and writing
+    to a data stream that would be used in real-time feeds.
 Organization
     rethink public and private methods? <--- discussion
+Parallelization
 
 Notes
 -----
 DmapRead and DmapWrite are inherited by DarnRead and DarnWrite
 """
 from typing import Union, List
+import logging
 
-from pydarn import superdarn_exceptions
-from pydarn import DmapRead
-from pydarn import DmapWrite
-from pydarn import superdarn_formats
+from pydarn import superdarn_exceptions, DmapRead, DmapWrite, superdarn_formats
+
+pydarn_log = logging.getLogger('pydarn')
 
 
 class DarnUtilities():
@@ -341,8 +345,8 @@ class DarnRead(DmapRead):
         """
         self.rec_num = 0  # record number, for exception info
         while self.cursor < self.dmap_end_bytes:
-            self._read_darn_record(file_struct_list)
-            rec_num += 1
+            self._read_darn_record(format_fields)
+            self.rec_num += 1
 
     def read_iqdat(self):
         """
@@ -353,6 +357,7 @@ class DarnRead(DmapRead):
         dmap_records : List[dict]
             DMAP record of the Iqdat data
         """
+        pydarn_log.debug("Reading Iqdat file: {}".format(self.dmap_file))
         file_struct_list = [superdarn_formats.Iqdat.types]
         self._read_darn_records(file_struct_list)
         return self._dmap_records
@@ -366,6 +371,8 @@ class DarnRead(DmapRead):
         dmap_records : List[dict]
             DMAP record of the Rawacf data
         """
+        pydarn_log.debug("Reading Rawacf file: {}".format(self.dmap_file))
+
         file_struct_list = [superdarn_formats.Rawacf.types]
         self._read_darn_records(file_struct_list)
         return self._dmap_records
@@ -379,8 +386,9 @@ class DarnRead(DmapRead):
         dmap_records : List[dict]
             DMAP record of the Fitacf data
         """
-        file_struct_list = [superdarn_formats.Fitacf.types,
-                            superdarn_formats.Fitacf.fitted_fields]
+        pydarn_log.debug("Reading Fitacf file: {}".format(self.dmap_file))
+       file_struct_list = [superdarn_formats.Fitacf.types,
+                           superdarn_formats.Fitacf.fitted_fields]
         self._read_darn_records(file_struct_list)
         return self._dmap_records
 
@@ -393,7 +401,8 @@ class DarnRead(DmapRead):
         dmap_records : List[dict]
             DMAP record of the Grid data
         """
-        file_struct_list = [superdarn_formats.Grid.types,
+        pydarn_log.debug("Reading Grid file: {}".format(self.dmap_file))
+       file_struct_list = [superdarn_formats.Grid.types,
                             superdarn_formats.Grid.fitted_fields,
                             superdarn_formats.Grid.extra_fields]
         self._read_darn_records(file_struct_list)
@@ -408,13 +417,14 @@ class DarnRead(DmapRead):
         dmap_records : List[dict]
             DMAP record of the Map data
         """
-        file_struct_list = [superdarn_formats.Map.types,
-                             superdarn_formats.Map.extra_fields,
-                             superdarn_formats.Map.fit_fields,
-                             superdarn_formats.Map.hmb_fields,
-                             superdarn_formats.Map.model_fields]
-         self._read_darn_records(file_struct_list)
-         return self._dmap_records
+        pydarn_log.debug("Reading Map file: {}".format(self.dmap_file))
+       file_struct_list = [superdarn_formats.Map.types,
+                            superdarn_formats.Map.extra_fields,
+                            superdarn_formats.Map.fit_fields,
+                            superdarn_formats.Map.hmb_fields,
+                            superdarn_formats.Map.model_fields]
+        self._read_darn_records(file_struct_list)
+        return self._dmap_records
 
 
 class DarnWrite(DmapWrite):
@@ -506,6 +516,8 @@ class DarnWrite(DmapWrite):
         """
         self._filename_check(filename)
         self._empty_record_check()
+        pydarn_log.debug("Writing Iqdat file: {}".format(self.dmap_file))
+
         file_struct_list = [superdarn_formats.Iqdat.types]
         self.superDARN_file_structure_to_bytes(file_struct_list)
         with open(self.filename, 'wb') as f:
@@ -535,7 +547,8 @@ class DarnWrite(DmapWrite):
         superdarn_formats.Rawacf - module contain the data types
                                  in each SuperDARN files types
         """
-        self._filename_check(filename)
+        pydarn_log.debug("Writing Rawacf file: {}".format(self.dmap_file))
+       self._filename_check(filename)
         self._empty_record_check()
         file_struct_list = [superdarn_formats.Rawacf.types]
         self.superDARN_file_structure_to_bytes(file_struct_list)
@@ -566,6 +579,8 @@ class DarnWrite(DmapWrite):
         superdarn_formats.Fitacf - module contain the data types
                                  in each SuperDARN files types
         """
+        pydarn_log.debug("Writing Fitacf file: {}".format(self.dmap_file))
+
         self._filename_check(filename)
         self._empty_record_check()
         file_struct_list = [superdarn_formats.Fitacf.types,
@@ -598,6 +613,8 @@ class DarnWrite(DmapWrite):
         superdarn_formats.Grid - module contain the data types
                                  in each SuperDARN files types
         """
+        pydarn_log.debug("Writing Grid file: {}".format(self.dmap_file))
+
         self._filename_check(filename)
         self._empty_record_check()
         # Grid files can have extra fields based on how they are processed.
@@ -635,6 +652,8 @@ class DarnWrite(DmapWrite):
         superdarn_formats.Map - module contain the data types
                                  in each SuperDARN files types
         """
+        pydarn_log.debug("Writing Map file: {}".format(self.dmap_file))
+
         self._filename_check(filename)
         self._empty_record_check()
         # Map files can have extra fields based on how they are processed.
@@ -671,11 +690,16 @@ class DarnWrite(DmapWrite):
         SuperDARN file type fields in the DMAP record
         """
         self.rec_num = 0
+        pydarn_log.debug("Checking and converting SuperDARN data to bytes ")
+
         for self.rec_num in range(len(self.dmap_records)):
             record = self.dmap_records[self.rec_num]
             # field checks
-            DarnUtilities.extra_field_check(file_struct_list, record, self.rec_num)
-            DarnUtilities.missing_field_check(file_struct_list, record, self.rec_num)
-            DarnUtilities.incorrect_types_check(file_struct_list, record, self.rec_num)
+            DarnUtilities.extra_field_check(file_struct_list, record,
+                                            self.rec_num)
+            DarnUtilities.missing_field_check(file_struct_list, record,
+                                              self.rec_num)
+            DarnUtilities.incorrect_types_check(file_struct_list, record,
+                                                self.rec_num)
             # start converting
             self._dmap_record_to_bytes(record)
