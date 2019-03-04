@@ -148,9 +148,10 @@ class DarnUtilities():
             # An intersection of a set returns what both sets have in common
             # then comparing the difference from the subset of types
             # you can determine what is missing.
-            diff_fields = DarnUtilities.dict_key_diff(file_struct,
-                                                      set(record).
-                                                      intersection(complete_set))
+            diff_fields = \
+                DarnUtilities.dict_key_diff(file_struct,
+                                            set(record).
+                                            intersection(complete_set))
             # For Grid and Map files this is needed because depending
             # on command line options to generate the grid and map files
             # some fields are added in.
@@ -270,7 +271,7 @@ class DarnRead(DmapRead):
     read_records()
         reads DMAP binary data
     """
-    def __init__(self, filename, stream=False):
+    def __init__(self, filename: str, stream: bool = False):
         """
         Extension of DmapRead constructor that reads SuperDARN file/stream type
         into a byte array for reading methods.
@@ -315,8 +316,8 @@ class DarnRead(DmapRead):
                                 file/stream type
         SuperDARNExtraFieldError - when an extra field is present in the
                                 SuperDARN file/stream type
-        SuperDARNDataFormatTypeError - when a field has the incorrect field type
-                                for the SuperDARN file/stream type
+        SuperDARNDataFormatTypeError - when a field has the incorrect
+                                field type for the SuperDARN file/stream type
 
         See Also
         --------
@@ -348,7 +349,7 @@ class DarnRead(DmapRead):
             self._read_darn_record(format_fields)
             self.rec_num += 1
 
-    def read_iqdat(self):
+    def read_iqdat(self) -> List[dict]:
         """
         Reads iqdat DMAP file/stream
 
@@ -362,7 +363,7 @@ class DarnRead(DmapRead):
         self._read_darn_records(file_struct_list)
         return self._dmap_records
 
-    def read_rawacf(self):
+    def read_rawacf(self) -> List[dict]:
         """
         Reads Rawacf DMAP file/stream
 
@@ -377,7 +378,7 @@ class DarnRead(DmapRead):
         self._read_darn_records(file_struct_list)
         return self._dmap_records
 
-    def read_fitacf(self):
+    def read_fitacf(self) -> List[dict]:
         """
         Reads Fitacf DMAP file/stream
 
@@ -387,12 +388,12 @@ class DarnRead(DmapRead):
             DMAP record of the Fitacf data
         """
         pydarn_log.debug("Reading Fitacf file: {}".format(self.dmap_file))
-       file_struct_list = [superdarn_formats.Fitacf.types,
-                           superdarn_formats.Fitacf.fitted_fields]
+        file_struct_list = [superdarn_formats.Fitacf.types,
+                            superdarn_formats.Fitacf.fitted_fields]
         self._read_darn_records(file_struct_list)
         return self._dmap_records
 
-    def read_grid(self):
+    def read_grid(self) -> List[dict]:
         """
         Reads Grid DMAP file/stream
 
@@ -402,13 +403,13 @@ class DarnRead(DmapRead):
             DMAP record of the Grid data
         """
         pydarn_log.debug("Reading Grid file: {}".format(self.dmap_file))
-       file_struct_list = [superdarn_formats.Grid.types,
+        file_struct_list = [superdarn_formats.Grid.types,
                             superdarn_formats.Grid.fitted_fields,
                             superdarn_formats.Grid.extra_fields]
         self._read_darn_records(file_struct_list)
         return self._dmap_records
 
-    def read_map(self):
+    def read_map(self) -> List[dict]:
         """
         Reads Map DMAP file/stream
 
@@ -418,7 +419,7 @@ class DarnRead(DmapRead):
             DMAP record of the Map data
         """
         pydarn_log.debug("Reading Map file: {}".format(self.dmap_file))
-       file_struct_list = [superdarn_formats.Map.types,
+        file_struct_list = [superdarn_formats.Map.types,
                             superdarn_formats.Map.extra_fields,
                             superdarn_formats.Map.fit_fields,
                             superdarn_formats.Map.hmb_fields,
@@ -516,7 +517,7 @@ class DarnWrite(DmapWrite):
         """
         self._filename_check(filename)
         self._empty_record_check()
-        pydarn_log.debug("Writing Iqdat file: {}".format(self.dmap_file))
+        pydarn_log.debug("Writing Iqdat file: {}".format(self.filename))
 
         file_struct_list = [superdarn_formats.Iqdat.types]
         self.superDARN_file_structure_to_bytes(file_struct_list)
@@ -547,15 +548,15 @@ class DarnWrite(DmapWrite):
         superdarn_formats.Rawacf - module contain the data types
                                  in each SuperDARN files types
         """
-        pydarn_log.debug("Writing Rawacf file: {}".format(self.dmap_file))
-       self._filename_check(filename)
+        pydarn_log.debug("Writing Rawacf file: {}".format(self.filename))
+        self._filename_check(filename)
         self._empty_record_check()
         file_struct_list = [superdarn_formats.Rawacf.types]
         self.superDARN_file_structure_to_bytes(file_struct_list)
         with open(self.filename, 'wb') as f:
             f.write(self.dmap_bytearr)
 
-    def write_fitacf(self, filename=""):
+    def write_fitacf(self, filename: str = ""):
         """
         Writes SuperDARN file type FITACF
 
@@ -579,7 +580,7 @@ class DarnWrite(DmapWrite):
         superdarn_formats.Fitacf - module contain the data types
                                  in each SuperDARN files types
         """
-        pydarn_log.debug("Writing Fitacf file: {}".format(self.dmap_file))
+        pydarn_log.debug("Writing Fitacf file: {}".format(self.filename))
 
         self._filename_check(filename)
         self._empty_record_check()
@@ -589,7 +590,7 @@ class DarnWrite(DmapWrite):
         with open(self.filename, 'wb') as f:
             f.write(self.dmap_bytearr)
 
-    def write_grid(self, filename=""):
+    def write_grid(self, filename: str = ""):
         """
         Writes SuperDARN file type GRID
 
@@ -613,7 +614,7 @@ class DarnWrite(DmapWrite):
         superdarn_formats.Grid - module contain the data types
                                  in each SuperDARN files types
         """
-        pydarn_log.debug("Writing Grid file: {}".format(self.dmap_file))
+        pydarn_log.debug("Writing Grid file: {}".format(self.filename))
 
         self._filename_check(filename)
         self._empty_record_check()
@@ -628,7 +629,7 @@ class DarnWrite(DmapWrite):
         with open(self.filename, 'wb') as f:
             f.write(self.dmap_bytearr)
 
-    def write_map(self, filename=""):
+    def write_map(self, filename: str = ""):
         """
         Writes SuperDARN file type MAP
 
@@ -652,7 +653,7 @@ class DarnWrite(DmapWrite):
         superdarn_formats.Map - module contain the data types
                                  in each SuperDARN files types
         """
-        pydarn_log.debug("Writing Map file: {}".format(self.dmap_file))
+        pydarn_log.debug("Writing Map file: {}".format(self.filename))
 
         self._filename_check(filename)
         self._empty_record_check()
