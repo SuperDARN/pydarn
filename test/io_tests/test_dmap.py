@@ -177,25 +177,50 @@ class TestDmapRead(unittest.TestCase):
 
 
 class TestDmapWrite(unittest.TestCase):
+    """ Testing DmapWrite class"""
     def setUp(self):
         pass
 
     def test_incorrect_filename_input_using_write_methods(self):
+        """
+        Testing if a filename is not given to DmapWrite
+
+        Expected behaviour
+        ------------------
+        Raises FilenameRequiredError - no filename was given to write and
+        constructor
+        """
         rawacf_data = copy.deepcopy(dmap_data_sets.dmap_data)
         dmap_data = pydarn.DmapWrite(rawacf_data)
         with self.assertRaises(pydarn.dmap_exceptions.FilenameRequiredError):
             dmap_data.write_dmap()
 
     def test_empty_data_check(self):
+        """
+        Testing if no data is given to DmapWrite
+
+        Expected behaviour
+        ------------------
+        Raise DmapDataError - no data is given to write
+        ¯\_(ツ)_/¯
+        """
         dmap_write = pydarn.DmapWrite(filename="test.test")
         with self.assertRaises(pydarn.dmap_exceptions.DmapDataError):
             dmap_write.write_dmap()
 
-    def test_writing_to_dmap(self):
-        """tests using DmapWrite to write to rawacf"""
+    def test_writing_dmap(self):
+        """
+        Testing write_dmap method
+
+        Expected behaviour
+        ------------------
+        File is produced
+        """
         dmap_data = copy.deepcopy(dmap_data_sets.dmap_data)
         dmap = pydarn.DmapWrite(dmap_data)
 
+        # Integration testing will test the integrity of the
+        # writing procedure.
         dmap.write_dmap("test_dmap.dmap")
         self.assertTrue(os.path.isfile("test_dmap.dmap"))
 

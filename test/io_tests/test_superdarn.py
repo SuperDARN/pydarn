@@ -314,10 +314,24 @@ class TestDarnRead(unittest.TestCase):
 
 
 class TestDarnUtilities(unittest.TestCase):
+    """
+    Testing DarnUtilities class.
+    Note
+    ----
+    All methods in this class are static so there is no constructor testing
+    """
     def SetUp(self):
         pass
 
     def test_dict_key_diff(self):
+        """
+        Testing dict_key_diff - returns the difference in keys between two sets
+        dictionaries
+
+        Expected behaviour
+        ------------------
+        Returns the set difference between two dictionaries
+        """
         a = {'a': 4, 'c': 5, 'd': 4}
         b = {'1': 'a', 'c': 'd', 'd': 4, 'z': 'dog'}
         solution_a_b = {'a'}
@@ -328,6 +342,15 @@ class TestDarnUtilities(unittest.TestCase):
         self.assertEqual(diff_set, solution_b_a)
 
     def test_dict_list2set(self):
+        """
+        Tests the dict_list2set method - this method converts lists of
+        dictionaries to concatenated full sets
+
+        Expected behaviour
+        ------------------
+        Returns only a single set the comprises of the dictionary keys
+        given in the list
+        """
         dict1 = {'a': 1, 'b': 2, 'c': 3}
         dict2 = {'rst': '4.1', 'stid': 3, 'vel': [2.3, 4.5]}
         dict3 = {'fitacf': 'f', 'rawacf': 's', 'map': 'm'}
@@ -339,6 +362,17 @@ class TestDarnUtilities(unittest.TestCase):
         self.assertEqual(dict_set, complete_set)
 
     def test_extra_field_check_pass(self):
+        """
+        Test the extra_field_check method - this method checks if there are
+        differences in the key sets of dictionaries that when passed a record
+        and field names it will indicate if there is an extra field in the
+        record key set
+
+        Expected behaviour
+        ------------------
+        Nothing - if there are no differences in the key set then
+        nothing returns
+        """
         dict1 = {'a': 1, 'b': 2, 'c': 3}
         dict2 = {'rst': '4.1', 'stid': 3, 'vel': [2.3, 4.5]}
         dict3 = {'fitacf': 'f', 'rawacf': 's', 'map': 'm'}
@@ -347,6 +381,17 @@ class TestDarnUtilities(unittest.TestCase):
                                                test_dict, 1)
 
     def test_extra_field_check_fail(self):
+        """
+        Test the extra_field_check method - this method checks if there are
+        differences in the key sets of dictionaries that when passed a record
+        and field names it will indicate if there is an extra field in the
+        record key set
+
+        Expected behaviour
+        -----------------
+        Raises SuperDARNExtraFieldError because there are differences between
+        the two dictionary sets
+        """
         dict1 = {'a': 1, 'b': 2, 'c': 3}
         dict2 = {'rst': '4.1', 'stid': 3, 'vel': [2.3, 4.5]}
         dict3 = {'fitacf': 'f', 'rawacf': 's', 'map': 'm'}
@@ -359,6 +404,15 @@ class TestDarnUtilities(unittest.TestCase):
             self.assertEqual(err.fields, {'d'})
 
     def test_missing_field_check_pass_mixed_dict(self):
+        """
+        Testing missing_field_check - Reverse idea of the extra_field_check,
+        should find missing fields in a record when compared to a key set of
+        SuperDARN field names
+
+        Expected behaviour
+        ------------------
+        Nothing - if there is not differences then nothing happens
+        """
         dict1 = {'a': 1, 'b': 2, 'c': 3}
         dict2 = {'rst': '4.1', 'stid': 3, 'vel': [2.3, 4.5]}
         dict3 = {'fitacf': 'f', 'rawacf': 's', 'map': 'm'}
@@ -370,6 +424,20 @@ class TestDarnUtilities(unittest.TestCase):
                                                  test_dict, 1)
 
     def test_missing_field_check_pass_mixed_subset(self):
+        """
+        Testing missing_field_check - Reverse idea of the extra_field_check,
+        should find missing fields in a record when compared to a key set of
+        SuperDARN field names
+
+        Expected behaviour
+        ------------------
+        Nothing - the missing_field_check should be able to handle subsets of
+        of complete sets. Meaning it will not raise an error if it contains
+        the full subsets of the dictionary keys but the full overall set.
+        This is needed for Fitacf, Gird and Map files as they do not write
+        all the fields in if data is bad or users do not use certain
+        commands/options when processing the data.
+        """
         dict1 = {'a': 1, 'b': 2, 'c': 3}
         dict2 = {'rst': '4.1', 'stid': 3, 'vel': [2.3, 4.5]}
         dict3 = {'fitacf': 'f', 'rawacf': 's', 'map': 'm'}
@@ -386,6 +454,17 @@ class TestDarnUtilities(unittest.TestCase):
                                                  test_dict, 1)
 
     def test_missing_field_check_fail(self):
+        """
+        Testing missing_field_check - Reverse idea of the extra_field_check,
+        should find missing fields in a record when compared to a key set of
+        SuperDARN field names
+
+        Expected behaviour
+        ------------------
+        Raise SuperDARNFieldMissingError - raised when there is a difference
+        between dictionary key sets
+        """
+
         dict1 = {'a': 1, 'b': 2, 'c': 3}
         dict2 = {'rst': '4.1', 'stid': 3, 'vel': [2.3, 4.5]}
         dict3 = {'fitacf': 'f', 'rawacf': 's', 'map': 'm'}
@@ -401,6 +480,19 @@ class TestDarnUtilities(unittest.TestCase):
             self.assertEqual(err.fields, {'c', 'rawacf'})
 
     def test_incorrect_types_check_pass(self):
+        """
+        Test incorrect_types_check - this method checks if the field data
+        format type is not correct to specified SuperDARN field type.
+
+        Note
+        ----
+        This method only works on pydarn DMAP record data structure
+
+        Expected Behaviour
+        ------------------
+        Nothing - should not return or raise anything if the fields
+        are the correct data format type
+        """
         dict1 = {'a': 's', 'b': 'i', 'c': 'f'}
         dict3 = {'fitacf': 'f', 'rawacf': 's', 'map': 'm'}
 
@@ -416,6 +508,20 @@ class TestDarnUtilities(unittest.TestCase):
                                                    test_dict, 1)
 
     def test_incorrect_types_check_fail(self):
+        """
+        Test incorrect_types_check - this method checks if the field data
+        format type is not correct to specified SuperDARN field type.
+
+        Note
+        ----
+        This method only works on pydarn DMAP record data structure
+
+        Expected Behaviour
+        ------------------
+        Raises SuperDARNDataFormatTypeError - because the field format types
+        should not be the same.
+        """
+
         dict1 = {'a': 's', 'b': 'i', 'c': 'f'}
         dict3 = {'fitacf': 'f', 'rawacf': 's', 'map': 'm'}
 
@@ -434,19 +540,45 @@ class TestDarnUtilities(unittest.TestCase):
 
 
 class TestDarnWrite(unittest.TestCase):
+    """
+    Tests DarnWrite class
+    """
     def setUp(self):
         pass
 
     def test_darn_write_constructor(self):
+        """
+        Tests DarnWrite's constructor
+
+        Expected behaviour
+        ------------------
+        Contains file name of the data if given to it.
+        """
         rawacf_data = copy.deepcopy(rawacf_data_sets.rawacf_data)
         darn = pydarn.DarnWrite(rawacf_data, "rawacf_test.rawacf")
         self.assertEqual(darn.filename, "rawacf_test.rawacf")
 
     def test_empty_record(self):
+        """
+        Tests if an empty record is given. This will later be changed for
+        real-time implementation.
+
+        Expected behaviour
+        ------------------
+        Raise DmapDataError if no data is provided to the constructor
+        """
         with self.assertRaises(pydarn.dmap_exceptions.DmapDataError):
             pydarn.DarnWrite([], 'dummy_file.acf')
 
     def test_incorrect_filename_input_using_write_methods(self):
+        """
+        Tests if a file name is not provided to any of the write methods
+
+        Expected behaviour
+        ------------------
+        All should raise a FilenameRequiredError - if no file name is given
+        what do we write to ¯\_(ツ)_/¯
+        """
         rawacf_data = copy.deepcopy(rawacf_data_sets.rawacf_data)
         dmap_data = pydarn.DarnWrite(rawacf_data)
         with self.assertRaises(pydarn.dmap_exceptions.FilenameRequiredError):
@@ -459,9 +591,13 @@ class TestDarnWrite(unittest.TestCase):
 
     def test_DarnWrite_missing_field_rawacf(self):
         """
-            Tests RawDmapWite to write to rawacf:
-                Expected behaviour to raise a DmapDataError
-                because the rawtacf file is missing field.
+        Tests write_rawacf method - writes a rawacf structure file for the
+        given data
+
+        Expected behaviour
+        ------------------
+        Raises SuperDARNFieldMissing Error - because the rawacf data is
+        missing field nave
         """
         rawacf_missing_field = copy.deepcopy(rawacf_data_sets.rawacf_data)
         del rawacf_missing_field[2]['nave']
@@ -476,9 +612,13 @@ class TestDarnWrite(unittest.TestCase):
 
     def test_extra_field_rawacf(self):
         """
-            Tests RawDmapWite to write to rawacf:
-                Expected behaviour to raise a DmapDataError
-                because the rawacf file data has an extra field.
+        Tests write_rawacf method - writes a rawacf structure file for the
+        given data
+
+        Expected behaviour
+        ------------------
+        Raises SuperDARNExtraFieldErrro because the rawacf data
+        has an extra field dummy
         """
         rawacf_extra_field = copy.deepcopy(rawacf_data_sets.rawacf_data)
         rawacf_extra_field[1]['dummy'] = pydarn.DmapScalar('dummy', 'nothing',
@@ -492,6 +632,15 @@ class TestDarnWrite(unittest.TestCase):
             self.assertEqual(err.record_number, 1)
 
     def test_incorrect_data_format_rawacf(self):
+        """
+        Tests write_rawacf method - writes a rawacf structure file for the
+        given data
+
+        Expected Behaviour
+        -------------------
+        Raises SuperDARNDataFormatTypeError because the rawacf data has the
+        wrong type for the scan field
+        """
         rawacf_incorrect_fmt = copy.deepcopy(rawacf_data_sets.rawacf_data)
         rawacf_incorrect_fmt[2]['scan'] = \
             rawacf_incorrect_fmt[2]['scan']._replace(data_type_fmt='c')
@@ -503,18 +652,34 @@ class TestDarnWrite(unittest.TestCase):
             self.assertEqual(err.incorrect_params['scan'], 'h')
             self.assertEqual(err.record_number, 2)
 
-    def test_writing_to_rawacf(self):
-        """tests using DarnWrite to write to rawacf"""
+    def test_writing_rawacf(self):
+        """
+        Tests write_rawacf method - writes a rawacf file
+
+        Expected behaviour
+        ------------------
+        Rawacf file is produced
+        """
         rawacf_data = copy.deepcopy(rawacf_data_sets.rawacf_data)
 
         dmap = pydarn.DarnWrite(rawacf_data)
 
         dmap.write_rawacf("test_rawacf.rawacf")
+        # only testing the file is created since it should only be created
+        # at the last step after all checks have passed
+        # Testing the integrity of the insides of the file will be part of
+        # integration testing since we need DarnRead for that.
         self.assertTrue(os.path.isfile("test_rawacf.rawacf"))
         os.remove("test_rawacf.rawacf")
 
-    def test_writing_to_fitacf(self):
-        """tests using DarnWrite to write to rawacf"""
+    def test_writing_fitacf(self):
+        """
+        Tests write_fitacf method - writes a fitacf file
+
+        Expected behaviour
+        ------------------
+        fitacf file is produced
+        """
         fitacf_data = copy.deepcopy(fitacf_data_sets.fitacf_data)
         dmap = pydarn.DarnWrite(fitacf_data)
 
@@ -523,7 +688,15 @@ class TestDarnWrite(unittest.TestCase):
         os.remove("test_fitacf.fitacf")
 
     def test_missing_fitacf_field(self):
-        """tests using DarnWrite to write to rawacf"""
+        """
+        Tests write_fitacf method - writes a fitacf structure file for the
+        given data
+
+        Expected behaviour
+        ------------------
+        Raises SuperDARNFieldMissing Error - because the fitacf data is
+        missing field stid
+        """
         fitacf_missing_field = copy.deepcopy(fitacf_data_sets.fitacf_data)
         del fitacf_missing_field[0]['stid']
         dmap = pydarn.DarnWrite(fitacf_missing_field)
@@ -535,7 +708,15 @@ class TestDarnWrite(unittest.TestCase):
             self.assertEqual(err.record_number, 0)
 
     def test_extra_fitacf_field(self):
-        """tests using DarnWrite to write to rawacf"""
+        """
+        Tests write_fitacf method - writes a fitacf structure file for the
+        given data
+
+        Expected behaviour
+        ------------------
+        Raises SuperDARNExtraFieldErrro because the fitacf data
+        has an extra field dummy
+        """
         fitacf_extra_field = copy.deepcopy(fitacf_data_sets.fitacf_data)
         fitacf_extra_field[1]['dummy'] = pydarn.DmapArray('dummy', np.array([1, 2]), chr(1), 'c', 1, [2])
         dmap = pydarn.DarnWrite(fitacf_extra_field)
@@ -547,7 +728,16 @@ class TestDarnWrite(unittest.TestCase):
             self.assertEqual(err.record_number, 1)
 
     def test_incorrect_fitacf_data_type(self):
-        """tests using DarnWrite to write to rawacf"""
+        """
+        Tests write_fitacf method - writes a fitacf structure file for the
+        given data
+
+        Expected Behaviour
+        -------------------
+        Raises SuperDARNDataFormatTypeError because the fitacf data has the
+        wrong type for the ltab field
+        """
+
         fitacf_incorrect_fmt = copy.deepcopy(fitacf_data_sets.fitacf_data)
         fitacf_incorrect_fmt[1]['ltab'] = \
             fitacf_incorrect_fmt[1]['ltab']._replace(data_type_fmt='s')
@@ -559,8 +749,14 @@ class TestDarnWrite(unittest.TestCase):
             self.assertEqual(err.incorrect_params['ltab'], 'h')
             self.assertEqual(err.record_number, 1)
 
-    def test_writing_to_iqdat(self):
-        """tests using DarnWrite to write to rawacf"""
+    def test_writing_iqdat(self):
+        """
+        Tests write_iqdat method - writes a iqdat file
+
+        Expected behaviour
+        ------------------
+        iqdat file is produced
+        """
         iqdat_data = copy.deepcopy(iqdat_data_sets.iqdat_data)
         dmap = pydarn.DarnWrite(iqdat_data)
 
@@ -569,7 +765,16 @@ class TestDarnWrite(unittest.TestCase):
         os.remove("test_iqdat.iqdat")
 
     def test_missing_iqdat_field(self):
-        """tests using DarnWrite to write to rawacf"""
+        """
+        Tests write_iqdat method - writes a iqdat structure file for the
+        given data
+
+        Expected behaviour
+        ------------------
+        Raises SuperDARNFieldMissing Error - because the iqdat data is
+        missing field chnnum
+        """
+
         iqdat_missing_field = copy.deepcopy(iqdat_data_sets.iqdat_data)
         del iqdat_missing_field[1]['chnnum']
         dmap = pydarn.DarnWrite(iqdat_missing_field)
@@ -581,7 +786,15 @@ class TestDarnWrite(unittest.TestCase):
             self.assertEqual(err.record_number, 1)
 
     def test_extra_iqdat_field(self):
-        """tests using DarnWrite to write to rawacf"""
+        """
+        Tests write_iqdat method - writes a iqdat structure file for the
+        given data
+
+        Expected behaviour
+        ------------------
+        Raises SuperDARNExtraFieldErrro because the iqdat data
+        has an extra field dummy
+        """
         iqdat_extra_field = copy.deepcopy(iqdat_data_sets.iqdat_data)
         iqdat_extra_field[2]['dummy'] = \
             pydarn.DmapArray('dummy', np.array([1, 2]), chr(1), 'c', 1, [2])
@@ -594,7 +807,15 @@ class TestDarnWrite(unittest.TestCase):
             self.assertEqual(err.record_number, 2)
 
     def test_incorrect_iqdat_data_type(self):
-        """tests using DarnWrite to write to rawacf"""
+        """
+        Tests write_iqdat method - writes a iqdat structure file for the
+        given data
+
+        Expected Behaviour
+        -------------------
+        Raises SuperDARNDataFormatTypeError because the iqdat data has the
+        wrong type for the lagfr field
+        """
         iqdat_incorrect_fmt = copy.deepcopy(iqdat_data_sets.iqdat_data)
         iqdat_incorrect_fmt[2]['lagfr'] = \
             iqdat_incorrect_fmt[2]['lagfr']._replace(data_type_fmt='d')
@@ -606,8 +827,14 @@ class TestDarnWrite(unittest.TestCase):
             self.assertEqual(err.incorrect_params['lagfr'], 'h')
             self.assertEqual(err.record_number, 2)
 
-    def test_writing_to_map(self):
-        """tests using DarnWrite to write to rawacf"""
+    def test_writing_map(self):
+        """
+        Tests write_map method - writes a map file
+
+        Expected behaviour
+        ------------------
+        map file is produced
+        """
         map_data = copy.deepcopy(map_data_sets.map_data)
         dmap = pydarn.DarnWrite(map_data)
 
@@ -616,7 +843,15 @@ class TestDarnWrite(unittest.TestCase):
         os.remove("test_map.map")
 
     def test_missing_map_field(self):
-        """tests using DarnWrite to write to rawacf"""
+        """
+        Tests write_map method - writes a map structure file for the
+        given data
+
+        Expected behaviour
+        ------------------
+        Raises SuperDARNFieldMissing Error - because the map data is
+        missing field stid
+        """
         map_missing_field = copy.deepcopy(map_data_sets.map_data)
         del map_missing_field[0]['IMF.Kp']
         dmap = pydarn.DarnWrite(map_missing_field)
@@ -628,7 +863,15 @@ class TestDarnWrite(unittest.TestCase):
             self.assertEqual(err.record_number, 0)
 
     def test_extra_map_field(self):
-        """tests using DarnWrite to write to rawacf"""
+        """
+        Tests write_map method - writes a map structure file for the
+        given data
+
+        Expected behaviour
+        ------------------
+        Raises SuperDARNExtraFieldErrro because the map data
+        has an extra field dummy
+        """
         map_extra_field = copy.deepcopy(map_data_sets.map_data)
         map_extra_field[1]['dummy'] = \
             pydarn.DmapArray('dummy', np.array([1, 2]), chr(1), 'c', 1, [2])
@@ -641,7 +884,15 @@ class TestDarnWrite(unittest.TestCase):
             self.assertEqual(err.record_number, 1)
 
     def test_incorrect_map_data_type(self):
-        """tests using DarnWrite to write to rawacf"""
+        """
+        Tests write_map method - writes a map structure file for the
+        given data
+
+        Expected Behaviour
+        -------------------
+        Raises SuperDARNDataFormatTypeError because the map data has the
+        wrong type for the IMF.Bx field
+        """
         map_incorrect_fmt = copy.deepcopy(map_data_sets.map_data)
         map_incorrect_fmt[2]['IMF.Bx'] = \
             map_incorrect_fmt[2]['IMF.Bx']._replace(data_type_fmt='i')
@@ -653,8 +904,14 @@ class TestDarnWrite(unittest.TestCase):
             self.assertEqual(err.incorrect_params.keys(), {'IMF.Bx'})
             self.assertEqual(err.record_number, 2)
 
-    def test_writing_to_grid(self):
-        """tests using DarnWrite to write to rawacf"""
+    def test_writing_grid(self):
+        """
+        Tests write_grid method - writes a grid file
+
+        Expected behaviour
+        ------------------
+        grid file is produced
+        """
         grid_data = copy.deepcopy(grid_data_sets.grid_data)
         dmap = pydarn.DarnWrite(grid_data)
 
@@ -663,7 +920,15 @@ class TestDarnWrite(unittest.TestCase):
         os.remove("test_grid.grid")
 
     def test_missing_grid_field(self):
-        """tests using DarnWrite to write to rawacf"""
+        """
+        Tests write_grid method - writes a grid structure file for the
+        given data
+
+        Expected behaviour
+        ------------------
+        Raises SuperDARNFieldMissing Error - because the grid data is
+        missing field stid
+        """
         grid_missing_field = copy.deepcopy(grid_data_sets.grid_data)
         del grid_missing_field[1]['start.year']
         dmap = pydarn.DarnWrite(grid_missing_field)
@@ -675,7 +940,15 @@ class TestDarnWrite(unittest.TestCase):
             self.assertEqual(err.record_number, 1)
 
     def test_extra_grid_field(self):
-        """tests using DarnWrite to write to rawacf"""
+        """
+        Tests write_grid method - writes a grid structure file for the
+        given data
+
+        Expected behaviour
+        ------------------
+        Raises SuperDARNExtraFieldErrro because the grid data
+        has an extra field dummy
+        """
         grid_extra_field = copy.deepcopy(grid_data_sets.grid_data)
         grid_extra_field[0]['dummy'] = \
             pydarn.DmapArray('dummy', np.array([1, 2]), chr(1), 'c', 1, [2])
@@ -688,7 +961,15 @@ class TestDarnWrite(unittest.TestCase):
             self.assertEqual(err.record_number, 0)
 
     def test_incorrect_grid_data_type(self):
-        """tests using DarnWrite to write to rawacf"""
+        """
+        Tests write_grid method - writes a grid structure file for the
+        given data
+
+        Expected Behaviour
+        -------------------
+        Raises SuperDARNDataFormatTypeError because the grid data has the
+        wrong type for the v.min field
+        """
         grid_incorrect_fmt = copy.deepcopy(grid_data_sets.grid_data)
         grid_incorrect_fmt[2]['v.min'] = \
             grid_incorrect_fmt[2]['v.min']._replace(data_type_fmt='d')
@@ -706,5 +987,5 @@ if __name__ == '__main__':
     Runs the above class in a unittest system.
     Roughly takes 467 seconds.
     """
-    pydarn_logger.info("Starting DMAP testing")
+    pydarn_logger.info("Starting SuperDARN io testing")
     unittest.main()
