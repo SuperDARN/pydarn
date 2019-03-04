@@ -851,9 +851,9 @@ class DmapWrite(object):
         self.filename = filename
         self.rec_num = 0
         pydarn_logger.debug("Initiating DmapWrite")
-    
+
     # HONEY BADGER method: Because dmap just don't care
-    def write_dmap(self, filename=""):
+    def write_dmap(self, filename: str = ""):
         """
         Writes dmap record to dmap file format.
 
