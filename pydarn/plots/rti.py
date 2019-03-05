@@ -4,3 +4,6 @@
 """
 Range-time Intensity plots
 """
+
+class RTI():
+
