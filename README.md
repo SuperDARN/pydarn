@@ -42,8 +42,8 @@ The following example shows how to read in a FITACF file, one of the SuperDARN's
 ```python
 import pydarn
 dmap_file = "./20180410.C0.sas.fitacf"
-dmap_reader = pydarn.DmapRead(dmap_file)
-dmap_data = dmap_reader.read_records() 
+dmap_reader = pydarn.DarnRead(dmap_file)
+dmap_data = dmap_reader.read_fitacf() 
 
 # dmap_data[record number][paramter name].value
 print(dmap_data[0]['bmnum'].value) 
@@ -70,4 +70,5 @@ Run the code and two log files will be produced:
 ### Release History 
 
   * 0.0.1 
-    * Add: Pydmap DmapRead implemented.
+    * Add: dmap DmapRead DmapWrite implemented.
+    * Add: superdarn DarnRead DarnWrite implemented
