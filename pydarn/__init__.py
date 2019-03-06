@@ -31,6 +31,10 @@ from .io.superdarn import DarnRead
 from .io.superdarn import DarnWrite
 from .io.superdarn import DarnUtilities
 
+# importing utils
+from .utils.conversions import dict2dmap
+from .utils.conversions import dmap2dict
+
 """
 Pydarn uses yaml for logging configuration because it is the
 preferred configuration file format because of its readability.
