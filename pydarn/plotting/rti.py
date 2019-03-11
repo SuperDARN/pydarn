@@ -41,19 +41,12 @@ class RTI(matplotlib.pyplot):
                             'control program id': 'cpid',
                             'n averages': 'nave'}
 
-    def plot_parameter(self, *args, dmap_data: List[dict],
-                       parameter: str = 'power', **kwargs):
+    def plot_profile(self, *args, dmap_data: List[dict],
+                     parameter: str = 'power', **kwargs):
 
         self.dmap_data = dmap_data
 
 
-    def plot_line(self, *args, dmap_data: List[dict], **kwargs):
-        pass
-
     def summaryplot(self, *args, dmap_data: List[dict],
                     parameters: str, lines: str, **kwargs):
         pass
-
-    def save_plot(self, filename: str):
-        pass
-
