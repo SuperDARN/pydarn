@@ -49,7 +49,7 @@ FORMAT_CONVERSION = {chr: 'c',  # Python doesn't actually have chars :/ they are
 #       WARNING: This converts on best effort
 #       python does not have character types, if
 #       a string has a length of 1 then it will
-#       treated as a char.
+#       be treated as a char.
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 def dict2dmap(dmap_list: List[dict]) -> List[dict]:
     """
