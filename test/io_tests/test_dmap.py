@@ -99,6 +99,15 @@ class TestDmapRead(unittest.TestCase):
         file_path = fitacf_file
         dm = pydarn.DmapRead(file_path)
         dmap_records = dm.read_records()
+        self.assertIsInstance(dmap_records, collections.deque)
+        self.assertIsInstance(dmap_records[0], collections.OrderedDict)
+        self.assertIsInstance(dmap_records[4]['bmnum'], pydarn.DmapScalar)
+        self.assertIsInstance(dmap_records[1]['ptab'], pydarn.DmapArray)
+        self.assertIsInstance(dmap_records[7]['channel'].value, int)
+        self.assertIsInstance(dmap_records[2]['ltab'].value, np.ndarray)
+        self.assertEqual(dmap_records[0]['ptab'].dimension, 1)
+        self.assertEqual(dmap_records[50]['gflg'].value[1],0)
+
 
     # TODO: Again dependent on the file used :/
     def test_integrity_check_corrupt_file1(self):
