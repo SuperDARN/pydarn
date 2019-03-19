@@ -453,6 +453,33 @@ class TestDarnUtilities(unittest.TestCase):
         pydarn.DarnUtilities.missing_field_check([dict1, dict2, dict3],
                                                  test_dict, 1)
 
+    def test_missing_field_check_fail2(self):
+        """
+        Testing missing_field_check - Reverse idea of the extra_field_check,
+        should find missing fields in a record when compared to a key set of
+        SuperDARN field names
+
+        Expected behaviour
+        ------------------
+        Raise SuperDARNFieldMissingError - raised when there is a difference
+        between dictionary key sets
+        """
+
+        dict1 = {'a': 1, 'b': 2, 'c': 3}
+        dict2 = {'rst': '4.1', 'stid': 3, 'vel': [2.3, 4.5]}
+        dict3 = {'fitacf': 'f', 'rawacf': 's', 'map': 'm'}
+
+        test_dict = {'a': 3, 'b': 3, 'd': 2,
+                     'stid': 's', 'vel': 'd',
+                     'fitacf': 3, 'map': 4}
+
+        try:
+            pydarn.DarnUtilities.missing_field_check([dict1, dict2, dict3],
+                                                     test_dict, 1)
+        except pydarn.superdarn_exceptions.SuperDARNFieldMissingError as err:
+            self.assertEqual(err.fields, {'c', 'rst', 'rawacf'})
+
+
     def test_missing_field_check_fail(self):
         """
         Testing missing_field_check - Reverse idea of the extra_field_check,
