@@ -117,6 +117,9 @@ class DarnUtilities():
         # convert dictionaries to set to do some set magic
         sets = [set(dic) for dic in dict_list]  # TODO: if data types don't matter in the structure format then they can become sets instead of dictionaries.
         # create a complete set list
+        # * - expands the list out into multiple set arguments
+        # then the union operator creates it into a full unique set
+        # example: s = [{'a','v'}, {'v','x'}] => set.union(*s) = {'a', 'v', 'x'}
         complete_set = set.union(*sets)
         return complete_set
 
@@ -144,17 +147,14 @@ class DarnUtilities():
         # file structure types
         complete_set = DarnUtilities.dict_list2set(file_struct_list)
         missing_fields = set()
+        """
+
+        """
         for file_struct in file_struct_list:
-            # An intersection of a set returns what both sets have in common
-            # then comparing the difference from the subset of types
-            # you can determine what is missing.
             diff_fields = \
                 DarnUtilities.dict_key_diff(file_struct,
                                             set(record).
                                             intersection(complete_set))
-            # For Grid and Map files this is needed because depending
-            # on command line options to generate the grid and map files
-            # some fields are added in.
             # If 0 nothing missing, if len(file_struct) then
             # that subset is missing only meaning that command option was
             # not used, not necessarily meaning that it is a record.
@@ -193,8 +193,8 @@ class DarnUtilities():
             raise superdarn_exceptions.SuperDARNExtraFieldError(rec_num,
                                                                 extra_fields)
 
-    # TODO: Do we want to check this? If not, then change
-    # SuperDARN_format_structure types to sets to get rid
+    # TODO: Do we want to keep this? If not, then change
+    # SuperDARN_format_structure types to sets and get rid
     # of dict_list2set method.
     @staticmethod
     def incorrect_types_check(file_struct_list: List[dict], record: dict,
@@ -256,7 +256,7 @@ class DarnRead(DmapRead):
     read_iqdat()
         reads and checks iqdat DMAP binary data
     read_rawacf()
-        reads and checks rawacf DMAP binar data
+        reads and checks rawacf DMAP binary data
     read_fitacf()
         reads and checks fitacf DMAP binary data
     read_grid()

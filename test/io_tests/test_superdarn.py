@@ -50,11 +50,11 @@ class TestDarnRead(unittest.TestCase):
         pass
 
     """
-    Testing DarnRead's constructor
+    Testing DarnRead constructor
     """
     def test_incorrect_path(self):
         """
-        Testing DarnRead's constructor with an non-existant folder.
+        Testing DarnRead constructor with an nonexistent folder.
 
         Expected behaviour: raise FileNotFoundError
         """
@@ -63,16 +63,16 @@ class TestDarnRead(unittest.TestCase):
 
     def test_incorrect_file(self):
         """
-        Tests if DarnRead's constructor with an non-existant file
+        Tests if DarnRead constructor with an non-existent file
 
-        Expected bahaviour: raises FileNotFoundError
+        Expected behaviour: raises FileNotFoundError
         """
         self.assertRaises(FileNotFoundError, pydarn.DarnRead,
                           './testfiles/somefile.rawacf')
 
     def test_empty_file(self):
         """
-        Tests if DarnRead's constructor with an empty file
+        Tests if DarnRead constructor with an empty file
 
         Expected behaviour: raise EmptyFileError
         """
@@ -81,7 +81,7 @@ class TestDarnRead(unittest.TestCase):
 
     def test_open_rawacf(self):
         """
-        Tests DarnRead's constructor on opening a rawacf.
+        Tests DarnRead constructor on opening a rawacf.
         It should be able to open the file, read it and convert to bytearray.
 
         Checks:
@@ -95,7 +95,7 @@ class TestDarnRead(unittest.TestCase):
 
     def test_open_fitacf(self):
         """
-        Tests DarnRead's constructor on opening a fitacf.
+        Tests DarnRead constructor on opening a fitacf.
         It should be able to open the file, read it and convert to bytearray.
 
         Checks:
@@ -109,7 +109,7 @@ class TestDarnRead(unittest.TestCase):
 
     def test_open_map(self):
         """
-        Tests DarnRead's constructor on opening a map.
+        Tests DarnRead constructor on opening a map.
         It should be able to open the file, read it and convert to bytearray.
 
         Checks:
@@ -123,7 +123,7 @@ class TestDarnRead(unittest.TestCase):
 
     def test_open_grid(self):
         """
-        Tests DarnRead's constructor on opening a grid.
+        Tests DarnRead constructor on opening a grid.
         It should be able to open the file, read it and convert to bytearray.
 
         Checks:
@@ -137,7 +137,7 @@ class TestDarnRead(unittest.TestCase):
 
     def test_open_iqdat(self):
         """
-        Tests DarnRead's constructor on opening a iqdat.
+        Tests DarnRead constructor on opening a iqdat.
         It should be able to open the file, read it and convert to bytearray.
 
         Checks:
@@ -156,7 +156,7 @@ class TestDarnRead(unittest.TestCase):
 
         Checks:
             - returns correct data structures
-            - returns excpected values
+            - returns expected values
         """
         file_path = iqdat_file
         dm = pydarn.DarnRead(file_path)
@@ -176,7 +176,7 @@ class TestDarnRead(unittest.TestCase):
 
         Checks:
             - returns correct data structures
-            - returns excpected values
+            - returns expected values
         """
         file_path = rawacf_file
         dm = pydarn.DarnRead(file_path)
@@ -195,7 +195,7 @@ class TestDarnRead(unittest.TestCase):
 
         Checks:
             - returns correct data structures
-            - returns excpected values
+            - returns expected values
         """
         file_path = fitacf_file
         dm = pydarn.DarnRead(file_path)
@@ -214,7 +214,7 @@ class TestDarnRead(unittest.TestCase):
 
         Checks:
             - returns correct data structures
-            - returns excpected values
+            - returns expected values
         """
         file_path = grid_file
         dm = pydarn.DarnRead(file_path)
@@ -233,7 +233,7 @@ class TestDarnRead(unittest.TestCase):
 
         Checks:
             - returns correct data structures
-            - returns excpected values
+            - returns expected values
         """
         file_path = map_file
         dm = pydarn.DarnRead(file_path)
@@ -252,7 +252,7 @@ class TestDarnRead(unittest.TestCase):
         """
         Test read_records on a corrupt file
 
-        Expected bahaviour: raises pydmap expection
+        Expected behaviour: raises pydmap exception
         """
         dmap = pydarn.DarnRead(corrupt_file1)
         with self.assertRaises(pydarn.dmap_exceptions.DmapDataTypeError):
@@ -262,7 +262,7 @@ class TestDarnRead(unittest.TestCase):
         """
         Test read_records on a corrupt file
 
-        Expected bahaviour: raises pydmap expection
+        Expected behaviour: raises pydmap exception
         """
         dmap = pydarn.DarnRead(corrupt_file2)
         with self.assertRaises(pydarn.dmap_exceptions.NegativeByteError):
@@ -276,7 +276,7 @@ class TestDarnRead(unittest.TestCase):
 
          Checks:
             - returns correct data structures
-            - returns excpected values
+            - returns expected values
         """
         # bz2 opens the compressed file into a data
         # stream of bytes without actually uncompressing the file
@@ -298,7 +298,7 @@ class TestDarnRead(unittest.TestCase):
         file which returns a byte object, then insert some random
         bytes to produce a corrupt stream.
 
-        Expected bahaviour: raises pydmap expection
+        Expected behaviour: raises pydmap exception
         """
         with bz2.open(rawacf_stream) as fp:
             dmap_stream = fp.read()
@@ -548,7 +548,7 @@ class TestDarnWrite(unittest.TestCase):
 
     def test_darn_write_constructor(self):
         """
-        Tests DarnWrite's constructor
+        Tests DarnWrite constructor
 
         Expected behaviour
         ------------------
@@ -596,7 +596,7 @@ class TestDarnWrite(unittest.TestCase):
 
         Expected behaviour
         ------------------
-        Raises SuperDARNFieldMissing Error - because the rawacf data is
+        Raises SuperDARNFieldMissingError - because the rawacf data is
         missing field nave
         """
         rawacf_missing_field = copy.deepcopy(rawacf_data_sets.rawacf_data)
@@ -617,7 +617,7 @@ class TestDarnWrite(unittest.TestCase):
 
         Expected behaviour
         ------------------
-        Raises SuperDARNExtraFieldErrro because the rawacf data
+        Raises SuperDARNExtraFieldError because the rawacf data
         has an extra field dummy
         """
         rawacf_extra_field = copy.deepcopy(rawacf_data_sets.rawacf_data)
@@ -694,7 +694,7 @@ class TestDarnWrite(unittest.TestCase):
 
         Expected behaviour
         ------------------
-        Raises SuperDARNFieldMissing Error - because the fitacf data is
+        Raises SuperDARNFieldMissingError - because the fitacf data is
         missing field stid
         """
         fitacf_missing_field = copy.deepcopy(fitacf_data_sets.fitacf_data)
@@ -714,11 +714,13 @@ class TestDarnWrite(unittest.TestCase):
 
         Expected behaviour
         ------------------
-        Raises SuperDARNExtraFieldErrro because the fitacf data
+        Raises SuperDARNExtraFieldError because the fitacf data
         has an extra field dummy
         """
         fitacf_extra_field = copy.deepcopy(fitacf_data_sets.fitacf_data)
-        fitacf_extra_field[1]['dummy'] = pydarn.DmapArray('dummy', np.array([1, 2]), chr(1), 'c', 1, [2])
+        fitacf_extra_field[1]['dummy'] = pydarn.DmapArray('dummy',
+                                                          np.array([1, 2]),
+                                                          chr(1), 'c', 1, [2])
         dmap = pydarn.DarnWrite(fitacf_extra_field)
 
         try:
@@ -771,7 +773,7 @@ class TestDarnWrite(unittest.TestCase):
 
         Expected behaviour
         ------------------
-        Raises SuperDARNFieldMissing Error - because the iqdat data is
+        Raises SuperDARNFieldMissingError - because the iqdat data is
         missing field chnnum
         """
 
@@ -792,7 +794,7 @@ class TestDarnWrite(unittest.TestCase):
 
         Expected behaviour
         ------------------
-        Raises SuperDARNExtraFieldErrro because the iqdat data
+        Raises SuperDARNExtraFieldError because the iqdat data
         has an extra field dummy
         """
         iqdat_extra_field = copy.deepcopy(iqdat_data_sets.iqdat_data)
@@ -849,7 +851,7 @@ class TestDarnWrite(unittest.TestCase):
 
         Expected behaviour
         ------------------
-        Raises SuperDARNFieldMissing Error - because the map data is
+        Raises SuperDARNFieldMissingError - because the map data is
         missing field stid
         """
         map_missing_field = copy.deepcopy(map_data_sets.map_data)
@@ -869,7 +871,7 @@ class TestDarnWrite(unittest.TestCase):
 
         Expected behaviour
         ------------------
-        Raises SuperDARNExtraFieldErrro because the map data
+        Raises SuperDARNExtraFieldError because the map data
         has an extra field dummy
         """
         map_extra_field = copy.deepcopy(map_data_sets.map_data)
@@ -926,7 +928,7 @@ class TestDarnWrite(unittest.TestCase):
 
         Expected behaviour
         ------------------
-        Raises SuperDARNFieldMissing Error - because the grid data is
+        Raises SuperDARNFieldMissingError - because the grid data is
         missing field stid
         """
         grid_missing_field = copy.deepcopy(grid_data_sets.grid_data)
@@ -946,7 +948,7 @@ class TestDarnWrite(unittest.TestCase):
 
         Expected behaviour
         ------------------
-        Raises SuperDARNExtraFieldErrro because the grid data
+        Raises SuperDARNExtraFieldError because the grid data
         has an extra field dummy
         """
         grid_extra_field = copy.deepcopy(grid_data_sets.grid_data)
