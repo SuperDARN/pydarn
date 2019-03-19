@@ -73,7 +73,7 @@ class TestDmapRead(unittest.TestCase):
             - bytearray instance is created from reading in the file
             - bytearray is not empty
         """
-        file_path = rawacf_file
+        file_path = fitacf_file
         dm = pydarn.DmapRead(file_path)
         self.assertIsInstance(dm.dmap_bytearr, bytearray)
         self.assertGreater(dm.dmap_end_bytes, 0)
@@ -89,6 +89,16 @@ class TestDmapRead(unittest.TestCase):
         file_path = rawacf_file
         dm = pydarn.DmapRead(file_path)
         dm.test_initial_data_integrity()
+
+    def test_read_dmap_file(self):
+        """
+        Tests DmapRead test read_dmap.
+
+        Behaviour: raising no exceptions
+        """
+        file_path = fitacf_file
+        dm = pydarn.DmapRead(file_path)
+        dmap_records = dm.read_records()
 
     # TODO: Again dependent on the file used :/
     def test_integrity_check_corrupt_file1(self):
