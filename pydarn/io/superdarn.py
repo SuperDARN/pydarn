@@ -143,18 +143,22 @@ class DarnUtilities():
         -------
         SuperDARNFieldMissing
         """
-        # Needed to get the intersection between the record and complete
-        # file structure types
-        complete_set = DarnUtilities.dict_list2set(file_struct_list)
+        """
+        We have to check each possible subset to see if there is a missing
+        field in the subset or if the whole subset is missing. If there
+        is a missing field then raise a SuperDARNFieldMissingError.
+        If a full subset is missing then this is technically okay because
+        RST will add fields, or do not included fields based on the commands,
+        and options the user uses to process the data.
+        Some fields are not included if the data is not "good" quality,
+        this occurs in the fitting FITACF files types due to the fitting
+        procedure in fitacf 2.5 and 3.0.
+        """
         missing_fields = set()
-        """
-
-        """
         for file_struct in file_struct_list:
             diff_fields = \
                 DarnUtilities.dict_key_diff(file_struct,
-                                            set(record).
-                                            intersection(complete_set))
+                                            record)
             # If 0 nothing missing, if len(file_struct) then
             # that subset is missing only meaning that command option was
             # not used, not necessarily meaning that it is a record.
@@ -322,6 +326,13 @@ class DarnRead(DmapRead):
         See Also
         --------
         read_record() - inherited from DmapRead
+        missing_field_check( format_fields, record, self.rec_num) - checks
+                        for missing fields. See this method for information
+                        on why we use format_fields.
+        extra_field_check(format_fields, record, self.rec_num) - checks for
+                        extra fields in the record
+        incorrect_types_check(format_fields, record, self.rec_num) - checks
+                        for incorrect data types for SuperDARN file fields
         """
         record = self.read_record()
         DarnUtilities.missing_field_check(format_fields, record, self.rec_num)
@@ -338,7 +349,8 @@ class DarnRead(DmapRead):
         ----------
         format_fields : List[dict]
             Is a list of dictionaries for the fields that are possible in a
-            SuperDARN file type
+            SuperDARN file type. See missing_field_check method in
+            DarnUtilities for more information on this parameter
 
         See Also
         --------
@@ -388,6 +400,11 @@ class DarnRead(DmapRead):
             DMAP record of the Fitacf data
         """
         pydarn_log.debug("Reading Fitacf file: {}".format(self.dmap_file))
+
+        # We need to separate the fields into subsets because fitacf fitting
+        # methods 2.5 and 3.0 do not include a subset of fields if the data
+        # quality is not "good". See missing_field_check method in
+        # DarnUtilities for more information.
         file_struct_list = [superdarn_formats.Fitacf.types,
                             superdarn_formats.Fitacf.fitted_fields]
         self._read_darn_records(file_struct_list)
@@ -403,6 +420,10 @@ class DarnRead(DmapRead):
             DMAP record of the Grid data
         """
         pydarn_log.debug("Reading Grid file: {}".format(self.dmap_file))
+        # We need to separate the fields into subsets because grid files
+        # can exclude extra fields if the option -ext is not passed in
+        # when generating the grid file in RST. See missing_field_check
+        # method in DarnUtilities for more information.
         file_struct_list = [superdarn_formats.Grid.types,
                             superdarn_formats.Grid.fitted_fields,
                             superdarn_formats.Grid.extra_fields]
@@ -419,6 +440,13 @@ class DarnRead(DmapRead):
             DMAP record of the Map data
         """
         pydarn_log.debug("Reading Map file: {}".format(self.dmap_file))
+        # We need to separate the fields into subsets because map files
+        # can exclude extra fields if the grid file does not contain them.
+        # Other subsets are related to what processing commands are used to
+        # generate the final map file, example: map_addhmb. This command is
+        # not necessarily to generate a map file but it add the Heppner Maynard
+        # boundary to the map file. See missing_field_check
+        # method in DarnUtilities for more information.
         file_struct_list = [superdarn_formats.Map.types,
                             superdarn_formats.Map.extra_fields,
                             superdarn_formats.Map.fit_fields,
@@ -584,6 +612,10 @@ class DarnWrite(DmapWrite):
 
         self._filename_check(filename)
         self._empty_record_check()
+        # We need to separate the fields into subsets because fitacf fitting
+        # methods 2.5 and 3.0 do not include a subset of fields if the data
+        # quality is not "good". See missing_field_check method in
+        # DarnUtilities for more information.
         file_struct_list = [superdarn_formats.Fitacf.types,
                             superdarn_formats.Fitacf.fitted_fields]
         self.superDARN_file_structure_to_bytes(file_struct_list)
@@ -618,10 +650,10 @@ class DarnWrite(DmapWrite):
 
         self._filename_check(filename)
         self._empty_record_check()
-        # Grid files can have extra fields based on how they are processed.
-        # If the command line option used in make_grid (See RST documentation)
-        # uses the command line option -ext then power and
-        # spectral width fields are included as well.
+        # We need to separate the fields into subsets because grid files
+        # can exclude extra fields if the option -ext is not passed in
+        # when generating the grid file in RST. See missing_field_check
+        # method in DarnUtilities for more information.
         file_struct_list = [superdarn_formats.Grid.types,
                             superdarn_formats.Grid.fitted_fields,
                             superdarn_formats.Grid.extra_fields]
@@ -657,11 +689,13 @@ class DarnWrite(DmapWrite):
 
         self._filename_check(filename)
         self._empty_record_check()
-        # Map files can have extra fields based on how they are processed.
-        # If the command line option map_grid -ext (See RST documentation) is
-        # used then power and spectral width is included into the fields.
-        # Other fields are also included on which map_add<methods> are used on
-        # the map file processing.
+        # We need to separate the fields into subsets because map files
+        # can exclude extra fields if the grid file does not contain them.
+        # Other subsets are related to what processing commands are used to
+        # generate the final map file, example: map_addhmb. This command is
+        # not necessarily to generate a map file but it add the Heppner Maynard
+        # boundary to the map file. See missing_field_check
+        # method in DarnUtilities for more information.
         file_struct_list = [superdarn_formats.Map.types,
                             superdarn_formats.Map.extra_fields,
                             superdarn_formats.Map.fit_fields,
@@ -689,6 +723,17 @@ class DarnWrite(DmapWrite):
         allowed in the SuperDARN file type
         SuperDARNDataFormatTypeError - Wrong format data type error for the
         SuperDARN file type fields in the DMAP record
+
+        See Also
+        --------
+        missing_field_check( format_fields, record, self.rec_num) - checks
+                        for missing fields. See this method for information
+                        on why we use format_fields.
+        extra_field_check(format_fields, record, self.rec_num) - checks for
+                        extra fields in the record
+        incorrect_types_check(format_fields, record, self.rec_num) - checks
+                        for incorrect data types for SuperDARN file fields
+
         """
         self.rec_num = 0
         pydarn_log.debug("Checking and converting SuperDARN data to bytes ")
