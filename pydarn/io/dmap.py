@@ -47,7 +47,7 @@ from pydarn import DmapScalar
 # Keeping these global definitions for readability purposes
 # Data types use in DMAP files
 DMAP = 0
-CHAR = 1
+CHAR = 1  # CHAR is defined as an int8 in RST rtypes.h
 SHORT = 2
 INT = 3
 FLOAT = 4
@@ -62,7 +62,7 @@ ULONG = 19
 # Dictionary of DMAP types (key) to quickly convert the format and byte size
 # (value-tuple)
 DMAP_DATA_TYPES = {DMAP: ('', 0),
-                   CHAR: ('c', 1),
+                   CHAR: ('c', 1),  # CHAR is defined as an int8 in RST rtypes.h
                    SHORT: ('h', 2),
                    INT: ('i', 4),
                    FLOAT: ('f', 4),
@@ -748,9 +748,18 @@ class DmapRead():
         DmapDataError
             Mismatch on the data type and the size specified in the byte array.
         """
+        # TODO: test performance on these two methods to see which one is faster
         if data_type_fmt=='c':
-            array = np.frombuffer(self.dmap_buffer, np.int8,
-                                  total_number_cells, self.cursor)
+            array = []
+            for i in range(total_number_cells):
+                array.append(self.dmap_bytearr[self.cursor])
+                self.cursor += data_fmt_bytes
+            return np.array(array)
+
+            # In RST rtypes.h file, chars are defined as int8
+            # allowing this assumption to be allowed for now
+            #array = np.frombuffer(self.dmap_buffer, np.int8,
+            #                      total_number_cells, self.cursor)
         else:
             array = np.frombuffer(self.dmap_buffer, data_type_fmt,
                                   total_number_cells, self.cursor)
@@ -1008,6 +1017,8 @@ class DmapWrite(object):
             scalar_data_bytes = struct.pack(scalar_data_format,
                                             scalar_data.encode('utf-8'))
         elif scalar.data_type_fmt == 'c':
+            # char is defined as int8 by RST
+            # TODO: test performance on just writing an int8 instead of encoding
             scalar_data_bytes = chr(scalar.value).encode('utf-8')
         elif scalar.data_type_fmt == 'f':
             scalar_data_value = np.float32(scalar.value)
@@ -1043,6 +1054,7 @@ class DmapWrite(object):
         array_name_bytes = struct.pack(array_name_format,
                                        array_name.encode('utf-8'))
 
+        # TODO: possible convert to int8 instead
         array_type_bytes = struct.pack('c',
                                        chr(array.data_type).encode('utf-8'))
 
