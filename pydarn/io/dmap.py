@@ -580,7 +580,7 @@ class DmapRead():
             # so better to raise an error if used re-access the code.
             raise dmap_exceptions.DmapDataError(self.dmap_file, message)
         else:
-            array_value = self.read_numerical_array(array_type_fmt,
+            array_value = self.read_numerical_array(array_shape, array_type_fmt,
                                                     total_num_cells,
                                                     array_fmt_bytes)
 
@@ -723,7 +723,7 @@ class DmapRead():
                         for i in range(0, dimension)]
         return np.array(dim_data)
 
-    def read_numerical_array(self, data_type_fmt: str,
+    def read_numerical_array(self, shape: int, data_type_fmt: str,
                              total_number_cells: int,
                              data_fmt_bytes: int) -> np.ndarray:
         """
@@ -748,8 +748,12 @@ class DmapRead():
         DmapDataError
             Mismatch on the data type and the size specified in the byte array.
         """
-        array = np.frombuffer(self.dmap_buffer, data_type_fmt,
-                              total_number_cells, self.cursor)
+        if data_type_fmt=='c':
+            array = np.frombuffer(self.dmap_buffer, np.int8,
+                                  total_number_cells, self.cursor)
+        else:
+            array = np.frombuffer(self.dmap_buffer, data_type_fmt,
+                                  total_number_cells, self.cursor)
         self.cursor += total_number_cells * data_fmt_bytes
 
         return array
@@ -929,7 +933,6 @@ class DmapWrite(object):
         # For performance increase len of the records can be
         # attribute value initialized in the class
         pydarn_logger.debug("Converting DMAP records to bytes")
-        self.rec_num = 0
         for self.rec_num in range(len(self.dmap_records)):
             record = self.dmap_records[self.rec_num]
             self._dmap_record_to_bytes(record)
