@@ -130,16 +130,34 @@ class RTI():
         return datetime(year=year, month=month, day=day, hour=hour,
                         minute=minute, second=seconds, microsecond=micro_sec)
 
-
     # Needs its own method because it generates vertical lines when
     # the cpid changes
     @classmethod
     def __plot_cpid(cls, *args, **kwargs):
-        pass
+        cpid_change = []
+        cls.plt.xlim(date2num(cls.start_time), date2num(cls.end_time))
+        old_cpid = 0
+        for dmap_record in cls.dmap_data:
+            if dmap_record['bmnum'] == cls.beamnum:
+                if cls.start_time <= time and time <= cls.end_time:
+                    time_num = date2num(time)
+                        if old_cpid != dmap_record['cpid']:
+                            cls.plt.axvline(x=time_num)
+                            cls.plt.text(x=time_num, y=0.5,
+                                         dmap_record['cpid'])
 
     @classmethod
     def __plot_scalar(cls, *args, **kwargs):
-        pass
+        y = []
+        x = []
+        for dmap_record in cls.dmap_data:
+            if dmap_record['bmnum'] == cls.beamnum:
+                if cls.start_time <= time and time <= cls.end_time:
+                    # construct the x-axis array
+                    x.append(matplotlib.dates.date2num(time))
+                    y.append(dmap_record[cls.parameter])
+        cls.plt.plot_date(x, y, fmt='k', tz=None, xdate=True,
+                          ydate=False, markersize=2)
 
     @classmethod
     def __plot_array(cls, *args, **kwargs):
