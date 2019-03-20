@@ -6,7 +6,7 @@
 """
 Range-time Intensity plots
 """
-import matplotlib
+from matplotlib import pyplot, date2num
 import numpy as np
 from typing import List
 from datetime import datetime
@@ -46,7 +46,7 @@ class RTI():
     # becuase of the Singleton nature of matplotlib
     # it is written in modules, thus I need to extend the module
     # since I cannot inherit modules :(
-    plt = matplotlib.pyplot
+    plt = pyplot
 
     settings = {'ground_scatter': True}
 
@@ -133,17 +133,17 @@ class RTI():
     # the cpid changes
     @classmethod
     def __plot_cpid(cls, *args, **kwargs):
-        cpid_change = []
         cls.plt.xlim(date2num(cls.start_time), date2num(cls.end_time))
         old_cpid = 0
         for dmap_record in cls.dmap_data:
             if dmap_record['bmnum'] == cls.beamnum:
+                time = cls.__time2datetime(dmap_record)
                 if cls.start_time <= time and time <= cls.end_time:
                     time_num = date2num(time)
-                        if old_cpid != dmap_record['cpid']:
-                            cls.plt.axvline(x=time_num)
-                            cls.plt.text(x=time_num, y=0.5,
-                                         dmap_record['cpid'])
+                    if old_cpid != dmap_record['cpid']:
+                        cls.plt.axvline(x=time_num)
+                        cls.plt.text(x=time_num, y=0.5,
+                                     text=dmap_record['cpid'])
 
     @classmethod
     def __plot_scalar(cls, *args, **kwargs):
@@ -151,9 +151,10 @@ class RTI():
         x = []
         for dmap_record in cls.dmap_data:
             if dmap_record['bmnum'] == cls.beamnum:
+                time = cls.__time2datetime(dmap_record)
                 if cls.start_time <= time and time <= cls.end_time:
                     # construct the x-axis array
-                    x.append(matplotlib.dates.date2num(time))
+                    x.append(date2num(time))
                     y.append(dmap_record[cls.parameter])
         cls.plt.plot_date(x, y, fmt='k', tz=None, xdate=True,
                           ydate=False, markersize=2)
@@ -173,7 +174,7 @@ class RTI():
                 time = cls.__time2datetime(dmap_record)
                 if cls.start_time <= time and time <= cls.end_time:
                     # construct the x-axis array
-                    x.append(matplotlib.dates.date2num(time))
+                    x.append(date2num(time))
                     # I do this to avoid having an extra loop to just count how
                     # many records contain the beam number
                     i = len(x)
