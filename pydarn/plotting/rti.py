@@ -11,7 +11,8 @@ import numpy as np
 from typing import List
 from datetime import datetime
 
-from pydarn import SuperDARNRadars, DmapScalar, DmapArray, utils
+from pydarn import DmapArray, utils
+
 
 class RTI():
     """
@@ -27,27 +28,27 @@ class RTI():
 
     Methods
     -------
-    plot
-    summaryplot
+    plot_profile
+    plot_scalar
+    summary_plot
 
     """
 
-    parameter_type = {'power': ('pwr','array'),
-                      'velocity': ('vel','array'),
-                      'sepctral width': ('spect','array'),
-                       'frequency': ('freq','scalar'),
-                       'search noise': ('src.noise','scalar'),
-                       'sky noise': ('sky.noise','scalar'),
-                       'control program id': ('cpid','scalar'),
-                       'n averages': ('nave','scalar'),}
+    parameter_type = {'power': ('pwr', 'array'),
+                      'velocity': ('vel', 'array'),
+                      'sepctral width': ('spect', 'array'),
+                      'frequency': ('freq', 'scalar'),
+                      'search noise': ('src.noise', 'scalar'),
+                      'sky noise': ('sky.noise', 'scalar'),
+                      'control program id': ('cpid', 'scalar'),
+                      'n averages': ('nave', 'scalar')}
 
     # becuase of the Singleton nature of matplotlib
     # it is written in modules, thus I need to extend the module
     # since I cannot inherit modules :(
-    cls.plt = matplotlib.pyplot
+    plt = matplotlib.pyplot
 
     settings = {'ground_scatter': True}
-
 
     @classmethod
     def plot_profile(cls, *args, dmap_data: List[dict],
@@ -88,19 +89,18 @@ class RTI():
                 cls.start_time = kwargs['time_span'][0]
                 cls.end_time = kwargs['time_span'][1]
                 cls.interval_time = None
-            elif  len(kwargs['time_span']) == 3:
+            elif len(kwargs['time_span']) == 3:
                 cls.start_time = kwargs['time_span'][0]
                 cls.end_time = kwargs['time_span'][2]
                 cls.interval_time = kwargs['time_span'][1]
             else:
                 raise IndexError("time_span list must be length of 2 or 3")
 
-
-        except KeyError as err:
+        except KeyError:
             cls.start_time = cls.__time2datetime(dmap_list[0])
             cls.end_time = cls.__time2datetime(dmap_list[-1])
         cls.dmap_data = dmap_list
-        cls.parameter = cls.parameter_type.get(parametr, d=None)
+        cls.parameter = cls.parameter_type.get(parameter, d=None)
         if cls.parameter is None:
             data_type = cls.dmap_data[0][parameter]
             if isinstance(data_type, np.ndarray):
@@ -115,7 +115,6 @@ class RTI():
         else:
             cls.__plot_scalar(*args, **kwargs)
 
-
     # TODO: move to a utils or superDARN utils
     @classmethod
     def __time2datetime(cls, dmap_record):
@@ -128,7 +127,7 @@ class RTI():
         micro_sec = dmap_record['time.us']
 
         return datetime(year=year, month=month, day=day, hour=hour,
-                        minute=minute, second=seconds, microsecond=micro_sec)
+                        minute=minute, second=second, microsecond=micro_sec)
 
     # Needs its own method because it generates vertical lines when
     # the cpid changes
@@ -163,12 +162,12 @@ class RTI():
     def __plot_array(cls, *args, **kwargs):
         # y-axis coordinates, i.e., range gates,
         # TODO: implement variant other coordinate systems for the y-axis
-        y = np.linspace(0, dmap_data['nrang'], dmap_data['nrang']+1)
-        y_max = dmap_data['nrang']
+        y = np.linspace(0, cls.dmap_data['nrang'], cls.dmap_data['nrang']+1)
+        y_max = cls.dmap_data['nrang']
 
         # z: parameter data mapped into the color mesh
-        z = np.zeros((1,ymax)) * np.nan
-
+        z = np.zeros((1, y_max)) * np.nan
+        x = []
         for dmap_record in cls.dmap_data:
             if dmap_record['bmnum'] == cls.beamnum:
                 time = cls.__time2datetime(dmap_record)
@@ -179,10 +178,10 @@ class RTI():
                     # many records contain the beam number
                     i = len(x)
                     if len(x) != 1:
-                        z = np.insert(z, len(z), np.zeros(1, ymax), axis=0)
+                        z = np.insert(z, len(z), np.zeros(1, y_max), axis=0)
                     for j in range(len(dmap_record['slist'])):
                         if cls.settings['ground_scatter'] and\
-                           data_dict['gflg'] == 1:
+                           dmap_record['gflg'][j] == 1:
                             # chosen value from davitpy to make the
                             # ground scatter a different colour from the colour
                             # map
@@ -190,10 +189,10 @@ class RTI():
                         else:
                             z[i][j] = dmap_record[cls.parameter][j]
 
-        time_axis, elev_axis = np.meshgrid([:-1],y)
+        time_axis, elev_axis = np.meshgrid(x[:-1], y)
         data = np.ma.masked_where(np.isnan(z.T), z.T)
         cls.plt.pcolormesh(time_axis, elev_axis, data, lw=0.01,
-                           edgecolors='None', norm=norm)
+                           edgecolors='None', norm='norm')
 
     @classmethod
     def summaryplot(cls, *args, dmap_data: List[dict],
