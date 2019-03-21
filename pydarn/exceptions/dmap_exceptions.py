@@ -1,8 +1,4 @@
-"""
-    Author:
-        Keith Kotyk
-        Marina Schmidt
-"""
+# Authors: Keith Kotyk and Marina Schmidt
 import logging
 pydarn_logger = logging.getLogger('pydarn')
 
@@ -23,12 +19,12 @@ class CursorError(Exception):
         on the cursor error.
         Default empty.
     """
-    def __init__(self, cursor: int, expected_value=0, message=''):
+    def __init__(self, cursor: int, expected_value: int = 0, rec_num: int = 0, message=''):
         self.cursor
         if message == '':
             self.message = "Error: Cursor is at {cursor} and"\
-                    "it needs to be {expected}".format(cursor=cursor,
-                                                       expected=expected_value)
+                    "it needs to be {expected}. Failed at record {rec}".format(cursor=cursor,
+                                                       expected=expected_value, rec=rec_num)
         else:
             self.message = message
         super().__init__(self.message)
@@ -68,14 +64,14 @@ class DmapDataTypeError(Exception):
         current position in the data buffer
     """
     def __init__(self, filename: str, data_name: str,
-                 data_type: str, cursor: int):
+                 data_type: str, rec_num: int):
         self.filename = filename
         self.message = "Error: Dmap data type {data_type} for {name}"\
-            " at cursor = {cursor} does not exist in dmap data types."\
+            " at record {rec} does not exist in dmap data types."\
             "filename: {filename}".format(name=data_name,
                                           data_type=data_type,
                                           filename=filename,
-                                          cursor=cursor)
+                                          rec=rec_num)
         super().__init__(self.message)
         pydarn_logger.error(self.message)
 
@@ -91,12 +87,12 @@ class NegativeByteError(Exception):
     element_info : str
         String containing element name.
     """
-    def __init__(self, filename: str, element_info: str, cursor: int):
+    def __init__(self, filename: str, element_info: str, rec_num: int):
         self.filename = filename
         self.message = "Error: {filename} contains an {element} < 0"\
-            " at cursor = {cursor}.".format(filename=filename,
-                                            element=element_info,
-                                            cursor=cursor)
+            " at record {rec}.".format(filename=filename,
+                                       element=element_info,
+                                       rec=rec_num)
         super().__init__(self.message)
         pydarn_logger.error(self.message)
 
@@ -114,12 +110,12 @@ class ZeroByteError(Exception):
     cursor : int
         Current position in the dmap buffer
     """
-    def __init__(self, filename: str, element_info: str, cursor: int):
+    def __init__(self, filename: str, element_info: str, rec_num: int):
         self.filename = filename
         self.message = "Error: {filename} contains an {element} == 0"\
-            " at cursor = {cursor}.".format(filename=filename,
-                                            element=element_info,
-                                            cursor=cursor)
+            " at record {rec}.".format(filename=filename,
+                                       element=element_info,
+                                       rec=rec_num)
         super().__init__(self.message)
         pydarn_logger.error(self.message)
 
@@ -137,12 +133,12 @@ class MismatchByteError(Exception):
     cursor : int
         Current position in the dmap buffer.
     """
-    def __init__(self, filename: str, element_info: str, cursor: int):
+    def __init__(self, filename: str, element_info: str, rec_num: int):
         self.filename = filename
         self.message = "Error: {filename} contains an {element}"\
-            " at cursor = {cursor}.".format(filename=filename,
-                                            element=element_info,
-                                            cursor=cursor)
+            " at record = rec_num.".format(filename=filename,
+                                           element=element_info,
+                                           rec=rec_num)
         super().__init__(self.message)
         pydarn_logger.error(self.message)
 
@@ -161,82 +157,44 @@ class DmapDataError(Exception):
     def __init__(self, filename: str, message: str):
         self.filename = filename
         self.message = " The following error for {filename} was raised: "\
-                "{msg}".format(filename=self.filename,
-                               msg=message)
+            "{msg}".format(filename=self.filename,
+                           msg=message)
         super().__init__(self.message)
         pydarn_logger.error("DmapDataError: {}".format(message))
-
-class DmapFileFormatType(Exception):
-    """
-    """
-    def __init__(self, filename, file_type):
-        self.filename = filename
-        self.file_type = file_type
-        self.message = "Error: {file_type} is not a DMAP file format type."\
-                "{filename} was not created. Please check the spelling of"\
-                " the file type is correct or is"\
-                " implemented.".format(file_type=self.file_type,
-                                       filename=self.filename)
-
-class SuperDARNFieldMissing(Exception):
-    """
-    """
-    def __init__(self, filename, record_num, fields):
-        self.filename = filename
-        self.record_number = record_num
-        self.fields = fields
-        self.message = "Error: Cannot write to {filename}."\
-                " The following fields in record {num} are missing:"\
-                " {fields}".format(filename=self.filename,
-                                     num=self.record_number,
-                                     fields=self.fields)
-
-
-class SuperDARNFieldExtra(Exception):
-    """
-    """
-    def __init__(self, filename, record_num, fields):
-        self.filename = filename
-        self.record_number = record_num
-        self.fields = fields
-        self.message = "Error: Cannot write to {filename}."\
-                " The following fields in record {num} are not allowed:"\
-                " {fields}".format(filename=self.filename,
-                                     num=self.record_number,
-                                     fields=self.fields)
-
-class SuperDARNDataFormatError(Exception):
-    """
-    """
-    def __init__(self, incorrect_types, record_num):
-        self.incorrect_params = incorrect_types
-        self.record_number = record_num
-        self.message = "Error: In record {num}, following parameters need to be the"\
-                " data type: {incorrect}".format(num=self.record_number,
-                                                 incorrect=self.incorrect_params)
 
 
 class DmapTypeError(Exception):
     """
+    Raised if there mismatch between DMAP data type
+
+    Parameters
+    ----------
+    filename : str
+        name of the file associated to the error
+    data_type : str
+        the data that does not match what DMAP can read
+    rec_num : int
+        the record number associated to the error
     """
-    def __init__(self, filename, data_type):
+    def __init__(self, filename: str, data_type: str, rec_num: int):
         self.filename = filename
         self.data_type = data_type
+        self.rec_num = rec_num
         self.message = "Error: {data_type} does not match the DMAP data type"\
-                " structures: DmapRecord, DmapScalar, DmapArray."\
-                " Please make sure you have the correct"\
-                " Data Structure.".format(data_type=self.data_type,
-                                          filename=self.filename)
+            " structures: DmapRecord, DmapScalar, DmapArray."\
+            " Please make sure you have the correct"\
+            " Data Structure. Failed at record "\
+            "{rec}".format(data_type=self.data_type,
+                           filename=self.filename,
+                           rec=self.rec_num)
+        Exception.__init__(self, message)
+        pydarn_logger.error("DataTypeError: {}".format(message))
 
-class CorruptDataError(Exception):
-    """
-    Raise when data is corrupt in the file
-    """
-    def __init__(self):
-        pass
 
 class FilenameRequiredError(Exception):
     """
+    Raised if a filename is not provided when needed for the procedure
     """
     def __init__(self):
-        self.message = "Error: Filename is required"
+        message = "Error: Filename is required"
+        Exception.__init__(self, message)

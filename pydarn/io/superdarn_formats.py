@@ -7,6 +7,9 @@ that are used by SuperDARN.
 
 
 class Rawacf():
+    """
+    Class containing Rawacf fields
+    """
     types = {
         'radar.revision.major': 'c',
         'radar.revision.minor': 'c',
@@ -65,6 +68,10 @@ class Rawacf():
 
 
 class Fitacf():
+    """
+    Class containing Fitacf fields
+    """
+    # Standard fields
     types = {
         'radar.revision.major': 'c',
         'radar.revision.minor': 'c',
@@ -119,7 +126,10 @@ class Fitacf():
         'noise.vel': 'f',
         'ptab': 'h',
         'ltab': 'h',
-        'pwr0': 'f',
+        'pwr0': 'f'}
+    # Fields added if the data is good and can be
+    # fitted
+    fitted_fields = {
         'slist': 'h',
         'nlag': 'h',
         'qflg': 'c',
@@ -160,7 +170,10 @@ class Fitacf():
 
 
 class Grid():
-
+    """
+    Class containing the Grid fields
+    """
+    # Standard fields
     types = {
         'start.year': 'h',
         'start.month': 'h',
@@ -191,15 +204,18 @@ class Grid():
         'w.min': 'f',
         'w.max': 'f',
         've.min': 'f',
-        've.max': 'f',
-        'vector.mlat': 'f',
-        'vector.mlon': 'f',
-        'vector.kvect': 'f',
-        'vector.stid': 'h',
-        'vector.channel': 'h',
-        'vector.index': 'i',
-        'vector.vel.median': 'f',
-        'vector.vel.sd': 'f'}
+        've.max': 'f'}
+    # Fields added if the data is good and was fitted
+    # in the generation process of fitacf
+    fitted_fields = {'vector.mlat': 'f',
+                     'vector.vel.median': 'f',
+                     'vector.channel': 'h',
+                     'vector.stid': 'h',
+                     'vector.vel.sd': 'f',
+                     'vector.index': 'i',
+                     'vector.kvect': 'f',
+                     'vector.mlon': 'f'}
+    # Extra fields if you include -ext in grid generation process
     extra_fields = {
         'vector.pwr.median': 'f',
         'vector.pwr.sd': 'f',
@@ -209,6 +225,10 @@ class Grid():
 
 
 class Map():
+    """
+    Class containing possible Map fields
+    """
+    # Standard fields
     types = {
         'start.year': 'h',
         'start.month': 'h',
@@ -281,7 +301,7 @@ class Map():
         'vector.vel.sd': 'f',
 
         }
-
+    # Additional fields if you use map_addhmb
     hmb_fields = {
         'model.mlat': 'f',
         'model.mlon': 'f',
@@ -290,14 +310,14 @@ class Map():
         'boundary.mlat': 'f',
         'boundary.mlon': 'f',
     }
-
+    # Additional fields if you use map_addmodel
     model_fields = {
          'model.angle': 's',
          'model.level': 's',
          'model.tilt': 's',
          'model.name': 's',
     }
-
+    # Additional fields if you use map_addfit
     fit_fields = {
         'source': 's',
         'N': 'd',
@@ -305,7 +325,8 @@ class Map():
         'N+2': 'd',
         'N+3': 'd',
     }
-
+    # Additional fields if you add -ext when
+    # creating the map file in RST
     extra_fields = {
         'vector.pwr.median': 'f',
         'vector.pwr.sd': 'f',
@@ -315,6 +336,10 @@ class Map():
 
 
 class Iqdat():
+    """
+    Class contain Iqdat fields
+    """
+    #Standard Iqdat fields
     types = {
         'radar.revision.major': 'c',
         'radar.revision.minor': 'c',
