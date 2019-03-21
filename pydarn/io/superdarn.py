@@ -326,7 +326,7 @@ class DarnRead(DmapRead):
         See Also
         --------
         read_record() - inherited from DmapRead
-        missing_field_check( format_fields, record, self.rec_num) - checks
+        missing_field_check(format_fields, record, self.rec_num) - checks
                         for missing fields. See this method for information
                         on why we use format_fields.
         extra_field_check(format_fields, record, self.rec_num) - checks for
@@ -726,7 +726,7 @@ class DarnWrite(DmapWrite):
 
         See Also
         --------
-        missing_field_check( format_fields, record, self.rec_num) - checks
+        missing_field_check(format_fields, record, self.rec_num) - checks
                         for missing fields. See this method for information
                         on why we use format_fields.
         extra_field_check(format_fields, record, self.rec_num) - checks for
