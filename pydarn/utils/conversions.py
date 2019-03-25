@@ -74,7 +74,7 @@ def dict2dmap(dmap_list: List[dict]) -> List[dict]:
             if isinstance(value, list):
                 value = np.array(value)  # keep data structures consistent
             if isinstance(value, np.ndarray):
-                shape = np.shape(value)
+                shape = list(np.shape(value))
                 dimension = np.ndim(value)
                 format_type = FORMAT_CONVERSION[value.dtype.type]
                 dmap_type = DMAP_FORMAT_TYPES[format_type]
