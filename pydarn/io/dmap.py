@@ -115,6 +115,18 @@ class DmapRead():
         Reads an array into a numpy array
     """
 
+    DMAP_CASTING_TYPES = {'c': np.int8,  # RST defined char
+                          'h': np.int16,  # Short
+                          'i': int,  # int
+                          'f': float,  # Float
+                          'd': np.float64,  # Double
+                          's': str,  # String
+                          'q': np.int64,  # long int
+                          'B': np.uint8,  # Unsigned char
+                          'H': np.uint16,  # Unsigned short
+                          'I': np.uint32,  # Unsigned int
+                          'Q': np.uint64}  # Unsigned long int
+
     def __init__(self, dmap_file: Union[str, bytes], data_stream=False):
         """
         Reads the dmap file/stream into a byte array for further reading of the
@@ -197,13 +209,13 @@ class DmapRead():
             element_info = "{name} {size}".format(name=element_name,
                                                   size=element)
             raise dmap_exceptions.ZeroByteError(self.dmap_file, element_info,
-                                                  self.rec_num)
+                                                self.rec_num)
         elif element < 0:
             element_info = "{name} {size}".format(name=element_name,
                                                   size=element)
             raise dmap_exceptions.NegativeByteError(self.dmap_file,
-                                                      element_info,
-                                                      self.rec_num)
+                                                    element_info,
+                                                    self.rec_num)
 
     def bytes_check(self, element: int, element_name: str, byte_check: int,
                     byte_check_name: str):
@@ -235,8 +247,8 @@ class DmapRead():
                                                    check_name=byte_check_name,
                                                    check=byte_check)
             raise dmap_exceptions.MismatchByteError(self.dmap_file,
-                                                      element_info,
-                                                      self.rec_num)
+                                                    element_info,
+                                                    self.rec_num)
 
     def check_data_type(self, data_type: int, data_name: str):
         """
@@ -256,9 +268,9 @@ class DmapRead():
         """
         if data_type not in DMAP_DATA_TYPES.keys():
             raise dmap_exceptions.DmapDataTypeError(self.dmap_file,
-                                                      data_name,
-                                                      data_type,
-                                                      self.rec_num)
+                                                    data_name,
+                                                    data_type,
+                                                    self.rec_num)
 
     def test_initial_data_integrity(self):
         """
@@ -425,7 +437,8 @@ class DmapRead():
 
         # check for a cursor error
         if (self.cursor - start_cursor_value) != block_size:
-            raise dmap_exceptions.CursorError(self.cursor, block_size, self.rec_num)
+            raise dmap_exceptions.CursorError(self.cursor, block_size,
+                                              self.rec_num)
 
         return record
 
@@ -508,11 +521,12 @@ class DmapRead():
         array_dimension = self.read_data('i', 4)
         self.bytes_check(array_dimension, "array dimension",
                          record_size, "record size")
-        self.zero_negative_check(array_dimension, "array dimension")
+        self.zero_negative_check(array_dimension,
+                                 "{name} array dimension"
+                                 "".format(name=array_name))
 
         array_shape = [self.read_data('i', 4)
                        for i in range(0, array_dimension)]
-        array_shape.reverse()
 
         # if shape list is empty
         if len(array_shape) != array_dimension:
@@ -580,7 +594,8 @@ class DmapRead():
             # so better to raise an error if used re-access the code.
             raise dmap_exceptions.DmapDataError(self.dmap_file, message)
         else:
-            array_value = self.read_numerical_array(array_shape, array_type_fmt,
+            array_value = self.read_numerical_array(array_shape,
+                                                    array_type_fmt,
                                                     total_num_cells,
                                                     array_fmt_bytes)
 
@@ -642,7 +657,10 @@ class DmapRead():
         # TODO: how to handle this gracefully? Return None and check later than
         #       continue in the loop?
         if data_type_fmt == 'c':
-            data = self.dmap_bytearr[self.cursor]
+            # This casting is needed to keep the correct instance otherwise
+            # python will default it to int which later could have some
+            # consequences if you try to rewrite the file
+            data = self.DMAP_CASTING_TYPES['c'](self.dmap_bytearr[self.cursor])
             self.cursor += data_fmt_bytes
             return data
         elif data_type_fmt == 's':
@@ -670,7 +688,7 @@ class DmapRead():
                                       self.dmap_buffer,
                                       self.cursor)
             self.cursor += data_fmt_bytes
-            return data[0]
+            return self.DMAP_CASTING_TYPES[data_type_fmt](data[0])
 
     # FIXME: Currently this method is not working, thus there is no support
     # for array[str], but may not be important. ¯\_(ツ)_/¯
@@ -723,7 +741,7 @@ class DmapRead():
                         for i in range(0, dimension)]
         return np.array(dim_data)
 
-    def read_numerical_array(self, shape: int, data_type_fmt: str,
+    def read_numerical_array(self, shape: list, data_type_fmt: str,
                              total_number_cells: int,
                              data_fmt_bytes: int) -> np.ndarray:
         """
@@ -749,22 +767,21 @@ class DmapRead():
             Mismatch on the data type and the size specified in the byte array.
         """
         # TODO: test performance on these two methods to see which one is faster
-        if data_type_fmt=='c':
-            array = []
-            for i in range(total_number_cells):
-                array.append(self.dmap_bytearr[self.cursor])
-                self.cursor += data_fmt_bytes
-            return np.array(array)
+        if data_type_fmt == 'c':
+            #array = []
+            #for i in range(total_number_cells):
+            #    array.append(self.dmap_bytearr[self.cursor])
+            #    self.cursor += data_fmt_bytes
 
             # In RST rtypes.h file, chars are defined as int8
             # allowing this assumption to be allowed for now
-            #array = np.frombuffer(self.dmap_buffer, np.int8,
-            #                      total_number_cells, self.cursor)
+            array = np.frombuffer(self.dmap_buffer, np.int8,
+                                  total_number_cells, self.cursor)
         else:
             array = np.frombuffer(self.dmap_buffer, data_type_fmt,
                                   total_number_cells, self.cursor)
         self.cursor += total_number_cells * data_fmt_bytes
-
+        array = np.reshape(array, shape, order='C')
         return array
 
 
@@ -910,8 +927,8 @@ class DmapWrite(object):
     def _empty_record_check(self):
         if self.dmap_records == []:
             raise dmap_exceptions.DmapDataError(self.filename,
-                                                  "Dmap record is empty "
-                                                  "there is nothing to write.")
+                                                "Dmap record is empty "
+                                                "there is nothing to write.")
 
     def _filename_check(self, filename: str = ""):
         """
@@ -974,7 +991,9 @@ class DmapWrite(object):
                 data_bytearray.extend(self.dmap_array_to_bytes(data_info))
                 num_arrays += 1
             else:
-                raise dmap_exceptions.DmapTypeError(self.filename, type(data_info), self.rec_num)
+                raise dmap_exceptions.DmapTypeError(self.filename,
+                                                    type(data_info),
+                                                    self.rec_num)
 
         # 16 = encoding_identifier (int - 4 bytes) + num_scalars (int - 4) +
         #      num_arrays (int - 4) + size of the block (int - 4)
@@ -1019,6 +1038,8 @@ class DmapWrite(object):
         elif scalar.data_type_fmt == 'c':
             # char is defined as int8 by RST
             # TODO: test performance on just writing an int8 instead of encoding
+            if isinstance(scalar.value, str):
+                raise dmap_exceptions.DmapCharError(scalar.name, self.rec_num)
             scalar_data_bytes = chr(scalar.value).encode('utf-8')
         elif scalar.data_type_fmt == 'f':
             scalar_data_value = np.float32(scalar.value)
@@ -1048,7 +1069,8 @@ class DmapWrite(object):
         array_total_bytes : bytes
             Total bytes of the array
         """
-
+        # need to ensure the array is flattened
+        array_value = array.value.flatten()
         array_name = "{0}\0".format(array.name)
         array_name_format = '{0}s'.format(len(array_name))
         array_name_bytes = struct.pack(array_name_format,
@@ -1063,7 +1085,7 @@ class DmapWrite(object):
         for size in array.shape:
             array_shape_bytes += struct.pack('i', size)
 
-        array_data_bytes = array.value.tostring()
+        array_data_bytes = array_value.tostring()
 
         array_total_bytes = array_name_bytes + array_type_bytes + \
             array_dim_bytes + array_shape_bytes + array_data_bytes

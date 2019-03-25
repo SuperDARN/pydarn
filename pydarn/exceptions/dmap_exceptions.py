@@ -47,6 +47,30 @@ class EmptyFileError(Exception):
         super().__init__(self.message)
         pydarn_logger.error(self.message)
 
+class DmapCharError(Exception):
+    """
+    Raised if a char type is str
+
+    Parameter
+    --------
+    filename : str
+        name of the file that the DMAP data is coming from.
+    data_name : str
+        parameter field name in the DMAP record
+    cursor : int
+        current position in the data buffer
+    """
+    def __init__(self, data_name: str, rec_num: int):
+        self.data_name = data_name,
+        self.rec_num = rec_num
+        self.message = "Error: For field {field} at record number {rec_num} is"\
+                " a string type trying to be written in as a char."\
+                " DMAP treats char as int8. Please revise this field"\
+                " type".format(field=self.data_name,
+                               rec_num=self.rec_num)
+        super().__init__(self.message)
+        pydarn_logger.error(self.message)
+
 
 class DmapDataTypeError(Exception):
     """
@@ -135,10 +159,11 @@ class MismatchByteError(Exception):
     """
     def __init__(self, filename: str, element_info: str, rec_num: int):
         self.filename = filename
+        self.rec_num = rec_num
         self.message = "Error: {filename} contains an {element}"\
-            " at record = rec_num.".format(filename=filename,
-                                           element=element_info,
-                                           rec=rec_num)
+            " at record = {rec}.".format(filename=filename,
+                                         element=element_info,
+                                         rec=rec_num)
         super().__init__(self.message)
         pydarn_logger.error(self.message)
 
