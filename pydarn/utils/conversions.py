@@ -110,5 +110,5 @@ def dmap2dict(dmap_records: List[dict]) -> List[dict]:
     dmap_list = []
     for dmap_record in dmap_records:
         dmap_dict = {field: data.value for field, data in dmap_record.items()}
-        dmap_list.append(dmap_dict)
+        dmap_list.append(OrderedDict(dmap_dict))
     return dmap_list
