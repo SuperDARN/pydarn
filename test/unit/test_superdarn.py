@@ -31,15 +31,15 @@ import grid_data_sets
 pydarn_logger = logging.getLogger('pydarn')
 
 # Test files
-rawacf_stream = "./testfiles/20170410.1801.00.sas.stream.rawacf.bz2"
-rawacf_file = "./testfiles/20170410.1801.00.sas.rawacf"
-fitacf_file = "./testfiles/20160331.2201.00.mcm.a.fitacf"
-map_file = "./testfiles/20170114.map"
-iqdat_file = "testfiles/20160316.1945.01.rkn.iqdat"
-grid_file = "./testfiles/20180220.C0.rkn.grid"
+rawacf_stream = "../testfiles/20170410.1801.00.sas.stream.rawacf.bz2"
+rawacf_file = "../testfiles/20170410.1801.00.sas.rawacf"
+fitacf_file = "../testfiles/20160331.2201.00.mcm.a.fitacf"
+map_file = "../testfiles/20170114.map"
+iqdat_file = "../testfiles/20160316.1945.01.rkn.iqdat"
+grid_file = "../testfiles/20180220.C0.rkn.grid"
 # Black listed files
-corrupt_file1 = "./testfiles/20070117.1001.00.han.rawacf"
-corrupt_file2 = "./testfiles/20090320.1601.00.pgr.rawacf"
+corrupt_file1 = "../testfiles/20070117.1001.00.han.rawacf"
+corrupt_file2 = "../testfiles/20090320.1601.00.pgr.rawacf"
 
 
 class TestDarnRead(unittest.TestCase):
@@ -68,7 +68,7 @@ class TestDarnRead(unittest.TestCase):
         Expected behaviour: raises FileNotFoundError
         """
         self.assertRaises(FileNotFoundError, pydarn.DarnRead,
-                          './testfiles/somefile.rawacf')
+                          '../testfiles/somefile.rawacf')
 
     def test_empty_file(self):
         """
@@ -77,7 +77,7 @@ class TestDarnRead(unittest.TestCase):
         Expected behaviour: raise EmptyFileError
         """
         self.assertRaises(pydarn.dmap_exceptions.EmptyFileError,
-                          pydarn.DarnRead, './testfiles/empty.rawacf')
+                          pydarn.DarnRead, '../testfiles/empty.rawacf')
 
     def test_open_rawacf(self):
         """
@@ -165,7 +165,7 @@ class TestDarnRead(unittest.TestCase):
         self.assertIsInstance(dm_records[0], collections.OrderedDict)
         self.assertIsInstance(dm_records[0]['rxrise'], pydarn.DmapScalar)
         self.assertIsInstance(dm_records[3]['tsc'], pydarn.DmapArray)
-        self.assertIsInstance(dm_records[5]['mppul'].value, int)
+        self.assertIsInstance(dm_records[5]['mppul'].value, np.int16)
         self.assertIsInstance(dm_records[6]['tnoise'].value, np.ndarray)
         self.assertEqual(dm_records[7]['channel'].value, 0)
         self.assertEqual(dm_records[10]['data'].dimension, 1)
@@ -185,7 +185,7 @@ class TestDarnRead(unittest.TestCase):
         self.assertIsInstance(dm_records[0], collections.OrderedDict)
         self.assertIsInstance(dm_records[4]['channel'], pydarn.DmapScalar)
         self.assertIsInstance(dm_records[1]['ptab'], pydarn.DmapArray)
-        self.assertIsInstance(dm_records[7]['channel'].value, int)
+        self.assertIsInstance(dm_records[7]['channel'].value, np.int16)
         self.assertIsInstance(dm_records[2]['xcfd'].value, np.ndarray)
         self.assertEqual(dm_records[0]['xcfd'].dimension, 3)
 
@@ -204,7 +204,7 @@ class TestDarnRead(unittest.TestCase):
         self.assertIsInstance(dm_records[0], collections.OrderedDict)
         self.assertIsInstance(dm_records[4]['bmnum'], pydarn.DmapScalar)
         self.assertIsInstance(dm_records[1]['ptab'], pydarn.DmapArray)
-        self.assertIsInstance(dm_records[7]['channel'].value, int)
+        self.assertIsInstance(dm_records[7]['channel'].value, np.int16)
         self.assertIsInstance(dm_records[2]['ltab'].value, np.ndarray)
         self.assertEqual(dm_records[0]['ptab'].dimension, 1)
 
@@ -223,7 +223,7 @@ class TestDarnRead(unittest.TestCase):
         self.assertIsInstance(dm_records[0], collections.OrderedDict)
         self.assertIsInstance(dm_records[4]['start.year'], pydarn.DmapScalar)
         self.assertIsInstance(dm_records[1]['v.max'], pydarn.DmapArray)
-        self.assertIsInstance(dm_records[7]['end.day'].value, int)
+        self.assertIsInstance(dm_records[7]['end.day'].value, np.int16)
         self.assertIsInstance(dm_records[2]['stid'].value, np.ndarray)
         self.assertEqual(dm_records[0]['nvec'].dimension, 1)
 
@@ -243,7 +243,7 @@ class TestDarnRead(unittest.TestCase):
         self.assertIsInstance(dm_records[2]['IMF.flag'],
                               pydarn.io.datastructures.DmapScalar)
         self.assertIsInstance(dm_records[3]['stid'], pydarn.DmapArray)
-        self.assertIsInstance(dm_records[8]['IMF.flag'].value, int)
+        self.assertIsInstance(dm_records[8]['IMF.flag'].value, np.int16)
         self.assertIsInstance(dm_records[10]['stid'].value, np.ndarray)
         self.assertEqual(dm_records[3]['stid'].dimension, 1)
         self.assertEqual(dm_records[0]['stid'].shape[0], 14)  # this will be file dependent... future working test project.
@@ -278,7 +278,7 @@ class TestDarnRead(unittest.TestCase):
             - returns correct data structures
             - returns expected values
         """
-        # bz2 opens the compressed file into a data
+        # bz2 opens the compressed file np.int16o a data
         # stream of bytes without actually uncompressing the file
         with bz2.open(rawacf_stream) as fp:
             dmap_stream = fp.read()
@@ -288,7 +288,7 @@ class TestDarnRead(unittest.TestCase):
         self.assertIsInstance(dmap_data[0], collections.OrderedDict)
         self.assertIsInstance(dmap_data[4]['channel'], pydarn.DmapScalar)
         self.assertIsInstance(dmap_data[1]['ptab'], pydarn.DmapArray)
-        self.assertIsInstance(dmap_data[7]['channel'].value, int)
+        self.assertIsInstance(dmap_data[7]['channel'].value, np.int16)
         self.assertIsInstance(dmap_data[2]['xcfd'].value, np.ndarray)
         self.assertEqual(dmap_data[0]['xcfd'].dimension, 3)
 
