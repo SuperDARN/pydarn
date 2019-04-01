@@ -259,7 +259,7 @@ class IntegrationPydmap(unittest.TestCase):
             darn_read.read_fitacf()
         except pydarn.superdarn_exceptions.SuperDARNFieldMissingError as err:
             self.assertEqual(err.fields, {'nave'})
-            self.assertEqual(err.record_number, 2)
+            self.assertEqual(err.record_number, 0)
 
         os.remove("test_missing_fitacf.fitacf")
 
@@ -279,6 +279,384 @@ class IntegrationPydmap(unittest.TestCase):
             self.assertEqual(err.fields, {'dummy'})
             self.assertEqual(err.record_number, 1)
         os.remove("test_extra_fitacf.fitacf")
+
+    def test_Darnread_DarnWrite_iqdat(self):
+        dmap = pydarn.DarnRead(iqdat_file)
+        dmap_data = dmap.read_iqdat()
+        dmap_write = pydarn.DarnWrite(dmap_data)
+        dmap_write.write_iqdat("test_iqdat.iqdat")
+        iqdat_read = pydarn.DarnRead("test_iqdat.iqdat")
+        iqdat_read_data = iqdat_read.read_iqdat()
+        self.dmap_compare(dmap_data, iqdat_read_data)
+        os.remove("test_iqdat.iqdat")
+
+    def test_DarnWrite_Darnread_iqdat(self):
+        iqdat_data = copy.deepcopy(iqdat_data_sets.iqdat_data)
+        iqdat_write = pydarn.DarnWrite(iqdat_data, "test_iqdat.iqdat")
+        iqdat_write.write_iqdat()
+
+        iqdat_read = pydarn.DarnRead("test_iqdat.iqdat")
+        iqdat_read_data = iqdat_read.read_iqdat()
+        self.dmap_compare(iqdat_read_data, iqdat_data)
+        os.remove("test_iqdat.iqdat")
+
+    def test_DarnRead_stream_DarnWrite_file_iqdat(self):
+        with bz2.open(iqdat_stream) as fp:
+            dmap_stream = fp.read()
+        dmap = pydarn.DarnRead(dmap_stream, True)
+        dmap_stream_data = dmap.read_iqdat()
+        dmap_write = pydarn.DarnWrite(dmap_stream_data)
+        dmap_write.write_iqdat("test_iqdat.iqdat")
+        self.assertTrue(os.path.isfile("test_iqdat.iqdat"))
+        dmap = pydarn.DarnRead("test_iqdat.iqdat")
+        dmap_data = dmap.read_iqdat()
+        self.dmap_compare(dmap_stream_data, dmap_data)
+
+    def test_DmapRead_DarnWrite_DarnRead_iqdat(self):
+        dmap = pydarn.DmapRead(iqdat_file)
+        dmap_data = dmap.read_records()
+        dmap_write = pydarn.DarnWrite(dmap_data)
+        dmap_write.write_iqdat("test_iqdat.iqdat")
+        darn_read = pydarn.DarnRead("test_iqdat.iqdat")
+        iqdat_data = darn_read.read_iqdat()
+        self.dmap_compare(dmap_data, iqdat_data)
+        os.remove("test_iqdat.iqdat")
+
+    def test_DarnWrite_file_Darnread_iqdat(self):
+        iqdat_data = copy.deepcopy(iqdat_data_sets.iqdat_data)
+        iqdat_write = pydarn.DarnWrite(iqdat_data, "test_iqdat.iqdat")
+        iqdat_write.write_iqdat()
+
+        iqdat_read = pydarn.DarnRead("test_iqdat.iqdat")
+        iqdat_read_data = iqdat_read.read_iqdat()
+        self.dmap_compare(iqdat_read_data, iqdat_data)
+        os.remove("test_iqdat.iqdat")
+
+    def test_DmapWrite_Darnread_iqdat(self):
+        iqdat_data = copy.deepcopy(iqdat_data_sets.iqdat_data)
+        iqdat_write = pydarn.DmapWrite(iqdat_data, "test_iqdat.iqdat")
+        iqdat_write.write_dmap()
+
+        iqdat_read = pydarn.DarnRead("test_iqdat.iqdat")
+        iqdat_read_data = iqdat_read.read_iqdat()
+        self.dmap_compare(iqdat_read_data, iqdat_data)
+        os.remove("test_iqdat.iqdat")
+
+    def test_DarRead_Dmapwrite_stream_iqdat(self):
+        with bz2.open(iqdat_stream) as fp:
+            dmap_stream = fp.read()
+        dmap = pydarn.DarnRead(dmap_stream, True)
+        dmap_stream_data = dmap.read_iqdat()
+        dmap_write = pydarn.DmapWrite()
+        dmap_write_stream = dmap_write.write_dmap_stream(dmap_stream_data)
+        dmap_read = pydarn.DarnRead(dmap_write_stream, True)
+        dmap_read_data = dmap_read.read_iqdat()
+        self.dmap_compare(dmap_stream_data, dmap_read_data)
+
+    def test_Dmapread_stream_Darnwrite_file_iqdat(self):
+        with bz2.open(iqdat_stream) as fp:
+            dmap_stream = fp.read()
+        dmap = pydarn.DmapRead(dmap_stream, True)
+        dmap_stream_data = dmap.read_records()
+        dmap_write = pydarn.DarnWrite(dmap_stream_data)
+        dmap_write.write_iqdat("test_iqdat.iqdat")
+        dmap = pydarn.DarnRead("test_iqdat.iqdat")
+        dmap_data = dmap.read_iqdat()
+        self.dmap_compare(dmap_stream_data, dmap_data)
+        os.remove("test_iqdat.iqdat")
+
+    def test_DmapWrite_stream_DarnRead_iqdat(self):
+        iqdat_data = copy.deepcopy(iqdat_data_sets.iqdat_data)
+        iqdat_write = pydarn.DmapWrite()
+        iqdat_stream = iqdat_write.write_dmap_stream(iqdat_data)
+
+        iqdat_read = pydarn.DarnRead(iqdat_stream, True)
+        iqdat_read_data = iqdat_read.read_iqdat()
+        self.dmap_compare(iqdat_read_data, iqdat_data)
+
+    def test_DmapWrite_missing_DarnRead_iqdat(self):
+        iqdat_missing_field = copy.deepcopy(iqdat_data_sets.iqdat_data)
+        del iqdat_missing_field[0]['nave']
+        dmap_write = pydarn.DmapWrite(iqdat_missing_field)
+        dmap_write.write_dmap("test_missing_iqdat.iqdat")
+
+        darn_read = pydarn.DarnRead("test_missing_iqdat.iqdat")
+        try:
+            darn_read.read_iqdat()
+        except pydarn.superdarn_exceptions.SuperDARNFieldMissingError as err:
+            self.assertEqual(err.fields, {'nave'})
+            self.assertEqual(err.record_number, 0)
+
+        os.remove("test_missing_iqdat.iqdat")
+
+    def test_DmapWrite_extra_DarnRead_iqdat(self):
+        iqdat_extra_field = copy.deepcopy(iqdat_data_sets.iqdat_data)
+        iqdat_extra_field[1].update({'dummy': pydarn.DmapScalar('dummy',
+                                                                 'nothing',
+                                                                 9, 's')})
+        iqdat_extra_field[1].move_to_end('dummy', last=False)
+        dmap_write = pydarn.DmapWrite(iqdat_extra_field, )
+        dmap_write.write_dmap("test_extra_iqdat.iqdat")
+
+        darn_read = pydarn.DarnRead("test_extra_iqdat.iqdat")
+        try:
+            darn_read.read_iqdat()
+        except pydarn.superdarn_exceptions.SuperDARNExtraFieldError as err:
+            self.assertEqual(err.fields, {'dummy'})
+            self.assertEqual(err.record_number, 1)
+        os.remove("test_extra_iqdat.iqdat")
+
+    def test_Darnread_DarnWrite_grid(self):
+        dmap = pydarn.DarnRead(grid_file)
+        dmap_data = dmap.read_grid()
+        dmap_write = pydarn.DarnWrite(dmap_data)
+        dmap_write.write_grid("test_grid.grid")
+        grid_read = pydarn.DarnRead("test_grid.grid")
+        grid_read_data = grid_read.read_grid()
+        self.dmap_compare(dmap_data, grid_read_data)
+        os.remove("test_grid.grid")
+
+    def test_DarnWrite_Darnread_grid(self):
+        grid_data = copy.deepcopy(grid_data_sets.grid_data)
+        grid_write = pydarn.DarnWrite(grid_data, "test_grid.grid")
+        grid_write.write_grid()
+
+        grid_read = pydarn.DarnRead("test_grid.grid")
+        grid_read_data = grid_read.read_grid()
+        self.dmap_compare(grid_read_data, grid_data)
+        os.remove("test_grid.grid")
+
+    def test_DarnRead_stream_DarnWrite_file_grid(self):
+        with bz2.open(grid_stream) as fp:
+            dmap_stream = fp.read()
+        dmap = pydarn.DarnRead(dmap_stream, True)
+        dmap_stream_data = dmap.read_grid()
+        dmap_write = pydarn.DarnWrite(dmap_stream_data)
+        dmap_write.write_grid("test_grid.grid")
+        self.assertTrue(os.path.isfile("test_grid.grid"))
+        dmap = pydarn.DarnRead("test_grid.grid")
+        dmap_data = dmap.read_grid()
+        self.dmap_compare(dmap_stream_data, dmap_data)
+
+    def test_DmapRead_DarnWrite_DarnRead_grid(self):
+        dmap = pydarn.DmapRead(grid_file)
+        dmap_data = dmap.read_records()
+        dmap_write = pydarn.DarnWrite(dmap_data)
+        dmap_write.write_grid("test_grid.grid")
+        darn_read = pydarn.DarnRead("test_grid.grid")
+        grid_data = darn_read.read_grid()
+        self.dmap_compare(dmap_data, grid_data)
+        os.remove("test_grid.grid")
+
+    def test_DarnWrite_file_Darnread_grid(self):
+        grid_data = copy.deepcopy(grid_data_sets.grid_data)
+        grid_write = pydarn.DarnWrite(grid_data, "test_grid.grid")
+        grid_write.write_grid()
+
+        grid_read = pydarn.DarnRead("test_grid.grid")
+        grid_read_data = grid_read.read_grid()
+        self.dmap_compare(grid_read_data, grid_data)
+        os.remove("test_grid.grid")
+
+    def test_DmapWrite_Darnread_grid(self):
+        grid_data = copy.deepcopy(grid_data_sets.grid_data)
+        grid_write = pydarn.DmapWrite(grid_data, "test_grid.grid")
+        grid_write.write_dmap()
+
+        grid_read = pydarn.DarnRead("test_grid.grid")
+        grid_read_data = grid_read.read_grid()
+        self.dmap_compare(grid_read_data, grid_data)
+        os.remove("test_grid.grid")
+
+    def test_DarRead_Dmapwrite_stream_grid(self):
+        with bz2.open(grid_stream) as fp:
+            dmap_stream = fp.read()
+        dmap = pydarn.DarnRead(dmap_stream, True)
+        dmap_stream_data = dmap.read_grid()
+        dmap_write = pydarn.DmapWrite()
+        dmap_write_stream = dmap_write.write_dmap_stream(dmap_stream_data)
+        dmap_read = pydarn.DarnRead(dmap_write_stream, True)
+        dmap_read_data = dmap_read.read_grid()
+        self.dmap_compare(dmap_stream_data, dmap_read_data)
+
+    def test_Dmapread_stream_Darnwrite_file_grid(self):
+        with bz2.open(grid_stream) as fp:
+            dmap_stream = fp.read()
+        dmap = pydarn.DmapRead(dmap_stream, True)
+        dmap_stream_data = dmap.read_records()
+        dmap_write = pydarn.DarnWrite(dmap_stream_data)
+        dmap_write.write_grid("test_grid.grid")
+        dmap = pydarn.DarnRead("test_grid.grid")
+        dmap_data = dmap.read_grid()
+        self.dmap_compare(dmap_stream_data, dmap_data)
+        os.remove("test_grid.grid")
+
+    def test_DmapWrite_stream_DarnRead_grid(self):
+        grid_data = copy.deepcopy(grid_data_sets.grid_data)
+        grid_write = pydarn.DmapWrite()
+        grid_stream = grid_write.write_dmap_stream(grid_data)
+
+        grid_read = pydarn.DarnRead(grid_stream, True)
+        grid_read_data = grid_read.read_grid()
+        self.dmap_compare(grid_read_data, grid_data)
+
+    def test_DmapWrite_missing_DarnRead_grid(self):
+        grid_missing_field = copy.deepcopy(grid_data_sets.grid_data)
+        del grid_missing_field[0]['stid']
+        dmap_write = pydarn.DmapWrite(grid_missing_field)
+        dmap_write.write_dmap("test_missing_grid.grid")
+
+        darn_read = pydarn.DarnRead("test_missing_grid.grid")
+        try:
+            darn_read.read_grid()
+        except pydarn.superdarn_exceptions.SuperDARNFieldMissingError as err:
+            self.assertEqual(err.fields, {'stid'})
+            self.assertEqual(err.record_number, 0)
+
+        os.remove("test_missing_grid.grid")
+
+    def test_DmapWrite_extra_DarnRead_grid(self):
+        grid_extra_field = copy.deepcopy(grid_data_sets.grid_data)
+        grid_extra_field[1].update({'dummy': pydarn.DmapScalar('dummy',
+                                                                 'nothing',
+                                                                 9, 's')})
+        grid_extra_field[1].move_to_end('dummy', last=False)
+        dmap_write = pydarn.DmapWrite(grid_extra_field, )
+        dmap_write.write_dmap("test_extra_grid.grid")
+
+        darn_read = pydarn.DarnRead("test_extra_grid.grid")
+        try:
+            darn_read.read_grid()
+        except pydarn.superdarn_exceptions.SuperDARNExtraFieldError as err:
+            self.assertEqual(err.fields, {'dummy'})
+            self.assertEqual(err.record_number, 1)
+        os.remove("test_extra_grid.grid")
+
+    def test_Darnread_DarnWrite_map(self):
+        dmap = pydarn.DarnRead(map_file)
+        dmap_data = dmap.read_map()
+        dmap_write = pydarn.DarnWrite(dmap_data)
+        dmap_write.write_map("test_map.map")
+        map_read = pydarn.DarnRead("test_map.map")
+        map_read_data = map_read.read_map()
+        self.dmap_compare(dmap_data, map_read_data)
+        os.remove("test_map.map")
+
+    def test_DarnWrite_Darnread_map(self):
+        map_data = copy.deepcopy(map_data_sets.map_data)
+        map_write = pydarn.DarnWrite(map_data, "test_map.map")
+        map_write.write_map()
+
+        map_read = pydarn.DarnRead("test_map.map")
+        map_read_data = map_read.read_map()
+        self.dmap_compare(map_read_data, map_data)
+        os.remove("test_map.map")
+
+    def test_DarnRead_stream_DarnWrite_file_map(self):
+        with bz2.open(map_stream) as fp:
+            dmap_stream = fp.read()
+        dmap = pydarn.DarnRead(dmap_stream, True)
+        dmap_stream_data = dmap.read_map()
+        dmap_write = pydarn.DarnWrite(dmap_stream_data)
+        dmap_write.write_map("test_map.map")
+        self.assertTrue(os.path.isfile("test_map.map"))
+        dmap = pydarn.DarnRead("test_map.map")
+        dmap_data = dmap.read_map()
+        self.dmap_compare(dmap_stream_data, dmap_data)
+
+    def test_DmapRead_DarnWrite_DarnRead_map(self):
+        dmap = pydarn.DmapRead(map_file)
+        dmap_data = dmap.read_records()
+        dmap_write = pydarn.DarnWrite(dmap_data)
+        dmap_write.write_map("test_map.map")
+        darn_read = pydarn.DarnRead("test_map.map")
+        map_data = darn_read.read_map()
+        self.dmap_compare(dmap_data, map_data)
+        os.remove("test_map.map")
+
+    def test_DarnWrite_file_Darnread_map(self):
+        map_data = copy.deepcopy(map_data_sets.map_data)
+        map_write = pydarn.DarnWrite(map_data, "test_map.map")
+        map_write.write_map()
+
+        map_read = pydarn.DarnRead("test_map.map")
+        map_read_data = map_read.read_map()
+        self.dmap_compare(map_read_data, map_data)
+        os.remove("test_map.map")
+
+    def test_DmapWrite_Darnread_map(self):
+        map_data = copy.deepcopy(map_data_sets.map_data)
+        map_write = pydarn.DmapWrite(map_data, "test_map.map")
+        map_write.write_dmap()
+
+        map_read = pydarn.DarnRead("test_map.map")
+        map_read_data = map_read.read_map()
+        self.dmap_compare(map_read_data, map_data)
+        os.remove("test_map.map")
+
+    def test_DarRead_Dmapwrite_stream_map(self):
+        with bz2.open(map_stream) as fp:
+            dmap_stream = fp.read()
+        dmap = pydarn.DarnRead(dmap_stream, True)
+        dmap_stream_data = dmap.read_map()
+        dmap_write = pydarn.DmapWrite()
+        dmap_write_stream = dmap_write.write_dmap_stream(dmap_stream_data)
+        dmap_read = pydarn.DarnRead(dmap_write_stream, True)
+        dmap_read_data = dmap_read.read_map()
+        self.dmap_compare(dmap_stream_data, dmap_read_data)
+
+    def test_Dmapread_stream_Darnwrite_file_map(self):
+        with bz2.open(map_stream) as fp:
+            dmap_stream = fp.read()
+        dmap = pydarn.DmapRead(dmap_stream, True)
+        dmap_stream_data = dmap.read_records()
+        dmap_write = pydarn.DarnWrite(dmap_stream_data)
+        dmap_write.write_map("test_map.map")
+        dmap = pydarn.DarnRead("test_map.map")
+        dmap_data = dmap.read_map()
+        self.dmap_compare(dmap_stream_data, dmap_data)
+        os.remove("test_map.map")
+
+    def test_DmapWrite_stream_DarnRead_map(self):
+        map_data = copy.deepcopy(map_data_sets.map_data)
+        map_write = pydarn.DmapWrite()
+        map_stream = map_write.write_dmap_stream(map_data)
+
+        map_read = pydarn.DarnRead(map_stream, True)
+        map_read_data = map_read.read_map()
+        self.dmap_compare(map_read_data, map_data)
+
+    def test_DmapWrite_missing_DarnRead_map(self):
+        map_missing_field = copy.deepcopy(map_data_sets.map_data)
+        del map_missing_field[0]['stid']
+        dmap_write = pydarn.DmapWrite(map_missing_field)
+        dmap_write.write_dmap("test_missing_map.map")
+
+        darn_read = pydarn.DarnRead("test_missing_map.map")
+        try:
+            darn_read.read_map()
+        except pydarn.superdarn_exceptions.SuperDARNFieldMissingError as err:
+            self.assertEqual(err.fields, {'stid'})
+            self.assertEqual(err.record_number, 0)
+
+        os.remove("test_missing_map.map")
+
+    def test_DmapWrite_extra_DarnRead_map(self):
+        map_extra_field = copy.deepcopy(map_data_sets.map_data)
+        map_extra_field[1].update({'dummy': pydarn.DmapScalar('dummy',
+                                                                 'nothing',
+                                                                 9, 's')})
+        map_extra_field[1].move_to_end('dummy', last=False)
+        dmap_write = pydarn.DmapWrite(map_extra_field, )
+        dmap_write.write_dmap("test_extra_map.map")
+
+        darn_read = pydarn.DarnRead("test_extra_map.map")
+        try:
+            darn_read.read_map()
+        except pydarn.superdarn_exceptions.SuperDARNExtraFieldError as err:
+            self.assertEqual(err.fields, {'dummy'})
+            self.assertEqual(err.record_number, 1)
+        os.remove("test_extra_map.map")
 
 
 if __name__ == '__main__':
