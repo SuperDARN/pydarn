@@ -20,7 +20,7 @@ class CursorError(Exception):
         Default empty.
     """
     def __init__(self, cursor: int, expected_value: int = 0, rec_num: int = 0, message=''):
-        self.cursor
+        self.cursor = cursor
         if message == '':
             self.message = "Error: Cursor is at {cursor} and"\
                     "it needs to be {expected}. Failed at record {rec}".format(cursor=cursor,
