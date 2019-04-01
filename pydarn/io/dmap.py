@@ -115,18 +115,6 @@ class DmapRead():
         Reads an array into a numpy array
     """
 
-    DMAP_CASTING_TYPES = {'c': np.int8,  # RST defined char
-                          'h': np.int16,  # Short
-                          'i': int,  # int
-                          'f': float,  # Float
-                          'd': np.float64,  # Double
-                          's': str,  # String
-                          'q': np.int64,  # long int
-                          'B': np.uint8,  # Unsigned char
-                          'H': np.uint16,  # Unsigned short
-                          'I': np.uint32,  # Unsigned int
-                          'Q': np.uint64}  # Unsigned long int
-
     def __init__(self, dmap_file: Union[str, bytes], data_stream=False):
         """
         Reads the dmap file/stream into a byte array for further reading of the
@@ -528,15 +516,9 @@ class DmapRead():
         array_shape = [self.read_data('i', 4)
                        for i in range(0, array_dimension)]
 
-        # if shape list is empty
-        if len(array_shape) != array_dimension:
-            message = "Error: Array shape {shape} could not be read."\
-                    " Failed at record: {rec}".format(shape=array_shape,
-                                                      rec=self.rec_num)
-            raise dmap_exceptions.DmapDataError(self.dmap_file, message)
         # slist is the array that holds the range gates that have valid data
         # when qflg is 1
-        elif any(x <= 0 for x in array_shape) and array_name != "slist":
+        if any(x <= 0 for x in array_shape) and array_name != "slist":
             message = "Error: Array shape {shape} contains "\
                     "dimension size <= 0."\
                     " Failed at record {rec}".format(shape=array_shape,
@@ -660,7 +642,7 @@ class DmapRead():
             # This casting is needed to keep the correct instance otherwise
             # python will default it to int which later could have some
             # consequences if you try to rewrite the file
-            data = self.DMAP_CASTING_TYPES['c'](self.dmap_bytearr[self.cursor])
+            data = self.dmap_bytearr[self.cursor]
             self.cursor += data_fmt_bytes
             return data
         elif data_type_fmt == 's':
@@ -688,7 +670,7 @@ class DmapRead():
                                       self.dmap_buffer,
                                       self.cursor)
             self.cursor += data_fmt_bytes
-            return self.DMAP_CASTING_TYPES[data_type_fmt](data[0])
+            return data[0]
 
     # FIXME: Currently this method is not working, thus there is no support
     # for array[str], but may not be important. ¯\_(ツ)_/¯
@@ -766,17 +748,11 @@ class DmapRead():
         DmapDataError
             Mismatch on the data type and the size specified in the byte array.
         """
-        # TODO: test performance on these two methods to see which one is faster
         if data_type_fmt == 'c':
-            #array = []
-            #for i in range(total_number_cells):
-            #    array.append(self.dmap_bytearr[self.cursor])
-            #    self.cursor += data_fmt_bytes
-
             # In RST rtypes.h file, chars are defined as int8
             # allowing this assumption to be allowed for now
-            array = np.frombuffer(self.dmap_buffer, np.int8,
-                                  total_number_cells, self.cursor)
+             array = np.frombuffer(self.dmap_buffer, np.int8,
+                                   total_number_cells, self.cursor)
         else:
             array = np.frombuffer(self.dmap_buffer, data_type_fmt,
                                   total_number_cells, self.cursor)
@@ -1040,6 +1016,7 @@ class DmapWrite(object):
             # TODO: test performance on just writing an int8 instead of encoding
             if isinstance(scalar.value, str):
                 raise dmap_exceptions.DmapCharError(scalar.name, self.rec_num)
+            # scalar_data_bytes = scalar.value
             scalar_data_bytes = chr(scalar.value).encode('utf-8')
         elif scalar.data_type_fmt == 'f':
             scalar_data_value = np.float32(scalar.value)

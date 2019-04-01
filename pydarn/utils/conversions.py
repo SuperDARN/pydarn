@@ -45,6 +45,19 @@ FORMAT_CONVERSION = {np.int8: 'c',  # RST defines char as an int8 in rtypes.h
                      np.uint32: 'I',
                      np.uint64: 'Q'}
 
+DMAP_CASTING_TYPES = {'c': np.int8,  # RST defined char
+                      'h': np.int16,  # Short
+                      'i': int,  # int
+                      'f': float,  # Float
+                      'd': np.float64,  # Double
+                      's': str,  # String
+                      'q': np.int64,  # long int
+                      'B': np.uint8,  # Unsigned char
+                      'H': np.uint16,  # Unsigned short
+                      'I': np.uint32,  # Unsigned int
+                      'Q': np.uint64}  # Unsigned long int
+
+
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #       WARNING: RST treats chars as int8 types,
 #       thus single characters are kept are strings
@@ -109,6 +122,8 @@ def dmap2dict(dmap_records: List[dict]) -> List[dict]:
     """
     dmap_list = []
     for dmap_record in dmap_records:
-        dmap_dict = {field: data.value for field, data in dmap_record.items()}
+        dmap_dict = {field: (data.value if isinstance(data.value, np.ndarray)
+                     else DMAP_CASTING_TYPES[data.data_type_fmt](data.value))
+                     for field, data in dmap_record.items()}
         dmap_list.append(OrderedDict(dmap_dict))
     return dmap_list
