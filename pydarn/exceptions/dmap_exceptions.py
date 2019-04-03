@@ -57,8 +57,8 @@ class DmapCharError(Exception):
         name of the file that the DMAP data is coming from.
     data_name : str
         parameter field name in the DMAP record
-    cursor : int
-        current position in the data buffer
+    rec_num : int
+        Record number the error was raised at
     """
     def __init__(self, data_name: str, rec_num: int):
         self.data_name = data_name,
