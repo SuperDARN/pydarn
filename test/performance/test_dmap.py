@@ -3,6 +3,10 @@ import cProfile, pstats, io
 import logging
 import os
 
+"""
+This is a simple testing script for the Dmap read and write
+methods. Warning: need a file to read in.
+"""
 logging.getLogger('pydarn').setLevel(logging.INFO)
 #@profile
 #def mem_profile():

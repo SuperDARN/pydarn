@@ -3,6 +3,11 @@ import cProfile, pstats, io
 import logging
 import os
 
+"""
+Testing script for the performance on the various SuperDARN file types
+for read and writing. This script requires files so may fail if the
+same structure is not setup.
+"""
 logging.getLogger('pydarn').setLevel(logging.INFO)
 #@profile
 #def mem_profile():
