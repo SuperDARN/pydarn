@@ -37,7 +37,7 @@ s = io.StringIO()
 sortby = 'cumtime'
 ps = pstats.Stats(pr, stream=s).sort_stats(sortby)
 ps.print_stats()
-print("Performance for Dmap Read")
+print("Performance for Dmap Write")
 print(s.getvalue())
 
 os.remove("test_dmap_performance.dmap")
