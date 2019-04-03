@@ -1047,13 +1047,20 @@ class DmapWrite(object):
             Total bytes of the array
         """
         # need to ensure the array is flattened
+        if array.data_type_fmt == 'c' and isinstance(array.value[0], str):
+            raise dmap_exceptions.DmapCharError(array.name, self.rec_num)
+        elif array.data_type_fmt == 's':
+            message = "Error: Trying to read array of strings."\
+                    " Currently not implemented."\
+                    " Failed at record {}".format(self.rec_num)
+            raise dmap_exceptions.DmapDataError(self.filename, message)
+
         array_value = array.value.flatten()
         array_name = "{0}\0".format(array.name)
         array_name_format = '{0}s'.format(len(array_name))
         array_name_bytes = struct.pack(array_name_format,
                                        array_name.encode('utf-8'))
 
-        # TODO: possible convert to int8 instead
         array_type_bytes = struct.pack('c',
                                        chr(array.data_type).encode('utf-8'))
 
