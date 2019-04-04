@@ -30,7 +30,7 @@ grid_stream = "../testfiles/20180220.C0.rkn.stream.grid.bz2"
 pydarn_logger = logging.getLogger('pydarn')
 
 
-class IntegrationPydmap(unittest.TestCase):
+class IntegrationSuperdarnio(unittest.TestCase):
     def setUp(self):
         pass
 
@@ -63,7 +63,11 @@ class IntegrationPydmap(unittest.TestCase):
         else:
             self.assertTrue(np.allclose(value1, value2, equal_nan=True))
 
-    def test_Dmapread_DarnWrite_rawacf(self):
+    def test_DmapRead_DarnWrite_rawacf(self):
+        """
+        Test DmapRead reading an rawacf and DarnWrite writing
+        the rawacf file
+        """
         dmap = pydarn.DmapRead(rawacf_file)
         dmap_data = dmap.read_records()
         dmap_write = pydarn.DarnWrite(dmap_data)
@@ -72,6 +76,10 @@ class IntegrationPydmap(unittest.TestCase):
         os.remove("test_rawacf.rawacf")
 
     def test_DarnWrite_DarnRead_rawacf(self):
+        """
+        Test DarnWrite writing a rawacf file and DarnRead reading the rawacf
+        file
+        """
         rawacf_data = copy.deepcopy(rawacf_data_sets.rawacf_data)
         rawacf_write = pydarn.DarnWrite(rawacf_data, "test_rawacf.rawacf")
         rawacf_write.write_rawacf()
@@ -82,6 +90,10 @@ class IntegrationPydmap(unittest.TestCase):
         os.remove("test_rawacf.rawacf")
 
     def test_DarnRead_stream_DarnWrite_file_rawacf(self):
+        """
+        Test DarnRead reads from a stream and DarnWrite writes
+        to a rawacf file
+        """
         with bz2.open(rawacf_stream) as fp:
             dmap_stream = fp.read()
         dmap = pydarn.DarnRead(dmap_stream, True)
@@ -94,6 +106,12 @@ class IntegrationPydmap(unittest.TestCase):
         os.remove("test_rawacf.rawacf")
 
     def test_DmapWrite_missing_DarnRead_rawacf(self):
+        """
+        Test DmapWrite writes a rawacf file missing the field nave in record 2
+        and DarnRead reads the file
+
+        Behaviour: Raise SuperDARNFieldMissingError
+        """
         rawacf_missing_field = copy.deepcopy(rawacf_data_sets.rawacf_data)
         del rawacf_missing_field[2]['nave']
         dmap_write = pydarn.DmapWrite(rawacf_missing_field)
@@ -109,6 +127,12 @@ class IntegrationPydmap(unittest.TestCase):
         os.remove("test_missing_rawacf.rawacf")
 
     def test_DmapWrite_extra_DarnRead_rawacf(self):
+        """
+        Test DmapWrite writes a rawacf file with an extra field and DarnRead
+        reads the file
+
+        Behaviour: Raised SuperDARNExtraFieldError
+        """
         rawacf_extra_field = copy.deepcopy(rawacf_data_sets.rawacf_data)
         rawacf_extra_field[1].update({'dummy': pydarn.DmapScalar('dummy',
                                                                  'nothing',
@@ -126,6 +150,10 @@ class IntegrationPydmap(unittest.TestCase):
         os.remove("test_extra_rawacf.rawacf")
 
     def test_dict2dmap_DarnWrite_rawacf(self):
+        """
+        Test dict2dmap to convert a dictionary to dmap then DarnWrite write
+        rawacf file
+        """
         rawacf_dict_data = copy.deepcopy(rawacf_dict_sets.rawacf_dict_data)
         dmap_rawacf = pydarn.dict2dmap(rawacf_dict_data)
         darn_read = pydarn.DarnWrite(dmap_rawacf)
@@ -136,6 +164,12 @@ class IntegrationPydmap(unittest.TestCase):
         os.remove("test_rawacf.rawacf")
 
     def test_DarnWrite_incorrect_rawacf_from_dict(self):
+        """
+        Test convert dictionary with incorrect type to dmap and DarnWrite
+        write the rawacf file
+
+        Behaviour: Raise SuperDARNDataFormatTypeError
+        """
         rawacf_dict_data = copy.deepcopy(rawacf_dict_sets.rawacf_dict_data)
         rawacf_dict_data[0]['stid'] = np.int8(rawacf_dict_data[0]['stid'])
         dmap_rawacf = pydarn.dict2dmap(rawacf_dict_data)
@@ -144,6 +178,12 @@ class IntegrationPydmap(unittest.TestCase):
             darn_write.write_rawacf("test_rawacf.rawacf")
 
     def test_DmapWrite_incorrect_DarnRead_rawacf_from_dict(self):
+        """
+        Test write an incorrect data type from a dict converting from dict2dmap
+        with DmapWrite then DarnRead reads the file
+
+        Behaviour: Raises SuperDARNDataFormatTypeError
+        """
         rawacf_dict_data = copy.deepcopy(rawacf_dict_sets.rawacf_dict_data)
         rawacf_dict_data[0]['stid'] = np.int8(rawacf_dict_data[0]['stid'])
         dmap_rawacf = pydarn.dict2dmap(rawacf_dict_data)
@@ -154,7 +194,11 @@ class IntegrationPydmap(unittest.TestCase):
         with self.assertRaises(pydarn.superdarn_exceptions.SuperDARNDataFormatTypeError):
             darn_read.read_rawacf()
 
-    def test_Darnread_DarnWrite_fitacf(self):
+    def test_DarnRead_DarnWrite_fitacf(self):
+        """
+        Test DmapRead reading an fitacf and DarnWrite writing
+        the fitacf file
+        """
         dmap = pydarn.DarnRead(fitacf_file)
         dmap_data = dmap.read_fitacf()
         dmap_write = pydarn.DarnWrite(dmap_data)
@@ -164,7 +208,11 @@ class IntegrationPydmap(unittest.TestCase):
         self.dmap_compare(dmap_data, fitacf_read_data)
         os.remove("test_fitacf.fitacf")
 
-    def test_DarnWrite_Darnread_fitacf(self):
+    def test_DarnWrite_DarnRead_fitacf(self):
+        """
+        Test DarnWrite writing a fitacf file and DarnRead reading the fitacf
+        file
+        """
         fitacf_data = copy.deepcopy(fitacf_data_sets.fitacf_data)
         fitacf_write = pydarn.DarnWrite(fitacf_data, "test_fitacf.fitacf")
         fitacf_write.write_fitacf()
@@ -175,6 +223,10 @@ class IntegrationPydmap(unittest.TestCase):
         os.remove("test_fitacf.fitacf")
 
     def test_DarnRead_stream_DarnWrite_file_fitacf(self):
+        """
+        Test DarnRead reads from a stream and DarnWrite writes
+        to a fitacf file
+        """
         with bz2.open(fitacf_stream) as fp:
             dmap_stream = fp.read()
         dmap = pydarn.DarnRead(dmap_stream, True)
@@ -187,6 +239,10 @@ class IntegrationPydmap(unittest.TestCase):
         self.dmap_compare(dmap_stream_data, dmap_data)
 
     def test_DmapRead_DarnWrite_DarnRead_fitacf(self):
+        """
+        Test DmapRead reading a fitacf file then writing it with DarnWrite
+        then reading it again with DarnRead
+        """
         dmap = pydarn.DmapRead(fitacf_file)
         dmap_data = dmap.read_records()
         dmap_write = pydarn.DarnWrite(dmap_data)
@@ -196,7 +252,11 @@ class IntegrationPydmap(unittest.TestCase):
         self.dmap_compare(dmap_data, fitacf_data)
         os.remove("test_fitacf.fitacf")
 
-    def test_DarnWrite_file_Darnread_fitacf(self):
+    def test_DarnWrite_file_DarnRead_fitacf(self):
+        """
+        Test DarnWrite to write a fitacf file then using
+        DarnRead to read the file
+        """
         fitacf_data = copy.deepcopy(fitacf_data_sets.fitacf_data)
         fitacf_write = pydarn.DarnWrite(fitacf_data, "test_fitacf.fitacf")
         fitacf_write.write_fitacf()
@@ -206,7 +266,11 @@ class IntegrationPydmap(unittest.TestCase):
         self.dmap_compare(fitacf_read_data, fitacf_data)
         os.remove("test_fitacf.fitacf")
 
-    def test_DmapWrite_Darnread_fitacf(self):
+    def test_DmapWrite_DarnRead_fitacf(self):
+        """
+        Test DmapWrite to write a fitacf file then using DarnRead
+        to read the file
+        """
         fitacf_data = copy.deepcopy(fitacf_data_sets.fitacf_data)
         fitacf_write = pydarn.DmapWrite(fitacf_data, "test_fitacf.fitacf")
         fitacf_write.write_dmap()
@@ -216,7 +280,11 @@ class IntegrationPydmap(unittest.TestCase):
         self.dmap_compare(fitacf_read_data, fitacf_data)
         os.remove("test_fitacf.fitacf")
 
-    def test_DarRead_Dmapwrite_stream_fitacf(self):
+    def test_DarnRead_DmapWrite_stream_fitacf(self):
+        """
+        Test DarnRead to read from a fitacf stream then
+        DmapWrite to write a fitacf file from the stream
+        """
         with bz2.open(fitacf_stream) as fp:
             dmap_stream = fp.read()
         dmap = pydarn.DarnRead(dmap_stream, True)
@@ -227,7 +295,11 @@ class IntegrationPydmap(unittest.TestCase):
         dmap_read_data = dmap_read.read_fitacf()
         self.dmap_compare(dmap_stream_data, dmap_read_data)
 
-    def test_Dmapread_stream_Darnwrite_file_fitacf(self):
+    def test_DmapRead_stream_DarnWrite_file_fitacf(self):
+        """
+        Test DmapRead to read in a stream then have DarnWrite the
+        stream to file
+        """
         with bz2.open(fitacf_stream) as fp:
             dmap_stream = fp.read()
         dmap = pydarn.DmapRead(dmap_stream, True)
@@ -240,6 +312,10 @@ class IntegrationPydmap(unittest.TestCase):
         os.remove("test_fitacf.fitacf")
 
     def test_DmapWrite_stream_DarnRead_fitacf(self):
+        """
+        Test DmapWrite to write to a stream and have DarnRead
+        the fitacf stream
+        """
         fitacf_data = copy.deepcopy(fitacf_data_sets.fitacf_data)
         fitacf_write = pydarn.DmapWrite()
         fitacf_stream = fitacf_write.write_dmap_stream(fitacf_data)
@@ -249,6 +325,12 @@ class IntegrationPydmap(unittest.TestCase):
         self.dmap_compare(fitacf_read_data, fitacf_data)
 
     def test_DmapWrite_missing_DarnRead_fitacf(self):
+        """
+        Test DmapWrite writes a fitacf file missing the field nave in record 2
+        and DarnRead reads the file
+
+        Behaviour: Raise SuperDARNFieldMissingError
+        """
         fitacf_missing_field = copy.deepcopy(fitacf_data_sets.fitacf_data)
         del fitacf_missing_field[0]['nave']
         dmap_write = pydarn.DmapWrite(fitacf_missing_field)
@@ -264,6 +346,13 @@ class IntegrationPydmap(unittest.TestCase):
         os.remove("test_missing_fitacf.fitacf")
 
     def test_DmapWrite_extra_DarnRead_fitacf(self):
+        """
+        Test DmapWrite writes a fitacf file with an extra field and DarnRead
+        reads the file
+
+        Behaviour: Raised SuperDARNExtraFieldError
+        """
+
         fitacf_extra_field = copy.deepcopy(fitacf_data_sets.fitacf_data)
         fitacf_extra_field[1].update({'dummy': pydarn.DmapScalar('dummy',
                                                                  'nothing',
@@ -280,7 +369,11 @@ class IntegrationPydmap(unittest.TestCase):
             self.assertEqual(err.record_number, 1)
         os.remove("test_extra_fitacf.fitacf")
 
-    def test_Darnread_DarnWrite_iqdat(self):
+    def test_DarnRead_DarnWrite_iqdat(self):
+        """
+        Test DmapRead reading an fitacf and DarnWrite writing
+        the fitacf file
+        """
         dmap = pydarn.DarnRead(iqdat_file)
         dmap_data = dmap.read_iqdat()
         dmap_write = pydarn.DarnWrite(dmap_data)
@@ -290,7 +383,11 @@ class IntegrationPydmap(unittest.TestCase):
         self.dmap_compare(dmap_data, iqdat_read_data)
         os.remove("test_iqdat.iqdat")
 
-    def test_DarnWrite_Darnread_iqdat(self):
+    def test_DarnWrite_DarnRead_iqdat(self):
+        """
+        Test DarnWrite writing a iqdat file and DarnRead reading the iqdat
+        file
+        """
         iqdat_data = copy.deepcopy(iqdat_data_sets.iqdat_data)
         iqdat_write = pydarn.DarnWrite(iqdat_data, "test_iqdat.iqdat")
         iqdat_write.write_iqdat()
@@ -301,6 +398,10 @@ class IntegrationPydmap(unittest.TestCase):
         os.remove("test_iqdat.iqdat")
 
     def test_DarnRead_stream_DarnWrite_file_iqdat(self):
+        """
+        Test DarnRead reads from a stream and DarnWrite writes
+        to a iqdat file
+        """
         with bz2.open(iqdat_stream) as fp:
             dmap_stream = fp.read()
         dmap = pydarn.DarnRead(dmap_stream, True)
@@ -313,6 +414,10 @@ class IntegrationPydmap(unittest.TestCase):
         self.dmap_compare(dmap_stream_data, dmap_data)
 
     def test_DmapRead_DarnWrite_DarnRead_iqdat(self):
+        """
+        Test DarnRead reads from a stream and DarnWrite writes
+        to a iqdat file
+        """
         dmap = pydarn.DmapRead(iqdat_file)
         dmap_data = dmap.read_records()
         dmap_write = pydarn.DarnWrite(dmap_data)
@@ -322,7 +427,11 @@ class IntegrationPydmap(unittest.TestCase):
         self.dmap_compare(dmap_data, iqdat_data)
         os.remove("test_iqdat.iqdat")
 
-    def test_DarnWrite_file_Darnread_iqdat(self):
+    def test_DarnWrite_file_DarnRead_iqdat(self):
+        """
+        Test DarnWrite to write a iqdat file then using
+        DarnRead to read the file
+        """
         iqdat_data = copy.deepcopy(iqdat_data_sets.iqdat_data)
         iqdat_write = pydarn.DarnWrite(iqdat_data, "test_iqdat.iqdat")
         iqdat_write.write_iqdat()
@@ -332,7 +441,11 @@ class IntegrationPydmap(unittest.TestCase):
         self.dmap_compare(iqdat_read_data, iqdat_data)
         os.remove("test_iqdat.iqdat")
 
-    def test_DmapWrite_Darnread_iqdat(self):
+    def test_DmapWrite_DarnRead_iqdat(self):
+        """
+        Test DmapWrite to write a iqdat file then using DarnRead
+        to read the file
+        """
         iqdat_data = copy.deepcopy(iqdat_data_sets.iqdat_data)
         iqdat_write = pydarn.DmapWrite(iqdat_data, "test_iqdat.iqdat")
         iqdat_write.write_dmap()
@@ -342,7 +455,11 @@ class IntegrationPydmap(unittest.TestCase):
         self.dmap_compare(iqdat_read_data, iqdat_data)
         os.remove("test_iqdat.iqdat")
 
-    def test_DarRead_Dmapwrite_stream_iqdat(self):
+    def test_DarnRead_DmapWrite_stream_iqdat(self):
+        """
+        Test DarnRead to read from a iqdat stream then
+        DmapWrite to write a iqdat file from the stream
+        """
         with bz2.open(iqdat_stream) as fp:
             dmap_stream = fp.read()
         dmap = pydarn.DarnRead(dmap_stream, True)
@@ -353,7 +470,11 @@ class IntegrationPydmap(unittest.TestCase):
         dmap_read_data = dmap_read.read_iqdat()
         self.dmap_compare(dmap_stream_data, dmap_read_data)
 
-    def test_Dmapread_stream_Darnwrite_file_iqdat(self):
+    def test_DmapRead_stream_DarnWrite_file_iqdat(self):
+        """
+        Test DmapRead to read in a stream then have DarnWrite the
+        stream to file
+        """
         with bz2.open(iqdat_stream) as fp:
             dmap_stream = fp.read()
         dmap = pydarn.DmapRead(dmap_stream, True)
@@ -366,6 +487,10 @@ class IntegrationPydmap(unittest.TestCase):
         os.remove("test_iqdat.iqdat")
 
     def test_DmapWrite_stream_DarnRead_iqdat(self):
+        """
+        Test DmapWrite to write to a stream and have DarnRead
+        the iqdat stream
+        """
         iqdat_data = copy.deepcopy(iqdat_data_sets.iqdat_data)
         iqdat_write = pydarn.DmapWrite()
         iqdat_stream = iqdat_write.write_dmap_stream(iqdat_data)
@@ -375,6 +500,12 @@ class IntegrationPydmap(unittest.TestCase):
         self.dmap_compare(iqdat_read_data, iqdat_data)
 
     def test_DmapWrite_missing_DarnRead_iqdat(self):
+        """
+        Test DmapWrite writes a iqdat file missing the field nave in record 2
+        and DarnRead reads the file
+
+        Behaviour: Raise SuperDARNFieldMissingError
+        """
         iqdat_missing_field = copy.deepcopy(iqdat_data_sets.iqdat_data)
         del iqdat_missing_field[0]['nave']
         dmap_write = pydarn.DmapWrite(iqdat_missing_field)
@@ -390,6 +521,12 @@ class IntegrationPydmap(unittest.TestCase):
         os.remove("test_missing_iqdat.iqdat")
 
     def test_DmapWrite_extra_DarnRead_iqdat(self):
+        """
+        Test DmapWrite writes a iqdat file with an extra field and DarnRead
+        reads the file
+
+        Behaviour: Raised SuperDARNExtraFieldError
+        """
         iqdat_extra_field = copy.deepcopy(iqdat_data_sets.iqdat_data)
         iqdat_extra_field[1].update({'dummy': pydarn.DmapScalar('dummy',
                                                                  'nothing',
@@ -406,7 +543,11 @@ class IntegrationPydmap(unittest.TestCase):
             self.assertEqual(err.record_number, 1)
         os.remove("test_extra_iqdat.iqdat")
 
-    def test_Darnread_DarnWrite_grid(self):
+    def test_DarnRead_DarnWrite_grid(self):
+        """
+        Test DmapRead reading an grid and DarnWrite writing
+        the grid file
+        """
         dmap = pydarn.DarnRead(grid_file)
         dmap_data = dmap.read_grid()
         dmap_write = pydarn.DarnWrite(dmap_data)
@@ -416,7 +557,11 @@ class IntegrationPydmap(unittest.TestCase):
         self.dmap_compare(dmap_data, grid_read_data)
         os.remove("test_grid.grid")
 
-    def test_DarnWrite_Darnread_grid(self):
+    def test_DarnWrite_DarnRead_grid(self):
+        """
+        Test DarnWrite writing a grid file and DarnRead reading the grid
+        file
+        """
         grid_data = copy.deepcopy(grid_data_sets.grid_data)
         grid_write = pydarn.DarnWrite(grid_data, "test_grid.grid")
         grid_write.write_grid()
@@ -427,6 +572,10 @@ class IntegrationPydmap(unittest.TestCase):
         os.remove("test_grid.grid")
 
     def test_DarnRead_stream_DarnWrite_file_grid(self):
+        """
+        Test DarnRead reads from a stream and DarnWrite writes
+        to a grid file
+        """
         with bz2.open(grid_stream) as fp:
             dmap_stream = fp.read()
         dmap = pydarn.DarnRead(dmap_stream, True)
@@ -439,6 +588,10 @@ class IntegrationPydmap(unittest.TestCase):
         self.dmap_compare(dmap_stream_data, dmap_data)
 
     def test_DmapRead_DarnWrite_DarnRead_grid(self):
+        """
+        Test DmapRead reading a grid file then writing it with DarnWrite
+        then reading it again with DarnRead
+        """
         dmap = pydarn.DmapRead(grid_file)
         dmap_data = dmap.read_records()
         dmap_write = pydarn.DarnWrite(dmap_data)
@@ -448,7 +601,11 @@ class IntegrationPydmap(unittest.TestCase):
         self.dmap_compare(dmap_data, grid_data)
         os.remove("test_grid.grid")
 
-    def test_DarnWrite_file_Darnread_grid(self):
+    def test_DarnWrite_file_DarnRead_grid(self):
+        """
+        Test DarnWrite to write a grid file then using
+        DarnRead to read the file
+        """
         grid_data = copy.deepcopy(grid_data_sets.grid_data)
         grid_write = pydarn.DarnWrite(grid_data, "test_grid.grid")
         grid_write.write_grid()
@@ -458,7 +615,11 @@ class IntegrationPydmap(unittest.TestCase):
         self.dmap_compare(grid_read_data, grid_data)
         os.remove("test_grid.grid")
 
-    def test_DmapWrite_Darnread_grid(self):
+    def test_DmapWrite_DarnRead_grid(self):
+        """
+        Test DmapWrite to write a grid file then using DarnRead
+        to read the file
+        """
         grid_data = copy.deepcopy(grid_data_sets.grid_data)
         grid_write = pydarn.DmapWrite(grid_data, "test_grid.grid")
         grid_write.write_dmap()
@@ -468,7 +629,11 @@ class IntegrationPydmap(unittest.TestCase):
         self.dmap_compare(grid_read_data, grid_data)
         os.remove("test_grid.grid")
 
-    def test_DarRead_Dmapwrite_stream_grid(self):
+    def test_DarnRead_DmapWrite_stream_grid(self):
+        """
+        Test DarnRead to read from a grid stream then
+        DmapWrite to write a grid file from the stream
+        """
         with bz2.open(grid_stream) as fp:
             dmap_stream = fp.read()
         dmap = pydarn.DarnRead(dmap_stream, True)
@@ -479,7 +644,11 @@ class IntegrationPydmap(unittest.TestCase):
         dmap_read_data = dmap_read.read_grid()
         self.dmap_compare(dmap_stream_data, dmap_read_data)
 
-    def test_Dmapread_stream_Darnwrite_file_grid(self):
+    def test_DmapRead_stream_DarnWrite_file_grid(self):
+        """
+        Test DmapRead to read in a stream then have DarnWrite the
+        stream to file
+        """
         with bz2.open(grid_stream) as fp:
             dmap_stream = fp.read()
         dmap = pydarn.DmapRead(dmap_stream, True)
@@ -492,6 +661,10 @@ class IntegrationPydmap(unittest.TestCase):
         os.remove("test_grid.grid")
 
     def test_DmapWrite_stream_DarnRead_grid(self):
+        """
+        Test DmapWrite to write to a stream and have DarnRead
+        the grid stream
+        """
         grid_data = copy.deepcopy(grid_data_sets.grid_data)
         grid_write = pydarn.DmapWrite()
         grid_stream = grid_write.write_dmap_stream(grid_data)
@@ -501,6 +674,12 @@ class IntegrationPydmap(unittest.TestCase):
         self.dmap_compare(grid_read_data, grid_data)
 
     def test_DmapWrite_missing_DarnRead_grid(self):
+        """
+        Test DmapWrite writes a grid file missing the field nave in record 2
+        and DarnRead reads the file
+
+        Behaviour: Raise SuperDARNFieldMissingError
+        """
         grid_missing_field = copy.deepcopy(grid_data_sets.grid_data)
         del grid_missing_field[0]['stid']
         dmap_write = pydarn.DmapWrite(grid_missing_field)
@@ -516,6 +695,12 @@ class IntegrationPydmap(unittest.TestCase):
         os.remove("test_missing_grid.grid")
 
     def test_DmapWrite_extra_DarnRead_grid(self):
+        """
+        Test DmapWrite writes a grid file with an extra field and DarnRead
+        reads the file
+
+        Behaviour: Raised SuperDARNExtraFieldError
+        """
         grid_extra_field = copy.deepcopy(grid_data_sets.grid_data)
         grid_extra_field[1].update({'dummy': pydarn.DmapScalar('dummy',
                                                                  'nothing',
@@ -532,7 +717,11 @@ class IntegrationPydmap(unittest.TestCase):
             self.assertEqual(err.record_number, 1)
         os.remove("test_extra_grid.grid")
 
-    def test_Darnread_DarnWrite_map(self):
+    def test_DarnRead_DarnWrite_map(self):
+        """
+        Test DmapRead reading an map and DarnWrite writing
+        the map file
+        """
         dmap = pydarn.DarnRead(map_file)
         dmap_data = dmap.read_map()
         dmap_write = pydarn.DarnWrite(dmap_data)
@@ -542,7 +731,11 @@ class IntegrationPydmap(unittest.TestCase):
         self.dmap_compare(dmap_data, map_read_data)
         os.remove("test_map.map")
 
-    def test_DarnWrite_Darnread_map(self):
+    def test_DarnWrite_DarnRead_map(self):
+        """
+        Test DarnWrite writing a map file and DarnRead reading the map
+        file
+        """
         map_data = copy.deepcopy(map_data_sets.map_data)
         map_write = pydarn.DarnWrite(map_data, "test_map.map")
         map_write.write_map()
@@ -553,6 +746,10 @@ class IntegrationPydmap(unittest.TestCase):
         os.remove("test_map.map")
 
     def test_DarnRead_stream_DarnWrite_file_map(self):
+        """
+        Test DarnRead reads from a stream and DarnWrite writes
+        to a map file
+        """
         with bz2.open(map_stream) as fp:
             dmap_stream = fp.read()
         dmap = pydarn.DarnRead(dmap_stream, True)
@@ -565,6 +762,10 @@ class IntegrationPydmap(unittest.TestCase):
         self.dmap_compare(dmap_stream_data, dmap_data)
 
     def test_DmapRead_DarnWrite_DarnRead_map(self):
+        """
+        Test DmapRead reading a map file then writing it with DarnWrite
+        then reading it again with DarnRead
+        """
         dmap = pydarn.DmapRead(map_file)
         dmap_data = dmap.read_records()
         dmap_write = pydarn.DarnWrite(dmap_data)
@@ -574,7 +775,11 @@ class IntegrationPydmap(unittest.TestCase):
         self.dmap_compare(dmap_data, map_data)
         os.remove("test_map.map")
 
-    def test_DarnWrite_file_Darnread_map(self):
+    def test_DarnWrite_file_DarnRead_map(self):
+        """
+        Test DarnWrite to write a map file then using
+        DarnRead to read the file
+        """
         map_data = copy.deepcopy(map_data_sets.map_data)
         map_write = pydarn.DarnWrite(map_data, "test_map.map")
         map_write.write_map()
@@ -584,7 +789,11 @@ class IntegrationPydmap(unittest.TestCase):
         self.dmap_compare(map_read_data, map_data)
         os.remove("test_map.map")
 
-    def test_DmapWrite_Darnread_map(self):
+    def test_DmapWrite_DarnRead_map(self):
+        """
+        Test DmapWrite to write a map file then using DarnRead
+        to read the file
+        """
         map_data = copy.deepcopy(map_data_sets.map_data)
         map_write = pydarn.DmapWrite(map_data, "test_map.map")
         map_write.write_dmap()
@@ -594,7 +803,11 @@ class IntegrationPydmap(unittest.TestCase):
         self.dmap_compare(map_read_data, map_data)
         os.remove("test_map.map")
 
-    def test_DarRead_Dmapwrite_stream_map(self):
+    def test_DarnRead_DmapWrite_stream_map(self):
+        """
+        Test DarnRead to read from a map stream then
+        DmapWrite to write a map file from the stream
+        """
         with bz2.open(map_stream) as fp:
             dmap_stream = fp.read()
         dmap = pydarn.DarnRead(dmap_stream, True)
@@ -605,7 +818,11 @@ class IntegrationPydmap(unittest.TestCase):
         dmap_read_data = dmap_read.read_map()
         self.dmap_compare(dmap_stream_data, dmap_read_data)
 
-    def test_Dmapread_stream_Darnwrite_file_map(self):
+    def test_DmapRead_stream_DarnWrite_file_map(self):
+        """
+        Test DmapRead to read in a stream then have DarnWrite the
+        stream to file
+        """
         with bz2.open(map_stream) as fp:
             dmap_stream = fp.read()
         dmap = pydarn.DmapRead(dmap_stream, True)
@@ -618,6 +835,10 @@ class IntegrationPydmap(unittest.TestCase):
         os.remove("test_map.map")
 
     def test_DmapWrite_stream_DarnRead_map(self):
+        """
+        Test DmapWrite to write to a stream and have DarnRead
+        the map stream
+        """
         map_data = copy.deepcopy(map_data_sets.map_data)
         map_write = pydarn.DmapWrite()
         map_stream = map_write.write_dmap_stream(map_data)
@@ -627,6 +848,12 @@ class IntegrationPydmap(unittest.TestCase):
         self.dmap_compare(map_read_data, map_data)
 
     def test_DmapWrite_missing_DarnRead_map(self):
+        """
+        Test DmapWrite writes a fitacf file missing the field nave in record 2
+        and DarnRead reads the file
+
+        Behaviour: Raise SuperDARNFieldMissingError
+        """
         map_missing_field = copy.deepcopy(map_data_sets.map_data)
         del map_missing_field[0]['stid']
         dmap_write = pydarn.DmapWrite(map_missing_field)
@@ -642,6 +869,12 @@ class IntegrationPydmap(unittest.TestCase):
         os.remove("test_missing_map.map")
 
     def test_DmapWrite_extra_DarnRead_map(self):
+        """
+        Test DmapWrite writes a map file with an extra field and DarnRead
+        reads the file
+
+        Behaviour: Raised SuperDARNExtraFieldError
+        """
         map_extra_field = copy.deepcopy(map_data_sets.map_data)
         map_extra_field[1].update({'dummy': pydarn.DmapScalar('dummy',
                                                                  'nothing',
