@@ -16,15 +16,15 @@ import dmap_data_sets
 pydarn_logger = logging.getLogger('pydarn')
 
 # Test files
-rawacf_stream = "./testfiles/20170410.1801.00.sas.stream.rawacf.bz2"
-rawacf_file = "./testfiles/20170410.1801.00.sas.rawacf"
-fitacf_file = "./testfiles/20180220.C0.rkn.fitacf"
-map_file = "./testfiles/20170114.map"
-iqdat_file = "testfiles/20160316.1945.01.rkn.iqdat"
-grid_file = "./testfiles/20180220.C0.rkn.grid"
+rawacf_stream = "../testfiles/20170410.1801.00.sas.stream.rawacf.bz2"
+rawacf_file = "../testfiles/20170410.1801.00.sas.rawacf"
+fitacf_file = "../testfiles/20180220.C0.rkn.fitacf"
+map_file = "../testfiles/20170114.map"
+iqdat_file = "../testfiles/20160316.1945.01.rkn.iqdat"
+grid_file = "../testfiles/20180220.C0.rkn.grid"
 # Black listed files
-corrupt_file1 = "./testfiles/20070117.1001.00.han.rawacf"
-corrupt_file2 = "./testfiles/20090320.1601.00.pgr.rawacf"
+corrupt_file1 = "../testfiles/20070117.1001.00.han.rawacf"
+corrupt_file2 = "../testfiles/20090320.1601.00.pgr.rawacf"
 
 
 class TestDmapRead(unittest.TestCase):
@@ -53,7 +53,7 @@ class TestDmapRead(unittest.TestCase):
         Expected bahaviour: raises FileNotFoundError
         """
         self.assertRaises(FileNotFoundError, pydarn.DmapRead,
-                          './testfiles/somefile.rawacf')
+                          '../testfiles/somefile.rawacf')
 
     def test_empty_file(self):
         """
@@ -62,7 +62,7 @@ class TestDmapRead(unittest.TestCase):
         Expected behaviour: raise EmptyFileError
         """
         self.assertRaises(pydarn.dmap_exceptions.EmptyFileError,
-                          pydarn.DmapRead, './testfiles/empty.rawacf')
+                          pydarn.DmapRead, '../testfiles/empty.rawacf')
 
     def test_open_dmap_file(self):
         """
@@ -73,7 +73,7 @@ class TestDmapRead(unittest.TestCase):
             - bytearray instance is created from reading in the file
             - bytearray is not empty
         """
-        file_path = rawacf_file
+        file_path = fitacf_file
         dm = pydarn.DmapRead(file_path)
         self.assertIsInstance(dm.dmap_bytearr, bytearray)
         self.assertGreater(dm.dmap_end_bytes, 0)
@@ -89,6 +89,24 @@ class TestDmapRead(unittest.TestCase):
         file_path = rawacf_file
         dm = pydarn.DmapRead(file_path)
         dm.test_initial_data_integrity()
+
+    def test_read_dmap_file(self):
+        """
+        Tests DmapRead test read_dmap.
+
+        Behaviour: raising no exceptions
+        """
+        file_path = fitacf_file
+        dm = pydarn.DmapRead(file_path)
+        dmap_records = dm.read_records()
+        self.assertIsInstance(dmap_records, collections.deque)
+        self.assertIsInstance(dmap_records[0], collections.OrderedDict)
+        self.assertIsInstance(dmap_records[4]['bmnum'], pydarn.DmapScalar)
+        self.assertIsInstance(dmap_records[1]['ptab'], pydarn.DmapArray)
+        self.assertIsInstance(dmap_records[7]['channel'].value, np.int16)
+        self.assertIsInstance(dmap_records[2]['ltab'].value, np.ndarray)
+        self.assertEqual(dmap_records[0]['ptab'].dimension, 1)
+        self.assertEqual(dmap_records[50]['gflg'].value[1], 0)
 
     # TODO: Again dependent on the file used :/
     def test_integrity_check_corrupt_file1(self):
@@ -151,7 +169,7 @@ class TestDmapRead(unittest.TestCase):
         self.assertIsInstance(dmap_data[0], collections.OrderedDict)
         self.assertIsInstance(dmap_data[4]['channel'], pydarn.DmapScalar)
         self.assertIsInstance(dmap_data[1]['ptab'], pydarn.DmapArray)
-        self.assertIsInstance(dmap_data[7]['channel'].value, int)
+        self.assertIsInstance(dmap_data[7]['channel'].value, np.int16)
         self.assertIsInstance(dmap_data[2]['xcfd'].value, np.ndarray)
         self.assertEqual(dmap_data[0]['xcfd'].dimension, 3)
 
