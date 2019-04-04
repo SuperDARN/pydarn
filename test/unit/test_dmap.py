@@ -103,7 +103,7 @@ class TestDmapRead(unittest.TestCase):
         self.assertIsInstance(dmap_records[0], collections.OrderedDict)
         self.assertIsInstance(dmap_records[4]['bmnum'], pydarn.DmapScalar)
         self.assertIsInstance(dmap_records[1]['ptab'], pydarn.DmapArray)
-        self.assertIsInstance(dmap_records[7]['channel'].value, np.int16)
+        self.assertIsInstance(dmap_records[7]['channel'].value, int)
         self.assertIsInstance(dmap_records[2]['ltab'].value, np.ndarray)
         self.assertEqual(dmap_records[0]['ptab'].dimension, 1)
         self.assertEqual(dmap_records[50]['gflg'].value[1], 0)
@@ -169,7 +169,7 @@ class TestDmapRead(unittest.TestCase):
         self.assertIsInstance(dmap_data[0], collections.OrderedDict)
         self.assertIsInstance(dmap_data[4]['channel'], pydarn.DmapScalar)
         self.assertIsInstance(dmap_data[1]['ptab'], pydarn.DmapArray)
-        self.assertIsInstance(dmap_data[7]['channel'].value, np.int16)
+        self.assertIsInstance(dmap_data[7]['channel'].value, int)
         self.assertIsInstance(dmap_data[2]['xcfd'].value, np.ndarray)
         self.assertEqual(dmap_data[0]['xcfd'].dimension, 3)
 
@@ -243,6 +243,45 @@ class TestDmapWrite(unittest.TestCase):
         self.assertTrue(os.path.isfile("test_dmap.dmap"))
 
         os.remove("test_dmap.dmap")
+
+    def test_scalar(self):
+        """
+        Test DmapWrite writing a character scalar type.
+
+        Behaviour: Raised DmapCharError
+        Dmap cannot write characters as they are treated as strings and not
+        int8 - RST standard for char types.
+        """
+        scalar = pydarn.DmapScalar('channel', 'c', 1, 'c')
+        dmap_write = pydarn.DmapWrite()
+        with self.assertRaises(pydarn.dmap_exceptions.DmapCharError):
+            dmap_write.dmap_scalar_to_bytes(scalar)
+
+    def test_String_array(self):
+        """
+        Test DmapWrite writing string arrays
+
+        Behaviour: Raised DmapDataError
+        DmapWrite doesn't support writing string arrays because DmapRead does
+        not support string arrays.
+        """
+        array = pydarn.DmapArray('xcf', np.array(['dog', 'cat', 'mouse']),
+                                 9, 's', 1, [3])
+        dmap_write = pydarn.DmapWrite()
+        with self.assertRaises(pydarn.dmap_exceptions.DmapDataError):
+                dmap_write.dmap_array_to_bytes(array)
+
+    def test_character_array(self):
+        """
+        Test DmapWrite writing character arrays.
+
+        Behaviour: Raised DmapCharError
+        """
+        array = pydarn.DmapArray('channel', np.array(['d', 'c', 'm']),
+                                 1, 'c', 1, [3])
+        dmap_write = pydarn.DmapWrite()
+        with self.assertRaises(pydarn.dmap_exceptions.DmapCharError):
+            dmap_write.dmap_array_to_bytes(array)
 
 
 if __name__ == '__main__':

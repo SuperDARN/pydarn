@@ -18,11 +18,23 @@ rawacf_file = "../testfiles/20170410.1801.00.sas.rawacf"
 pydarn_logger = logging.getLogger('pydarn')
 
 
-class IntegrationPydmap(unittest.TestCase):
+class IntegrationDmap(unittest.TestCase):
+    """
+    Testing integration class between DmapRead and DmapWrite.
+    This script also integrates with the utils conversion methods:
+        dict2dmap
+        dmap2dict
+    """
     def setUp(self):
         pass
 
+    # TODO: look into a way to be its own class or function for
+    # other test scripts
     def dict_compare(self, dict1: list, dict2: list):
+        """
+        This method helps compare two dictionaries that
+        contain numpy arrays to help test cases.
+        """
         self.assertEqual(len(dict1), len(dict2))
         for d1, d2 in zip(dict1, dict2):
             diff_fields1 = set(d1) - set(d2)
@@ -36,6 +48,10 @@ class IntegrationPydmap(unittest.TestCase):
                     self.assertEqual(value1, d2[key1])
 
     def dmap_compare(self, dmap1: list, dmap2: list):
+        """
+        This method compares two dmap record data structures
+        to help test cases.
+        """
         # Quick simple tests that can be done before looping
         # over the list
         self.assertEqual(len(dmap1), len(dmap2))
@@ -52,6 +68,10 @@ class IntegrationPydmap(unittest.TestCase):
                     self.compare_dmap_array(record2[field], val_obj)
 
     def compare_dmap_array(self, dmaparr1, dmaparr2):
+        """
+        This method is used to compare DmapArrays because they need to
+        use numpy.array_equal method for comparing the arrays.
+        """
         self.assertEqual(dmaparr1.name, dmaparr2.name)
         self.assertEqual(dmaparr1.data_type, dmaparr2.data_type)
         self.assertEqual(dmaparr1.data_type_fmt, dmaparr2.data_type_fmt)
@@ -65,8 +85,13 @@ class IntegrationPydmap(unittest.TestCase):
             value2 = np.reshape(dmaparr2.value, dmaparr2.shape)
             self.assertTrue(np.array_equal(value1, value2))
 
+    def test_DmapWrite_DmapRead_scalar(self):
+        """
+        This test integrates DmapWrite and DmapRead for
+        writing a single scalar and then reading it in.
 
-    def test_dmap_write_read_scalar(self):
+        Behaviour: No change to the scalar being written then read in.
+        """
         scalar = pydarn.DmapScalar('stid', 5, 3, 'i')
         dmap_write = pydarn.DmapWrite()
         dmap_scalar_bytes = dmap_write.dmap_scalar_to_bytes(scalar)
@@ -74,7 +99,13 @@ class IntegrationPydmap(unittest.TestCase):
         dmap_scalar = dmap.read_scalar()
         self.assertEqual(scalar, dmap_scalar)
 
-    def test_dmap_write_read_array(self):
+    def test_DmapWrite_DmapRead_array(self):
+        """
+        This test integrates DmapWrite and DmapRead for
+        writing and reading an array.
+
+        Behaviour: No change to the array
+        """
         array = pydarn.DmapArray('xcf',
                                  np.array([4.3, 3.5, 2.3], dtype=np.float32),
                                  4, 'f', 1, [3])
@@ -84,30 +115,11 @@ class IntegrationPydmap(unittest.TestCase):
         dmap_array = dmap.read_array(len(dmap_array_bytes))
         self.compare_dmap_array(array, dmap_array)
 
-    def test_write_read_string_array(self):
-        array = pydarn.DmapArray('xcf', np.array(['dog', 'cat', 'mouse']),
-                                 9, 's', 1, [3])
-        dmap_write = pydarn.DmapWrite()
-        dmap_array_bytes = dmap_write.dmap_array_to_bytes(array)
-        dmap = pydarn.DmapRead(dmap_array_bytes, True)
-        with self.assertRaises(pydarn.dmap_exceptions.DmapDataError):
-            dmap.read_array(len(dmap_array_bytes))
-
-    def test_write_read_character_array(self):
-        array = pydarn.DmapArray('channel', np.array(['d', 'c', 'm']),
-                                 1, 'c', 1, [3])
-        dmap_write = pydarn.DmapWrite()
-        dmap_array_bytes = dmap_write.dmap_array_to_bytes(array)
-        dmap = pydarn.DmapRead(dmap_array_bytes, True)
-        dmap.read_array(len(dmap_array_bytes))
-
-    def test_dmap_write_read_char_scalar(self):
-        scalar = pydarn.DmapScalar('channel', 'c', 1, 'c')
-        dmap_write = pydarn.DmapWrite()
-        with self.assertRaises(pydarn.dmap_exceptions.DmapCharError):
-            dmap_write.dmap_scalar_to_bytes(scalar)
-
     def test_write_read_int8_array(self):
+        """
+        Test integrates DmapWrite and DmapRead to write and read an
+        int8 data type which is the char type for DMAP format.
+        """
         array = pydarn.DmapArray('channel', np.array([1, 0, 1], dtype=np.int8),
                                  1, 'c', 1, [3])
         dmap_write = pydarn.DmapWrite()
@@ -116,7 +128,10 @@ class IntegrationPydmap(unittest.TestCase):
         dmap_array = dmap.read_array(len(dmap_array_bytes))
         self.compare_dmap_array(array, dmap_array)
 
-    def test_dmap_write_read_int8_scalar(self):
+    def test_DmapWrite_DmapRead_int8_scalar(self):
+        """
+        Test integration DmapWrite and DmapRead to write char array.
+        """
         scalar = pydarn.DmapScalar('channel', 4, 1, 'c')
         dmap_write = pydarn.DmapWrite()
         dmap_scalar_bytes = dmap_write.dmap_scalar_to_bytes(scalar)
@@ -124,7 +139,12 @@ class IntegrationPydmap(unittest.TestCase):
         dmap_scalar = dmap.read_scalar()
         self.assertEqual(scalar, dmap_scalar)
 
-    def test_read_write_dmap_file(self):
+    def test_DmapRead_DmapWrite_dmap_file(self):
+        """
+        Test integration between DmapRead reading a file and DmapWrite
+        writing the file then reading it again to ensure the data didn't
+        change.
+        """
         dmap = pydarn.DmapRead(rawacf_file)
         dmap_data = dmap.read_records()
         pydarn.DmapWrite(dmap_data, "test_rawacf.rawacf")
@@ -133,10 +153,17 @@ class IntegrationPydmap(unittest.TestCase):
 
         dmap_write = pydarn.DmapWrite(dmap_data)
         dmap_write.write_dmap("test_rawacf.rawacf")
-        self.assertTrue(os.path.isfile("test_rawacf.rawacf"))
+
+        dmap_read = pydarn.DmapRead("test_rawacf.rawacf")
+        data = dmap_read.read_records()
+        self.dmap_compare(dmap_data, data)
         os.remove("test_rawacf.rawacf")
 
-    def test_write_read_dmap_file(self):
+    def test_DmapWrite_DmapRead_dmap_file(self):
+        """
+        Test integration between DmapWrite and DmapRead from
+        a rawacf data written as file then read in and compared against.
+        """
         rawacf_data = copy.deepcopy(rawacf_data_sets.rawacf_data)
         rawacf_write = pydarn.DmapWrite(rawacf_data, "test_rawacf.rawacf")
         rawacf_write.write_dmap()
@@ -144,7 +171,11 @@ class IntegrationPydmap(unittest.TestCase):
         rawacf_read_data = rawacf_read.read_records()
         self.dmap_compare(rawacf_read_data, rawacf_data)
 
-    def test_read_write_stream_dmap(self):
+    def test_DmapRead_DmapWrite_stream_dmap(self):
+        """
+        Test DmapRead and DmapWrite to read in a stream and write to a stream
+        to be read in again and compared.
+        """
         with bz2.open(rawacf_stream) as fp:
             dmap_stream = fp.read()
         dmap = pydarn.DmapRead(dmap_stream, True)
@@ -155,7 +186,11 @@ class IntegrationPydmap(unittest.TestCase):
         dmap_read_data = dmap_read.read_records()
         self.dmap_compare(dmap_stream_data, dmap_read_data)
 
-    def test_read_stream_write_file_dmap(self):
+    def test_DmapRead_stream_DmapWrite_file(self):
+        """
+        Test DmapRead a stream in and DmapWrite to a file. DmapRead is
+        used to read the file to compare values.
+        """
         with bz2.open(rawacf_stream) as fp:
             dmap_stream = fp.read()
         dmap = pydarn.DmapRead(dmap_stream, True)
@@ -168,7 +203,10 @@ class IntegrationPydmap(unittest.TestCase):
         dmap_data = dmap.read_records()
         self.dmap_compare(dmap_stream_data, dmap_data)
 
-    def test_write_stream_read_dmap(self):
+    def test_DmapWrite_stream_DmapRead_dmap(self):
+        """
+        Test DmapWrite write data to a stream, DmapRead read the stream.
+        """
         rawacf_data = copy.deepcopy(rawacf_data_sets.rawacf_data)
         rawacf_write = pydarn.DmapWrite()
         rawacf_stream = rawacf_write.write_dmap_stream(rawacf_data)
@@ -178,6 +216,9 @@ class IntegrationPydmap(unittest.TestCase):
         self.dmap_compare(rawacf_read_data, rawacf_data)
 
     def test_DmapRead_dmap2dict_dict2dmap(self):
+        """
+        Test DmapRead from a file and convert to a dictionary.
+        """
         dmap_read = pydarn.DmapRead(rawacf_file)
         records = dmap_read.read_records()
         dict_records = pydarn.dmap2dict(records)
@@ -185,6 +226,11 @@ class IntegrationPydmap(unittest.TestCase):
         self.dmap_compare(records, records_2)
 
     def test_DmapWrite_DmapRead_dict2dmap_dict2dmap(self):
+        """
+        Test Convert dictionary to dmap from dict2dmap then write with DmapWrite
+        to be read in with DmapRead and converted back to a dictionary with
+        dmap2dict.
+        """
         dmap_dict = [{'stid': 56,
                      'channel': 0,
                      'software': 'RST',
@@ -200,7 +246,12 @@ class IntegrationPydmap(unittest.TestCase):
         dmap_dict2 = pydarn.dmap2dict(records)
         self.dict_compare(dmap_dict, dmap_dict2)
 
-    def test_DmapWrite_DmapRead_stream_dmap2dict(self):
+    def test_dict2dmap_DmapWrite_DmapRead_stream_dmap2dict(self):
+        """
+        Test convert dict to dmap with dict2dmap then DmapWrite to write
+        to a stream to be read in by DmapRead and converted back to a dictionary
+        with dict2dmap
+        """
         dmap_dict = [{'stid': 56,
                      'channel': 0,
                      'software': 'RST',
@@ -217,6 +268,10 @@ class IntegrationPydmap(unittest.TestCase):
         self.dict_compare(dmap_dict, dmap_dict2)
 
     def test_DmapWrite_DmapRead_dmap2dict(self):
+        """
+        Test DmapWrite writing a dmap data set to be read in by DmapRead
+        and convert to a dictionary by dmap2dict and compared.
+        """
         dmap_dict = [{'RST.version': '4.1',
                       'stid': 3,
                       'FAC.vel': np.array([2.5, 3.5, 4.0], dtype=np.float32)},
