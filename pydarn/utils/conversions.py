@@ -14,7 +14,7 @@ from collections import OrderedDict
 from pydarn import DmapArray, DmapScalar
 
 # key is the format char type defined by python, item is the DMAP int value for the type
-DMAP_FORMAT_TYPES = {'c': 1,  # character (char)
+DMAP_FORMAT_TYPES = {'c': 1,  # char = int8 by RST rtypes.h definition
                      'h': 2,  # short integer
                      'i': 3,  # integer (int)
                      'f': 4,  # float
@@ -27,9 +27,9 @@ DMAP_FORMAT_TYPES = {'c': 1,  # character (char)
                      'Q': 19}  # unsigned long int
 
 # python possible types that could be the python format type characters
-FORMAT_CONVERSION = {chr: 'c',  # Python doesn't actually have chars :/ they are just casted to strings
-                     np.char: 'c',  # not sure how to test this, you cannot use np.char() ¯\_(ツ)_/¯
-                     np.int8: 'c',  # not sure how a int is a char?
+# python doesn't have char types, instead it converts them to strings.
+# This conversion is okay because RST treats chars as only int8 types.
+FORMAT_CONVERSION = {np.int8: 'c',  # RST defines char as an int8 in rtypes.h
                      np.int16: 'h',
                      int: 'i',
                      np.int32: 'i',
@@ -45,11 +45,22 @@ FORMAT_CONVERSION = {chr: 'c',  # Python doesn't actually have chars :/ they are
                      np.uint32: 'I',
                      np.uint64: 'Q'}
 
+DMAP_CASTING_TYPES = {'c': np.int8,  # RST defined char
+                      'h': np.int16,  # Short
+                      'i': int,  # int
+                      'f': float,  # Float
+                      'd': np.float64,  # Double
+                      's': str,  # String
+                      'q': np.int64,  # long int
+                      'B': np.uint8,  # Unsigned char
+                      'H': np.uint16,  # Unsigned short
+                      'I': np.uint32,  # Unsigned int
+                      'Q': np.uint64}  # Unsigned long int
+
+
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-#       WARNING: This converts on best effort
-#       python does not have character types, if
-#       a string has a length of 1 then it will
-#       treated as a char.
+#       WARNING: RST treats chars as int8 types,
+#       thus single characters are kept are strings
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 def dict2dmap(dmap_list: List[dict]) -> List[dict]:
     """
@@ -76,12 +87,8 @@ def dict2dmap(dmap_list: List[dict]) -> List[dict]:
             if isinstance(value, list):
                 value = np.array(value)  # keep data structures consistent
             if isinstance(value, np.ndarray):
-                shape = np.shape(value)
+                shape = list(np.shape(value))
                 dimension = np.ndim(value)
-                # I did not implement the string length check to see if
-                # it is a list of chars because one would need to look at
-                # every element in the array, and it might be better to just
-                # store it as a string at this point.
                 format_type = FORMAT_CONVERSION[value.dtype.type]
                 dmap_type = DMAP_FORMAT_TYPES[format_type]
                 dmap_data = DmapArray(field, value, dmap_type,
@@ -90,10 +97,6 @@ def dict2dmap(dmap_list: List[dict]) -> List[dict]:
             # else DmapScalar
             else:
                 format_type = FORMAT_CONVERSION[type(value)]
-                # check the length and if it equal to one then consider
-                # it a char
-                if format_type == 's' and len(value) == 1:
-                    format_type = 'c'
                 dmap_type = DMAP_FORMAT_TYPES[format_type]
                 dmap_data = DmapScalar(field, value, dmap_type, format_type)
             dmap_record[field] = dmap_data
@@ -119,6 +122,8 @@ def dmap2dict(dmap_records: List[dict]) -> List[dict]:
     """
     dmap_list = []
     for dmap_record in dmap_records:
-        dmap_dict = {field: data.value for field, data in dmap_record.items()}
-        dmap_list.append(dmap_dict)
+        dmap_dict = {field: (data.value if isinstance(data.value, np.ndarray)
+                     else DMAP_CASTING_TYPES[data.data_type_fmt](data.value))
+                     for field, data in dmap_record.items()}
+        dmap_list.append(OrderedDict(dmap_dict))
     return dmap_list

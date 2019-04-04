@@ -337,7 +337,7 @@ class Map():
 
 class Iqdat():
     """
-    Class contian Iqdat fields
+    Class contain Iqdat fields
     """
     #Standard Iqdat fields
     types = {
