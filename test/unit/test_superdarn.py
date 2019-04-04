@@ -31,15 +31,15 @@ import grid_data_sets
 pydarn_logger = logging.getLogger('pydarn')
 
 # Test files
-rawacf_stream = "./testfiles/20170410.1801.00.sas.stream.rawacf.bz2"
-rawacf_file = "./testfiles/20170410.1801.00.sas.rawacf"
-fitacf_file = "./testfiles/20160331.2201.00.mcm.a.fitacf"
-map_file = "./testfiles/20170114.map"
-iqdat_file = "testfiles/20160316.1945.01.rkn.iqdat"
-grid_file = "./testfiles/20180220.C0.rkn.grid"
+rawacf_stream = "../testfiles/20170410.1801.00.sas.stream.rawacf.bz2"
+rawacf_file = "../testfiles/20170410.1801.00.sas.rawacf"
+fitacf_file = "../testfiles/20160331.2201.00.mcm.a.fitacf"
+map_file = "../testfiles/20170114.map"
+iqdat_file = "../testfiles/20160316.1945.01.rkn.iqdat"
+grid_file = "../testfiles/20180220.C0.rkn.grid"
 # Black listed files
-corrupt_file1 = "./testfiles/20070117.1001.00.han.rawacf"
-corrupt_file2 = "./testfiles/20090320.1601.00.pgr.rawacf"
+corrupt_file1 = "../testfiles/20070117.1001.00.han.rawacf"
+corrupt_file2 = "../testfiles/20090320.1601.00.pgr.rawacf"
 
 
 class TestDarnRead(unittest.TestCase):
@@ -50,11 +50,11 @@ class TestDarnRead(unittest.TestCase):
         pass
 
     """
-    Testing DarnRead's constructor
+    Testing DarnRead constructor
     """
     def test_incorrect_path(self):
         """
-        Testing DarnRead's constructor with an non-existant folder.
+        Testing DarnRead constructor with an nonexistent folder.
 
         Expected behaviour: raise FileNotFoundError
         """
@@ -63,25 +63,25 @@ class TestDarnRead(unittest.TestCase):
 
     def test_incorrect_file(self):
         """
-        Tests if DarnRead's constructor with an non-existant file
+        Tests if DarnRead constructor with an non-existent file
 
-        Expected bahaviour: raises FileNotFoundError
+        Expected behaviour: raises FileNotFoundError
         """
         self.assertRaises(FileNotFoundError, pydarn.DarnRead,
-                          './testfiles/somefile.rawacf')
+                          '../testfiles/somefile.rawacf')
 
     def test_empty_file(self):
         """
-        Tests if DarnRead's constructor with an empty file
+        Tests if DarnRead constructor with an empty file
 
         Expected behaviour: raise EmptyFileError
         """
         self.assertRaises(pydarn.dmap_exceptions.EmptyFileError,
-                          pydarn.DarnRead, './testfiles/empty.rawacf')
+                          pydarn.DarnRead, '../testfiles/empty.rawacf')
 
     def test_open_rawacf(self):
         """
-        Tests DarnRead's constructor on opening a rawacf.
+        Tests DarnRead constructor on opening a rawacf.
         It should be able to open the file, read it and convert to bytearray.
 
         Checks:
@@ -95,7 +95,7 @@ class TestDarnRead(unittest.TestCase):
 
     def test_open_fitacf(self):
         """
-        Tests DarnRead's constructor on opening a fitacf.
+        Tests DarnRead constructor on opening a fitacf.
         It should be able to open the file, read it and convert to bytearray.
 
         Checks:
@@ -109,7 +109,7 @@ class TestDarnRead(unittest.TestCase):
 
     def test_open_map(self):
         """
-        Tests DarnRead's constructor on opening a map.
+        Tests DarnRead constructor on opening a map.
         It should be able to open the file, read it and convert to bytearray.
 
         Checks:
@@ -123,7 +123,7 @@ class TestDarnRead(unittest.TestCase):
 
     def test_open_grid(self):
         """
-        Tests DarnRead's constructor on opening a grid.
+        Tests DarnRead constructor on opening a grid.
         It should be able to open the file, read it and convert to bytearray.
 
         Checks:
@@ -137,7 +137,7 @@ class TestDarnRead(unittest.TestCase):
 
     def test_open_iqdat(self):
         """
-        Tests DarnRead's constructor on opening a iqdat.
+        Tests DarnRead constructor on opening a iqdat.
         It should be able to open the file, read it and convert to bytearray.
 
         Checks:
@@ -156,7 +156,7 @@ class TestDarnRead(unittest.TestCase):
 
         Checks:
             - returns correct data structures
-            - returns excpected values
+            - returns expected values
         """
         file_path = iqdat_file
         dm = pydarn.DarnRead(file_path)
@@ -165,7 +165,7 @@ class TestDarnRead(unittest.TestCase):
         self.assertIsInstance(dm_records[0], collections.OrderedDict)
         self.assertIsInstance(dm_records[0]['rxrise'], pydarn.DmapScalar)
         self.assertIsInstance(dm_records[3]['tsc'], pydarn.DmapArray)
-        self.assertIsInstance(dm_records[5]['mppul'].value, int)
+        self.assertIsInstance(dm_records[5]['mppul'].value, np.int16)
         self.assertIsInstance(dm_records[6]['tnoise'].value, np.ndarray)
         self.assertEqual(dm_records[7]['channel'].value, 0)
         self.assertEqual(dm_records[10]['data'].dimension, 1)
@@ -176,7 +176,7 @@ class TestDarnRead(unittest.TestCase):
 
         Checks:
             - returns correct data structures
-            - returns excpected values
+            - returns expected values
         """
         file_path = rawacf_file
         dm = pydarn.DarnRead(file_path)
@@ -185,7 +185,7 @@ class TestDarnRead(unittest.TestCase):
         self.assertIsInstance(dm_records[0], collections.OrderedDict)
         self.assertIsInstance(dm_records[4]['channel'], pydarn.DmapScalar)
         self.assertIsInstance(dm_records[1]['ptab'], pydarn.DmapArray)
-        self.assertIsInstance(dm_records[7]['channel'].value, int)
+        self.assertIsInstance(dm_records[7]['channel'].value, np.int16)
         self.assertIsInstance(dm_records[2]['xcfd'].value, np.ndarray)
         self.assertEqual(dm_records[0]['xcfd'].dimension, 3)
 
@@ -195,7 +195,7 @@ class TestDarnRead(unittest.TestCase):
 
         Checks:
             - returns correct data structures
-            - returns excpected values
+            - returns expected values
         """
         file_path = fitacf_file
         dm = pydarn.DarnRead(file_path)
@@ -204,7 +204,7 @@ class TestDarnRead(unittest.TestCase):
         self.assertIsInstance(dm_records[0], collections.OrderedDict)
         self.assertIsInstance(dm_records[4]['bmnum'], pydarn.DmapScalar)
         self.assertIsInstance(dm_records[1]['ptab'], pydarn.DmapArray)
-        self.assertIsInstance(dm_records[7]['channel'].value, int)
+        self.assertIsInstance(dm_records[7]['channel'].value, np.int16)
         self.assertIsInstance(dm_records[2]['ltab'].value, np.ndarray)
         self.assertEqual(dm_records[0]['ptab'].dimension, 1)
 
@@ -214,7 +214,7 @@ class TestDarnRead(unittest.TestCase):
 
         Checks:
             - returns correct data structures
-            - returns excpected values
+            - returns expected values
         """
         file_path = grid_file
         dm = pydarn.DarnRead(file_path)
@@ -223,7 +223,7 @@ class TestDarnRead(unittest.TestCase):
         self.assertIsInstance(dm_records[0], collections.OrderedDict)
         self.assertIsInstance(dm_records[4]['start.year'], pydarn.DmapScalar)
         self.assertIsInstance(dm_records[1]['v.max'], pydarn.DmapArray)
-        self.assertIsInstance(dm_records[7]['end.day'].value, int)
+        self.assertIsInstance(dm_records[7]['end.day'].value, np.int16)
         self.assertIsInstance(dm_records[2]['stid'].value, np.ndarray)
         self.assertEqual(dm_records[0]['nvec'].dimension, 1)
 
@@ -233,7 +233,7 @@ class TestDarnRead(unittest.TestCase):
 
         Checks:
             - returns correct data structures
-            - returns excpected values
+            - returns expected values
         """
         file_path = map_file
         dm = pydarn.DarnRead(file_path)
@@ -243,7 +243,7 @@ class TestDarnRead(unittest.TestCase):
         self.assertIsInstance(dm_records[2]['IMF.flag'],
                               pydarn.io.datastructures.DmapScalar)
         self.assertIsInstance(dm_records[3]['stid'], pydarn.DmapArray)
-        self.assertIsInstance(dm_records[8]['IMF.flag'].value, int)
+        self.assertIsInstance(dm_records[8]['IMF.flag'].value, np.int16)
         self.assertIsInstance(dm_records[10]['stid'].value, np.ndarray)
         self.assertEqual(dm_records[3]['stid'].dimension, 1)
         self.assertEqual(dm_records[0]['stid'].shape[0], 14)  # this will be file dependent... future working test project.
@@ -252,7 +252,7 @@ class TestDarnRead(unittest.TestCase):
         """
         Test read_records on a corrupt file
 
-        Expected bahaviour: raises pydmap expection
+        Expected behaviour: raises pydmap exception
         """
         dmap = pydarn.DarnRead(corrupt_file1)
         with self.assertRaises(pydarn.dmap_exceptions.DmapDataTypeError):
@@ -262,7 +262,7 @@ class TestDarnRead(unittest.TestCase):
         """
         Test read_records on a corrupt file
 
-        Expected bahaviour: raises pydmap expection
+        Expected behaviour: raises pydmap exception
         """
         dmap = pydarn.DarnRead(corrupt_file2)
         with self.assertRaises(pydarn.dmap_exceptions.NegativeByteError):
@@ -276,9 +276,9 @@ class TestDarnRead(unittest.TestCase):
 
          Checks:
             - returns correct data structures
-            - returns excpected values
+            - returns expected values
         """
-        # bz2 opens the compressed file into a data
+        # bz2 opens the compressed file np.int16o a data
         # stream of bytes without actually uncompressing the file
         with bz2.open(rawacf_stream) as fp:
             dmap_stream = fp.read()
@@ -288,7 +288,7 @@ class TestDarnRead(unittest.TestCase):
         self.assertIsInstance(dmap_data[0], collections.OrderedDict)
         self.assertIsInstance(dmap_data[4]['channel'], pydarn.DmapScalar)
         self.assertIsInstance(dmap_data[1]['ptab'], pydarn.DmapArray)
-        self.assertIsInstance(dmap_data[7]['channel'].value, int)
+        self.assertIsInstance(dmap_data[7]['channel'].value, np.int16)
         self.assertIsInstance(dmap_data[2]['xcfd'].value, np.ndarray)
         self.assertEqual(dmap_data[0]['xcfd'].dimension, 3)
 
@@ -298,7 +298,7 @@ class TestDarnRead(unittest.TestCase):
         file which returns a byte object, then insert some random
         bytes to produce a corrupt stream.
 
-        Expected bahaviour: raises pydmap expection
+        Expected behaviour: raises pydmap exception
         """
         with bz2.open(rawacf_stream) as fp:
             dmap_stream = fp.read()
@@ -453,6 +453,33 @@ class TestDarnUtilities(unittest.TestCase):
         pydarn.DarnUtilities.missing_field_check([dict1, dict2, dict3],
                                                  test_dict, 1)
 
+    def test_missing_field_check_fail2(self):
+        """
+        Testing missing_field_check - Reverse idea of the extra_field_check,
+        should find missing fields in a record when compared to a key set of
+        SuperDARN field names
+
+        Expected behaviour
+        ------------------
+        Raise SuperDARNFieldMissingError - raised when there is a difference
+        between dictionary key sets
+        """
+
+        dict1 = {'a': 1, 'b': 2, 'c': 3}
+        dict2 = {'rst': '4.1', 'stid': 3, 'vel': [2.3, 4.5]}
+        dict3 = {'fitacf': 'f', 'rawacf': 's', 'map': 'm'}
+
+        test_dict = {'a': 3, 'b': 3, 'd': 2,
+                     'stid': 's', 'vel': 'd',
+                     'fitacf': 3, 'map': 4}
+
+        try:
+            pydarn.DarnUtilities.missing_field_check([dict1, dict2, dict3],
+                                                     test_dict, 1)
+        except pydarn.superdarn_exceptions.SuperDARNFieldMissingError as err:
+            self.assertEqual(err.fields, {'c', 'rst', 'rawacf'})
+
+
     def test_missing_field_check_fail(self):
         """
         Testing missing_field_check - Reverse idea of the extra_field_check,
@@ -548,7 +575,7 @@ class TestDarnWrite(unittest.TestCase):
 
     def test_darn_write_constructor(self):
         """
-        Tests DarnWrite's constructor
+        Tests DarnWrite constructor
 
         Expected behaviour
         ------------------
@@ -596,7 +623,7 @@ class TestDarnWrite(unittest.TestCase):
 
         Expected behaviour
         ------------------
-        Raises SuperDARNFieldMissing Error - because the rawacf data is
+        Raises SuperDARNFieldMissingError - because the rawacf data is
         missing field nave
         """
         rawacf_missing_field = copy.deepcopy(rawacf_data_sets.rawacf_data)
@@ -617,7 +644,7 @@ class TestDarnWrite(unittest.TestCase):
 
         Expected behaviour
         ------------------
-        Raises SuperDARNExtraFieldErrro because the rawacf data
+        Raises SuperDARNExtraFieldError because the rawacf data
         has an extra field dummy
         """
         rawacf_extra_field = copy.deepcopy(rawacf_data_sets.rawacf_data)
@@ -694,7 +721,7 @@ class TestDarnWrite(unittest.TestCase):
 
         Expected behaviour
         ------------------
-        Raises SuperDARNFieldMissing Error - because the fitacf data is
+        Raises SuperDARNFieldMissingError - because the fitacf data is
         missing field stid
         """
         fitacf_missing_field = copy.deepcopy(fitacf_data_sets.fitacf_data)
@@ -714,11 +741,13 @@ class TestDarnWrite(unittest.TestCase):
 
         Expected behaviour
         ------------------
-        Raises SuperDARNExtraFieldErrro because the fitacf data
+        Raises SuperDARNExtraFieldError because the fitacf data
         has an extra field dummy
         """
         fitacf_extra_field = copy.deepcopy(fitacf_data_sets.fitacf_data)
-        fitacf_extra_field[1]['dummy'] = pydarn.DmapArray('dummy', np.array([1, 2]), chr(1), 'c', 1, [2])
+        fitacf_extra_field[1]['dummy'] = pydarn.DmapArray('dummy',
+                                                          np.array([1, 2]),
+                                                          chr(1), 'c', 1, [2])
         dmap = pydarn.DarnWrite(fitacf_extra_field)
 
         try:
@@ -771,7 +800,7 @@ class TestDarnWrite(unittest.TestCase):
 
         Expected behaviour
         ------------------
-        Raises SuperDARNFieldMissing Error - because the iqdat data is
+        Raises SuperDARNFieldMissingError - because the iqdat data is
         missing field chnnum
         """
 
@@ -792,7 +821,7 @@ class TestDarnWrite(unittest.TestCase):
 
         Expected behaviour
         ------------------
-        Raises SuperDARNExtraFieldErrro because the iqdat data
+        Raises SuperDARNExtraFieldError because the iqdat data
         has an extra field dummy
         """
         iqdat_extra_field = copy.deepcopy(iqdat_data_sets.iqdat_data)
@@ -849,7 +878,7 @@ class TestDarnWrite(unittest.TestCase):
 
         Expected behaviour
         ------------------
-        Raises SuperDARNFieldMissing Error - because the map data is
+        Raises SuperDARNFieldMissingError - because the map data is
         missing field stid
         """
         map_missing_field = copy.deepcopy(map_data_sets.map_data)
@@ -869,7 +898,7 @@ class TestDarnWrite(unittest.TestCase):
 
         Expected behaviour
         ------------------
-        Raises SuperDARNExtraFieldErrro because the map data
+        Raises SuperDARNExtraFieldError because the map data
         has an extra field dummy
         """
         map_extra_field = copy.deepcopy(map_data_sets.map_data)
@@ -926,7 +955,7 @@ class TestDarnWrite(unittest.TestCase):
 
         Expected behaviour
         ------------------
-        Raises SuperDARNFieldMissing Error - because the grid data is
+        Raises SuperDARNFieldMissingError - because the grid data is
         missing field stid
         """
         grid_missing_field = copy.deepcopy(grid_data_sets.grid_data)
@@ -946,7 +975,7 @@ class TestDarnWrite(unittest.TestCase):
 
         Expected behaviour
         ------------------
-        Raises SuperDARNExtraFieldErrro because the grid data
+        Raises SuperDARNExtraFieldError because the grid data
         has an extra field dummy
         """
         grid_extra_field = copy.deepcopy(grid_data_sets.grid_data)
