@@ -42,7 +42,7 @@ class SuperDARNRadars():
                           'Virginia Tech'),
               1: _Radar('Goose Bay', 1, 'gbr', _Hemisphere.North,
                        'Virginia Tech'),
-              10: _Rdara('Hankasalmi', 10, 'han', _Hemisphere.North,
+              10: _Radar('Hankasalmi', 10, 'han', _Hemisphere.North,
                          'University of Leicester'),
               40: _Radar('Hokkaido East', 40, 'hok', _Hemisphere.North,
                          'Nagoya University'),
