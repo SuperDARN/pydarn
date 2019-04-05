@@ -6,7 +6,8 @@
 """
 Range-time Intensity plots
 """
-import matplotlib
+import matplotlib.pyplot as plt
+from  matplotlib import dates, colors
 import numpy as np
 from typing import List
 from datetime import datetime
@@ -34,9 +35,9 @@ class RTI():
 
     """
 
-    parameter_type = {'power': ('pwr', 'array'),
-                      'velocity': ('vel', 'array'),
-                      'sepctral width': ('spect', 'array'),
+    parameter_type = {'power': ('pwr0', 'array'),
+                      'velocity': ('v', 'array'),
+                      'spectral width': ('spect', 'array'),
                       'frequency': ('freq', 'scalar'),
                       'search noise': ('src.noise', 'scalar'),
                       'sky noise': ('sky.noise', 'scalar'),
@@ -46,12 +47,12 @@ class RTI():
     # becuase of the Singleton nature of matplotlib
     # it is written in modules, thus I need to extend the module
     # since I cannot inherit modules :(
-    plt = matplotlib.pyplot
+    plt = plt
 
     settings = {'ground_scatter': True}
 
     @classmethod
-    def plot_profile(cls, *args, dmap_data: List[dict],
+    def plot_profile(cls, dmap_data: List[dict], *args,
                      parameter: str = 'power', beamnum: int = 0, **kwargs):
         """
 
@@ -100,18 +101,19 @@ class RTI():
             cls.start_time = cls.__time2datetime(dmap_list[0])
             cls.end_time = cls.__time2datetime(dmap_list[-1])
         cls.dmap_data = dmap_list
-        cls.parameter = cls.parameter_type.get(parameter, d=None)
-        if cls.parameter is None:
+        param_tuple = cls.parameter_type.get(parameter, None)
+        if param_tuple is None:
             data_type = cls.dmap_data[0][parameter]
             if isinstance(data_type, np.ndarray):
                 data_type = 'array'
             else:
                 data_type = 'scalar'
         else:
-            data_type = cls.parameter[1]
+            data_type = param_tuple[1]
+            cls.parameter = param_tuple[0]
 
         if data_type == 'array':
-            cls.__plot_scalar(*args, **kwargs)
+            cls.__plot_array(*args, **kwargs)
         else:
             cls.__plot_scalar(*args, **kwargs)
 
@@ -141,39 +143,59 @@ class RTI():
 
     @classmethod
     def __plot_array(cls, *args, **kwargs):
+        print("made it here")
         # y-axis coordinates, i.e., range gates,
         # TODO: implement variant other coordinate systems for the y-axis
-        y = np.linspace(0, cls.dmap_data['nrang'], cls.dmap_data['nrang']+1)
-        y_max = cls.dmap_data['nrang']
+        y = np.linspace(0, cls.dmap_data[0]['nrang'], cls.dmap_data[0]['nrang'])
+        y_max = cls.dmap_data[0]['nrang']
 
         # z: parameter data mapped into the color mesh
         z = np.zeros((1, y_max)) * np.nan
         x = []
+        # We cannot simply use numpy's built in min and max function
+        # because of the ground scatter value
+        z_min = 0
+        z_max = 0
         for dmap_record in cls.dmap_data:
             if dmap_record['bmnum'] == cls.beamnum:
                 time = cls.__time2datetime(dmap_record)
                 if cls.start_time <= time and time <= cls.end_time:
                     # construct the x-axis array
-                    x.append(matplotlib.dates.date2num(time))
+                    x.append(dates.date2num(time))
                     # I do this to avoid having an extra loop to just count how
                     # many records contain the beam number
-                    i = len(x)
-                    if len(x) != 1:
-                        z = np.insert(z, len(z), np.zeros(1, y_max), axis=0)
-                    for j in range(len(dmap_record['slist'])):
-                        if cls.settings['ground_scatter'] and\
-                           dmap_record['gflg'][j] == 1:
-                            # chosen value from davitpy to make the
-                            # ground scatter a different colour from the colour
-                            # map
-                            z[i][j] = -1000000
-                        else:
-                            z[i][j] = dmap_record[cls.parameter][j]
-
-        time_axis, elev_axis = np.meshgrid(x[:-1], y)
-        data = np.ma.masked_where(np.isnan(z.T), z.T)
-        cls.plt.pcolormesh(time_axis, elev_axis, data, lw=0.01,
-                           edgecolors='None', norm='norm')
+                    i = len(x) - 1  # offset since we start at 0 not 1
+                    if len(x) > 1:
+                        z = np.insert(z, len(z), np.zeros(1, y_max) * np.nan,
+                                      axis=0)
+                    try:
+                        for j in range(len(dmap_record['slist'])):
+                            if cls.settings['ground_scatter'] and\
+                               dmap_record['gflg'][j] == 1:
+                                # chosen value from davitpy to make the
+                                # ground scatter a different colour from the colour
+                                # map
+                                z[i][dmap_record['slist'][j]] = -1000000
+                            else:
+                                z[i][dmap_record['slist'][j]] = \
+                                        dmap_record[cls.parameter][j]
+                                if z[i][dmap_record['slist'][j]] < z_min:
+                                    z_min = z[i][dmap_record['slist'][j]]
+                                if z[i][dmap_record['slist'][j]] > z_max:
+                                    z_max = z[i][dmap_record['slist'][j]]
+                    # a KeyError may be thrown because slist is not created
+                    # due to bad quality data.
+                    except KeyError as errror:
+                        continue
+        time_axis, elev_axis = np.meshgrid(x, y)
+        z_data = np.ma.masked_where(np.isnan(z.T), z.T)
+        norm = colors.Normalize(z_min, z_max)
+        pc_kwargs = {'rasterized': True, 'cmap': 'viridis', 'norm': norm}
+        plt.pcolormesh(time_axis,
+                       elev_axis, z_data, lw=0.01,  **pc_kwargs)
+        plt.gca().format_xdata = dates.DateFormatter("%H:%M")
+        plt.colorbar()
+        plt.show()
 
     @classmethod
     def summaryplot(cls, *args, dmap_data: List[dict],
