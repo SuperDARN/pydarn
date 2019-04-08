@@ -35,21 +35,24 @@ class RTI():
 
     """
 
-    parameter_type = {'power': ('pwr0', 'array'),
-                      'velocity': ('v', 'array'),
-                      'spectral width': ('spect', 'array'),
-                      'frequency': ('freq', 'scalar'),
-                      'search noise': ('src.noise', 'scalar'),
-                      'sky noise': ('sky.noise', 'scalar'),
-                      'control program id': ('cpid', 'scalar'),
-                      'n averages': ('nave', 'scalar')}
+    parameter_type = {'power': ('pwr0', 'array', r'Elevation (degrees)'),
+                      'velocity': ('v', 'array', r'Velocity ($m/s$)'),
+                      'elevation': ('elv', 'array', r'Signal to Noise ($dB$)'),
+                      'spectral width': ('width', 'array', r'Spectral Width ($m/s$)'),
+                      'frequency': ('freq', 'scalar', ''),
+                      'search noise': ('src.noise', 'scalar', ''),
+                      'sky noise': ('sky.noise', 'scalar', ''),
+                      'control program id': ('cpid', 'scalar', ''),
+                      'nave': ('nave', 'scalar', '')}
 
     # becuase of the Singleton nature of matplotlib
     # it is written in modules, thus I need to extend the module
     # since I cannot inherit modules :(
     plt = plt
 
-    settings = {'ground_scatter': True}
+    settings = {'ground_scatter': True,
+                'date_fmt': "%y/%m/%d\n%H:%M",
+                'colour_bar': ''}
 
     @classmethod
     def plot_profile(cls, dmap_data: List[dict], *args,
@@ -109,6 +112,7 @@ class RTI():
             else:
                 data_type = 'scalar'
         else:
+            cls.settings['color_bar'] = param_tuple[2]
             data_type = param_tuple[1]
             cls.parameter = param_tuple[0]
 
@@ -152,6 +156,7 @@ class RTI():
         # z: parameter data mapped into the color mesh
         z = np.zeros((1, y_max)) * np.nan
         x = []
+        date_list = []
         # We cannot simply use numpy's built in min and max function
         # because of the ground scatter value
         z_min = 0
@@ -161,7 +166,9 @@ class RTI():
                 time = cls.__time2datetime(dmap_record)
                 if cls.start_time <= time and time <= cls.end_time:
                     # construct the x-axis array
-                    x.append(dates.date2num(time))
+                    # Numpy datetime is used because it properly formats on the
+                    # x-axis
+                    x.append(time)
                     # I do this to avoid having an extra loop to just count how
                     # many records contain the beam number
                     i = len(x) - 1  # offset since we start at 0 not 1
@@ -187,15 +194,23 @@ class RTI():
                     # due to bad quality data.
                     except KeyError as errror:
                         continue
+        print(z_min)
+        print(z_max)
+        print(cls.parameter)
         time_axis, elev_axis = np.meshgrid(x, y)
         z_data = np.ma.masked_where(np.isnan(z.T), z.T)
         norm = colors.Normalize(z_min, z_max)
         pc_kwargs = {'rasterized': True, 'cmap': 'viridis', 'norm': norm}
+        #plt.gca().format_xdata = dates.DateFormatter("%H:%M")
         plt.pcolormesh(time_axis,
                        elev_axis, z_data, lw=0.01,  **pc_kwargs)
-        plt.gca().format_xdata = dates.DateFormatter("%H:%M")
-        plt.colorbar()
-        plt.show()
+
+
+        plt.gca().xaxis.set_major_formatter(dates.DateFormatter(cls.settings['date_fmt']))
+        #plt.gcf().autofmt_xdate()
+        cb = plt.colorbar()
+        cb.set_label(cls.settings['color_bar'])
+        #plt.show()
 
     @classmethod
     def summaryplot(cls, *args, dmap_data: List[dict],
