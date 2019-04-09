@@ -12,10 +12,10 @@ import numpy as np
 from typing import List
 from datetime import datetime
 
-from pydarn import DmapArray, utils
+from pydarn import DmapArray, DmapScalar, utils, rti_exceptions
 
 
-class RTI():
+class RTP():
     """
     Range-time intensity plots SuperDARN data using the following fields:
 
@@ -35,28 +35,29 @@ class RTI():
 
     """
 
-    parameter_type = {'power': ('pwr0', 'array', r'Elevation (degrees)'),
-                      'velocity': ('v', 'array', r'Velocity ($m/s$)'),
-                      'elevation': ('elv', 'array', r'Signal to Noise ($dB$)'),
-                      'spectral width': ('width', 'array', r'Spectral Width ($m/s$)'),
-                      'frequency': ('freq', 'scalar', ''),
-                      'search noise': ('src.noise', 'scalar', ''),
-                      'sky noise': ('sky.noise', 'scalar', ''),
-                      'control program id': ('cpid', 'scalar', ''),
-                      'nave': ('nave', 'scalar', '')}
+    parameter_type = {'power': ('pwr0', r'Elevation (degrees)'),
+                      'velocity': ('v', r'Velocity ($m/s$)'),
+                      'elevation': ('elv', r'Signal to Noise ($dB$)'),
+                      'spectral width': ('width', r'Spectral Width ($m/s$)'),
+                      'frequency': ('freq', ''),
+                      'search noise': ('src.noise', ''),
+                      'sky noise': ('sky.noise', ''),
+                      'control program id': ('cpid', ''),
+                      'nave': ('nave', '')}
 
     # becuase of the Singleton nature of matplotlib
     # it is written in modules, thus I need to extend the module
     # since I cannot inherit modules :(
-    plt = plt
 
     settings = {'ground_scatter': True,
                 'date_fmt': "%y/%m/%d\n%H:%M",
-                'colour_bar': ''}
+                'colour_bar': True,
+                'colour_bar_label': '',
+                'axes_object': None}
 
     @classmethod
-    def plot_profile(cls, dmap_data: List[dict], *args,
-                     parameter: str = 'power', beamnum: int = 0, **kwargs):
+    def plot_range_time(cls, dmap_data: List[dict], *args,
+                        parameter: str = 'power', beamnum: int = 0, **kwargs):
         """
 
         Future Work
@@ -83,11 +84,27 @@ class RTI():
             Flag to indicate if ground scatter should be plotted.
             default : False
         """
-        if isinstance(dmap_data[0]['ptab'], DmapArray):
-            dmap_list = utils.conversions.dmap2dict(dmap_data)
-
+        # This is only done because the library support DMAP format
+        # it would be better to just require a dictionary
         cls.settings.update(kwargs)
         cls.beamnum = beamnum
+
+        # Determine if it is a supported parameter type
+        # TODO: Its own method?
+        cls.parameter = cls.parameter_type.get(parameter, parameter)
+        if isinstance(parameter, tuple):
+            cls.parameter = cls.parameter[0]
+            cls.settings['color_bar'] = parameter[2]
+
+        # Determine if a DmapRecord was passed in, instead of a list
+        # TODO: Its own method?
+        if isinstance(dmap_data[0][cls.parameter], DmapArray) or\
+           isinstance(dmap_data[0][cls.parameter], DmapScalar):
+            dmap_data = utils.conversions.dmap2dict(dmap_data)
+
+        cls.dmap_data = dmap_data
+        cls.__check_data_type(cls.parameter, 'array')
+        # TODO: it's own method?
         try:
             if len(kwargs['time_span']) == 2:
                 cls.start_time = kwargs['time_span'][0]
@@ -101,53 +118,9 @@ class RTI():
                 raise IndexError("time_span list must be length of 2 or 3")
 
         except KeyError:
-            cls.start_time = cls.__time2datetime(dmap_list[0])
-            cls.end_time = cls.__time2datetime(dmap_list[-1])
-        cls.dmap_data = dmap_list
-        param_tuple = cls.parameter_type.get(parameter, None)
-        if param_tuple is None:
-            data_type = cls.dmap_data[0][parameter]
-            if isinstance(data_type, np.ndarray):
-                data_type = 'array'
-            else:
-                data_type = 'scalar'
-        else:
-            cls.settings['color_bar'] = param_tuple[2]
-            data_type = param_tuple[1]
-            cls.parameter = param_tuple[0]
+            cls.start_time = cls.__time2datetime(cls.dmap_data[0])
+            cls.end_time = cls.__time2datetime(cls.dmap_data[-1])
 
-        if data_type == 'array':
-            cls.__plot_array(*args, **kwargs)
-        else:
-            cls.__plot_scalar(*args, **kwargs)
-
-    # TODO: move to a utils or superDARN utils
-    @classmethod
-    def __time2datetime(cls, dmap_record):
-        year = dmap_record['time.yr']
-        month = dmap_record['time.mo']
-        day = dmap_record['time.dy']
-        hour = dmap_record['time.hr']
-        minute = dmap_record['time.mt']
-        second = dmap_record['time.sc']
-        micro_sec = dmap_record['time.us']
-
-        return datetime(year=year, month=month, day=day, hour=hour,
-                        minute=minute, second=second, microsecond=micro_sec)
-
-    # Needs its own method because it generates vertical lines when
-    # the cpid changes
-    @classmethod
-    def __plot_cpid(cls, *args, **kwargs):
-        pass
-
-    @classmethod
-    def __plot_scalar(cls, *args, **kwargs):
-        pass
-
-    @classmethod
-    def __plot_array(cls, *args, **kwargs):
-        print("made it here")
         # y-axis coordinates, i.e., range gates,
         # TODO: implement variant other coordinate systems for the y-axis
         y = np.linspace(0, cls.dmap_data[0]['nrang'], cls.dmap_data[0]['nrang'])
@@ -194,23 +167,64 @@ class RTI():
                     # due to bad quality data.
                     except KeyError as errror:
                         continue
-        print(z_min)
-        print(z_max)
-        print(cls.parameter)
         time_axis, elev_axis = np.meshgrid(x, y)
         z_data = np.ma.masked_where(np.isnan(z.T), z.T)
         norm = colors.Normalize(z_min, z_max)
         pc_kwargs = {'rasterized': True, 'cmap': 'viridis', 'norm': norm}
-        #plt.gca().format_xdata = dates.DateFormatter("%H:%M")
-        plt.pcolormesh(time_axis,
-                       elev_axis, z_data, lw=0.01,  **pc_kwargs)
+
+        if cls.settings['axes_object']:
+            cls.settings['axes_object'].pcolormesh(time_axis, elev_axis,
+                                                   z_data, lw=0.01,
+                                                   **pc_kwargs)
+            cls.settings['axes_object'].xaxis.set_major_formatter(dates.DateFormatter(cls.settings['date_fmt']))
+        else:
+            plt.pcolormesh(time_axis, elev_axis, z_data, lw=0.01,  **pc_kwargs)
+            plt.gca().xaxis.set_major_formatter(dates.DateFormatter(cls.settings['date_fmt']))
+
+        if cls.settings['colour_bar']:
+            cb = plt.colorbar()
+            cb.set_label(cls.settings['color_bar'])
+
+    @classmethod
+    def __check_data_type(cls, parameter, expected_type):
+        """
+        Checks to make sure the plot type is correct
+        for the data structure.
+        """
+        data_type = cls.dmap_data[0][parameter]
+        if expected_type == 'array':
+            if not isinstance(data_type, np.ndarray):
+                raise rti_exceptions.RTPIncorrectPlotMethodError(parameter,
+                                                                 data_type)
+        else:
+            if isinstance(data_type, np.ndarray):
+                raise rti_exceptions.RTPIncorrectPlotMethodError(parameter,
+                                                                 data_type)
 
 
-        plt.gca().xaxis.set_major_formatter(dates.DateFormatter(cls.settings['date_fmt']))
-        #plt.gcf().autofmt_xdate()
-        cb = plt.colorbar()
-        cb.set_label(cls.settings['color_bar'])
-        #plt.show()
+    # TODO: move to a utils or superDARN utils
+    @classmethod
+    def __time2datetime(cls, dmap_record):
+        year = dmap_record['time.yr']
+        month = dmap_record['time.mo']
+        day = dmap_record['time.dy']
+        hour = dmap_record['time.hr']
+        minute = dmap_record['time.mt']
+        second = dmap_record['time.sc']
+        micro_sec = dmap_record['time.us']
+
+        return datetime(year=year, month=month, day=day, hour=hour,
+                        minute=minute, second=second, microsecond=micro_sec)
+
+    # Needs its own method because it generates vertical lines when
+    # the cpid changes
+    @classmethod
+    def __plot_cpid(cls, *args, **kwargs):
+        pass
+
+    @classmethod
+    def __plot_scalar(cls, *args, **kwargs):
+        pass
 
     @classmethod
     def summaryplot(cls, *args, dmap_data: List[dict],
