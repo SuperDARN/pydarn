@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from  matplotlib import dates, colors
 import numpy as np
 from typing import List
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from pydarn import DmapArray, DmapScalar, utils, rti_exceptions
 
@@ -57,7 +57,8 @@ class RTP():
 
     @classmethod
     def plot_range_time(cls, dmap_data: List[dict], *args,
-                        parameter: str = 'power', beamnum: int = 0, **kwargs):
+                        parameter: str = 'power', beamnum: int = 0, ax = None,
+                        **kwargs):
         """
 
         Future Work
@@ -88,13 +89,17 @@ class RTP():
         # it would be better to just require a dictionary
         cls.settings.update(kwargs)
         cls.beamnum = beamnum
+        if not ax:
+            ax = plt.gca()
 
         # Determine if it is a supported parameter type
         # TODO: Its own method?
-        cls.parameter = cls.parameter_type.get(parameter, parameter)
-        if isinstance(parameter, tuple):
-            cls.parameter = cls.parameter[0]
-            cls.settings['color_bar'] = parameter[2]
+        parameter_tuple = cls.parameter_type.get(parameter, parameter)
+        if isinstance(parameter_tuple, tuple):
+            cls.settings['color_bar'] = parameter_tuple[1]
+            cls.parameter = parameter_tuple[0]
+        else:
+            cls.parameter = parameter_tuple
 
         # Determine if a DmapRecord was passed in, instead of a list
         # TODO: Its own method?
@@ -135,8 +140,13 @@ class RTP():
         z_min = 0
         z_max = 0
         for dmap_record in cls.dmap_data:
+            time = cls.__time2datetime(dmap_record)
+            if x == []:
+                diff_time = time - time
+            else:
+                diff_time = time - x[-1]
+            print(diff_time.seconds/60)
             if dmap_record['bmnum'] == cls.beamnum:
-                time = cls.__time2datetime(dmap_record)
                 if cls.start_time <= time and time <= cls.end_time:
                     # construct the x-axis array
                     # Numpy datetime is used because it properly formats on the
@@ -145,7 +155,7 @@ class RTP():
                     # I do this to avoid having an extra loop to just count how
                     # many records contain the beam number
                     i = len(x) - 1  # offset since we start at 0 not 1
-                    if len(x) > 1:
+                    if i > 0:
                         z = np.insert(z, len(z), np.zeros(1, y_max) * np.nan,
                                       axis=0)
                     try:
@@ -167,23 +177,38 @@ class RTP():
                     # due to bad quality data.
                     except KeyError as errror:
                         continue
+            elif diff_time.seconds/60.0 > 2.0:
+                print("adding time")
+                x.append(time)
+                i = len(x) - 1  # offset since we start at 0 not 1
+                if i > 0:
+                    z = np.insert(z, len(z), np.zeros(1, y_max) * np.nan,
+                                  axis=0)
+
         time_axis, elev_axis = np.meshgrid(x, y)
         z_data = np.ma.masked_where(np.isnan(z.T), z.T)
         norm = colors.Normalize(z_min, z_max)
         pc_kwargs = {'rasterized': True, 'cmap': 'viridis', 'norm': norm}
 
-        if cls.settings['axes_object']:
-            cls.settings['axes_object'].pcolormesh(time_axis, elev_axis,
-                                                   z_data, lw=0.01,
-                                                   **pc_kwargs)
-            cls.settings['axes_object'].xaxis.set_major_formatter(dates.DateFormatter(cls.settings['date_fmt']))
-        else:
-            plt.pcolormesh(time_axis, elev_axis, z_data, lw=0.01,  **pc_kwargs)
-            plt.gca().xaxis.set_major_formatter(dates.DateFormatter(cls.settings['date_fmt']))
-
+        im = ax.pcolormesh(time_axis, elev_axis, z_data, lw=0.01, **pc_kwargs)
+        ax.xaxis.set_major_formatter(dates.DateFormatter(cls.settings['date_fmt']))
         if cls.settings['colour_bar']:
-            cb = plt.colorbar()
+            cb = ax.figure.colorbar(im, ax=ax)
             cb.set_label(cls.settings['color_bar'])
+
+
+        #if cls.settings['axes_object'] is not None:
+        #    cls.settings['axes_object'].pcolormesh(time_axis, elev_axis,
+        #                                           z_data, lw=0.01,
+        #                                           **pc_kwargs)
+        #    cls.settings['axes_object'].xaxis.set_major_formatter(dates.DateFormatter(cls.settings['date_fmt']))
+        #else:
+        #    plt.pcolormesh(time_axis, elev_axis, z_data, lw=0.01,  **pc_kwargs)
+        #    plt.gca().xaxis.set_major_formatter(dates.DateFormatter(cls.settings['date_fmt']))
+        #    if cls.settings['colour_bar']:
+        #        cb = plt.colorbar()
+        #        cb.set_label(cls.settings['color_bar'])
+
 
     @classmethod
     def __check_data_type(cls, parameter, expected_type):

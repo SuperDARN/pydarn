@@ -11,5 +11,3 @@ class RTPIncorrectPlotMethodError(Exception):
         self.parameter = parameter
         self.data_type = data_type
         self.message = "Error: Incorrect RTP method is being called for {parameter} of type {data_type}. plot_range_time is for array data types, and plot_time_series is for scalar data types.".format(parameter=self.parameter, data_type=self.data_type)
-
-
