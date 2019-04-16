@@ -7,7 +7,7 @@
 Range-time Intensity plots
 """
 import matplotlib.pyplot as plt
-from  matplotlib import dates, colors
+from  matplotlib import dates, colors, cm
 import numpy as np
 from typing import List
 from datetime import datetime, timedelta
@@ -35,10 +35,10 @@ class RTP():
 
     """
 
-    parameter_type = {'power': ('pwr0', r'Elevation (degrees)'),
+    parameter_type = {'power': ('p_l', r'Signal to Noise ($dB$)'),
                       'velocity': ('v', r'Velocity ($m/s$)'),
-                      'elevation': ('elv', r'Signal to Noise ($dB$)'),
-                      'spectral width': ('width', r'Spectral Width ($m/s$)'),
+                      'elevation': ('elv', r'Elevation (degrees)'),
+                      'spectral width': ('w_l', r'Spectral Width ($m/s$)'),
                       'frequency': ('freq', ''),
                       'search noise': ('src.noise', ''),
                       'sky noise': ('sky.noise', ''),
@@ -51,9 +51,12 @@ class RTP():
 
     settings = {'ground_scatter': True,
                 'date_fmt': "%y/%m/%d\n%H:%M",
-                'colour_bar': True,
-                'colour_bar_label': '',
-                'axes_object': None}
+                'color_bar': True,
+                'color_bar_label': '',
+                'color_map': 'jet',
+                'color_bar_label': '',
+                'axes_object': None,
+                'norm_range': None}
 
     @classmethod
     def plot_range_time(cls, dmap_data: List[dict], *args,
@@ -96,7 +99,7 @@ class RTP():
         # TODO: Its own method?
         parameter_tuple = cls.parameter_type.get(parameter, parameter)
         if isinstance(parameter_tuple, tuple):
-            cls.settings['color_bar'] = parameter_tuple[1]
+            cls.settings['color_bar_label'] = parameter_tuple[1]
             cls.parameter = parameter_tuple[0]
         else:
             cls.parameter = parameter_tuple
@@ -141,13 +144,25 @@ class RTP():
         z_max = 0
         for dmap_record in cls.dmap_data:
             time = cls.__time2datetime(dmap_record)
-            if x == []:
-                diff_time = time - time
-            else:
-                diff_time = time - x[-1]
-            print(diff_time.seconds/60)
+            diff_time = 0.0
+            if time > cls.end_time:
+                break
+            if x != []:
+                # 60.0 seconds in a minute
+                delta_diff_time = (time - x[-1])
+                diff_time = delta_diff_time.seconds/60.0
+
+            # separation roughly 2 minutes
+            if diff_time > 2.0:
+                for _ in range(0, int(np.floor(diff_time/2.0))):
+                    x.append(x[-1] + timedelta(0,120))
+                    i = len(x) - 1  # offset since we start at 0 not 1
+                    if i > 0:
+                        z = np.insert(z, len(z), np.zeros(1, y_max) * np.nan,
+                                      axis=0)
+
             if dmap_record['bmnum'] == cls.beamnum:
-                if cls.start_time <= time and time <= cls.end_time:
+                if cls.start_time <= time:
                     # construct the x-axis array
                     # Numpy datetime is used because it properly formats on the
                     # x-axis
@@ -163,7 +178,7 @@ class RTP():
                             if cls.settings['ground_scatter'] and\
                                dmap_record['gflg'][j] == 1:
                                 # chosen value from davitpy to make the
-                                # ground scatter a different colour from the colour
+                                # ground scatter a different color from the color
                                 # map
                                 z[i][dmap_record['slist'][j]] = -1000000
                             else:
@@ -177,38 +192,26 @@ class RTP():
                     # due to bad quality data.
                     except KeyError as errror:
                         continue
-            elif diff_time.seconds/60.0 > 2.0:
-                print("adding time")
-                x.append(time)
-                i = len(x) - 1  # offset since we start at 0 not 1
-                if i > 0:
-                    z = np.insert(z, len(z), np.zeros(1, y_max) * np.nan,
-                                  axis=0)
 
         time_axis, elev_axis = np.meshgrid(x, y)
         z_data = np.ma.masked_where(np.isnan(z.T), z.T)
-        norm = colors.Normalize(z_min, z_max)
+        if cls.settings['norm_range']:
+            norm = colors.Normalize(cls.settings['norm_range'][0],
+                                    cls.settings['norm_range'][1])
+        else:
+            norm = colors.Normalize(z_min, z_max)
+        cmap = cm.get_cmap(cls.settings['color_map'])
+        #cmap.set_bad('w', 1.0)
         pc_kwargs = {'rasterized': True, 'cmap': 'viridis', 'norm': norm}
 
-        im = ax.pcolormesh(time_axis, elev_axis, z_data, lw=0.01, **pc_kwargs)
+        im = ax.pcolormesh(time_axis, elev_axis, z_data, lw=0.01,
+                           cmap=cmap, norm=norm)
+        ax.set_xlim([cls.start_time, cls.end_time])
         ax.xaxis.set_major_formatter(dates.DateFormatter(cls.settings['date_fmt']))
-        if cls.settings['colour_bar']:
+        ax.margins(0)
+        if cls.settings['color_bar']:
             cb = ax.figure.colorbar(im, ax=ax)
-            cb.set_label(cls.settings['color_bar'])
-
-
-        #if cls.settings['axes_object'] is not None:
-        #    cls.settings['axes_object'].pcolormesh(time_axis, elev_axis,
-        #                                           z_data, lw=0.01,
-        #                                           **pc_kwargs)
-        #    cls.settings['axes_object'].xaxis.set_major_formatter(dates.DateFormatter(cls.settings['date_fmt']))
-        #else:
-        #    plt.pcolormesh(time_axis, elev_axis, z_data, lw=0.01,  **pc_kwargs)
-        #    plt.gca().xaxis.set_major_formatter(dates.DateFormatter(cls.settings['date_fmt']))
-        #    if cls.settings['colour_bar']:
-        #        cb = plt.colorbar()
-        #        cb.set_label(cls.settings['color_bar'])
-
+            cb.set_label(cls.settings['color_bar_label'])
 
     @classmethod
     def __check_data_type(cls, parameter, expected_type):
