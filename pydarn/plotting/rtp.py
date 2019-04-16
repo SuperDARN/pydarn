@@ -7,7 +7,7 @@
 Range-time Intensity plots
 """
 import matplotlib.pyplot as plt
-from  matplotlib import dates, colors, cm
+from  matplotlib import dates, colors, cm, ticker
 import numpy as np
 from typing import List
 from datetime import datetime, timedelta
@@ -201,6 +201,7 @@ class RTP():
         else:
             norm = colors.Normalize(z_min, z_max)
         cmap = cm.get_cmap(cls.settings['color_map'])
+        cmap.set_under('grey', 1.0)
         #cmap.set_bad('w', 1.0)
         pc_kwargs = {'rasterized': True, 'cmap': 'viridis', 'norm': norm}
 
@@ -208,6 +209,9 @@ class RTP():
                            cmap=cmap, norm=norm)
         ax.set_xlim([cls.start_time, cls.end_time])
         ax.xaxis.set_major_formatter(dates.DateFormatter(cls.settings['date_fmt']))
+        ax.yaxis.set_ticks(np.arange(0, y_max+1, 15))
+        ax.xaxis.set_minor_locator(dates.HourLocator())
+        ax.yaxis.set_minor_locator(ticker.MultipleLocator(5))
         ax.margins(0)
         if cls.settings['color_bar']:
             cb = ax.figure.colorbar(im, ax=ax)
