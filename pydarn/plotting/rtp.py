@@ -12,7 +12,7 @@ import numpy as np
 from typing import List
 from datetime import datetime, timedelta
 
-from pydarn import DmapArray, DmapScalar, utils, rti_exceptions
+from pydarn import DmapArray, DmapScalar, utils, rtp_exceptions
 
 
 class RTP():
@@ -34,7 +34,8 @@ class RTP():
     summary_plot
 
     """
-
+    # Default parameter types that davitpy supports and are usually involved
+    # in a summary plot
     parameter_type = {'power': ('p_l', r'Signal to Noise ($dB$)'),
                       'velocity': ('v', r'Velocity ($m/s$)'),
                       'elevation': ('elv', r'Elevation (degrees)'),
@@ -45,10 +46,7 @@ class RTP():
                       'control program id': ('cpid', ''),
                       'nave': ('nave', '')}
 
-    # becuase of the Singleton nature of matplotlib
-    # it is written in modules, thus I need to extend the module
-    # since I cannot inherit modules :(
-
+    #
     settings = {'ground_scatter': True,
                 'date_fmt': "%y/%m/%d\n%H:%M",
                 'color_bar': True,
@@ -60,7 +58,7 @@ class RTP():
 
     @classmethod
     def plot_range_time(cls, dmap_data: List[dict], *args,
-                        parameter: str = 'power', beamnum: int = 0, ax = None,
+                        parameter: str = 'power', beam_num: int = 0, ax = None,
                         **kwargs):
         """
 
@@ -75,7 +73,7 @@ class RTP():
         -----------
         dmap_data : List[dict]
         parameter : str
-        beamnum : int
+        beam_num : int
         scalar : boolean
         time_span : [datetime, datetime] or [datetime, datetime, datetime]
             List containing the start time and end time as datetime objects,
@@ -88,64 +86,70 @@ class RTP():
             Flag to indicate if ground scatter should be plotted.
             default : False
         """
-        # This is only done because the library support DMAP format
-        # it would be better to just require a dictionary
         cls.settings.update(kwargs)
-        cls.beamnum = beamnum
+        beam_num = beam_num
+        # If an axes object is not passed in then store
+        # the equivalent object in matplotlib. This allows
+        # for variant matplotlib plotting styles.
         if not ax:
             ax = plt.gca()
 
         # Determine if it is a supported parameter type
-        # TODO: Its own method?
         parameter_tuple = cls.parameter_type.get(parameter, parameter)
         if isinstance(parameter_tuple, tuple):
             cls.settings['color_bar_label'] = parameter_tuple[1]
-            cls.parameter = parameter_tuple[0]
+            parameter = parameter_tuple[0]
         else:
-            cls.parameter = parameter_tuple
+            parameter = parameter_tuple
 
         # Determine if a DmapRecord was passed in, instead of a list
-        # TODO: Its own method?
-        if isinstance(dmap_data[0][cls.parameter], DmapArray) or\
-           isinstance(dmap_data[0][cls.parameter], DmapScalar):
+        if isinstance(dmap_data[0][parameter], DmapArray) or\
+           isinstance(dmap_data[0][parameter], DmapScalar):
             dmap_data = utils.conversions.dmap2dict(dmap_data)
 
         cls.dmap_data = dmap_data
-        cls.__check_data_type(cls.parameter, 'array')
-        # TODO: it's own method?
+        cls.__check_data_type(parameter, 'array')
+        # Calculate the time span range, either passed in or calculated
+        # based on the dmap_data records
+        # TODO: move this to it's own method
         try:
             if len(kwargs['time_span']) == 2:
-                cls.start_time = kwargs['time_span'][0]
-                cls.end_time = kwargs['time_span'][1]
+                start_time = kwargs['time_span'][0]
+                end_time = kwargs['time_span'][1]
                 cls.interval_time = None
             elif len(kwargs['time_span']) == 3:
-                cls.start_time = kwargs['time_span'][0]
-                cls.end_time = kwargs['time_span'][2]
+                start_time = kwargs['time_span'][0]
+                end_time = kwargs['time_span'][2]
                 cls.interval_time = kwargs['time_span'][1]
             else:
                 raise IndexError("time_span list must be length of 2 or 3")
 
         except KeyError:
-            cls.start_time = cls.__time2datetime(cls.dmap_data[0])
-            cls.end_time = cls.__time2datetime(cls.dmap_data[-1])
+            start_time = cls.__time2datetime(cls.dmap_data[0])
+            end_time = cls.__time2datetime(cls.dmap_data[-1])
 
         # y-axis coordinates, i.e., range gates,
         # TODO: implement variant other coordinate systems for the y-axis
-        y = np.linspace(0, cls.dmap_data[0]['nrang'], cls.dmap_data[0]['nrang'])
+        y = np.linspace(0, cls.dmap_data[0]['nrang'],
+                        cls.dmap_data[0]['nrang'])
         y_max = cls.dmap_data[0]['nrang']
 
         # z: parameter data mapped into the color mesh
         z = np.zeros((1, y_max)) * np.nan
+
+        # x: time date data
         x = []
         date_list = []
+
         # We cannot simply use numpy's built in min and max function
         # because of the ground scatter value
         z_min = 0
         z_max = 0
         for dmap_record in cls.dmap_data:
+            # get time difference to test if there is some gap data
             time = cls.__time2datetime(dmap_record)
             diff_time = 0.0
-            if time > cls.end_time:
+            if time > end_time:
                 break
             if x != []:
                 # 60.0 seconds in a minute
@@ -154,6 +158,8 @@ class RTP():
 
             # separation roughly 2 minutes
             if diff_time > 2.0:
+                # if there is gap data (no data recorded past 2 minutes)
+                # then fill it in with white space
                 for _ in range(0, int(np.floor(diff_time/2.0))):
                     x.append(x[-1] + timedelta(0,120))
                     i = len(x) - 1  # offset since we start at 0 not 1
@@ -161,8 +167,9 @@ class RTP():
                         z = np.insert(z, len(z), np.zeros(1, y_max) * np.nan,
                                       axis=0)
 
-            if dmap_record['bmnum'] == cls.beamnum:
-                if cls.start_time <= time:
+            # Get data for the provided beam number
+            if beam_num == 'all' or dmap_record['bmnum'] == beam_num:
+                if start_time <= time:
                     # construct the x-axis array
                     # Numpy datetime is used because it properly formats on the
                     # x-axis
@@ -170,20 +177,27 @@ class RTP():
                     # I do this to avoid having an extra loop to just count how
                     # many records contain the beam number
                     i = len(x) - 1  # offset since we start at 0 not 1
+
+                    # insert a new column into the z_data
                     if i > 0:
                         z = np.insert(z, len(z), np.zeros(1, y_max) * np.nan,
                                       axis=0)
                     try:
+                        # get the range gates that have "good" data in it
                         for j in range(len(dmap_record['slist'])):
+                            # if it is ground scatter store a very
+                            # low number in that cell
                             if cls.settings['ground_scatter'] and\
                                dmap_record['gflg'][j] == 1:
                                 # chosen value from davitpy to make the
                                 # ground scatter a different color from the color
                                 # map
                                 z[i][dmap_record['slist'][j]] = -1000000
+                            # otherwise store parameter value
                             else:
                                 z[i][dmap_record['slist'][j]] = \
-                                        dmap_record[cls.parameter][j]
+                                        dmap_record[parameter][j]
+                                # calculate min and max value
                                 if z[i][dmap_record['slist'][j]] < z_min:
                                     z_min = z[i][dmap_record['slist'][j]]
                                 if z[i][dmap_record['slist'][j]] > z_max:
@@ -193,29 +207,40 @@ class RTP():
                     except KeyError as errror:
                         continue
 
+        # Check if there is any data to plot
+        if np.all(np.isnan(z)):
+            raise rtp_exceptions.RTPNoDataFoundError(parameter, beam_num, start_time, end_time)
         time_axis, elev_axis = np.meshgrid(x, y)
         z_data = np.ma.masked_where(np.isnan(z.T), z.T)
+
+        # Norm_range sets the normalization range
         if cls.settings['norm_range']:
             norm = colors.Normalize(cls.settings['norm_range'][0],
                                     cls.settings['norm_range'][1])
+        # otherwise use calculated values
         else:
             norm = colors.Normalize(z_min, z_max)
+
         cmap = cm.get_cmap(cls.settings['color_map'])
+        # set ground scatter to grey
         cmap.set_under('grey', 1.0)
-        #cmap.set_bad('w', 1.0)
-        pc_kwargs = {'rasterized': True, 'cmap': 'viridis', 'norm': norm}
 
         im = ax.pcolormesh(time_axis, elev_axis, z_data, lw=0.01,
                            cmap=cmap, norm=norm)
-        ax.set_xlim([cls.start_time, cls.end_time])
+        ax.set_xlim([start_time, end_time])
         ax.xaxis.set_major_formatter(dates.DateFormatter(cls.settings['date_fmt']))
         ax.yaxis.set_ticks(np.arange(0, y_max+1, 15))
         ax.xaxis.set_minor_locator(dates.HourLocator())
         ax.yaxis.set_minor_locator(ticker.MultipleLocator(5))
+        # so the plots gets to the ends
         ax.margins(0)
+
+        cb = None
         if cls.settings['color_bar']:
             cb = ax.figure.colorbar(im, ax=ax)
             cb.set_label(cls.settings['color_bar_label'])
+
+        return im, cb, cmap
 
     @classmethod
     def __check_data_type(cls, parameter, expected_type):
@@ -226,11 +251,11 @@ class RTP():
         data_type = cls.dmap_data[0][parameter]
         if expected_type == 'array':
             if not isinstance(data_type, np.ndarray):
-                raise rti_exceptions.RTPIncorrectPlotMethodError(parameter,
+                raise rtp_exceptions.RTPIncorrectPlotMethodError(parameter,
                                                                  data_type)
         else:
             if isinstance(data_type, np.ndarray):
-                raise rti_exceptions.RTPIncorrectPlotMethodError(parameter,
+                raise rtp_exceptions.RTPIncorrectPlotMethodError(parameter,
                                                                  data_type)
 
 
