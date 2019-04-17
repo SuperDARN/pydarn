@@ -1,12 +1,7 @@
 site_name: RST Documentation
 repo_url: https://github.com/superdarn/rst
 theme: readthedocs
-pages:
+nav:
 - Home: index.md
 - About: about.md
-- User-Guide:
-        - install: user-guide/install.md
-        - HOWTO: user-guide/utilizing-rst.md 
-- Reference Manual:
-- Developers Style Guide:
 
