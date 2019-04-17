@@ -15,7 +15,7 @@ import yaml
 # Importing pydarn exception classes
 from .exceptions import dmap_exceptions
 from .exceptions import superdarn_exceptions
-from .exceptions import rti_exceptions
+from .exceptions import rtp_exceptions
 
 # Importing pydarn pydmap data structure classes
 from .io.datastructures import DmapScalar
