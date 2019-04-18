@@ -36,3 +36,12 @@ class RTPNoDataFoundError(Exception):
                                      end_time=self.end_time.strftime("%Y %m %d %H:%M"))
 
 
+class RTPUnkownParameter(Exception):
+    """
+    Error raised when the parameter is not found in the data passed in
+    """
+    def __init__(self, parameter):
+        self.parameter = parameter
+        self.message = "Error: The following parameter was not found in the data set. Please make sure it is typed correctly or you are using the correct data."
+
+

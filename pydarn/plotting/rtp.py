@@ -41,20 +41,11 @@ class RTP():
                       'elevation': ('elv', r'Elevation (degrees)'),
                       'spectral width': ('w_l', r'Spectral Width ($m/s$)'),
                       'frequency': ('freq', ''),
-                      'search noise': ('src.noise', ''),
-                      'sky noise': ('sky.noise', ''),
+                      'search noise': ('noise.search', ''),
+                      'sky noise': ('noise.sky', ''),
                       'control program id': ('cpid', ''),
                       'nave': ('nave', '')}
 
-    #
-    settings = {'ground_scatter': True,
-                'date_fmt': "%y/%m/%d\n%H:%M",
-                'color_bar': True,
-                'color_bar_label': '',
-                'color_map': 'jet',
-                'color_bar_label': '',
-                'axes_object': None,
-                'norm_range': None}
 
     @classmethod
     def plot_range_time(cls, dmap_data: List[dict], *args,
@@ -85,9 +76,25 @@ class RTP():
         ground_scatter : boolean
             Flag to indicate if ground scatter should be plotted.
             default : False
+
+        Raises
+        ------
         """
-        cls.settings.update(kwargs)
+        # Settings
+        settings = {'ground_scatter': False,
+                    'date_fmt': "%y/%m/%d\n%H:%M",
+                    'color_bar': True,
+                    'color_bar_label': '',
+                    'color_map': 'jet',
+                    'color_bar_label': '',
+                    'axes_object': None,
+                    'norm_range': None,
+                    'boundary': None}
+
+
+        settings.update(kwargs)
         beam_num = beam_num
+
         # If an axes object is not passed in then store
         # the equivalent object in matplotlib. This allows
         # for variant matplotlib plotting styles.
@@ -97,16 +104,18 @@ class RTP():
         # Determine if it is a supported parameter type
         parameter_tuple = cls.parameter_type.get(parameter, parameter)
         if isinstance(parameter_tuple, tuple):
-            cls.settings['color_bar_label'] = parameter_tuple[1]
+            settings['color_bar_label'] = parameter_tuple[1]
             parameter = parameter_tuple[0]
         else:
             parameter = parameter_tuple
 
         # Determine if a DmapRecord was passed in, instead of a list
-        if isinstance(dmap_data[0][parameter], DmapArray) or\
-           isinstance(dmap_data[0][parameter], DmapScalar):
-            dmap_data = utils.conversions.dmap2dict(dmap_data)
-
+        try:
+            if isinstance(dmap_data[0][parameter], DmapArray) or\
+               isinstance(dmap_data[0][parameter], DmapScalar):
+                dmap_data = utils.conversions.dmap2dict(dmap_data)
+        except KeyError as err:
+            raise rtp_exceptions.RTPUnkownParameter(parameter)
         cls.dmap_data = dmap_data
         cls.__check_data_type(parameter, 'array')
         # Calculate the time span range, either passed in or calculated
@@ -143,8 +152,11 @@ class RTP():
 
         # We cannot simply use numpy's built in min and max function
         # because of the ground scatter value
-        z_min = 0
-        z_max = 0
+        if settings["boundary"]:
+            z_min, z_max = settings["value_boundaries"]
+        else:
+            z_min = cls.dmap_record[0][parameter][0]
+            z_max = cls.dmap_record[0][parameter][0]
         for dmap_record in cls.dmap_data:
             # get time difference to test if there is some gap data
             time = cls.__time2datetime(dmap_record)
@@ -187,7 +199,7 @@ class RTP():
                         for j in range(len(dmap_record['slist'])):
                             # if it is ground scatter store a very
                             # low number in that cell
-                            if cls.settings['ground_scatter'] and\
+                            if settings['ground_scatter'] and\
                                dmap_record['gflg'][j] == 1:
                                 # chosen value from davitpy to make the
                                 # ground scatter a different color from the color
@@ -195,13 +207,21 @@ class RTP():
                                 z[i][dmap_record['slist'][j]] = -1000000
                             # otherwise store parameter value
                             else:
-                                z[i][dmap_record['slist'][j]] = \
-                                        dmap_record[parameter][j]
-                                # calculate min and max value
-                                if z[i][dmap_record['slist'][j]] < z_min:
-                                    z_min = z[i][dmap_record['slist'][j]]
-                                if z[i][dmap_record['slist'][j]] > z_max:
-                                    z_max = z[i][dmap_record['slist'][j]]
+                                # check if boundaries have been set
+                                if settings["boundary"]:
+                                    # see if data within boundaries
+                                    if z_min < dmap_record[parameter][j] and\
+                                       z_max > dmap_record[parameter][j]:
+                                        z[i][dmap_record['slist'][j]] = \
+                                                dmap_record[parameter][j]
+                                else:
+                                    z[i][dmap_record['slist'][j]] = \
+                                            dmap_record[parameter][j]
+                                    # calculate min and max value
+                                    if z[i][dmap_record['slist'][j]] < z_min or z_min is None:
+                                        z_min = z[i][dmap_record['slist'][j]]
+                                    if z[i][dmap_record['slist'][j]] > z_max:
+                                        z_max = z[i][dmap_record['slist'][j]]
                     # a KeyError may be thrown because slist is not created
                     # due to bad quality data.
                     except KeyError as errror:
@@ -214,31 +234,34 @@ class RTP():
         z_data = np.ma.masked_where(np.isnan(z.T), z.T)
 
         # Norm_range sets the normalization range
-        if cls.settings['norm_range']:
-            norm = colors.Normalize(cls.settings['norm_range'][0],
-                                    cls.settings['norm_range'][1])
+        if settings['norm_range']:
+            norm = colors.Normalize(settings['norm_range'][0],
+                                    settings['norm_range'][1])
         # otherwise use calculated values
         else:
             norm = colors.Normalize(z_min, z_max)
 
-        cmap = cm.get_cmap(cls.settings['color_map'])
+        cmap = cm.get_cmap(settings['color_map'])
         # set ground scatter to grey
         cmap.set_under('grey', 1.0)
 
+        # plot!
         im = ax.pcolormesh(time_axis, elev_axis, z_data, lw=0.01,
                            cmap=cmap, norm=norm)
+        # setup some standard axis information
         ax.set_xlim([start_time, end_time])
-        ax.xaxis.set_major_formatter(dates.DateFormatter(cls.settings['date_fmt']))
+        ax.xaxis.set_major_formatter(dates.DateFormatter(settings['date_fmt']))
         ax.yaxis.set_ticks(np.arange(0, y_max+1, 15))
         ax.xaxis.set_minor_locator(dates.HourLocator())
         ax.yaxis.set_minor_locator(ticker.MultipleLocator(5))
         # so the plots gets to the ends
         ax.margins(0)
 
+        # create color bar if True
         cb = None
-        if cls.settings['color_bar']:
+        if settings['color_bar']:
             cb = ax.figure.colorbar(im, ax=ax)
-            cb.set_label(cls.settings['color_bar_label'])
+            cb.set_label(settings['color_bar_label'])
 
         return im, cb, cmap
 
