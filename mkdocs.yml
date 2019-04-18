@@ -1,4 +1,4 @@
-site_name: RST Documentation
+site_name: PyDARN Documentation
 repo_url: https://github.com/superdarn/pydarn
 theme: readthedocs
 nav:
