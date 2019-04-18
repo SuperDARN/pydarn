@@ -1,5 +1,5 @@
 site_name: RST Documentation
-repo_url: https://github.com/superdarn/rst
+repo_url: https://github.com/superdarn/pydarn
 theme: readthedocs
 nav:
 - Home: index.md
