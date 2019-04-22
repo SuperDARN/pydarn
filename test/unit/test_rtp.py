@@ -12,10 +12,10 @@ class TestRTP(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         """
-        Runs once before all tests are ran. Loads and reads in the 
+        Runs once before all tests are ran. Loads and reads in the
         fitacf file that will be used in all the unit tests.
         """
-        fitacf_file = "../testfiles/20180220.C0.rkn.fitacf"
+        fitacf_file = "../testfiles/20181209.C0.sas.fitacf"
         darn_read = pydarn.DarnRead(fitacf_file)
         cls.fitacf_data = darn_read.read_fitacf()
 
@@ -25,7 +25,7 @@ class TestRTP(unittest.TestCase):
         """
         pydarn.RTP.plot_range_time(self.fitacf_data, parameter='elevation',
                                    beam_num=7,
-                                   boundary=(0,57))
+                                   boundary=(0, 57))
         plt.title("Simple Elevation no ground scatter, beam 7 Saskatoon plot")
         plt.show()
 
@@ -51,16 +51,15 @@ class TestRTP(unittest.TestCase):
     def test_velocity_error_range_time_plot(self):
         """
         plots velocity error range time plot which is not a pre-set
-        parameter also added extra settings for the color bar. 
+        parameter also added extra settings for the color bar.
         """
         pydarn.RTP.plot_range_time(self.fitacf_data, parameter='v_e',
                                    beam_num=5, color_map='jet_r',
                                    color_bar_label="velocity error $m/s$",
                                    boundary=(-200, 200))
-        plt.title("Non-standard parameter: Velocity error\n"\
+        plt.title("Non-standard parameter: Velocity error\n"
                   " with reversed jet color map")
         plt.show()
-
 
     def test_power_range_time_plot(self):
         """
@@ -73,7 +72,7 @@ class TestRTP(unittest.TestCase):
 
     def test_multiplots_range_time_plt(self):
         """
-        plots multiple range-time plots using subplots 
+        plots multiple range-time plots using subplots
         """
         plt.subplot(2, 1, 1)
         plt.title("Subplots using plt method")
@@ -100,7 +99,7 @@ class TestRTP(unittest.TestCase):
         """
         plots multi elevation plots using axes object
         """
-        fig, (ax1, ax2) = plt.subplots(2,1)
+        fig, (ax1, ax2) = plt.subplots(2, 1)
         pydarn.RTP.plot_range_time(self.fitacf_data, parameter='elevation',
                                    beam_num=7, ax=ax1)
         ax1.set_ylabel("Elevation $degrees$")
@@ -113,22 +112,39 @@ class TestRTP(unittest.TestCase):
         fig.suptitle("RTP subplots using Axes Object")
         plt.show()
 
+    def test_multichannel_axes_object_range_time_plot(self):
+        """
+        plots multi elevation plots using axes object
+        """
+        fig, (ax1, ax2) = plt.subplots(2, 1)
+        pydarn.RTP.plot_range_time(self.fitacf_data, parameter='elevation',
+                                   beam_num=7, ax=ax1, channel=1)
+        ax1.set_ylabel("ch. 1")
+
+        pydarn.RTP.plot_range_time(self.fitacf_data, parameter='elevation',
+                                   beam_num=7, ax=ax2,
+                                   channel=2)
+        ax2.set_xlabel("Date (UTC)")
+        ax2.set_ylabel("ch. 2")
+
+        fig.suptitle("RTP subplots using Axes Object")
+        plt.show()
+
     def test_zero_data_to_plot(self):
         """
         raise an error of no data found because the time zone
-        are out of the time range specified. 
+        are out of the time range specified.
         """
         with self.assertRaises(pydarn.rtp_exceptions.RTPNoDataFoundError):
             pydarn.RTP.plot_range_time(self.fitacf_data, parameter='elevation',
                                        beam_num=7,
                                        time_span=(datetime(2018, 12, 8, 0, 0),
-                                                   datetime(2018, 12, 8, 8, 0)),
+                                                  datetime(2018, 12, 8, 8, 0)),
                                        ground_scatter=True)
-
 
     def test_gapped_data_range_time_plt(self):
         """
-        tests if gapped data would be plotted correctly. 
+        tests if gapped data would be plotted correctly.
         Loops over the fitacf data and excludes some of
         the records to make it a gapped set of data
         """
@@ -140,7 +156,7 @@ class TestRTP(unittest.TestCase):
 
         pydarn.RTP.plot_range_time(gapped_data, parameter='elevation',
                                    beam_num=7, ground_scatter=True,
-                                   boundary=(0,57))
+                                   boundary=(0, 57))
         plt.title("Gapped Elevation Data")
         plt.show()
 
@@ -150,8 +166,8 @@ class TestRTP(unittest.TestCase):
         """
         pydarn.RTP.plot_range_time(self.fitacf_data, parameter='elevation',
                                    beam_num=7,
-                                   time_span=(datetime(2018, 2, 20, 0, 0),
-                                               datetime(2018, 2, 20, 8, 0)),
+                                   time_span=(datetime(2018, 12, 9, 0, 0),
+                                              datetime(2018, 12, 9, 8, 0)),
                                    ground_scatter=True)
         plt.title("Time range between 00:00 - 08:00")
         plt.show()
@@ -167,7 +183,7 @@ class TestRTP(unittest.TestCase):
 
     def test_summary_range_time_plot(self):
         """
-        plots four paramter range-time plots similar to a summary plots
+        plots four parameter range-time plots similar to a summary plots
         """
         plt.subplot(4, 1, 1)
         plt.title("Summary style plot")
@@ -209,7 +225,7 @@ class TestRTP(unittest.TestCase):
 
     def test_calling_time_series_parameter_for_range_time_plot(self):
         """
-        Raise an incorrect plot error because a time-series parameter is 
+        Raise an incorrect plot error because a time-series parameter is
         selected for a range-time plot
         """
         with self.assertRaises(pydarn.rtp_exceptions.RTPIncorrectPlotMethodError):
@@ -218,15 +234,16 @@ class TestRTP(unittest.TestCase):
 
     def test_calling_scalar_parameter_for_range_time_plot(self):
         """
-        Raises an incorret plot error because a scalar parameter is selected 
+        Raises an incorrect plot error because a scalar parameter is selected
         for a range-time plot
         """
         with self.assertRaises(pydarn.rtp_exceptions.RTPIncorrectPlotMethodError):
             pydarn.RTP.plot_range_time(self.fitacf_data, parameter='stid',
                                        beam_num="all")
+
     def test_calling_non_existant_parameter(self):
         """
-        Raises an unknown parameter error because a dummy parameter is passed 
+        Raises an unknown parameter error because a dummy parameter is passed
         that does not exist in the fitacf data
         """
         with self.assertRaises(pydarn.rtp_exceptions.RTPUnknownParameter):
