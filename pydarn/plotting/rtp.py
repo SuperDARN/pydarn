@@ -64,31 +64,72 @@ class RTP():
         -----------
         dmap_data : List[dict]
         parameter : str
+            string/key name indicating which parameter to plot. 
+            default: power
+            standard parameters:
+                - power
+                - elevation
+                - spectral width
+                - velocity
         beam_num : int
         scalar : boolean
-        time_span : [datetime, datetime] or [datetime, datetime, datetime]
+        time_span : [datetime, datetime]
             List containing the start time and end time as datetime objects,
-            If the list length = 3, then the middle (index=1) value will be
-            scale of the time axis (x-axis)
-        channel : char
-            The channel '1', '2', 'a', 'b', 'c', and 'd' wish to plot
-        y_axis : ['gate', '']
+        channel : int
+            The channel 1, 2, 'all'
+            default : 1
         ground_scatter : boolean
             Flag to indicate if ground scatter should be plotted.
             default : False
+        date_fmt : str
+            format of x-axis date ticks, follow datetime format
+            default: '%y/%m/%d \n %H:%M'
+        color_bar: boolean
+            boolean to indicate if a color bar should be included 
+            default: True
+        colr_bar_label: str
+            the label that appears next to the color bar
+            default: '' 
+            Certain standard parameters have pre-set labels:
+            elevation: 'elevation $degrees$' 
+            power: 'signal to noise $dB$'
+            spectral width: 'spectral width $m/s$'
+            velocity: 'velocity $m/s$'
+        color_map: str
+            matplotlib colour map https://matplotlib.org/tutorials/colors/colormaps.html 
+            default: jet 
+            note: to reverse the color just add _r to the string name
+        ax: matplotlib.axes 
+            axes object for another way of plotting
+            default: None 
+        boundary: (int, int)
+            min and max values to include in the plot and set for normalization 
+            of the color map.
+            default: None
+                - the min and max values in the data are used instead
 
         Raises
         ------
+        RTPUnknownParameterError
+        RTPInocrrectParameterPlotError
+        RTPNoDataFoundError
+
+        Returns
+        -------
+        im: matplotlib.pyplot.pcolormesh
+            matplotlib object from pcolormesh
+        cb: matplotlib.colorbar
+            matplotlib color bar
+        cmap: matplotlib.cm
+            matplotlib color map object 
         """
         # Settings
         settings = {'ground_scatter': False,
+                    'channel': 'all',
                     'date_fmt': "%y/%m/%d\n%H:%M",
                     'color_bar': True,
                     'color_bar_label': '',
                     'color_map': 'jet',
-                    'color_bar_label': '',
-                    'axes_object': None,
-                    'norm_range': None,
                     'boundary': None}
 
 
@@ -98,6 +139,7 @@ class RTP():
         # If an axes object is not passed in then store
         # the equivalent object in matplotlib. This allows
         # for variant matplotlib plotting styles.
+        
         if not ax:
             ax = plt.gca()
 
@@ -115,7 +157,7 @@ class RTP():
                isinstance(dmap_data[0][parameter], DmapScalar):
                 dmap_data = utils.conversions.dmap2dict(dmap_data)
         except KeyError as err:
-            raise rtp_exceptions.RTPUnkownParameter(parameter)
+            raise rtp_exceptions.RTPUnknownParameter(parameter)
         cls.dmap_data = dmap_data
         cls.__check_data_type(parameter, 'array')
         # Calculate the time span range, either passed in or calculated
@@ -153,10 +195,10 @@ class RTP():
         # We cannot simply use numpy's built in min and max function
         # because of the ground scatter value
         if settings["boundary"]:
-            z_min, z_max = settings["value_boundaries"]
+            z_min, z_max = settings["boundary"]
         else:
-            z_min = cls.dmap_record[0][parameter][0]
-            z_max = cls.dmap_record[0][parameter][0]
+            z_min = cls.dmap_data[0][parameter][0]
+            z_max = cls.dmap_data[0][parameter][0]
         for dmap_record in cls.dmap_data:
             # get time difference to test if there is some gap data
             time = cls.__time2datetime(dmap_record)
@@ -180,7 +222,7 @@ class RTP():
                                       axis=0)
 
             # Get data for the provided beam number
-            if beam_num == 'all' or dmap_record['bmnum'] == beam_num:
+            if beam_num == 'all' or dmap_record['bmnum'] == beam_num: 
                 if start_time <= time:
                     # construct the x-axis array
                     # Numpy datetime is used because it properly formats on the
@@ -233,13 +275,9 @@ class RTP():
         time_axis, elev_axis = np.meshgrid(x, y)
         z_data = np.ma.masked_where(np.isnan(z.T), z.T)
 
-        # Norm_range sets the normalization range
-        if settings['norm_range']:
-            norm = colors.Normalize(settings['norm_range'][0],
-                                    settings['norm_range'][1])
-        # otherwise use calculated values
-        else:
-            norm = colors.Normalize(z_min, z_max)
+        print("z_min: ", z_min)
+        print("z_max: ", z_max)
+        norm = colors.Normalize(z_min, z_max)
 
         cmap = cm.get_cmap(settings['color_map'])
         # set ground scatter to grey
@@ -266,10 +304,22 @@ class RTP():
         return im, cb, cmap
 
     @classmethod
-    def __check_data_type(cls, parameter, expected_type):
+    def __check_data_type(cls, parameter: str, expected_type: str):
         """
         Checks to make sure the plot type is correct
-        for the data structure.
+        for the data structure
+
+        Parameters
+        ----------
+        paraneter: str
+            string key word name of the parameter
+        expected_type: str
+            string decsribing an array or scalar type 
+            to determine which one is needed for the type of plot
+
+        Raises
+        -------
+        RTPIncorrectPlotMethodError
         """
         data_type = cls.dmap_data[0][parameter]
         if expected_type == 'array':
@@ -284,7 +334,20 @@ class RTP():
 
     # TODO: move to a utils or superDARN utils
     @classmethod
-    def __time2datetime(cls, dmap_record):
+    def __time2datetime(cls, dmap_record: dict) -> datetime:
+        """
+        Converts DMAP time parameter fields into a datetime object
+
+        Parameter
+        ---------
+        dmap_record: dict
+            dictionary of the DMAP data contains the time data
+
+        Returns
+        -------
+        datetime: 
+            returns a datetime object of the records time stamp
+        """
         year = dmap_record['time.yr']
         month = dmap_record['time.mo']
         day = dmap_record['time.dy']
