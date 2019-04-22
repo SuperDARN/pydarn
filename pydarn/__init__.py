@@ -37,7 +37,7 @@ from .utils.conversions import dmap2dict
 
 # import plotting
 from .plotting.superdarn_radars import SuperDARNRadars
-from .plotting.rti import RTI
+from .plotting.rtp import RTP
 
 """
 Pydarn uses yaml for logging configuration because it is the
