@@ -7,7 +7,7 @@
 Range-time Intensity plots
 """
 import matplotlib.pyplot as plt
-from  matplotlib import dates, colors, cm, ticker
+from matplotlib import dates, colors, cm, ticker
 import numpy as np
 from typing import List
 from datetime import datetime, timedelta
@@ -46,10 +46,9 @@ class RTP():
                       'control program id': ('cpid', ''),
                       'nave': ('nave', '')}
 
-
     @classmethod
     def plot_range_time(cls, dmap_data: List[dict], *args,
-                        parameter: str = 'power', beam_num: int = 0, ax = None,
+                        parameter: str = 'power', beam_num: int = 0, ax=None,
                         **kwargs):
         """
 
@@ -64,7 +63,7 @@ class RTP():
         -----------
         dmap_data : List[dict]
         parameter : str
-            string/key name indicating which parameter to plot. 
+            string/key name indicating which parameter to plot.
             default: power
             standard parameters:
                 - power
@@ -85,25 +84,26 @@ class RTP():
             format of x-axis date ticks, follow datetime format
             default: '%y/%m/%d \n %H:%M'
         color_bar: boolean
-            boolean to indicate if a color bar should be included 
+            boolean to indicate if a color bar should be included
             default: True
-        colr_bar_label: str
+        color_bar_label: str
             the label that appears next to the color bar
-            default: '' 
+            default: ''
             Certain standard parameters have pre-set labels:
-            elevation: 'elevation $degrees$' 
+            elevation: 'elevation $degrees$'
             power: 'signal to noise $dB$'
             spectral width: 'spectral width $m/s$'
             velocity: 'velocity $m/s$'
         color_map: str
-            matplotlib colour map https://matplotlib.org/tutorials/colors/colormaps.html 
-            default: jet 
+            matplotlib colour map
+            https://matplotlib.org/tutorials/colors/colormaps.html
+            default: jet
             note: to reverse the color just add _r to the string name
-        ax: matplotlib.axes 
+        ax: matplotlib.axes
             axes object for another way of plotting
-            default: None 
+            default: None
         boundary: (int, int)
-            min and max values to include in the plot and set for normalization 
+            min and max values to include in the plot and set for normalization
             of the color map.
             default: None
                 - the min and max values in the data are used instead
@@ -121,7 +121,7 @@ class RTP():
         cb: matplotlib.colorbar
             matplotlib color bar
         cmap: matplotlib.cm
-            matplotlib color map object 
+            matplotlib color map object
         """
         # Settings
         settings = {'ground_scatter': False,
@@ -132,14 +132,13 @@ class RTP():
                     'color_map': 'jet',
                     'boundary': None}
 
-
         settings.update(kwargs)
         beam_num = beam_num
 
         # If an axes object is not passed in then store
         # the equivalent object in matplotlib. This allows
         # for variant matplotlib plotting styles.
-        
+
         if not ax:
             ax = plt.gca()
 
@@ -156,7 +155,7 @@ class RTP():
             if isinstance(dmap_data[0][parameter], DmapArray) or\
                isinstance(dmap_data[0][parameter], DmapScalar):
                 dmap_data = utils.conversions.dmap2dict(dmap_data)
-        except KeyError as err:
+        except KeyError:
             raise rtp_exceptions.RTPUnknownParameter(parameter)
         cls.dmap_data = dmap_data
         cls.__check_data_type(parameter, 'array')
@@ -190,7 +189,6 @@ class RTP():
 
         # x: time date data
         x = []
-        date_list = []
 
         # We cannot simply use numpy's built in min and max function
         # because of the ground scatter value
@@ -215,14 +213,16 @@ class RTP():
                 # if there is gap data (no data recorded past 2 minutes)
                 # then fill it in with white space
                 for _ in range(0, int(np.floor(diff_time/2.0))):
-                    x.append(x[-1] + timedelta(0,120))
+                    x.append(x[-1] + timedelta(0, 120))
                     i = len(x) - 1  # offset since we start at 0 not 1
                     if i > 0:
                         z = np.insert(z, len(z), np.zeros(1, y_max) * np.nan,
                                       axis=0)
 
             # Get data for the provided beam number
-            if beam_num == 'all' or dmap_record['bmnum'] == beam_num: 
+            if (beam_num == 'all' or dmap_record['bmnum'] == beam_num) and\
+               (settings['channel'] == 'all' or
+                    dmap_record['channel'] == settings['channel']):
                 if start_time <= time:
                     # construct the x-axis array
                     # Numpy datetime is used because it properly formats on the
@@ -244,8 +244,8 @@ class RTP():
                             if settings['ground_scatter'] and\
                                dmap_record['gflg'][j] == 1:
                                 # chosen value from davitpy to make the
-                                # ground scatter a different color from the color
-                                # map
+                                # ground scatter a different color
+                                # from the color map
                                 z[i][dmap_record['slist'][j]] = -1000000
                             # otherwise store parameter value
                             else:
@@ -260,23 +260,23 @@ class RTP():
                                     z[i][dmap_record['slist'][j]] = \
                                             dmap_record[parameter][j]
                                     # calculate min and max value
-                                    if z[i][dmap_record['slist'][j]] < z_min or z_min is None:
+                                    if z[i][dmap_record['slist'][j]] < z_min or\
+                                       z_min is None:
                                         z_min = z[i][dmap_record['slist'][j]]
                                     if z[i][dmap_record['slist'][j]] > z_max:
                                         z_max = z[i][dmap_record['slist'][j]]
                     # a KeyError may be thrown because slist is not created
                     # due to bad quality data.
-                    except KeyError as errror:
+                    except KeyError:
                         continue
 
         # Check if there is any data to plot
         if np.all(np.isnan(z)):
-            raise rtp_exceptions.RTPNoDataFoundError(parameter, beam_num, start_time, end_time)
+            raise rtp_exceptions.RTPNoDataFoundError(parameter, beam_num,
+                                                     start_time, end_time)
         time_axis, elev_axis = np.meshgrid(x, y)
         z_data = np.ma.masked_where(np.isnan(z.T), z.T)
 
-        print("z_min: ", z_min)
-        print("z_max: ", z_max)
         norm = colors.Normalize(z_min, z_max)
 
         cmap = cm.get_cmap(settings['color_map'])
@@ -314,7 +314,7 @@ class RTP():
         paraneter: str
             string key word name of the parameter
         expected_type: str
-            string decsribing an array or scalar type 
+            string decsribing an array or scalar type
             to determine which one is needed for the type of plot
 
         Raises
@@ -331,7 +331,6 @@ class RTP():
                 raise rtp_exceptions.RTPIncorrectPlotMethodError(parameter,
                                                                  data_type)
 
-
     # TODO: move to a utils or superDARN utils
     @classmethod
     def __time2datetime(cls, dmap_record: dict) -> datetime:
@@ -345,7 +344,7 @@ class RTP():
 
         Returns
         -------
-        datetime: 
+        datetime:
             returns a datetime object of the records time stamp
         """
         year = dmap_record['time.yr']
