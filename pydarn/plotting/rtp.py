@@ -12,7 +12,7 @@ from datetime import datetime
 
 from pydarn import SuperDARNRadars
 
-class RTI(matplotlib.pyplot):
+class RTP(matplotlib.pyplot):
     """
     Range-time intensity plots SuperDARN data using the following fields:
 
@@ -31,22 +31,11 @@ class RTI(matplotlib.pyplot):
 
     """
 
-    parameter_type = {'power': 'pwr',
-                      'velocity': 'vel',
-                      'sepctral width': 'spect'}
+    def plot_range_time(cls):
+        pass
 
-    line_parameter_types = {'frequency': 'freq',
-                            'search noise': 'src.noise',
-                            'sky noise': 'sky.noise',
-                            'control program id': 'cpid',
-                            'n averages': 'nave'}
+    def plot_time_series(cls):
+        pass
 
-    def plot_profile(self, *args, dmap_data: List[dict],
-                     parameter: str = 'power', **kwargs):
-
-        self.dmap_data = dmap_data
-
-
-    def summaryplot(self, *args, dmap_data: List[dict],
-                    parameters: str, lines: str, **kwargs):
+    def plot_summary(cls):
         pass
