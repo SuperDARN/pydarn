@@ -36,7 +36,7 @@ class RTPNoDataFoundError(Exception):
                                      end_time=self.end_time.strftime("%Y %m %d %H:%M"))
 
 
-class RTPUnkownParameter(Exception):
+class RTPUnknownParameter(Exception):
     """
     Error raised when the parameter is not found in the data passed in
     """
