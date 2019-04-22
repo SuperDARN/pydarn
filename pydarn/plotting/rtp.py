@@ -107,6 +107,27 @@ class RTP():
             of the color map.
             default: None
                 - the min and max values in the data are used instead
+        max_array_filter : dict
+            dictionary that contains the key parameter names and the values to
+            compare against. Will filter out any data points
+            that is above this value.
+        min_array_filter : dict
+            dictionary that contains the key parameter names and the value to
+            compare against. Will filter out any data points that is
+            below this value.
+        max_scalar_filter : dict
+            dictionary that contains the key parameter names and the values to
+            compare against. Will filter out data sections that is
+            above this value.
+        min_scalar_filter : dict
+            dictionary that contains the key parameter names and the value to
+            compare against. Will filter out data sections
+            that is below this value.
+        equal_scalar_filter : dict
+            dictionary that contains the key parameter names and the value to
+            compare against. Will filter out data sections
+            that is does not equal the value.
+
 
         Raises
         ------
@@ -130,7 +151,12 @@ class RTP():
                     'color_bar': True,
                     'color_bar_label': '',
                     'color_map': 'jet',
-                    'boundary': None}
+                    'boundary': None,
+                    'min_array_filter': dict(),
+                    'max_array_filter': dict(),
+                    'min_scalar_filter': dict(),
+                    'max_scalar_filter': dict(),
+                    'equal_scalar_filter': dict()}
 
         settings.update(kwargs)
         beam_num = beam_num
@@ -248,7 +274,9 @@ class RTP():
                                 # from the color map
                                 z[i][dmap_record['slist'][j]] = -1000000
                             # otherwise store parameter value
-                            else:
+                            # TODO: refactor and clean up this code
+                            elif cls.__filter_data_check(dmap_record,
+                                                         settings, j):
                                 # check if boundaries have been set
                                 if settings["boundary"]:
                                     # see if data within boundaries
@@ -302,6 +330,54 @@ class RTP():
             cb.set_label(settings['color_bar_label'])
 
         return im, cb, cmap
+
+    @classmethod
+    # TODO: could parallelize this method
+    def __filter_data_check(cls, dmap_record: dict, settings: dict, j: int) -> bool:
+        """
+        checks for data that does not meet the criteria of the filtered
+        settings
+
+        Parameters
+        ----------
+        dmap_record : dict
+            dictionary of the dmap record fields
+        settings : dict
+            dictionary of the settings list
+        j : int
+            index on the slist or range gate to check the array values
+
+        Returns
+        -------
+        pass_flg : bool
+            boolean indicating if the dmap_record passes all filter checks
+        """
+        pass_flg = True
+        for key, value in settings['min_array_filter'].items():
+            if dmap_record[key][j] < value:
+                pass_flg = False
+                break
+        for key, value in settings['max_array_filter'].items():
+            if dmap_record[key][j] > value:
+                pass_flg = False
+                break
+
+        for key, value in settings['min_scalar_filter'].items():
+            if dmap_record[key] < value:
+                pass_flg = False
+                break
+
+        for key, value in settings['max_scalar_filter'].items():
+            if dmap_record[key] > value:
+                pass_flg = False
+                break
+
+        for key, value in settings['equal_scalar_filter'].items():
+            if dmap_record[key] != value:
+                pass_flg = False
+                break
+
+        return pass_flg
 
     @classmethod
     def __check_data_type(cls, parameter: str, expected_type: str):
