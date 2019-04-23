@@ -1,4 +1,4 @@
-# pyDARN
+![pydarn](imgs/pydarn_logo.png)
 
 PyDARN is an open source python library for 
 data visualization for SuperDARN data. This library includes some 
