@@ -20,7 +20,7 @@ class CursorError(Exception):
         Default empty.
     """
     def __init__(self, cursor: int, expected_value: int = 0, rec_num: int = 0, message=''):
-        self.cursor
+        self.cursor = cursor
         if message == '':
             self.message = "Error: Cursor is at {cursor} and"\
                     "it needs to be {expected}. Failed at record {rec}".format(cursor=cursor,
@@ -44,6 +44,30 @@ class EmptyFileError(Exception):
         self.filename = filename
         self.message = "Error: {} is empty or"\
             " please check this is the correct file".format(filename)
+        super().__init__(self.message)
+        pydarn_logger.error(self.message)
+
+class DmapCharError(Exception):
+    """
+    Raised if a char type is str
+
+    Parameter
+    --------
+    filename : str
+        name of the file that the DMAP data is coming from.
+    data_name : str
+        parameter field name in the DMAP record
+    rec_num : int
+        Record number the error was raised at
+    """
+    def __init__(self, data_name: str, rec_num: int):
+        self.data_name = data_name,
+        self.rec_num = rec_num
+        self.message = "Error: For field {field} at record number {rec_num} is"\
+                " a string type trying to be written in as a char."\
+                " DMAP treats char as int8. Please revise this field"\
+                " type".format(field=self.data_name,
+                               rec_num=self.rec_num)
         super().__init__(self.message)
         pydarn_logger.error(self.message)
 
@@ -135,10 +159,11 @@ class MismatchByteError(Exception):
     """
     def __init__(self, filename: str, element_info: str, rec_num: int):
         self.filename = filename
+        self.rec_num = rec_num
         self.message = "Error: {filename} contains an {element}"\
-            " at record = rec_num.".format(filename=filename,
-                                           element=element_info,
-                                           rec=rec_num)
+            " at record = {rec}.".format(filename=filename,
+                                         element=element_info,
+                                         rec=rec_num)
         super().__init__(self.message)
         pydarn_logger.error(self.message)
 
