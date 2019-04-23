@@ -434,7 +434,7 @@ class RTP():
             lines = ax.plot_date(x, y, fmt='k', tz=None, xdate=True, ydate=False,
                          **kwargs)
             ax.xaxis.set_major_formatter(dates.DateFormatter(date_fmt))
-
+            ax.yscale('log')
             return lines
 
     @classmethod
