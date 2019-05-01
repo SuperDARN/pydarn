@@ -406,6 +406,7 @@ class DarnRead(DmapRead):
         # quality is not "good". See missing_field_check method in
         # DarnUtilities for more information.
         file_struct_list = [superdarn_formats.Fitacf.types,
+                            superdarn_formats.Fitacf.extra_fields,
                             superdarn_formats.Fitacf.fitted_fields]
         self._read_darn_records(file_struct_list)
         return self._dmap_records
