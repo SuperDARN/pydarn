@@ -1,11 +1,48 @@
-import deepdish as dd
+# Copyright 2019 SuperDARN
+# Author: Marci Detwiller
+"""
+This file contains classes for reading, writing, and converting of Borealis file types.
+The file types that are supported:
+    - 
+
+
+Classes:
+--------
+BorealisUtilities: utilites class that contains static methods for
+SuperDARN file type checking
+BorealisRead : Reads Borealis SuperDARN file types (hdf5)
+BorealisWrite : Writes Borealis SuperDARN file types (hdf5
+BorealisConvert : Writes Borealis SuperDARN files types to 
+SuperDARN legacy files with dmap record structure 
+
+
+Exceptions:
+-----------
+BorealisConversionTypesError 
+
+Future work
+-----------
+
+
+Notes
+-----
+BorealisConvert makes use of DarnWrite to write to SuperDARN file types
+"""
+
+
+
 import sys
 import numpy as np
 from datetime import datetime
 import os
+import h5py
+import deepdish as dd
 
-from superdarn import DarnWrite
-from pydarn import borealis_exceptions
+from pydarn.exceptions import borealis_exceptions
+from pydarn.io.superdarn import DarnWrite
+from pydarn.io import borealis_formats, superdarn_formats
+
+pydarn_log = logging.getLogger('pydarn')
 
 code_to_stid = {
     "tst" : 0,
@@ -61,13 +98,532 @@ code_to_stid = {
     "ekb" : 512,
 }
 
+# TODO convert this entire class to borealis utilities
+class BorealisUtilities():
+    """
+    Utility class that contains static methods that does dictionary set
+    calculations used for determining if there is any missing or extra
+    fields in Borealis file types. Also, does data format type checks
+    for Borealis file types.
 
-class BorealisFileHandler():
+    Static Methods
+    ----------------
+        dict_key_diff(dict1, dict2)
+            Returns a set of the difference between dict1 and dict2 keys
+        dict_list2set(dict_list)
+            Converts a list of dictionaries to a set containing their keys
+        missing_field_check(file_struct_list, record, record_name)
+            Checks if there is any missing fields in the record from
+            a list of possible file fields
+        extra_field_check(file_struct_list, record, record_name)
+            Checks if there is any extra fields in the record from
+            a list of possible file fields
+        incorrect_types_check(file_struct_list, record_name)
+            Checks if there is any incorrect types in the record from
+            a list of possible file fields and their data type formats
 
 
-	def __init__(filename):
+    """
+    @staticmethod
+    def dict_key_diff(dict1: Union[dict, set],
+                      dict2: Union[dict, set]) -> set:
+        """
+        Determines the difference in the key set from the
+        first dictionary to the second dictionary.
+        ex) Let A = {a, b, c} and B = {d, a, b}
+        Then A - B = {c}
+
+        Parameters:
+        -----------
+        dict1 : dict or set
+            dictionary or set to subtract from
+        dict2 : dict or set
+            dictionary or set subtracting from dict1
+
+        Return:
+        ------
+        dict_diff : set
+            difference between dict1 and dict2 keys or the sets
+        """
+        diff_dict = set(dict1) - set(dict2)
+        return diff_dict
+
+
+    @staticmethod
+    def dict_list2set(dict_list: List[dict]) -> set:
+        """
+        Converts a list of dictionaries to list of sets
+
+        Parameters:
+        -----------
+        dict_list : list
+            list of dictionaries
+
+        Return:
+        ------
+        complete_set : set
+            set containing all dictionary key from the list of dicts
+        """
+        # convert dictionaries to set to do some set magic
+        sets = [set(dic) for dic in dict_list]  # TODO: if data types don't matter in the structure format then they can become sets instead of dictionaries.
+        # create a complete set list
+        # * - expands the list out into multiple set arguments
+        # then the union operator creates it into a full unique set
+        # example: s = [{'a','v'}, {'v','x'}] => set.union(*s) = {'a', 'v', 'x'}
+        complete_set = set.union(*sets)
+        return complete_set
+
+
+    @staticmethod
+    def missing_field_check(file_struct_list: List[dict],
+                            record: dict, record_name: int):
+        """
+        Checks if any fields are missing from the record compared to the file
+        structure.
+
+        Parameters:
+        -----------
+        file_struct_list : List[dict]
+            List of dictionaries for the possible file structure fields
+        record : dict
+            Dictionary representing the dmap record
+        record_name : int
+        	The name of the record (first sequence start time)
+
+        Raises:
+        -------
+        BorealisFieldMissing
+        """
+        """
+        We have to check the subsets. Any missing fields is a problem because Borealis 
+        field names are well-defined.
+        """
+        missing_fields = set()
+        for file_struct in file_struct_list:
+            diff_fields = BorealisUtilities.dict_key_diff(file_struct, record)
+            if len(diff_fields) != 0:
+            	missing_fields = missing_fields.union(diff_fields)
+
+        if len(missing_fields) > 0:
+            raise borealis_exceptions.BorealisFieldMissingError(record_name,
+                                                                  missing_fields)
+
+    @staticmethod
+    def extra_field_check(file_struct_list: List[dict],
+                          record: dict, record_name: int):
+        """
+        Check if there is an extra field in the file structure list and record.
+
+        Parameters
+        -----------
+        file_struct_list : List[dict]
+            List of dictionaries for the possible file structure fields
+        record : dict
+            Dmap record
+        record_name : int
+            Record name for better error message information
+
+        Raises
+        -------
+        BorealisExtraField
+
+        """
+        file_struct = BorealisUtilities.dict_list2set(file_struct_list)
+        extra_fields = BorealisUtilities.dict_key_diff(record, file_struct)
+
+        if len(extra_fields) > 0:
+            raise borealis_exceptions.BorealisExtraFieldError(record_name,
+                                                                extra_fields)
+
+
+    @staticmethod
+    def incorrect_types_check(attributes_type_dict: dict, 
+    						  datasets_type_dict: dict,
+    						  record: dict,
+                              record_name: int):
+        """
+        Checks if the file structure fields data type formats are correct
+        in the record.
+
+        Parameters
+        ----------
+		attributes_type_dict : dict
+			Dictionary with the required types for the attributes in the file.
+		datasets_type_dict : dict
+			Dictionary with the require dtypes for the numpy arrays in the file.
+        record : dict
+            Dmap record
+        record_name : int
+            Record name for a better error message information
+
+        Raises
+        ------
+        BorealisFileFormatError
+        """
+        # check the attributes
+    	incorrect_types_check = {param: str(attributes_type_dict[param])
+                             for param in attributes_type_dict.keys()
+                             if type(record[param]) != attributes_type_dict[param]}
+        # the rest of the parameters in the record are numpy arrays (HDF5 datasets)
+    	incorrect_types_check.update({param: 'np.ndarray of ' + str(datasets_type_dict[param])
+                             for param in datasets_type_dict.keys()
+                             if record[param].dtype != attributes_type_dict[param]})
+        if len(incorrect_types_check) > 0:
+            raise borealis_exceptions.BorealisDataFormatTypeError(incorrect_types_check,
+                                                                    record_name)
+
+
+class BorealisRead():
+
+	def __init__(self, borealis_file: str):
+        """
+        Reads SuperDARN Borealis file types into a dictionary for reading methods.
+
+        Parameters
+        ----------
+        borealis_file : str
+            file name containing Borealis hdf5 data.
+
+        Raises
+        ------
+        EmptyFileError
+            borealis_file is empty file
+        FileNotFoundError
+            borealis_file path does not exist
+        TODO: HDF5 read error?
+
+        See Also
+        --------
+		
+        """
+		self.borealis_file = borealis_file
+
+        with h5py.File(self.borealis_file 'r') as f:
+        	self._group_names = sorted(list(f.keys()))
+        	# list of group keys in the HDF5 file, to allow partial read.
+
+        self._current_record_name = '' # Current HDF5 record group name.
+
+        # Records are private to avoid tampering.
+        self._records = {}
+
+
+    @property
+    def current_record_name(self):
+    	return self._current_record_name
+
+
+    @property
+    def records(self):
+    	return self._records
+
+
+    def read_file(self, borealis_filetype: str):
+    	"""
+    	Reads the specified Borealis file using the other functions.
+
+        Returns
+        -------
+        records : dict{dict}
+            records of borealis data. Keys are timestamps of write.
+
+        Raises
+        ------
+        BorealisFileTypeError
+    	"""
+
+    	if borealis_filetype == 'bfiq':
+    		self.read_bfiq()
+    		return self._records
+    	elif borealis_filetype == 'rawacf':
+    		self.read_rawacf()
+    		return self._records
+    	elif borealis_filetype == 'output_ptrs_iq':
+    		self.read_output_ptrs_iq()
+    		return self._records
+    	elif borealis_filetype == 'rawrf':
+    		self.read_rawrf()
+    		return self._records
+    	else:
+    		raise borealis_exceptions.BorealisFileTypeError(self.borealis_file, borealis_filetype)
+
+
+    def read_bfiq(self) -> dict{dict}:
+        """
+        Reads Borealis bfiq file
+
+        Returns
+        -------
+        records : dict{dict}
+            records of beamformed iq data. Keys are timestamps of write.
+        """
+        pydarn_log.debug("Reading Borealis bfiq file: {}".format(self.borealis_file))
+        attribute_types = borealis_formats.BorealisBfiq.single_element_types
+        dataset_types = borealis_formats.BorealisBfiq.array_dtypes
+        self._read_borealis_records(attribute_types, dataset_types)
+        return self._records
+
+
+    def read_rawacf(self) -> dict{dict}:
+        """
+        Reads Borealis rawacf file
+
+        Returns
+        -------
+        records : dict{dict}
+            records of borealis rawacf data. Keys are timestamps of write.
+        """
+        pydarn_log.debug("Reading Borealis rawacf file: {}".format(self.borealis_file))
+        attribute_types = borealis_formats.BorealisRawacf.single_element_types
+        dataset_types = borealis_formats.BorealisRawacf.array_dtypes
+        self._read_borealis_records(attribute_types, dataset_types)
+        return self._records
+
+
+    def read_output_ptrs_iq(self) -> dict{dict}:
+        """
+        Reads Borealis output_ptrs_iq file
+
+        Returns
+        -------
+        records : dict{dict}
+            records of borealis rawacf data. Keys are timestamps of write.
+        """
+        pydarn_log.debug("Reading Borealis output_ptrs_iq file: {}".format(self.borealis_file))
+        attribute_types = borealis_formats.BorealisOutputPtrsIq.single_element_types
+        dataset_types = borealis_formats.BorealisOutputPtrsIq.array_dtypes
+        self._read_borealis_records(attribute_types, dataset_types)
+        return self._records
+
+
+    def read_rawrf(self) -> dict{dict}:
+        """
+        Reads Borealis rawrf file
+
+        Returns
+        -------
+        records : dict{dict}
+            records of borealis rawacf data. Keys are timestamps of write.
+        """
+        pydarn_log.debug("Reading Borealis rawrf file: {}".format(self.borealis_file))
+        attribute_types = borealis_formats.BorealisRawrf.single_element_types
+        dataset_types = borealis_formats.BorealisRawrf.array_dtypes
+        self._read_borealis_records(attribute_types, dataset_types)
+        return self._records
+
+
+    def _read_borealis_records(self, attribute_types : dict, dataset_types : dict):
+        """
+		Read the entire file while checking all 
+
+        Parameters
+        ----------
+		attributes_type_dict : dict
+			Dictionary with the required types for the attributes in the file.
+		datasets_type_dict : dict
+			Dictionary with the require dtypes for the numpy arrays in the file.		
+
+        Raises
+        --------
+		FileNotFound ?? TODO update
+
+        """
+
+        for record_name in self._group_names:
+        	self._current_record_name = record_name
+        	self._read_borealis_record(attribute_types, dataset_types)
+
+
+    def _read_borealis_record(self, attribute_types : dict, dataset_types : dict):
+        """
+        Read a Borealis HDF5 record. Several Borealis
+        field checks are done to insure the integrity of the file. Append
+        to the records dictionary.
+
+        Parameters
+        ----------
+		attributes_type_dict : dict
+			Dictionary with the required types for the attributes in the file.
+		datasets_type_dict : dict
+			Dictionary with the require dtypes for the numpy arrays in the file.
+
+        Raises:
+        -------
+        BorealisFieldMissingError - when a field is missing from the Borealis
+                                file/stream type
+        BorealisExtraFieldError - when an extra field is present in the
+                                Borealis file/stream type
+        BorealisDataFormatTypeError - when a field has the incorrect
+                                field type for the Borealis file/stream type
+
+        See Also
+        --------
+        missing_field_check(format_fields, record, record_name) - checks
+                        for missing fields. See this method for information
+                        on why we use format_fields.
+        extra_field_check(format_fields, record, record_name) - checks for
+                        extra fields in the record
+        incorrect_types_check(attribute_types_dict, dataset_types_dict, record, record_name) - checks
+                        for incorrect data types for file fields
+        """
+
+        all_format_fields = [attribute_types, dataset_types]
+
+        record = dd.io.load(self.borealis_file, group=self._current_record_name)
+        BorealisUtilities.missing_field_check(all_format_fields, record, self._current_record_name)
+        BorealisUtilities.extra_field_check(all_format_fields, record, self._current_record_name)
+        BorealisUtilities.incorrect_types_check(attribute_types, dataset_types, record, self._current_record_name)
+        self._records[self._current_record_name] = record
+
+
+class BorealisWrite():
+
+	# def __init__(self, borealis_records: dict = {}, filename: str = ""):
+	# 	"""
+	# 	Write borealis records to a file. 
+
+	# 	Parameters
+ #        ----------
+ #        dmap_records : List[dict]
+ #            List of dmap records
+ #        filename : str
+ #            Name of the file the user wants to write to
+	# 	"""
+
+ #    def read_bfiq(self) -> dict{dict}:
+ #        """
+ #        Reads Borealis bfiq file
+
+ #        Returns
+ #        -------
+ #        records : dict{dict}
+ #            records of beamformed iq data. Keys are timestamps of write.
+ #        """
+ #        pydarn_log.debug("Reading Borealis bfiq file: {}".format(self.borealis_file))
+ #        attribute_types = borealis_formats.BorealisBfiq.single_element_types
+ #        dataset_types = borealis_formats.BorealisBfiq.array_dtypes
+ #        self._read_borealis_records(attribute_types, dataset_types)
+ #        return self._records
+
+
+ #    def read_rawacf(self) -> dict{dict}:
+ #        """
+ #        Reads Borealis rawacf file
+
+ #        Returns
+ #        -------
+ #        records : dict{dict}
+ #            records of borealis rawacf data. Keys are timestamps of write.
+ #        """
+ #        pydarn_log.debug("Reading Borealis rawacf file: {}".format(self.borealis_file))
+ #        attribute_types = borealis_formats.BorealisRawacf.single_element_types
+ #        dataset_types = borealis_formats.BorealisRawacf.array_dtypes
+ #        self._read_borealis_records(attribute_types, dataset_types)
+ #        return self._records
+
+
+ #    def read_output_ptrs_iq(self) -> dict{dict}:
+ #        """
+ #        Reads Borealis output_ptrs_iq file
+
+ #        Returns
+ #        -------
+ #        records : dict{dict}
+ #            records of borealis rawacf data. Keys are timestamps of write.
+ #        """
+ #        pydarn_log.debug("Reading Borealis output_ptrs_iq file: {}".format(self.borealis_file))
+ #        attribute_types = borealis_formats.BorealisOutputPtrsIq.single_element_types
+ #        dataset_types = borealis_formats.BorealisOutputPtrsIq.array_dtypes
+ #        self._read_borealis_records(attribute_types, dataset_types)
+ #        return self._records
+
+
+ #    def read_rawrf(self) -> dict{dict}:
+ #        """
+ #        Reads Borealis rawrf file
+
+ #        Returns
+ #        -------
+ #        records : dict{dict}
+ #            records of borealis rawacf data. Keys are timestamps of write.
+ #        """
+ #        pydarn_log.debug("Reading Borealis rawrf file: {}".format(self.borealis_file))
+ #        attribute_types = borealis_formats.BorealisRawrf.single_element_types
+ #        dataset_types = borealis_formats.BorealisRawrf.array_dtypes
+ #        self._read_borealis_records(attribute_types, dataset_types)
+ #        return self._records
+
+
+ #    def _read_borealis_records(self, attribute_types : dict, dataset_types : dict):
+ #        """
+	# 	Read the entire file while checking all 
+
+ #        Parameters
+ #        ----------
+	# 	attributes_type_dict : dict
+	# 		Dictionary with the required types for the attributes in the file.
+	# 	datasets_type_dict : dict
+	# 		Dictionary with the require dtypes for the numpy arrays in the file.		
+
+ #        Raises
+ #        --------
+	# 	FileNotFound ?? TODO update
+
+ #        """
+
+ #        for record_name in self._group_names:
+ #        	self._current_record_name = record_name
+ #        	self._read_borealis_record(attribute_types, dataset_types)
+
+
+ #    def _read_borealis_record(self, attribute_types : dict, dataset_types : dict):
+ #        """
+ #        Read a Borealis HDF5 record. Several Borealis
+ #        field checks are done to insure the integrity of the file. Append
+ #        to the records dictionary.
+
+ #        Parameters
+ #        ----------
+	# 	attributes_type_dict : dict
+	# 		Dictionary with the required types for the attributes in the file.
+	# 	datasets_type_dict : dict
+	# 		Dictionary with the require dtypes for the numpy arrays in the file.
+
+ #        Raises:
+ #        -------
+ #        BorealisFieldMissingError - when a field is missing from the Borealis
+ #                                file/stream type
+ #        BorealisExtraFieldError - when an extra field is present in the
+ #                                Borealis file/stream type
+ #        BorealisDataFormatTypeError - when a field has the incorrect
+ #                                field type for the Borealis file/stream type
+
+ #        See Also
+ #        --------
+ #        missing_field_check(format_fields, record, record_name) - checks
+ #                        for missing fields. See this method for information
+ #                        on why we use format_fields.
+ #        extra_field_check(format_fields, record, record_name) - checks for
+ #                        extra fields in the record
+ #        incorrect_types_check(attribute_types_dict, dataset_types_dict, record, record_name) - checks
+ #                        for incorrect data types for file fields
+ #        """
+
+ #        all_format_fields = [attribute_types, dataset_types]
+
+ #        record = deepdish.io.load(self.borealis_file, group=self._current_record_name)
+ #        BorealisUtilities.missing_field_check(all_format_fields, record, self._current_record_name)
+ #        BorealisUtilities.extra_field_check(all_format_fields, record, self._current_record_name)
+ #        BorealisUtilities.incorrect_types_check(attribute_types, dataset_types, record, self._current_record_name)
+ #        self._records[self._current_record_name] = record
+
+
+
+class BorealisConvert():
+
+	def __init__(self, filename):
 		"""
-		Convert HDF5 Borealis records to a given SuperDARN legacy dmap file.
+		Convert HDF5 Borealis records to a given SuperDARN legacy file with dmap format.
 
 		Attributes
 		----------
@@ -80,15 +636,37 @@ class BorealisFileHandler():
 		"""
 
 		self.filename = filename
-		self.records = read_records()
-		self.origin_filetype = '.'.split(os.basename(self.filename))[-2]
+		borealis_reader = BorealisRead(self.filename)
+		self._origin_filetype = os.path.basename(self.filename).split('.')[-2]
+		self._borealis_records = borealis_reader.read_file(self.origin_filetype)
+		self._dmap_records = {}
 
-	def read_records(self):
+
+	@property
+	def borealis_records(self):
+		return self._borealis_records
+
+	@property
+	def origin_filetype(self):
+		return self._origin_filetype
+
+
+	def write_to_dmap(self, dmap_filetype):
 		"""
-		Read the records in the given Borealis HDF5 file.
+		Write the Borealis records as dmap records to a dmap file using PyDARN IO. Return dmap filename.
+
+		:param dmap_filetype: intended SuperDARN legacy filetype to write to as dmap.
+            Dmap file types, the following are supported:
+                                     - 'iqdat' : SuperDARN file type
+                                     - 'rawacf' : SuperDARN file type
+
 		"""
-		recs = dd.io.load(self.filename) 
-		return recs	
+
+		dmap_filename = os.path.splitext(self.filename)[0]+'.'+dmap_filetype
+		self.convert_records_to_dmap(dmap_filetype)
+		DarnWrite(self._dmap_records, dmap_filename)
+		return dmap_filename
+
 
 	def convert_records_to_dmap(self, dmap_filetype):
 		"""
@@ -99,8 +677,8 @@ class BorealisFileHandler():
 			if dmap_filetype != 'iqdat':
 				raise borealis_exceptions.BorealisConversionTypesError(self.filename, self.origin_filetype, dmap_filetype)
 			else:
-				dmap_recs = self.convert_bfiq_to_iqdat()
-				return dmap_recs
+				self.convert_bfiq_to_iqdat()
+
 		else:  # nothing else is currently supported
 			raise borealis_exceptions.BorealisConversionTypesError(self.filename, self.origin_filetype, dmap_filetype)
 
@@ -110,28 +688,42 @@ class BorealisFileHandler():
 		"""
 
 		dmap_recs = []
-		for k, v in self.records.items():
+		for k, v in self._borealis_records.items():
+			data = v['data'].reshape(v['data_dimensions']) # data_descriptors are num_antenna_arrays, num_sequences, num_beams, num_samps
 
-			reshaped_data = []
-			data = v['data'].reshape(v['data_dimensions'])
-			for i in range(v['num_sequences']):
-				arrays = [data[x][i] for x in range(data.shape[0])]
-				reshaped_data.append(np.ravel(np.column_stack(arrays)))
+			if v['borealis_git_hash'][0] == 'v' and v['borealis_git_hash'][2] == '.':
+				borealis_major_revision = v['borealis_git_hash'][1]
+				borealis_minor_revision = v['borealis_git_hash'][3]
+			else:
+				borealis_major_revision = 255
+				borealis_minor_revision = 255						
 
-				flattened_data = np.array(reshaped_data).flatten()
+			slice_id = os.path.basename(self.filename).split('.')[-3]
+			offset = 2 * v['antenna_arrays_order'].shape[0] * v['num_samps']
+			
+			for beam_index, beam in enumerate(v['beam_nums']):
+
+				# grab this beam's data
+				this_data = data[:,:,beam_index,:] # shape is num_antenna_arrays x num_sequences x num_samps
+				# iqdat shape is num_sequences x num_antennas_arrays x num_samps x 2 (real, imag), flattened
+				reshaped_data = []					
+				for i in range(v['num_sequences']):
+					arrays = [this_data[x,i,:] for x in range(this_data.shape[0])] # get the samples for each array 1 after the other
+					reshaped_data.append(np.ravel(np.column_stack(arrays))) # append 
+
+				flattened_data = np.array(reshaped_data).flatten() #(num_sequences x num_antenna_arrays x num_samps, flattened)
 
 				int_data = np.empty(flattened_data.size * 2, dtype=np.int32)
+
 				int_data[0::2] = flattened_data.real
 				int_data[1::2] = flattened_data.imag
 
-				offset = 2 * v['antenna_arrays_order'].shape[0] * v['num_samps']
-
 				dmap_recs.append({
-					'radar.revision.major' : np.int8(0),
-					'radar.revision.minor' : np.int8(0),
-					'origin.code' : np.int8(0),
+					'radar.revision.major' : np.int8(borealis_major_revision),
+					'radar.revision.minor' : np.int8(borealis_minor_revision),
+					'origin.code' : np.int8(100), # indicating Borealis origin
 					'origin.time' : datetime.utcfromtimestamp(v['timestamp_of_write']).strftime("%c"),
-					'origin.command' : v['experiment_string'],
+					'origin.command' : 'Borealis ' + v['borealis_git_hash'] + ' ' + v['experiment_name'],
 					'cp' : np.int16(v['experiment_id']),
 					'stid' : np.int16(code_to_stid[v['station']]),
 					'time.yr' : np.int16(datetime.utcfromtimestamp(v['sqn_timestamps'][0]).year),
@@ -141,71 +733,52 @@ class BorealisFileHandler():
 					'time.mt' : np.int16(datetime.utcfromtimestamp(v['sqn_timestamps'][0]).minute),
 					'time.sc' : np.int16(datetime.utcfromtimestamp(v['sqn_timestamps'][0]).second),
 					'time.us' : np.int16(datetime.utcfromtimestamp(v['sqn_timestamps'][0]).microsecond),
-					'txpow' : np.int16(0),
+					'txpow' : np.int16(-1),
 					'nave' : np.int16(v['num_sequences']),
 					'atten' : np.int16(0),
 					'lagfr' : np.int16(v['first_range_rtt']),
-					'smsep' : np.int16(1e3/v['rx_sample_rate']),
+					'smsep' : np.int16(1e6/v['rx_sample_rate']),
 					'ercod' : np.int16(0),
 					'stat.agc' : np.int16(0),
 					'stat.lopwr' : np.int16(0),
-					'noise.search' : np.float32(0),
+					'noise.search' : np.float32(v['noise_at_freq'][0]),
 					'noise.mean' : np.float32(0),
-					'channel' : np.int16(0),
-					'bmnum' : np.int16(v['beam_nums'][0]),
-					'bmazm' : np.float32(v['beam_azms'][0]),
+					'channel' : np.int16(slice_id),
+					'bmnum' : np.int16(beam),
+					'bmazm' : np.float32(v['beam_azms'][beam_index]),
 					'scan' : np.int16(v['scan_start_marker']),
 					'offset' : np.int16(0),
-					'rxrise' : np.int16(100),
-					'intt.sc' : np.int16(datetime.utcfromtimestamp(v['int_time']).second),
-					'intt.us' : np.int16(datetime.utcfromtimestamp(v['int_time']).microsecond),
+					'rxrise' : np.int16(0),
+					'intt.sc' : np.int16(math.floor(v['int_time'])),
+					'intt.us' : np.int16(math.fmod(v['int_time'], 1.0) * 1e6),
 					'txpl' : np.int16(v['tx_pulse_len']),
 					'mpinc' : np.int16(v['tau_spacing']),
-					'mppul' : np.int16(v['num_pulses']),
-					'mplgs' : np.int16(v['num_lags']),
+					'mppul' : np.int16(len(v['pulses'])),
+					'mplgs' : np.int16(v['lags'].shape[0]),
 					'nrang' : np.int16(v['num_ranges']),
 					'frang' : np.int16(v['first_range']),
-					'rsep' : np.int16(v['range_separation']),
-					'xcf' : np.int16(v['antenna_arrays_order'].shape[0] == 2),
+					'rsep' : np.int16(v['range_sep']),
+					'xcf' : np.int16('intf' in v['antenna_arrays_order']),
 					'tfreq' : np.int16(v['freq']),
-					'mxpwr' : np.int32(0),
-					'lvmax' : np.int32(0),
-					'iqdata.revision.major' : np.int32(0),
+					'mxpwr' : np.int32(-1),
+					'lvmax' : np.int32(20000),
+					'iqdata.revision.major' : np.int32(1),
 					'iqdata.revision.minor' : np.int32(0),
-					'combf' : v['comment'],
+					'combf' : 'Converted from Borealis file: ' + self.filename + ' ; Number of beams in record: ' 
+							  + str(len(v['beam_nums'])) + ' ; ' + v['experiment_comment'] + ' ; ' + v['slice_comment'],
 					'seqnum' : np.int32(v['num_sequences']),
 					'chnnum' : np.int32(v['antenna_arrays_order'].shape[0]),
 					'smpnum' : np.int32(v['num_samps']),
-					'skpnum' : np.int32(6),
+					'skpnum' : np.int32(0),
 					'ptab' : v['pulses'].astype(np.int16),
-					'ltab' : v['lags'].astype(np.int16),
-					'tsc' : np.array([datetime.utcfromtimestamp(x).second for x in v['sqn_timestamps']], dtype=np.int32),
-					'tus' : np.array([datetime.utcfromtimestamp(x).microsecond for x in v['sqn_timestamps']],dtype=np.int32),
+					'ltab' : np.transpose(v['lags']).astype(np.int16),
+					'tsc' : np.array([math.floor(x/1e3) for x in v['sqn_timestamps']], dtype=np.int32), # timestamps in ms
+					'tus' : np.array([math.fmod(x, 1000.0) * 1e3 for x in v['sqn_timestamps']],dtype=np.int32),
 					'tatten' : np.array([0] * v['num_sequences'], dtype=np.int32),
-					'tnoise' : np.array([0] * v['num_sequences'], dtype=np.float32),
+					'tnoise' : v['noise_at_freq'].astype(np.float32),
 					'toff' : np.array([i * offset for i in range(v['num_sequences'])], dtype=np.int32),
 					'tsze' : np.array([offset] * v['num_sequences'], dtype=np.int32),
 					'data' : int_data,
 					})
 
-				return dmap_recs
-
-	def write_to_dmap(self, dmap_filetype):
-		"""
-		Write the Borealis records as dmap records to a dmap file using PyDARN IO. Return dmap filename.
-
-		:param dmap_filetype: intended SuperDARN legacy filetype to write to as dmap.
-            Dmap file types, the following are supported:
-                                     - 'iqdat' : SuperDARN file type
-                                     - 'rawacf' : SuperDARN file type
-                                     - 'fitacf' : SuperDARN file type
-                                     - 'grid' : SuperDARN file type
-                                     - 'map' : SuperDARN file type
-                                     - 'dmap' : writes a file in DMAP format
-                                     - 'stream' : writing to dmap data stream
-		"""
-
-		dmap_filename = os.path.splitext(self.filename)[0]+'.'+dmap_filetype
-		dmap_records = self.convert_records_to_dmap()
-		DmapWrite(dmap_records, dmap_filename)
-		return dmap_filename
+		self._dmap_records = dmap_recs
