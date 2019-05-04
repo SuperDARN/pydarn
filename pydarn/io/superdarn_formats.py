@@ -109,8 +109,6 @@ class Fitacf():
         'mpinc': 'h',
         'mppul': 'h',
         'mplgs': 'h',
-        'mplgexs': 'h',
-        'ifmode': 'h',
         'nrang': 'h',
         'frang': 'h',
         'rsep': 'h',
@@ -127,6 +125,10 @@ class Fitacf():
         'ptab': 'h',
         'ltab': 'h',
         'pwr0': 'f'}
+    extra_fields = {
+            'ifmode': 'h',
+            'mplgexs': 'h',
+            }
     # Fields added if the data is good and can be
     # fitted
     fitted_fields = {
