@@ -2,7 +2,7 @@ import sys
 import os
 import argparse
 
-from pydarn.io.borealis import BorealisFileHandler
+from pydarn.borealis_io.borealis import BorealisConvert
 
 def usage_msg():
     """
@@ -38,7 +38,7 @@ def main():
 	parser = borealis_conversion_parser()
 	args = parser.parse_args()
 
-	borealis_data = BorealisFileHandler(args.borealis_hdf5_file)
+	borealis_data = BorealisConvert(args.borealis_hdf5_file)
 	print('Read the file {filename}'.format(filename=args.borealis_hdf5_file))
 	dmap_filename = borealis_data.write_to_dmap(args.dmap_filetype)
 
