@@ -698,8 +698,9 @@ class BorealisConvert():
         """
 
         dmap_filename = os.path.splitext(self.filename)[0]+'.'+dmap_filetype
-        self._convert_records_to_dmap(dmap_filetype)
-        DarnWrite(self._dmap_records, dmap_filename)
+        self._dmap_records = self._convert_records_to_dmap(dmap_filetype)
+        darn_writer = DarnWrite(self._dmap_records, dmap_filename)
+        darn_writer.write_iqdat(dmap_filename)
         return dmap_filename
 
 
@@ -718,16 +719,21 @@ class BorealisConvert():
         ------
         BorealisConversionTypesError
 
+        Returns
+        -------
+        dmap_records, the records converted to dmap format
         """
 
         if dmap_filetype == 'iqdat':
             if self._is_convertible_to_iqdat():
-                self._convert_bfiq_to_iqdat()
+                dmap_records = self._convert_bfiq_to_iqdat()
         elif dmap_filetype == 'rawacf':
             if self._is_convertible_to_rawacf():
-                self._convert_rawacf_to_rawacf()    
+                dmap_records = self._convert_rawacf_to_rawacf()    
         else:  # nothing else is currently supported
             raise borealis_exceptions.BorealisConversionTypesError(self.filename, self.origin_filetype, dmap_filetype)
+
+        return dmap_records
 
 
     def _is_convertible_to_iqdat(self) -> bool:
@@ -800,6 +806,9 @@ class BorealisConvert():
         """
         Conversion for bfiq to iqdat records.
 
+        Returns
+        -------
+        dmap_recs, the records converted to dmap format
         """
 
         dmap_recs = []
@@ -896,12 +905,16 @@ class BorealisConvert():
                     'data' : int_data,
                     })
 
-        self._dmap_records = dmap_recs
+        return dmap_recs
 
 
     def _convert_rawacf_to_rawacf(self):
         """
         Conversion for Borealis hdf5 rawacf to DARN legacy dmap rawacf files.
+
+        Returns
+        -------
+        dmap_recs, the records converted to dmap format
         """
 
         dmap_recs = []
@@ -998,4 +1011,4 @@ class BorealisConvert():
                     # TODO: intf acfs or lag zero power?
                     })
 
-        self._dmap_records = dmap_recs
+        return dmap_recs
