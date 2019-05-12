@@ -38,6 +38,7 @@ from .utils.conversions import dmap2dict
 
 # import plotting
 from .plotting.superdarn_radars import SuperDARNRadars
+from .plotting.superdarn_cpid import SuperDARNCpids
 from .plotting.rtp import RTP
 
 """

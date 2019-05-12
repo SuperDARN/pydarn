@@ -15,9 +15,162 @@ class TestRTP(unittest.TestCase):
         Runs once before all tests are ran. Loads and reads in the
         fitacf file that will be used in all the unit tests.
         """
-        fitacf_file = "../testfiles/20181209.C0.sas.fitacf"
+        fitacf_file = "../testfiles/20180220.C0.rkn.fitacf"
         darn_read = pydarn.DarnRead(fitacf_file)
         cls.fitacf_data = darn_read.read_fitacf()
+
+    def test_simple_time_series_plot(self):
+        """
+        plots a simple elevation time-series plot for beam 7
+        """
+        pydarn.RTP.plot_time_series(self.fitacf_data, parameter='tfreq',
+                                    beam_num=7)
+        plt.ylabel('$MHz$')
+        plt.title("Simple tfreq plot for beam 7")
+        plt.show()
+
+    def test_unknown_parameter_time_series_plot(self):
+        """
+        Trying to plot a time-series plot using an unkown parameter called
+        dummy
+        Expected behaviour is a raised exception for uknown paramter dummy
+        """
+        with self.assertRaises(pydarn.rtp_exceptions.RTPUnknownParameter):
+            pydarn.RTP.plot_time_series(self.fitacf_data,
+                                        parameter='dummy',
+                                        beam_num=7)
+
+    def test_incorrect_plot_method_array_type_time_series_plot(self):
+        """
+        Trying to plot a rang-time plot using the time-series plot method
+        Expected behaviour is a raised exception for Incorrect plotting method
+        """
+        with self.assertRaises(pydarn.rtp_exceptions.RTPIncorrectPlotMethodError):
+            pydarn.RTP.plot_time_series(self.fitacf_data,
+                                        parameter='v_e',
+                                        beam_num=7)
+
+    def test_incorrect_plot_method_range_time_parameter_time_series_plot(self):
+        """
+        Trying to plot a rang-time plot using the time-series plot method
+        Expected behaviour is a raised exception for Incorrect plotting method
+        """
+        with self.assertRaises(pydarn.rtp_exceptions.RTPIncorrectPlotMethodError):
+            pydarn.RTP.plot_time_series(self.fitacf_data,
+                                        parameter='elevation',
+                                        beam_num=7)
+
+    def test_multiplots_time_series_plots(self):
+        """
+        plots multiple time-series plots using subplots
+        """
+        plt.subplot(2, 1, 1)
+        plt.title("Multi subplot time-series plot for "
+                  "sky noise and search noise")
+        pydarn.RTP.plot_time_series(self.fitacf_data, parameter='noise.sky',
+                                   beam_num=7, linestyle='--')
+        plt.ylabel("Sky Noise")
+        plt.subplot(2, 1, 2)
+        pydarn.RTP.plot_time_series(self.fitacf_data, parameter='noise.search',
+                                   beam_num=7, color='red')
+        plt.ylabel("search Noise")
+        plt.show()
+
+    def test_axes_object_time_series_plot(self):
+        """
+        plots elevation time-series plot using axes object
+        """
+        fig, ax = plt.subplots()
+        pydarn.RTP.plot_time_series(self.fitacf_data, parameter='nave',
+                                   beam_num=7, ax=ax)
+        ax.set_xlabel("Date (UTC)")
+        fig.suptitle("Time sereies nace plot using axes object")
+        plt.show()
+
+    def test_multiplots_axes_object_time_series(self):
+        """
+        plots multi tranmission frequency plots using axes object
+        to plot differnt channels for twofsound mode
+        Note there is some missing data for when it switches
+        to themisscan which uses channel 0
+        """
+        fig, (ax1, ax2) = plt.subplots(2, 1)
+        pydarn.RTP.plot_time_series(self.fitacf_data, parameter='tfreq',
+                                    beam_num=7, channel=1, ax=ax1)
+
+        pydarn.RTP.plot_time_series(self.fitacf_data, parameter='tfreq',
+                                    beam_num=7, channel=2, ax=ax2)
+        ax2.set_xlabel("Date (UTC)")
+
+        fig.suptitle("Multiple axes plots of twofsounds "
+                     "transmission frequencies")
+        plt.show()
+
+    def test_overlapping_time_series_plot(self):
+        """
+        Plots two overlapping time-series plots: noise sky and noise search
+        Includes then legend and using various parameters
+        """
+        pydarn.RTP.plot_time_series(self.fitacf_data, parameter='noise.sky',
+                                    beam_num=7, scale='log', label='noise sky')
+        pydarn.RTP.plot_time_series(self.fitacf_data, parameter='noise.search',
+                                    beam_num=7, scale='log',
+                                    linestyle='--', color='red',
+                                    label='`noise search')
+        plt.legend()
+        plt.title("Overlapping sky noise and search noise")
+        plt.show()
+
+    def test_noise_mean_date_fmt_time_series_plot(self):
+        """
+        plots a simple elevation time-series plot for beam 7
+        """
+        pydarn.RTP.plot_time_series(self.fitacf_data, parameter='noise.mean',
+                                    beam_num=7, scale='log', date_fmt="%H:%M")
+        plt.title("Simple noise mean plot for beam 7")
+        plt.show()
+
+    def test_cp_time_series_plot(self):
+        """
+        plots a cp ID time-series plot for beam 7
+        """
+        pydarn.RTP.plot_time_series(self.fitacf_data, parameter='cp',
+                                    beam_num=7)
+        plt.title("Simple cp ID plot for beam 7 with names")
+        plt.show()
+
+
+    def test_cp_no_names_time_series_plot(self):
+        """
+        plots a simple elevation time-series plot for beam 7
+        """
+        pydarn.RTP.plot_time_series(self.fitacf_data, parameter='cp',
+                                    beam_num=7, cp_name=False)
+        plt.title("Simple cp ID plot for beam 7 with no names")
+        plt.show()
+
+    def test_no_data_time_series_plot(self):
+        """
+        raise an error of no data found because the time zone
+        are out of the time range specified.
+        """
+        with self.assertRaises(pydarn.rtp_exceptions.RTPNoDataFoundError):
+            pydarn.RTP.plot_time_series(self.fitacf_data, parameter='tfreq',
+                                       beam_num=7,
+                                       time_span=(datetime(2018, 12, 8, 0, 0),
+                                                  datetime(2018, 12, 8, 8, 0)))
+
+    def test_no_data_time_series_plot(self):
+        """
+        raise an error of no data found because the time zone
+        are out of the time range specified.
+        """
+        with self.assertRaises(IndexError):
+            pydarn.RTP.plot_time_series(self.fitacf_data, parameter='tfreq',
+                                       beam_num=7,
+                                       time_span=(datetime(2018, 12, 8, 0, 0),
+                                                  datetime(2018, 12, 8, 8, 0),
+                                                  datetime(2018, 12, 8, 8, 0)))
 
     def test_simple_range_time_plot(self):
         """
@@ -229,7 +382,7 @@ class TestRTP(unittest.TestCase):
         selected for a range-time plot
         """
         with self.assertRaises(pydarn.rtp_exceptions.RTPIncorrectPlotMethodError):
-            pydarn.RTP.plot_range_time(self.fitacf_data, parameter='sky noise',
+            pydarn.RTP.plot_range_time(self.fitacf_data, parameter='noise.sky',
                                        beam_num="all")
 
     def test_calling_scalar_parameter_for_range_time_plot(self):
