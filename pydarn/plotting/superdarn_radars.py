@@ -22,7 +22,8 @@ class _Radar(NamedTuple):
 
 
 class SuperDARNRadars():
-    # Information obtained from http://vt.superdarn.org/tiki-index.php?page=Radar+Overview
+    # Information obtained from
+    # http://vt.superdarn.org/tiki-index.php?page=Radar+Overview
     # North Radars
     radars = {209: _Radar('Adak Island East', 209, 'ade',
                           _Hemisphere.North, 'University of Alaska'),
@@ -41,7 +42,7 @@ class SuperDARNRadars():
               204: _Radar('Fort Hays West', 204, 'fhw', _Hemisphere.North,
                           'Virginia Tech'),
               1: _Radar('Goose Bay', 1, 'gbr', _Hemisphere.North,
-                       'Virginia Tech'),
+                        'Virginia Tech'),
               10: _Radar('Hankasalmi', 10, 'han', _Hemisphere.North,
                          'University of Leicester'),
               40: _Radar('Hokkaido East', 40, 'hok', _Hemisphere.North,
