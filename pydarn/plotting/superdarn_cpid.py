@@ -5,6 +5,7 @@
 This module contains SuperDARN radar modes classified by cpid number
 """
 
+
 class SuperDARNCpids():
 
     cpids = {-26401: 'stereoscan',
@@ -41,6 +42,7 @@ class SuperDARNCpids():
              3501: 'twofsound fast',
              3502: 'twofsound slow 7-8 pulses',
              3503: 'twofsound fast 7-8 pulses',
+             3505: 'twofsound',
              3517: 'g10scan',
              3520: 'uafsound slow',
              3521: 'uafsound fast',
@@ -50,5 +52,4 @@ class SuperDARNCpids():
              3601: 'tauscan fast',
              8510: 'ltuseqscan slow',
              8511: 'ltuseqscan fast',
-             9211: 'pcpscan'
-            }
+             9211: 'pcpscan'}

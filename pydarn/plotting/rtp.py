@@ -12,7 +12,7 @@ import numpy as np
 from typing import List
 from datetime import datetime, timedelta
 
-from pydarn import DmapArray, DmapScalar, utils, rtp_exceptions
+from pydarn import DmapArray, DmapScalar, utils, rtp_exceptions, SuperDARNCpids
 
 
 class RTP():
@@ -333,8 +333,10 @@ class RTP():
     @classmethod
     def plot_time_series(cls, dmap_data: List[dict], *args,
                          parameter: str = 'frequency', beam_num: int = 0,
-                         ax=None, date_fmt='%y/%m/%d\n %H:%M',
-                         channel='all', **kwargs):
+                         ax=None, time_span=None,
+                         date_fmt: str='%y/%m/%d\n %H:%M',
+                         channel='all', scale: str = 'linear',
+                         cp_name: bool=True, **kwargs):
         """
         Plots the time series of a scalar parameter
 
@@ -345,6 +347,16 @@ class RTP():
         parameter : str
             Scalar parameter to plot
             default: frequency
+        time_span : (datetime, datetime)
+            tuple containing the start time and end time
+        cp_name : bool
+            If True, the cp ID name will be printed
+            along side the numer. Otherwise the cp ID will
+            just be printed. This is only used for the parameter cp
+            default: True
+        scale: str
+            The y-axis scaling. This is not used for plotting the cp ID
+            Default: log
         beam_num : int
             beam number
             default: 0
@@ -385,45 +397,51 @@ class RTP():
         # Calculate the time span range, either passed in or calculated
         # based on the dmap_data records
         # TODO: move this to it's own method
-        try:
-            if len(kwargs['time_span']) == 2:
-                start_time = kwargs['time_span'][0]
-                end_time = kwargs['time_span'][1]
-                cls.interval_time = None
-            elif len(kwargs['time_span']) == 3:
-                start_time = kwargs['time_span'][0]
-                end_time = kwargs['time_span'][2]
-                cls.interval_time = kwargs['time_span'][1]
-            else:
-                raise IndexError("time_span list must be length of 2 or 3")
-
-        except KeyError:
+        if time_span is None:
             start_time = cls.__time2datetime(cls.dmap_data[0])
             end_time = cls.__time2datetime(cls.dmap_data[-1])
+        elif len(time_span) == 2:
+            start_time = time_span[0]
+            end_time = time_span[1]
+        else:
+            raise IndexError("time_span list must be length of 2, "
+                             "you passed in a time_span list of "
+                             "length: {}".format(len(time_span)))
 
         # plot CPID
         if parameter == 'cp':
             ax.set_xlim(start_time, end_time)
             old_cpid = 0
             for dmap_record in cls.dmap_data:
+                # TODO: this check could be a function call
                 if (dmap_record['bmnum'] == beam_num or beam_num == 'all') and\
                    (dmap_record['channel'] == channel or channel == 'all'):
                     time = cls.__time2datetime(dmap_record)
                     if start_time <= time and time <= end_time:
                         if old_cpid != dmap_record['cp']:
-                            ax.axvline(x=time)
-                            ax.text(x=time, y=0.5, s=dmap_record['cp'])
+                            ax.axvline(x=time, color='black')
+                            old_cpid = dmap_record['cp']
+                            ax.text(x=time + timedelta(seconds=600), y=0.5,
+                                    s=dmap_record['cp'])
+                            if cp_name:
+                                ax.text(x=time + timedelta(seconds=600),
+                                        y=0.4,
+                                        s=SuperDARNCpids.cpids.get(dmap_record['cp'], 'unkown'))
+
+            ax.set_yticks([])
+            lines = None
         else:
             # parameter data
             y = []
             # date time
             x = []
             for dmap_record in cls.dmap_data:
-                if (dmap_record['bmnum'] == beam_num or beam_num == 'all') and\
-                   (channel == dmap_record['channel'] or
-                    channel == 'all'):
-                    time = cls.__time2datetime(dmap_record)
-                    if start_time <= time and time <= end_time:
+                #TODO: this check could be a function call
+                time = cls.__time2datetime(dmap_record)
+                if start_time <= time and time <= end_time:
+                    if (dmap_record['bmnum'] == beam_num or
+                        beam_num == 'all') and \
+                       (channel == dmap_record['channel'] or channel == 'all'):
                         # construct the x-axis array
                         x.append(time)
                         if parameter == 'tfreq':
@@ -431,11 +449,22 @@ class RTP():
                             y.append(dmap_record[parameter]/1000)
                         else:
                             y.append(dmap_record[parameter])
-            lines = ax.plot_date(x, y, fmt='k', tz=None, xdate=True, ydate=False,
-                         **kwargs)
-            ax.xaxis.set_major_formatter(dates.DateFormatter(date_fmt))
-            ax.yscale('log')
-            return lines
+                    elif len(x) > 0:
+                        diff_time = time - x[-1]
+                        if diff_time.seconds/60 > 2.0:
+                            x.append(time)
+                            y.append(np.nan)
+
+            my = np.ma.array(y)
+            my = np.ma.masked_where(np.isnan(my), my)
+            lines = ax.plot_date(x, my, fmt='k', tz=None, xdate=True, ydate=False,
+                                 **kwargs)
+            ax.set_yscale(scale)
+        # set date format and minor hourly locators
+        ax.xaxis.set_major_formatter(dates.DateFormatter(date_fmt))
+        ax.xaxis.set_minor_locator(dates.HourLocator())
+        ax.margins(x=0)
+        return lines
 
     @classmethod
     # TODO: could parallelize this method
