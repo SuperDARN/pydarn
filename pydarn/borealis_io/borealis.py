@@ -845,15 +845,12 @@ class BorealisConvert():
                 int_data = np.empty(flattened_data.size * 2, dtype=np.int16)
                 int_data[0::2] = flattened_data.real
                 int_data[1::2] = flattened_data.imag
-                #int_data.reshape([v['data_dimensions'][1], v['data_dimensions'][0], v['data_dimensions'][3], 2]) # num_sequences, num_antenna_arrays, num_samps, 2
-                # SHAPE BACKWARDS
-                # int_data.reshape([2, v['data_dimensions'][3], v['data_dimensions'][0], v['data_dimensions'][1]]) # num_sequences, num_antenna_arrays, num_samps, 2                
+                #int_data.reshape([v['data_dimensions'][1], v['data_dimensions'][0], v['data_dimensions'][3], 2]) # num_sequences, num_antenna_arrays, num_samps, 2     
 
                 # flattening done in convert_to_dmap_datastructures
-
                 num_lags = v['lags'].shape[0]
                 lag_table_flattened = v['lags'].astype(np.int16).flatten() 
-                lag_table = lag_table_flattened.reshape([2, num_lags])
+                lag_table = lag_table_flattened.reshape([2, num_lags]) # RESHAPING TO THE OPPOSITE DIMENSIONS of INTENDED IN DMAP FILE BECAUSE WRITE BUG?
 
                 record_dict = {
                     'radar.revision.major' : np.int8(borealis_major_revision),
