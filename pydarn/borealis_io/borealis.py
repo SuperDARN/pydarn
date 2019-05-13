@@ -49,8 +49,11 @@ import math
 
 from pydarn.exceptions import borealis_exceptions
 from pydarn.io.superdarn import DarnWrite
+from pydarn.io.dmap import DMAP_DATA_TYPES
 from pydarn.borealis_io import borealis_formats
 from pydarn.io import superdarn_formats
+# from pydarn.io.datastructures import DmapScalar, DmapArray
+from pydarn.utils.conversions import dict2dmap
 
 pydarn_log = logging.getLogger('pydarn')
 
@@ -811,9 +814,11 @@ class BorealisConvert():
         dmap_recs, the records converted to dmap format
         """
 
-        dmap_recs = []
+        #dmap_recs = []
+        recs = []
         for k, v in self._borealis_records.items():
-            data = v['data'].reshape(v['data_dimensions']) # data_descriptors are num_antenna_arrays, num_sequences, num_beams, num_samps
+            data = v['data'].reshape(v['data_dimensions']) * np.iinfo(np.int16).max # data_descriptors are num_antenna_arrays, num_sequences, num_beams, num_samps
+            # multiply by max to scale to int16 for dmap
 
             if v['borealis_git_hash'][0] == 'v' and v['borealis_git_hash'][2] == '.':
                 borealis_major_revision = v['borealis_git_hash'][1]
@@ -837,12 +842,20 @@ class BorealisConvert():
 
                 flattened_data = np.array(reshaped_data).flatten() #(num_sequences x num_antenna_arrays x num_samps, flattened)
 
-                int_data = np.empty(flattened_data.size * 2, dtype=np.int32)
-
+                int_data = np.empty(flattened_data.size * 2, dtype=np.int16)
                 int_data[0::2] = flattened_data.real
                 int_data[1::2] = flattened_data.imag
+                #int_data.reshape([v['data_dimensions'][1], v['data_dimensions'][0], v['data_dimensions'][3], 2]) # num_sequences, num_antenna_arrays, num_samps, 2
+                # SHAPE BACKWARDS
+                # int_data.reshape([2, v['data_dimensions'][3], v['data_dimensions'][0], v['data_dimensions'][1]]) # num_sequences, num_antenna_arrays, num_samps, 2                
 
-                dmap_recs.append({
+                # flattening done in convert_to_dmap_datastructures
+
+                num_lags = v['lags'].shape[0]
+                lag_table_flattened = v['lags'].astype(np.int16).flatten() 
+                lag_table = lag_table_flattened.reshape([2, num_lags])
+
+                record_dict = {
                     'radar.revision.major' : np.int8(borealis_major_revision),
                     'radar.revision.minor' : np.int8(borealis_minor_revision),
                     'origin.code' : np.int8(100), # indicating Borealis origin
@@ -856,7 +869,7 @@ class BorealisConvert():
                     'time.hr' : np.int16(datetime.utcfromtimestamp(v['sqn_timestamps'][0]).hour),
                     'time.mt' : np.int16(datetime.utcfromtimestamp(v['sqn_timestamps'][0]).minute),
                     'time.sc' : np.int16(datetime.utcfromtimestamp(v['sqn_timestamps'][0]).second),
-                    'time.us' : np.int16(datetime.utcfromtimestamp(v['sqn_timestamps'][0]).microsecond),
+                    'time.us' : np.int32(datetime.utcfromtimestamp(v['sqn_timestamps'][0]).microsecond),
                     'txpow' : np.int16(-1),
                     'nave' : np.int16(v['num_sequences']),
                     'atten' : np.int16(0),
@@ -874,11 +887,11 @@ class BorealisConvert():
                     'offset' : np.int16(0),
                     'rxrise' : np.int16(0),
                     'intt.sc' : np.int16(math.floor(v['int_time'])),
-                    'intt.us' : np.int16(math.fmod(v['int_time'], 1.0) * 1e6),
+                    'intt.us' : np.int32(math.fmod(v['int_time'], 1.0) * 1e6),
                     'txpl' : np.int16(v['tx_pulse_len']),
                     'mpinc' : np.int16(v['tau_spacing']),
                     'mppul' : np.int16(len(v['pulses'])),
-                    'mplgs' : np.int16(v['lags'].shape[0]),
+                    'mplgs' : np.int16(num_lags - 1), # an alternate lag-zero will be given. 
                     'nrang' : np.int16(v['num_ranges']),
                     'frang' : np.int16(v['first_range']),
                     'rsep' : np.int16(v['range_sep']),
@@ -888,23 +901,27 @@ class BorealisConvert():
                     'lvmax' : np.int32(20000),
                     'iqdata.revision.major' : np.int32(1),
                     'iqdata.revision.minor' : np.int32(0),
-                    'combf' : 'Converted from Borealis file: ' + self.filename + ' ; Number of beams in record: ' 
+                    'combf' : 'Converted from Borealis file: ' + self.filename + ' record ' + k + ' ; Number of beams in record: ' 
                               + str(len(v['beam_nums'])) + ' ; ' + v['experiment_comment'] + ' ; ' + v['slice_comment'],
                     'seqnum' : np.int32(v['num_sequences']),
                     'chnnum' : np.int32(v['antenna_arrays_order'].shape[0]),
                     'smpnum' : np.int32(v['num_samps']),
                     'skpnum' : np.int32(0),
                     'ptab' : v['pulses'].astype(np.int16),
-                    'ltab' : np.transpose(v['lags']).astype(np.int16),
+                    'ltab' : lag_table,
                     'tsc' : np.array([math.floor(x/1e3) for x in v['sqn_timestamps']], dtype=np.int32), # timestamps in ms
                     'tus' : np.array([math.fmod(x, 1000.0) * 1e3 for x in v['sqn_timestamps']],dtype=np.int32),
-                    'tatten' : np.array([0] * v['num_sequences'], dtype=np.int32),
+                    'tatten' : np.array([0] * v['num_sequences'], dtype=np.int16),
                     'tnoise' : v['noise_at_freq'].astype(np.float32),
                     'toff' : np.array([i * offset for i in range(v['num_sequences'])], dtype=np.int32),
                     'tsze' : np.array([offset] * v['num_sequences'], dtype=np.int32),
-                    'data' : int_data,
-                    })
+                    'data' : int_data
+                }
 
+                recs.append(record_dict)
+                # dmap_record_dict = self._convert_to_dmap_datastructures(record_dict)
+                # dmap_recs.append(dmap_record_dict)
+        dmap_recs = dict2dmap(recs)
         return dmap_recs
 
 
@@ -917,14 +934,15 @@ class BorealisConvert():
         dmap_recs, the records converted to dmap format
         """
 
-        dmap_recs = []
+        #dmap_recs = []
+        recs = []
         for k, v in self._borealis_records.items():
             shaped_data = {}
-            shaped_data['main_acfs'] = v['main_acfs'].reshape(v['correlation_dimensions']) # data_descriptors are num_beams, num_ranges, num_lags
+            shaped_data['main_acfs'] = v['main_acfs'].reshape(v['correlation_dimensions']) * np.iinfo(np.int16).max # data_descriptors are num_beams, num_ranges, num_lags
             if v['intf_acfs']:
-                shaped_data['intf_acfs'] = v['intf_acfs'].reshape(v['correlation_dimensions'])
+                shaped_data['intf_acfs'] = v['intf_acfs'].reshape(v['correlation_dimensions']) * np.iinfo(np.int16).max # multiply by this to scale to int16 for dmap.
             if v['xcfs']:
-                shaped_data['xcfs'] = v['xcfs'].reshape(v['correlation_dimensions'])
+                shaped_data['xcfs'] = v['xcfs'].reshape(v['correlation_dimensions']) * np.iinfo(np.int16).max
 
             if v['borealis_git_hash'][0] == 'v' and v['borealis_git_hash'][2] == '.':
                 borealis_major_revision = v['borealis_git_hash'][1]
@@ -934,10 +952,15 @@ class BorealisConvert():
                 borealis_minor_revision = 255                       
 
             slice_id = os.path.basename(self.filename).split('.')[-3]
-            
+
+
             for beam_index, beam in enumerate(v['beam_nums']):
                 lag_zero = main_acfs[beam_index,:,0] # this beam, all ranges lag 0
                 lag_zero_power = (lag_zero.real**2 + lag_zero.imag**2)**0.5
+
+                num_lags = v['lags'].shape[0]
+                lag_table_flattened = v['lags'].astype(np.int16).flatten() 
+                lag_table = lag_table_flattened.reshape([2, num_lags]) 
 
                 # rawacf shape is 2 x num_lags x num_ranges
                 correlation_dict = {}
@@ -950,12 +973,15 @@ class BorealisConvert():
 
                     flattened_data = np.array(reshaped_data).flatten() #(num_lags x num_ranges, flattened)
 
-                    int_data = np.empty(flattened_data.size * 2, dtype=np.int32)
+                    int_data = np.empty(flattened_data.size * 2, dtype=np.int16)
                     int_data[0::2] = flattened_data.real
                     int_data[1::2] = flattened_data.imag
+
+                    # int_data.reshape([2,v['correlation_dimensions'][2],v['correlation_dimensions'][1]]) # 2 x num_lags x num_ranges
+                    # NOTE: Flattening happening in convert_to_dmap_datastructures
                     correlation_dict[key] = int_data  # place the darn-style array in the dict
 
-                dmap_recs.append({
+                record_dict = {
                     'radar.revision.major' : np.int8(borealis_major_revision),
                     'radar.revision.minor' : np.int8(borealis_minor_revision),
                     'origin.code' : np.int8(100), # indicating Borealis origin
@@ -969,7 +995,7 @@ class BorealisConvert():
                     'time.hr' : np.int16(datetime.utcfromtimestamp(v['sqn_timestamps'][0]).hour),
                     'time.mt' : np.int16(datetime.utcfromtimestamp(v['sqn_timestamps'][0]).minute),
                     'time.sc' : np.int16(datetime.utcfromtimestamp(v['sqn_timestamps'][0]).second),
-                    'time.us' : np.int16(datetime.utcfromtimestamp(v['sqn_timestamps'][0]).microsecond),
+                    'time.us' : np.int32(datetime.utcfromtimestamp(v['sqn_timestamps'][0]).microsecond),
                     'txpow' : np.int16(-1),
                     'nave' : np.int16(v['num_sequences']),
                     'atten' : np.int16(0),
@@ -987,11 +1013,11 @@ class BorealisConvert():
                     'offset' : np.int16(0),
                     'rxrise' : np.int16(0),
                     'intt.sc' : np.int16(math.floor(v['int_time'])),
-                    'intt.us' : np.int16(math.fmod(v['int_time'], 1.0) * 1e6),
+                    'intt.us' : np.int32(math.fmod(v['int_time'], 1.0) * 1e6),
                     'txpl' : np.int16(v['tx_pulse_len']),
                     'mpinc' : np.int16(v['tau_spacing']),
                     'mppul' : np.int16(len(v['pulses'])),
-                    'mplgs' : np.int16(v['lags'].shape[0]),
+                    'mplgs' : np.int16(num_lags - 1), # an alternate lag-zero will be given. 
                     'nrang' : np.int16(v['correlation_dimensions'][1]),
                     'frang' : np.int16(v['first_range']),
                     'rsep' : np.int16(v['range_sep']),
@@ -999,16 +1025,87 @@ class BorealisConvert():
                     'tfreq' : np.int16(v['freq']),
                     'rawacf.revision.major' : np.int32(1),
                     'rawacf.revision.minor' : np.int32(0),
-                    'combf' : 'Converted from Borealis file: ' + self.filename + ' ; Number of beams in record: ' 
+                    'combf' : 'Converted from Borealis file: ' + self.filename + ' record ' + k + ' ; Number of beams in record: ' 
                               + str(len(v['beam_nums'])) + ' ; ' + v['experiment_comment'] + ' ; ' + v['slice_comment'],
                     'thr' : np.float32(0),
                     'ptab' : v['pulses'].astype(np.int16),
-                    'ltab' : np.transpose(v['lags']).astype(np.int16),
+                    'ltab' : lag_table,
                     'pwr0' : lag_zero_power,
                     'slist' : np.array(list(range(0,this_main_acf.shape[0]))), # list from 0 to num_ranges
                     'acfd' : correlation_dict['main_acfs'],
                     'xcfd' : correlation_dict['xcfs']
                     # TODO: intf acfs or lag zero power?
-                    })
+                    }
 
+                recs.append(record_dict)
+                # dmap_record_dict = self._convert_to_dmap_datastructures(record_dict)
+                # dmap_recs.append(dmap_record_dict)
+
+        dmap_recs = dict2dmap(recs)
         return dmap_recs
+
+
+    # def _convert_to_dmap_datastructures(self, record):
+    #     """
+    #     Converts a record from numpy types to DmapScalar and DmapArray types 
+    #     in order to write to dmap. 
+
+    #     Parameters
+    #     ----------
+    #     record
+    #         a record for the DARN file, with numpy types.
+
+    #     Returns
+    #     -------
+    #     dmap_record
+    #         a record for the DARN file, with all fields DmapScalar and DmapArray types.
+    #     """
+
+    #     dmap_record = {}
+    #     for k, v in record.items():
+    #         if type(v) == np.int8:
+    #             data_type = DMAP_DATA_TYPES('c')
+    #             data_type_fmt = 'c'
+    #             value = v
+    #             name = k
+    #             dmap_record[k] = DmapScalar(name, value, data_type, data_type_fmt)
+    #         elif type(v) == np.int16:
+    #             data_type = ord('h')
+    #             data_type_fmt = 'h'
+    #             value = v
+    #             name = k
+    #             dmap_record[k] = DmapScalar(name, value, data_type, data_type_fmt)
+    #         elif type(v) == np.int32:
+    #             data_type = ord('i')
+    #             data_type_fmt = 'i'
+    #             value = v
+    #             name = k
+    #             dmap_record[k] = DmapScalar(name, value, data_type, data_type_fmt)
+    #         elif type(v) == np.float32:
+    #             data_type = ord('f')
+    #             data_type_fmt = 'f'
+    #             value = v
+    #             name = k
+    #             dmap_record[k] = DmapScalar(name, value, data_type, data_type_fmt)                
+    #         elif type(v) == str:
+    #             data_type = ord('s')
+    #             data_type_fmt = 's'
+    #             value = v
+    #             name = k
+    #             dmap_record[k] = DmapScalar(name, value, data_type, data_type_fmt)
+    #         elif type(v) == np.ndarray:
+    #             name = k
+    #             dimension = len(v.shape)
+    #             shape = v.shape
+    #             if type(v[0]) == np.int16:
+    #                 data_type = ord('h')
+    #                 data_type_fmt = 'h'
+    #             elif type(v[0]) == np.int32:
+    #                 data_type = ord('i')
+    #                 data_type_fmt = 'i' 
+    #             elif type(v[0]) == np.float32:
+    #                 data_type = ord('f')
+    #                 data_type_fmt = 'f'                     
+    #             value = v.flatten()
+    #             dmap_record[k] = DmapArray(name, value, data_type, data_type_fmt, dimension, shape)
+    #     return dmap_record
