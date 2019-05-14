@@ -134,6 +134,7 @@ class RTP():
         RTPUnknownParameterError
         RTPInocrrectParameterPlotError
         RTPNoDataFoundError
+        IndexError
 
         Returns
         -------
@@ -371,6 +372,19 @@ class RTP():
             option to pass in axes object from matplotlib.pyplot
             default: None
             side note: this will default to using plt.gca()
+
+        Returns
+        -------
+        None if it is a cp ID plot; otherwise returns lines object returned
+        from plot_date
+
+        Raises
+        ------
+        RTPUnknownParameterError
+        RTPInocrrectParameterPlotError
+        RTPNoDataFoundError
+        IndexError
+
         """
         # check if axes object is passed in, if not
         # default to plt.gca()
@@ -396,7 +410,6 @@ class RTP():
         cls.__check_data_type(parameter, 'scalar')
         # Calculate the time span range, either passed in or calculated
         # based on the dmap_data records
-        # TODO: move this to it's own method
         if time_span is None:
             start_time = cls.__time2datetime(cls.dmap_data[0])
             end_time = cls.__time2datetime(cls.dmap_data[-1])
@@ -428,6 +441,13 @@ class RTP():
                                         y=0.4,
                                         s=SuperDARNCpids.cpids.get(dmap_record['cp'], 'unkown'))
 
+            # Check if the old cp ID change, if not then there was no data
+            if old_cpid == 0:
+                raise rtp_exceptions.RTPNoDataFoundError(parameter, beam_num,
+                                                         start_time, end_time)
+
+
+            # to get rid of y-axis numbers
             ax.set_yticks([])
             lines = None
         else:
@@ -449,15 +469,24 @@ class RTP():
                             y.append(dmap_record[parameter]/1000)
                         else:
                             y.append(dmap_record[parameter])
+                    # else plot missing data
                     elif len(x) > 0:
                         diff_time = time - x[-1]
                         if diff_time.seconds/60 > 2.0:
                             x.append(time)
-                            y.append(np.nan)
+                            y.append(np.nan)  # for masking the data
 
+            # Check if there is any data to plot
+            if np.all(np.isnan(y)) or len(x) == 0:
+                raise rtp_exceptions.RTPNoDataFoundError(parameter, beam_num,
+                                                         start_time, end_time)
+
+            # using masked arrays to create gaps in the plot
+            # otherwise the lines will connect in gapped data
             my = np.ma.array(y)
             my = np.ma.masked_where(np.isnan(my), my)
-            lines = ax.plot_date(x, my, fmt='k', tz=None, xdate=True, ydate=False,
+            lines = ax.plot_date(x, my, fmt='k', tz=None, xdate=True,
+                                 ydate=False,
                                  **kwargs)
             ax.set_yscale(scale)
         # set date format and minor hourly locators
