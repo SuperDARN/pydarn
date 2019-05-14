@@ -126,7 +126,7 @@ class TestRTP(unittest.TestCase):
         plots a simple elevation time-series plot for beam 7
         """
         pydarn.RTP.plot_time_series(self.fitacf_data, parameter='noise.mean',
-                                    beam_num=7, scale='log', date_fmt="%H:%M")
+                                    beam_num=7, date_fmt="%H:%M")
         plt.title("Simple noise mean plot for beam 7")
         plt.show()
 
@@ -149,6 +149,16 @@ class TestRTP(unittest.TestCase):
         plt.title("Simple cp ID plot for beam 7 with no names")
         plt.show()
 
+    def test_no_data_cp_time_series_plot(self):
+        """
+        raise an error of no data found because the time zone
+        are out of the time range specified.
+        """
+        with self.assertRaises(pydarn.rtp_exceptions.RTPNoDataFoundError):
+            pydarn.RTP.plot_time_series(self.fitacf_data, parameter='cp',
+                                       beam_num=7,
+                                       time_span=(datetime(2018, 12, 8, 0, 0),
+                                                  datetime(2018, 12, 8, 8, 0)))
     def test_no_data_time_series_plot(self):
         """
         raise an error of no data found because the time zone
