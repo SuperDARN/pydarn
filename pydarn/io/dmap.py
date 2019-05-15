@@ -515,6 +515,8 @@ class DmapRead():
 
         array_shape = [self.read_data('i', 4)
                        for i in range(0, array_dimension)]
+        if array_dimension > 1:
+            array_shape.reverse()
 
         # slist is the array that holds the range gates that have valid data
         # when qflg is 1
@@ -777,21 +779,6 @@ class DmapWrite(object):
 
     Methods
     -------
-    write_iqdat(filename)
-        Writes dmap records to SuperDARN IQDAT file structure
-        with the given filename
-    write_fitacf(filename)
-        Write dmap records to SuperDARN RAWACF file structure
-        with the given filename
-    write_rawacf(filename)
-        Writes dmap records to SuperDARN FITACF file structure
-        with the given filename
-    write_grid(filename)
-        Writes dmap records to SuperDARN GRID file structure
-        with the given filename
-    write_map(filename)
-        Writes dmap records to SuperDARN MAP file structure
-        with the given filename
     write_dmap(filename)
         Writes dmap records to DMAP format with the given filename
     write_dmap_stream(dmap_records)
@@ -1066,6 +1053,8 @@ class DmapWrite(object):
 
         array_dim_bytes = struct.pack('i', array.dimension)
         array_shape_bytes = bytes()
+        if array.dimension > 1:
+            array.shape.reverse()
         for size in array.shape:
             array_shape_bytes += struct.pack('i', size)
 
