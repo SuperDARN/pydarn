@@ -176,6 +176,25 @@ class DmapRead():
         if self.dmap_end_bytes == 0:
             raise dmap_exceptions.EmptyFileError(self.dmap_file)
 
+    def __repr__(self):
+        return "filename: {filename} cursor: {cursor}"\
+                " Record number: {rec_num}"\
+                "total bytes: {total}"
+                "".format(filename=self.filename,
+                          cursor=self.cursor,
+                          total=self.dmap_end_bytes,
+                          rec_num=self.rec_num)
+
+
+    def __str__(self):
+        return "Prepared to read: {filename} at cursor: {cursor} "\
+                "record number: {rec_num} with"\
+                " a total number of bytes: {total_bytes}"\
+                "".format(filename=self.dmap_file,
+                          cursor=self.cursor,
+                          rec_num=self.rec_num,
+                          total_bytes=self.dmap_end_bytes)
+
     def zero_negative_check(self, element: int, element_name: str):
         """
         Checks if the element <= 0 bytes. If true then raise a ZeroByteError.
@@ -753,8 +772,8 @@ class DmapRead():
         if data_type_fmt == 'c':
             # In RST rtypes.h file, chars are defined as int8
             # allowing this assumption to be allowed for now
-             array = np.frombuffer(self.dmap_buffer, np.int8,
-                                   total_number_cells, self.cursor)
+            array = np.frombuffer(self.dmap_buffer, np.int8,
+                                  total_number_cells, self.cursor)
         else:
             array = np.frombuffer(self.dmap_buffer, data_type_fmt,
                                   total_number_cells, self.cursor)
@@ -844,6 +863,17 @@ class DmapWrite(object):
         self.filename = filename
         self.rec_num = 0
         pydarn_logger.debug("Initiating DmapWrite")
+
+    def __repr__(self):
+        return "filename: {filename} Record number: {rec_num}"\
+                "".format(filename=self.filename,
+                          rec_num=self.rec_num)
+
+    def __str__(self):
+        return "Prepared to write: {filename} at "\
+                "record number: {rec_num}"\
+                "".format(filename=self.filename,
+                          rec_num=self.rec_num)
 
     # HONEY BADGER method: Because dmap just don't care
     def write_dmap(self, filename: str = ""):
