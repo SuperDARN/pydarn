@@ -3,6 +3,11 @@
 """
 This file contains several class pertaining to dmap format types
 that are used by SuperDARN.
+
+For description of these fields and their units see the following reference
+materials:
+    https://superdarn.github.io/rst/superdarn/src.doc/rfc/index.html
+    https://radar-software-toolkit-rst.readthedocs.io/en/latest/
 """
 
 
