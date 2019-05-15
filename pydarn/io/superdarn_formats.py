@@ -65,6 +65,10 @@ class Rawacf():
         'acfd': 'f',
         'xcfd': 'f',
         }
+    extra_fields = {
+            'ifmode': 'h',
+            'mplgexs': 'h',
+            }
 
 
 class Fitacf():
