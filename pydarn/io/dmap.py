@@ -177,6 +177,10 @@ class DmapRead():
             raise dmap_exceptions.EmptyFileError(self.dmap_file)
 
     def __repr__(self):
+        """ for representation of the class object"""
+        # __class__.__name__ allows to grab the class name such that
+        # when a class inherits this one, the class name will be the child
+        # class and not the parent class (dmap classes)
         return "{class_name}({filename}, {cursor}, {rec_num}, {total})"\
                 "".format(class_name=self.__class__.__name__,
                           filename=self.dmap_file,
@@ -186,6 +190,10 @@ class DmapRead():
 
 
     def __str__(self):
+        """ for printing of the class object"""
+        # __class__.__name__ allows to grab the class name such that
+        # when a class inherits this one, the class name will be the child
+        # class and not the parent class (dmap classes)
         return "Reading from {filename} at cursor: {cursor} "\
                 "record number: {rec_num} with"\
                 " a total number of bytes: {total_bytes}"\
@@ -864,12 +872,20 @@ class DmapWrite(object):
         pydarn_logger.debug("Initiating DmapWrite")
 
     def __repr__(self):
+        """ for representation of the class object"""
+        # __class__.__name__ allows to grab the class name such that
+        # when a class inherits this one, the class name will be the child
+        # class and not the parent class (dmap classes)
         return "{class_name}({filename}, {rec_num})"\
                "".format(class_name=self.__class__.__name__,
                          filename=self.filename,
                          rec_num=self.rec_num)
 
     def __str__(self):
+        """ for printing of the class object"""
+        # __class__.__name__ allows to grab the class name such that
+        # when a class inherits this one, the class name will be the child
+        # class and not the parent class (dmap classes)
         return "Writing to filename: {filename} at record number: {rec_num}"\
                "".format(filename=self.filename,
                          rec_num=self.rec_num)
