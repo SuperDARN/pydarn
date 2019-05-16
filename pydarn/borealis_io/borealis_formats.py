@@ -48,7 +48,8 @@ class BorealisRawacf():
         "main_antenna_count" : np.uint32, # Number of main array antennas.
         "intf_antenna_count" : np.uint32, # Number of interferometer array antennas.
         "freq" : np.uint32, # The frequency used for this experiment slice in kHz.
-        "samples_data_type" : np.unicode_ # C data type of the samples such as complex float.
+        "samples_data_type" : np.unicode_, # C data type of the samples such as complex float.
+        "data_normalization_factor" : np.float64 # data normalization factor determined by the filter scaling in the decimation scheme.
     }
     
     array_dtypes = {
@@ -97,7 +98,8 @@ class BorealisBfiq():
         "range_sep": np.float32, # range gate separation (equivalent distance between samples)
         "first_range_rtt" : np.float32, # Round trip time of flight to first range in microseconds.
         "first_range" : np.float32, # Distance to first range in km.
-        "num_ranges" : np.uint32 # Number of ranges to calculate correlations for.
+        "num_ranges" : np.uint32, # Number of ranges to calculate correlations for.
+        "data_normalization_factor" : np.float64 # data normalization factor determined by the filter scaling in the decimation scheme.    
     }
     
     array_dtypes = {
@@ -142,7 +144,8 @@ class BorealisOutputPtrsIq():
         "intf_antenna_count" : np.uint32, # Number of interferometer array antennas.
         "freq" : np.uint32, # The frequency used for this experiment slice in kHz.
         "samples_data_type" : np.unicode_, # C data type of the samples such as complex float.
-        "num_samps" : np.uint32 # Number of samples in the sampling period.
+        "num_samps" : np.uint32, # Number of samples in the sampling period.
+        "data_normalization_factor" : np.float64 # data normalization factor determined by the filter scaling in the decimation scheme.    
     }
     
     array_dtypes = {
