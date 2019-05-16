@@ -177,17 +177,16 @@ class DmapRead():
             raise dmap_exceptions.EmptyFileError(self.dmap_file)
 
     def __repr__(self):
-        return "filename: {filename} cursor: {cursor}"\
-                " Record number: {rec_num}"\
-                "total bytes: {total}"
-                "".format(filename=self.filename,
+        return "{class_name}({filename}, {cursor}, {rec_num}, {total})"\
+                "".format(class_name=self.__class__.__name__,
+                          filename=self.dmap_file,
                           cursor=self.cursor,
                           total=self.dmap_end_bytes,
                           rec_num=self.rec_num)
 
 
     def __str__(self):
-        return "Prepared to read: {filename} at cursor: {cursor} "\
+        return "Reading from {filename} at cursor: {cursor} "\
                 "record number: {rec_num} with"\
                 " a total number of bytes: {total_bytes}"\
                 "".format(filename=self.dmap_file,
@@ -865,15 +864,15 @@ class DmapWrite(object):
         pydarn_logger.debug("Initiating DmapWrite")
 
     def __repr__(self):
-        return "filename: {filename} Record number: {rec_num}"\
-                "".format(filename=self.filename,
-                          rec_num=self.rec_num)
+        return "{class_name}({filename}, {rec_num})"\
+               "".format(class_name=self.__class__.__name__,
+                         filename=self.filename,
+                         rec_num=self.rec_num)
 
     def __str__(self):
-        return "Prepared to write: {filename} at "\
-                "record number: {rec_num}"\
-                "".format(filename=self.filename,
-                          rec_num=self.rec_num)
+        return "Writing to filename: {filename} at record number: {rec_num}"\
+               "".format(filename=self.filename,
+                         rec_num=self.rec_num)
 
     # HONEY BADGER method: Because dmap just don't care
     def write_dmap(self, filename: str = ""):
