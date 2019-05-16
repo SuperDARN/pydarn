@@ -49,10 +49,8 @@ import math
 
 from pydarn.exceptions import borealis_exceptions
 from pydarn.io.superdarn import DarnWrite
-from pydarn.io.dmap import DMAP_DATA_TYPES
 from pydarn.borealis_io import borealis_formats
 from pydarn.io import superdarn_formats
-# from pydarn.io.datastructures import DmapScalar, DmapArray
 from pydarn.utils.conversions import dict2dmap
 
 pydarn_log = logging.getLogger('pydarn')
@@ -817,7 +815,9 @@ class BorealisConvert():
         #dmap_recs = []
         recs = []
         for k, v in self._borealis_records.items():
-            data = v['data'].reshape(v['data_dimensions']) * np.iinfo(np.int16).max # data_descriptors are num_antenna_arrays, num_sequences, num_beams, num_samps
+            data = v['data'].reshape(v['data_dimensions']).astype(np.complex128) / v['data_normalization_factor'] * np.iinfo(np.int16).max 
+            # scale by normalization and then scale to integer max as per dmap style
+            # data_descriptors are num_antenna_arrays, num_sequences, num_beams, num_samps
             # multiply by max to scale to int16 for dmap
 
             if v['borealis_git_hash'][0] == 'v' and v['borealis_git_hash'][2] == '.':
@@ -935,11 +935,14 @@ class BorealisConvert():
         recs = []
         for k, v in self._borealis_records.items():
             shaped_data = {}
-            shaped_data['main_acfs'] = v['main_acfs'].reshape(v['correlation_dimensions']) * np.iinfo(np.int16).max # data_descriptors are num_beams, num_ranges, num_lags
+            shaped_data['main_acfs'] = v['main_acfs'].reshape(v['correlation_dimensions']).astype(np.complex128) / (v['data_normalization_factor']**2) * np.iinfo(np.int16).max 
+            # scale by the scale squared to make up for mult in correlation
+            # data_descriptors are num_beams, num_ranges, num_lags
             if v['intf_acfs']:
-                shaped_data['intf_acfs'] = v['intf_acfs'].reshape(v['correlation_dimensions']) * np.iinfo(np.int16).max # multiply by this to scale to int16 for dmap.
+                shaped_data['intf_acfs'] = v['intf_acfs'].reshape(v['correlation_dimensions']).astype(np.complex128) / (v['data_normalization_factor']**2) * np.iinfo(np.int16).max 
+                # multiply by this to scale to int16 for dmap.
             if v['xcfs']:
-                shaped_data['xcfs'] = v['xcfs'].reshape(v['correlation_dimensions']) * np.iinfo(np.int16).max
+                shaped_data['xcfs'] = v['xcfs'].reshape(v['correlation_dimensions']).astype(np.complex128) / (v['data_normalization_factor']**2) * np.iinfo(np.int16).max
 
             if v['borealis_git_hash'][0] == 'v' and v['borealis_git_hash'][2] == '.':
                 borealis_major_revision = v['borealis_git_hash'][1]
@@ -949,7 +952,6 @@ class BorealisConvert():
                 borealis_minor_revision = 255                       
 
             slice_id = os.path.basename(self.filename).split('.')[-3]
-
 
             for beam_index, beam in enumerate(v['beam_nums']):
                 lag_zero = main_acfs[beam_index,:,0] # this beam, all ranges lag 0
