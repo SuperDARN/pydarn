@@ -30,6 +30,12 @@ class RTP(matplotlib.pyplot):
     summaryplot
 
     """
+    def __str__(self):
+        return "This class is static class that provides"\
+                " the following methods: \n"\
+                "   - plot_rang_time()\n"\
+                "   - plot_time_series()\n"\
+                "   - plot_summary()\n"
 
     def plot_range_time(cls):
         pass
