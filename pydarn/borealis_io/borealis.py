@@ -701,7 +701,12 @@ class BorealisConvert():
         dmap_filename = os.path.splitext(self.filename)[0]+'.'+dmap_filetype
         self._dmap_records = self._convert_records_to_dmap(dmap_filetype)
         darn_writer = DarnWrite(self._dmap_records, dmap_filename)
-        darn_writer.write_iqdat(dmap_filename)
+        if dmap_filetype == 'iqdat':
+            darn_writer.write_iqdat(dmap_filename)
+        elif dmap_filetype == 'rawacf':
+            darn_writer.write_rawacf(dmap_filename)            
+        else:
+            raise BorealisConversionTypesError(self.filename, self.origin_filetype, dmap_filetype)
         return dmap_filename
 
 
@@ -793,12 +798,9 @@ class BorealisConvert():
             raise borealis_exceptions.BorealisConversionTypesError(self.filename, self.origin_filetype, dmap_filetype)
         else: # There are some specific things to check 
             for k, v in self._borealis_records.items():
-                if not np.array_equal(v['blanked_samples'], v['pulses']):
-                    raise borealis_exceptions.BorealisConvert2IqdatError('Borealis rawacf file record {} blanked_samples {} '\
-                        'does not equal pulses array {}'.format(k, v['blanked_samples'], v['pulses']))
-                if not all([x==0 for x in v['pulse_phase_offset']]):
-                    raise borealis_exceptions.BorealisConvert2IqdatError('Borealis rawacf file record {} pulse_phase_offset {} '\
-                        'contains non-zero values.'.format(k, v['pulse_phase_offset']))     
+                if not np.array_equal(v['blanked_samples'], v['pulses']*int(v['tau_spacing']/v['tx_pulse_len'])):
+                    raise borealis_exceptions.BorealisConvert2RawacfError('Borealis rawacf file record {} blanked_samples {} '\
+                        'does not equal pulses array {}'.format(k, v['blanked_samples'], v['pulses']))  
 
         return True     
 
@@ -848,9 +850,6 @@ class BorealisConvert():
                 #int_data.reshape([v['data_dimensions'][1], v['data_dimensions'][0], v['data_dimensions'][3], 2]) # num_sequences, num_antenna_arrays, num_samps, 2     
 
                 # flattening done in convert_to_dmap_datastructures
-                num_lags = v['lags'].shape[0]
-                lag_table_flattened = v['lags'].astype(np.int16).flatten() 
-                lag_table = lag_table_flattened.reshape([2, num_lags]) # RESHAPING TO THE OPPOSITE DIMENSIONS of INTENDED IN DMAP FILE BECAUSE WRITE BUG?
 
                 record_dict = {
                     'radar.revision.major' : np.int8(borealis_major_revision),
@@ -888,7 +887,7 @@ class BorealisConvert():
                     'txpl' : np.int16(v['tx_pulse_len']),
                     'mpinc' : np.int16(v['tau_spacing']),
                     'mppul' : np.int16(len(v['pulses'])),
-                    'mplgs' : np.int16(num_lags - 1), # an alternate lag-zero will be given. 
+                    'mplgs' : np.int16(v['lags'].shape[0] - 1), # an alternate lag-zero will be given. 
                     'nrang' : np.int16(v['num_ranges']),
                     'frang' : np.int16(v['first_range']),
                     'rsep' : np.int16(v['range_sep']),
@@ -905,7 +904,7 @@ class BorealisConvert():
                     'smpnum' : np.int32(v['num_samps']),
                     'skpnum' : np.int32(0),
                     'ptab' : v['pulses'].astype(np.int16),
-                    'ltab' : lag_table,
+                    'ltab' : v['lags'].astype(np.int16),
                     'tsc' : np.array([math.floor(x/1e3) for x in v['sqn_timestamps']], dtype=np.int32), # timestamps in ms
                     'tus' : np.array([math.fmod(x, 1000.0) * 1e3 for x in v['sqn_timestamps']],dtype=np.int32),
                     'tatten' : np.array([0] * v['num_sequences'], dtype=np.int16),
@@ -937,11 +936,11 @@ class BorealisConvert():
             shaped_data = {}
             shaped_data['main_acfs'] = v['main_acfs'].reshape(v['correlation_dimensions']).astype(np.complex128) / (v['data_normalization_factor']**2) * np.iinfo(np.int16).max 
             # scale by the scale squared to make up for mult in correlation
-            # data_descriptors are num_beams, num_ranges, num_lags
-            if v['intf_acfs']:
+            # correlation_descriptors are num_beams, num_ranges, num_lags
+            if 'intf_acfs' in v.keys():
                 shaped_data['intf_acfs'] = v['intf_acfs'].reshape(v['correlation_dimensions']).astype(np.complex128) / (v['data_normalization_factor']**2) * np.iinfo(np.int16).max 
                 # multiply by this to scale to int16 for dmap.
-            if v['xcfs']:
+            if 'xcfs' in v.keys():
                 shaped_data['xcfs'] = v['xcfs'].reshape(v['correlation_dimensions']).astype(np.complex128) / (v['data_normalization_factor']**2) * np.iinfo(np.int16).max
 
             if v['borealis_git_hash'][0] == 'v' and v['borealis_git_hash'][2] == '.':
@@ -954,31 +953,23 @@ class BorealisConvert():
             slice_id = os.path.basename(self.filename).split('.')[-3]
 
             for beam_index, beam in enumerate(v['beam_nums']):
-                lag_zero = main_acfs[beam_index,:,0] # this beam, all ranges lag 0
+                lag_zero = shaped_data['main_acfs'][beam_index,:,0] # this beam, all ranges lag 0
                 lag_zero_power = (lag_zero.real**2 + lag_zero.imag**2)**0.5
 
-                num_lags = v['lags'].shape[0]
-                lag_table_flattened = v['lags'].astype(np.int16).flatten() 
-                lag_table = lag_table_flattened.reshape([2, num_lags]) 
-
-                # rawacf shape is 2 x num_lags x num_ranges
+                # rawacf shape is num_ranges x num_lags x 1
                 correlation_dict = {}
                 for key in shaped_data: # all available correlation types have been included here   
-                    reshaped_data = []
-                    this_correlation = shaped_data[key][beam_index,:,:] # shape num_beams x num_ranges x num_lags, now num_ranges x num_Lags
-                    for i in range(v['correlation_dimensions'][2]): # loop over num_lags
-                        arrays = [this_correlation[x,i] for x in range(v['correlation_dimensions'][1])] # get the samples for each range in the lag
-                        reshaped_data.append(np.ravel(np.column_stack(arrays))) # append lags x ranges
+                    this_correlation = shaped_data[key][beam_index,:,:-1] 
+                    # shape num_beams x num_ranges x num_lags, now num_ranges x num_lags-1 b/c alternate lag-0 not included.
+                    
+                    flattened_data = np.array(this_correlation).flatten() #(num_ranges x num_lags, flattened)
 
-                    flattened_data = np.array(reshaped_data).flatten() #(num_lags x num_ranges, flattened)
-
-                    int_data = np.empty(flattened_data.size * 2, dtype=np.int16)
+                    int_data = np.empty(flattened_data.size * 2, dtype=np.float32)
                     int_data[0::2] = flattened_data.real
                     int_data[1::2] = flattened_data.imag
-
-                    # int_data.reshape([2,v['correlation_dimensions'][2],v['correlation_dimensions'][1]]) # 2 x num_lags x num_ranges
+                    new_data = int_data.reshape(v['correlation_dimensions'][1],v['correlation_dimensions'][2]-1,2) # num_ranges x num_lags x 2
                     # NOTE: Flattening happening in convert_to_dmap_datastructures
-                    correlation_dict[key] = int_data  # place the darn-style array in the dict
+                    correlation_dict[key] = new_data  # place the darn-style array in the dict
 
                 record_dict = {
                     'radar.revision.major' : np.int8(borealis_major_revision),
@@ -1016,21 +1007,23 @@ class BorealisConvert():
                     'txpl' : np.int16(v['tx_pulse_len']),
                     'mpinc' : np.int16(v['tau_spacing']),
                     'mppul' : np.int16(len(v['pulses'])),
-                    'mplgs' : np.int16(num_lags - 1), # an alternate lag-zero will be given. 
+                    'mplgs' : np.int16(v['lags'].shape[0] - 1), # an alternate lag-zero will be given. 
                     'nrang' : np.int16(v['correlation_dimensions'][1]),
                     'frang' : np.int16(v['first_range']),
                     'rsep' : np.int16(v['range_sep']),
-                    'xcf' : np.int16(bool(v['xcfs'])), # False is list is empty.
+                    'xcf' : np.int16(bool('xcfs' in v.keys())), # False is list is empty.
                     'tfreq' : np.int16(v['freq']),
+                    'mxpwr' : np.int32(-1),
+                    'lvmax' : np.int32(20000),
                     'rawacf.revision.major' : np.int32(1),
                     'rawacf.revision.minor' : np.int32(0),
                     'combf' : 'Converted from Borealis file: ' + self.filename + ' record ' + k + ' ; Number of beams in record: ' 
                               + str(len(v['beam_nums'])) + ' ; ' + v['experiment_comment'] + ' ; ' + v['slice_comment'],
                     'thr' : np.float32(0),
                     'ptab' : v['pulses'].astype(np.int16),
-                    'ltab' : lag_table,
-                    'pwr0' : lag_zero_power,
-                    'slist' : np.array(list(range(0,this_main_acf.shape[0]))), # list from 0 to num_ranges
+                    'ltab' : v['lags'].astype(np.int16),
+                    'pwr0' : lag_zero_power.astype(np.float32),
+                    'slist' : np.array(list(range(0,v['correlation_dimensions'][1]))).astype(np.int16), # list from 0 to num_ranges
                     'acfd' : correlation_dict['main_acfs'],
                     'xcfd' : correlation_dict['xcfs']
                     # TODO: intf acfs or lag zero power?
