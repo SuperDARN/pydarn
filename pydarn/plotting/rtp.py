@@ -46,6 +46,14 @@ class RTP():
                       'control program id': ('cpid', ''),
                       'nave': ('nave', 'Nave')}
 
+    def __str__(self):
+        return "This class is static class that provides"\
+                " the following methods: \n"\
+                "   - plot_rang_time()\n"\
+                "   - plot_time_series()\n"\
+                "   - plot_summary()\n"
+
+
     @classmethod
     def plot_range_time(cls, dmap_data: List[dict], *args,
                         parameter: str = 'power', beam_num: int = 0, ax=None,
@@ -352,7 +360,7 @@ class RTP():
             tuple containing the start time and end time
         cp_name : bool
             If True, the cp ID name will be printed
-            along side the numer. Otherwise the cp ID will
+            along side the number. Otherwise the cp ID will
             just be printed. This is only used for the parameter cp
             default: True
         scale: str
@@ -437,9 +445,17 @@ class RTP():
                             ax.text(x=time + timedelta(seconds=600), y=0.5,
                                     s=dmap_record['cp'])
                             if cp_name:
+                                cpid_command = dmap_record['combf'].split(' ')
+                                if len(cpid_command) == 1:
+                                    cp_name = cpid_command[0]
+                                elif len(cpid_command) == 0:
+                                    cp_name = 'unknown'
+                                else:
+                                    cp_name = cpid_command[1]
                                 ax.text(x=time + timedelta(seconds=600),
                                         y=0.4,
-                                        s=SuperDARNCpids.cpids.get(dmap_record['cp'], 'unkown'))
+                                        s=cp_name)
+                                        #s=SuperDARNCpids.cpids.get(dmap_record['cp'], 'unknown'))
 
             # Check if the old cp ID change, if not then there was no data
             if old_cpid == 0:
