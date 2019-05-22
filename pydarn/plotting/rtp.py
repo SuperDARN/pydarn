@@ -7,7 +7,7 @@
 Range-time Intensity plots
 """
 import matplotlib.pyplot as plt
-from matplotlib import dates, colors, cm, ticker
+from matplotlib import dates, colors, cm, ticker, lines, gridspec
 import numpy as np
 from typing import List
 from datetime import datetime, timedelta
@@ -625,6 +625,66 @@ class RTP():
         pass
 
     @classmethod
-    def summaryplot(cls, *args, dmap_data: List[dict],
-                    parameters: str, lines: str, **kwargs):
-        pass
+    def plot_summary(cls, dmap_data: List[dict], *args, beam_num: int =0, **kwargs):
+        fig, g_axes = plt.subplots(7, 2, sharex='col', figsize=(8,12),
+                                 gridspec_kw = {'width_ratios' : (10,0.2)})
+        axes = g_axes[:, 0]
+        for i in range(0, 3):
+            g_axes[i, 1].axis('off')
+
+        axes[0].set_ylabel('Sky Noise')
+        cls.plot_time_series(dmap_data, beam_num, parameter='noise.sky',
+                             scale='log', ax=axes[0])
+
+        vertical_line = lines.Line2D([], [],
+                                     linestyle='--',
+                                     markersize=10,
+                                     markeredgewidth=1.5,
+                                     label='sky Noise')
+        g_axes[0, 1].legend(handles=[vertical_line])
+
+        ax1_sub = axes[0].twinx()
+        ax1_sub.set_ylabel('Search Noise')
+        cls.plot_time_series(dmap_data, beam_num, parameter='noise.search',
+                             scale='log', ax=ax1_sub, linestyle='--')
+
+
+        axes[1].set_ylabel('Freq $MHz$')
+        cls.plot_time_series(dmap_data, beam_num, parameter='tfreq',
+                             ax=axes[1])
+
+        ax2_sub = axes[1].twinx()
+        ax2_sub.set_ylabel('Nave')
+        cls.plot_time_series(dmap_data, beam_num, parameter='nave',
+                             ax=ax2_sub, linestyle='--')
+
+
+        cls.plot_time_series(dmap_data, beam_num, parameter='cp',
+                             ax=axes[2])
+        #p = get(gca, 'Position')
+        #set(gca, 'Position', p*0.5)
+
+        im, _, _ = cls.plot_range_time(dmap_data, beam_num,
+                                       parameter='pwr0', ax=axes[3],
+                                       color_bar=False)
+        plt.colorbar(im, cax=g_axes[3,1])
+        axes[3].set_ylabel('Range Gates')
+        im, _, _ = cls.plot_range_time(dmap_data, beam_num, parameter='w_l',
+                                       ax=axes[4], color_bar=False)
+        plt.colorbar(im, cax=g_axes[4,1])
+        axes[4].set_ylabel('Spectral Width $m/s$')
+
+        im, _, _ = cls.plot_range_time(dmap_data, beam_num, parameter='elv',
+                                       ax=axes[5], color_bar=False)
+        plt.colorbar(im, cax=g_axes[5,1])
+        axes[5].set_ylabel('Elevation (degrees)')
+
+        im, _, _ = cls.plot_range_time(dmap_data, beam_num, parameter='v',
+                                       ax=axes[6], color_bar=False)
+        plt.colorbar(im, cax=g_axes[6,1])
+        axes[6].set_ylabel('velocity $m/s$')
+
+        axes[6].set_xlabel("Date UTC")
+        plt.subplots_adjust(wspace=0, hspace=0)
+        plt.tight_layout()
+
