@@ -902,7 +902,15 @@ class BorealisConvert():
                     'seqnum' : np.int32(v['num_sequences']),
                     'chnnum' : np.int32(v['antenna_arrays_order'].shape[0]),
                     'smpnum' : np.int32(v['num_samps']),
-                    'skpnum' : np.int32(0),
+                    # NOTE: The following is a hack. This is currently how iqdat files are
+                    # being processed . RST make_raw does not use first range information
+                    # at all, only skip number. However ROS provides the number of ranges 
+                    # to the first range as the skip number. Skip number was originally intended 
+                    # to identify bad ranges due to digital receiver rise time. Borealis skpnum 
+                    # should in theory =0 as the first sample from Borealis decimated (prebfiq) 
+                    # data is centred on the first pulse.
+                    'skpnum' : np.int32(math.ceil(v['first_range']/v['range_sep'])),
+                    
                     'ptab' : v['pulses'].astype(np.int16),
                     'ltab' : v['lags'].astype(np.int16),
                     'tsc' : np.array([math.floor(x/1e3) for x in v['sqn_timestamps']], dtype=np.int32), # timestamps in ms
