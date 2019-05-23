@@ -312,6 +312,27 @@ class BorealisRead():
         self._records = {}
 
 
+    def __repr__(self):
+        """ for representation of the class object"""
+        # __class__.__name__ allows to grab the class name such that
+        # when a class inherits this one, the class name will be the child
+        # class and not the parent class
+        return "{class_name}({filename}, {current_record_name})"\
+                "".format(class_name=self.__class__.__name__,
+                          filename=self.borealis_file,
+                          current_record_name=self.current_record_name)
+
+
+    def __str__(self):
+        """ for printing of the class object"""
+
+        return "Reading from {filename} at current record: {current_record_name} "\
+                " a total number of records: {total_records}"\
+                "".format(filename=self.borealis_file,
+                          cursor=self.current_record_name,
+                          total_records=len(list(self.records.keys())))
+
+
     @property
     def current_record_name(self):
         return self._current_record_name
@@ -497,6 +518,30 @@ class BorealisWrite():
         self._current_record_name = ''
 
 
+    def __repr__(self):
+        """ for representation of the class object"""
+        # __class__.__name__ allows to grab the class name such that
+        # when a class inherits this one, the class name will be the child
+        # class and not the parent class (dmap classes)
+        return "{class_name}({filename}, {current_record_name})"\
+               "".format(class_name=self.__class__.__name__,
+                         filename=self.filename,
+                         current_record_name=self.current_record_name)
+
+
+    def __str__(self):
+        """ for printing of the class object"""
+
+        return "Writing to filename: {filename} at record name: {current_record_name}"\
+               "".format(filename=self.filename,
+                         current_record_name=self.current_record_name)
+
+
+    @property
+    def current_record_name(self):
+        return self._current_record_name
+    
+
     def write_file(self, borealis_filetype) -> str:
         """
         Write Borealis records to a file given filetype.
@@ -670,6 +715,24 @@ class BorealisConvert():
         self._origin_filetype = os.path.basename(self.filename).split('.')[-2]
         self._borealis_records = borealis_reader.read_file(self.origin_filetype)
         self._dmap_records = {}
+
+
+    def __repr__(self):
+        """ for representation of the class object"""
+        # __class__.__name__ allows to grab the class name such that
+        # when a class inherits this one, the class name will be the child
+        # class and not the parent class
+        return "{class_name}({filename})"\
+               "".format(class_name=self.__class__.__name__,
+                         filename=self.filename)
+
+
+    def __str__(self):
+        """ for printing of the class object"""
+
+        return "Reading filename to convert: {filename} with number of records: {total_records}."\
+               "".format(filename=self.filename,
+                         total_records=len(self.borealis_records.keys()))
 
 
     @property
