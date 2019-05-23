@@ -761,7 +761,9 @@ class BorealisConvert():
         dmap_filename, the name of the DARN file written.
         """
 
-        dmap_filename = os.path.splitext(self.filename)[0]+'.'+dmap_filetype
+        basename = os.path.basename(self.filename)
+        basename_without_ext = '.'.join(basename.split('.')[0:-2]) # all but .rawacf.hdf5, for example.
+        dmap_filename = basename_without_ext + '.' + dmap_filetype + '.dmap'
         self._dmap_records = self._convert_records_to_dmap(dmap_filetype)
         darn_writer = DarnWrite(self._dmap_records, dmap_filename)
         if dmap_filetype == 'iqdat':
