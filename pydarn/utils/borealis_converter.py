@@ -29,22 +29,29 @@ def borealis_conversion_parser():
     parser.add_argument("borealis_hdf5_file", help="Path to the file that you wish to convert to a "
                                                    "SuperDARN dmap type. (e.g. 20190327.2210.38.sas.0.bfiq.hdf5)")
     parser.add_argument("dmap_filetype", help="SuperDARN dmap type to convert to. Possible types include "
-    										  "iqdat.")
+                                              "iqdat and rawacf.")
 
     return parser
 
 
+def borealis_converter(filename, dmap_filetype):
+    """
+    Convert the borealis file to Darn dmap filetype.
+    """
+    borealis_data = BorealisConvert(filename)
+    print('Read the file {filename}'.format(filename=filename))
+    dmap_filename = borealis_data.write_to_dmap(dmap_filetype)
+
+    print("Borealis file {filename} written to {dmap_filename} without errors."
+          "".format(filename=borealis_data.filename, 
+                            dmap_filename=dmap_filename))    
+
+
 def main():
-	parser = borealis_conversion_parser()
-	args = parser.parse_args()
+    parser = borealis_conversion_parser()
+    args = parser.parse_args()
 
-	borealis_data = BorealisConvert(args.borealis_hdf5_file)
-	print('Read the file {filename}'.format(filename=args.borealis_hdf5_file))
-	dmap_filename = borealis_data.write_to_dmap(args.dmap_filetype)
-
-	print("Borealis file {filename} written to {dmap_filename} without errors. "
-		  "Exiting.".format(filename=borealis_data.filename, 
-		  	                dmap_filename=dmap_filename))
+    borealis_converter(args.borealis_hdf5_file, args.dmap_filetype)
 
 
 if __name__ == "__main__":
