@@ -909,7 +909,7 @@ class BorealisConvert():
                     # to identify bad ranges due to digital receiver rise time. Borealis skpnum 
                     # should in theory =0 as the first sample from Borealis decimated (prebfiq) 
                     # data is centred on the first pulse.
-                    'skpnum' : np.int32(math.ceil(v['first_range']/v['range_sep'])),
+                    'skpnum' : np.int32(v['first_range']/v['range_sep']),
                     
                     'ptab' : v['pulses'].astype(np.int16),
                     'ltab' : v['lags'].astype(np.int16),
@@ -964,10 +964,10 @@ class BorealisConvert():
                 lag_zero = shaped_data['main_acfs'][beam_index,:,0] # this beam, all ranges lag 0
                 lag_zero_power = (lag_zero.real**2 + lag_zero.imag**2)**0.5
 
-                # rawacf shape is num_ranges x num_lags x 1
                 correlation_dict = {}
                 for key in shaped_data: # all available correlation types have been included here   
-                    this_correlation = shaped_data[key][beam_index,:,:-1] 
+                    this_correlation = shaped_data[key][beam_index,:,:-1] # num_ranges x num_lags (complex)
+                    #this_correlation[:,0] = shaped_data[key][beam_index,:,-1] # set the lag0 to the alternate lag0 from end of array 
                     # shape num_beams x num_ranges x num_lags, now num_ranges x num_lags-1 b/c alternate lag-0 not included.
                     
                     flattened_data = np.array(this_correlation).flatten() #(num_ranges x num_lags, flattened)
