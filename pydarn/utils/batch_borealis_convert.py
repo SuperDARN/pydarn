@@ -4,7 +4,7 @@ import argparse
 import glob
 import subprocess
 
-from borealis_converter import borealis_converter
+from borealis_converter import borealis_converter, create_dmap_filename
 
 def usage_msg():
     """
@@ -41,15 +41,16 @@ def main():
 
     rawacf_hdf5_files = glob.glob(args.directory_to_convert + '*.rawacf.hdf5')
     for rawacf_file in rawacf_hdf5_files:
-        borealis_converter(rawacf_file, "rawacf")
+        dmap_filename = create_dmap_filename(rawacf_file, "rawacf")
+        borealis_converter(rawacf_file, "rawacf", dmap_filename)
     print("Successfully converted all rawacf files in directory.")
 
     bfiq_hdf5_files = glob.glob(args.directory_to_convert + '*bfiq.hdf5')
     for bfiq_file in bfiq_hdf5_files:
-        borealis_converter(bfiq_file, "iqdat")
+        dmap_filename = create_dmap_filename(bfiq_file, "iqdat")
+        borealis_converter(bfiq_file, "iqdat", dmap_filename)
     print("Successfully converted all bfiq files in directory.")
 
 
 if __name__ == "__main__":
     main()
-    

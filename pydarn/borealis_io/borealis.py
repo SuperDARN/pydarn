@@ -745,7 +745,7 @@ class BorealisConvert():
         return self._origin_filetype
 
 
-    def write_to_dmap(self, dmap_filetype) -> str:
+    def write_to_dmap(self, dmap_filetype, dmap_filename) -> str:
         """
         Write the Borealis records as dmap records to a dmap file using PyDARN IO. Return dmap filename.
 
@@ -755,15 +755,14 @@ class BorealisConvert():
         Dmap file types, the following are supported:
                                      - 'iqdat' : SuperDARN file type
                                      - 'rawacf' : SuperDARN file type
+        dmap_filename: filename with directory you want to write to. 
 
         Returns
         -------
         dmap_filename, the name of the DARN file written.
         """
 
-        basename = os.path.basename(self.filename)
-        basename_without_ext = '.'.join(basename.split('.')[0:-2]) # all but .rawacf.hdf5, for example.
-        dmap_filename = basename_without_ext + '.' + dmap_filetype + '.dmap'
+
         self._dmap_records = self._convert_records_to_dmap(dmap_filetype)
         darn_writer = DarnWrite(self._dmap_records, dmap_filename)
         if dmap_filetype == 'iqdat':
