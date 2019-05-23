@@ -34,13 +34,24 @@ def borealis_conversion_parser():
     return parser
 
 
-def borealis_converter(filename, dmap_filetype):
+def create_dmap_filename(filename_to_convert, dmap_filetype):
+    """
+    Creates a dmap filename in the same directory as the source file, to
+    write the DARN dmap file to.
+    """
+    basename = os.path.basename(filename_to_convert)
+    basename_without_ext = '.'.join(basename.split('.')[0:-2]) # all but .rawacf.hdf5, for example.
+    dmap_filename = os.path.dirname(filename_to_convert) + basename_without_ext + '.' + dmap_filetype + '.dmap'
+    return dmap_filename
+
+
+def borealis_converter(filename, dmap_filetype, dmap_filename):
     """
     Convert the borealis file to Darn dmap filetype.
     """
     borealis_data = BorealisConvert(filename)
     print('Read the file {filename}'.format(filename=filename))
-    dmap_filename = borealis_data.write_to_dmap(dmap_filetype)
+    dmap_filename = borealis_data.write_to_dmap(dmap_filetype, dmap_filename)
 
     print("Borealis file {filename} written to {dmap_filename} without errors."
           "".format(filename=borealis_data.filename, 
@@ -51,7 +62,8 @@ def main():
     parser = borealis_conversion_parser()
     args = parser.parse_args()
 
-    borealis_converter(args.borealis_hdf5_file, args.dmap_filetype)
+    dmap_filename = create_dmap_filename(args.borealis_hdf5_file, args.dmap_filetype)
+    borealis_converter(args.borealis_hdf5_file, args.dmap_filetype, dmap_filename)
 
 
 if __name__ == "__main__":
