@@ -46,6 +46,7 @@ import deepdish as dd
 import logging
 from typing import Union, List
 import math
+from collections import OrderedDict
 
 from pydarn.exceptions import borealis_exceptions
 from pydarn.io.superdarn import DarnWrite
@@ -309,7 +310,7 @@ class BorealisRead():
         self._current_record_name = '' # Current HDF5 record group name.
 
         # Records are private to avoid tampering.
-        self._records = {}
+        self._records = OrderedDict()
 
 
     def __repr__(self):
@@ -339,6 +340,11 @@ class BorealisRead():
 
 
     @property
+    def group_names(self):
+        return self._group_names
+
+
+    @property
     def records(self):
         return self._records
 
@@ -349,7 +355,7 @@ class BorealisRead():
 
         Returns
         -------
-        records : dict{dict}
+        records : OrderedDict{dict}
             records of borealis data. Keys are timestamps of write.
 
         Raises
@@ -379,7 +385,7 @@ class BorealisRead():
 
         Returns
         -------
-        records : dict{dict}
+        records : OrderedDict{dict}
             records of beamformed iq data. Keys are timestamps of write.
         """
         pydarn_log.debug("Reading Borealis bfiq file: {}".format(self.borealis_file))
@@ -395,7 +401,7 @@ class BorealisRead():
 
         Returns
         -------
-        records : dict{dict}
+        records : OrderedDict{dict}
             records of borealis rawacf data. Keys are timestamps of write.
         """
         pydarn_log.debug("Reading Borealis rawacf file: {}".format(self.borealis_file))
@@ -411,7 +417,7 @@ class BorealisRead():
 
         Returns
         -------
-        records : dict{dict}
+        records : OrderedDict{dict}
             records of borealis rawacf data. Keys are timestamps of write.
         """
         pydarn_log.debug("Reading Borealis output_ptrs_iq file: {}".format(self.borealis_file))
@@ -427,7 +433,7 @@ class BorealisRead():
 
         Returns
         -------
-        records : dict{dict}
+        records : OrderedDict{dict}
             records of borealis rawacf data. Keys are timestamps of write.
         """
         pydarn_log.debug("Reading Borealis rawrf file: {}".format(self.borealis_file))
@@ -500,14 +506,14 @@ class BorealisRead():
 
 class BorealisWrite():
 
-    def __init__(self, borealis_records: dict = {}, filename: str = ""):
+    def __init__(self, borealis_records: OrderedDict = OrderedDict(), filename: str = ""):
         """
         Write borealis records to a file. 
 
         Parameters
         ----------
-        borealis_records : List[dict]
-            List of borealis records
+        borealis_records : OrderedDict(dict)
+            OrderedDict of borealis records
         filename : str
             Name of the file the user wants to write to
         """
@@ -644,7 +650,7 @@ class BorealisWrite():
             Dictionary with the require dtypes for the numpy arrays in the file.        
 
         Raises
-        --------
+        ------
         OSError: file does not exist
 
         """
@@ -714,6 +720,7 @@ class BorealisConvert():
         borealis_reader = BorealisRead(self.filename)
         self._origin_filetype = os.path.basename(self.filename).split('.')[-2]
         self._borealis_records = borealis_reader.read_file(self.origin_filetype)
+        self._group_names = sorted(list(self.borealis_records.keys()))
         self._dmap_records = {}
 
 
@@ -738,6 +745,11 @@ class BorealisConvert():
     @property
     def borealis_records(self):
         return self._borealis_records
+
+
+    @property
+    def group_names(self):
+        return self._group_names
 
 
     @property
