@@ -6,13 +6,13 @@ This test suite is to test the implementation for the following classes:
     BorealisUtilities
     BorealisWrite
 Support for the following Borealis file types:
-	rawrf
-	output_ptrs_iq
-	bfiq
-	rawacf
+    rawrf
+    output_ptrs_iq
+    bfiq
+    rawacf
 And supports conversion to the following SuperBorealis types:
-	bfiq -> iqdat
-	rawacf -> rawacf
+    bfiq -> iqdat
+    rawacf -> rawacf
 """
 
 import unittest
@@ -40,12 +40,12 @@ borealis_rawacf_file = "../test_files/20190523.0200.00.sas.0.rawacf.hdf5"
 
 
 class TestBorealisRead(unittest.TestCase):
-	"""
-	Testing class for BorealisRead
-	"""
+    """
+    Testing class for BorealisRead
+    """
 
-	def setUp(self):
-		pass
+    def setUp(self):
+        pass
 
     def test_incorrect_path(self):
         """
@@ -80,7 +80,7 @@ class TestBorealisRead(unittest.TestCase):
         It should be able to open the file, read it and convert to dictionary
 
         Checks:
-        	- group names is a list, greater than length 0
+            - group names is a list, greater than length 0
         """
         file_path = borealis_rawacf_file
         reader = pydarn.BorealisRead(file_path)
@@ -93,7 +93,7 @@ class TestBorealisRead(unittest.TestCase):
         It should be able to open the file, read it and convert to dictionary
 
         Checks:
-        	- group names is a list, greater than length 0
+            - group names is a list, greater than length 0
         """
         file_path = borealis_bfiq_file
         reader = pydarn.BorealisRead(file_path)
@@ -364,7 +364,7 @@ class TestBorealisConvert(unittest.TestCase):
         Expected behaviour
         ------------------
         write a darn rawacf
-        """    	
+        """     
         file_path = borealis_rawacf_file
         converter = pydarn.BorealisConvert(file_path)
         converter.write_to_dmap("rawacf", "test_rawacf.rawacf.dmap")
@@ -383,7 +383,7 @@ class TestBorealisConvert(unittest.TestCase):
         Expected behaviour
         ------------------
         write a darn iqdat
-        """    	
+        """     
         file_path = borealis_bfiq_file
         converter = pydarn.BorealisConvert(file_path)
         converter.write_to_dmap("iqdat", "test_iqdat.iqdat.dmap")
