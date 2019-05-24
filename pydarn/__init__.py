@@ -16,12 +16,14 @@ import yaml
 from .exceptions import dmap_exceptions
 from .exceptions import superdarn_exceptions
 from .exceptions import rtp_exceptions
+from .exceptions import borealis_exceptions
 
 # Importing pydarn pydmap data structure classes
 from .io.datastructures import DmapScalar
 from .io.datastructures import DmapArray
 from .io.datastructures import DmapRecord
 from .io import superdarn_formats
+from .io import borealis_formats
 
 # Importing pydarn dmap classes
 from .io.dmap import DmapRead
@@ -31,6 +33,12 @@ from .io.dmap import DmapWrite
 from .io.superdarn import DarnRead
 from .io.superdarn import DarnWrite
 from .io.superdarn import DarnUtilities
+
+# Importing pydarn borealis classes
+from .io.borealis import BorealisRead
+from .io.borealis import BorealisWrite
+from .io.borealis import BorealisConvert
+from .io.borealis import BorealisUtilities
 
 # importing utils
 from .utils.conversions import dict2dmap

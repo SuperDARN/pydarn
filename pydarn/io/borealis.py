@@ -48,11 +48,8 @@ from typing import Union, List
 import math
 from collections import OrderedDict
 
-from pydarn.exceptions import borealis_exceptions
-from pydarn.io.superdarn import DarnWrite
-from pydarn.borealis_io import borealis_formats
-from pydarn.io import superdarn_formats
-from pydarn.utils.conversions import dict2dmap
+from pydarn import (borealis_exceptions, DarnWrite, borealis_formats, 
+                   superdarn_formats, dict2dmap)
 
 pydarn_log = logging.getLogger('pydarn')
 
