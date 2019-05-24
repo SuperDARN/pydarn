@@ -252,7 +252,6 @@ class RTP():
                     if i > 0:
                         z = np.insert(z, len(z), np.zeros(1, y_max) * np.nan,
                                       axis=0)
-
             # Get data for the provided beam number
             if (beam_num == 'all' or dmap_record['bmnum'] == beam_num) and\
                (settings['channel'] == 'all' or
@@ -303,8 +302,8 @@ class RTP():
                                         z_max = z[i][dmap_record['slist'][j]]
                     # a KeyError may be thrown because slist is not created
                     # due to bad quality data.
-                    except KeyError:
-                        continue
+                    except KeyError as err:
+                           continue
 
         # Check if there is any data to plot
         if np.all(np.isnan(z)):
@@ -626,65 +625,82 @@ class RTP():
 
     @classmethod
     def plot_summary(cls, dmap_data: List[dict], *args, beam_num: int =0, **kwargs):
-        fig, g_axes = plt.subplots(7, 2, sharex='col', figsize=(8,12),
-                                 gridspec_kw = {'width_ratios' : (10,0.2)})
-        axes = g_axes[:, 0]
-        for i in range(0, 3):
-            g_axes[i, 1].axis('off')
 
-        axes[0].set_ylabel('Sky Noise')
-        cls.plot_time_series(dmap_data, beam_num, parameter='noise.sky',
-                             scale='log', ax=axes[0])
+        fig = plt.figure(figsize=(11, 8.5))
 
-        vertical_line = lines.Line2D([], [],
-                                     linestyle='--',
-                                     markersize=10,
-                                     markeredgewidth=1.5,
-                                     label='sky Noise')
-        g_axes[0, 1].legend(handles=[vertical_line])
+        noise_position = [0.1, 0.88, 0.76, 0.06]
+        frequency_position = [0.1, 0.82, 0.76, 0.06]
+        cpid_position = [0.1, 0.77, 0.76, 0.05]
 
-        ax1_sub = axes[0].twinx()
-        ax1_sub.set_ylabel('Search Noise')
+        search_ax = fig.add_axes(noise_position)
+        tfreq_ax = fig.add_axes(frequency_position)
+        cp_ax = fig.add_axes(cpid_position)
+
+
+#        fig, g_axes = plt.subplots(7, 2, sharex='col', figsize=(8,12),
+#                                 gridspec_kw = {'width_ratios' : (10,0.2)})
+#        axes = g_axes[:, 0]
+#        for i in range(0, 3):
+#            g_axes[i, 1].axis('off')
+#
+#        axes[0].set_ylabel('Sky Noise')
+#        cls.plot_time_series(dmap_data, beam_num, parameter='noise.sky',
+#                             scale='log', ax=axes[0])
+#
+#        vertical_line = lines.Line2D([], [],
+#                                     linestyle='--',
+#                                     markersize=10,
+#                                     markeredgewidth=1.5,
+#                                     label='sky Noise')
+#        g_axes[0, 1].legend(handles=[vertical_line])
+
+
+
+        search_ax.set_ylabel('Search Noise')
         cls.plot_time_series(dmap_data, beam_num, parameter='noise.search',
-                             scale='log', ax=ax1_sub, linestyle='--')
+                             scale='log', ax=search_ax, linestyle='--')
+        search_ax.set_xticks([])
+        search_ax.legend('Search Noise')
 
+        sky_ax = search_ax.twinx()
+        sky_ax.set_ylabel('Sky Noise')
+        cls.plot_time_series(dmap_data, beam_num, parameter='noise.sky',
+                             scale='log', ax=sky_ax, linestyle='--')
+        sky_ax.set_xticks([])
 
-        axes[1].set_ylabel('Freq $MHz$')
+        tfreq_ax.set_ylabel('Freq $MHz$')
         cls.plot_time_series(dmap_data, beam_num, parameter='tfreq',
-                             ax=axes[1])
+                             ax=tfreq_ax)
+        tfreq_ax.set_xticks([])
 
-        ax2_sub = axes[1].twinx()
-        ax2_sub.set_ylabel('Nave')
+        nave_ax = tfreq_ax.twinx()
+        nave_ax.set_ylabel('Nave')
         cls.plot_time_series(dmap_data, beam_num, parameter='nave',
-                             ax=ax2_sub, linestyle='--')
-
+                             ax=nave_ax, linestyle='--')
+        nave_ax.set_xticks([])
 
         cls.plot_time_series(dmap_data, beam_num, parameter='cp',
-                             ax=axes[2])
+                             ax=cp_ax)
+        cp_ax.set_xticks([])
         #p = get(gca, 'Position')
         #set(gca, 'Position', p*0.5)
 
-        im, _, _ = cls.plot_range_time(dmap_data, beam_num,
-                                       parameter='pwr0', ax=axes[3],
-                                       color_bar=False)
-        plt.colorbar(im, cax=g_axes[3,1])
-        axes[3].set_ylabel('Range Gates')
-        im, _, _ = cls.plot_range_time(dmap_data, beam_num, parameter='w_l',
-                                       ax=axes[4], color_bar=False)
-        plt.colorbar(im, cax=g_axes[4,1])
-        axes[4].set_ylabel('Spectral Width $m/s$')
+       # snr_ax = fig.add_axes()
+       # spect_ax = fig.add_axes()
+       # elv_ax = fig.add_axes()
+       # v_ax = fig.add_axes()
 
-        im, _, _ = cls.plot_range_time(dmap_data, beam_num, parameter='elv',
-                                       ax=axes[5], color_bar=False)
-        plt.colorbar(im, cax=g_axes[5,1])
-        axes[5].set_ylabel('Elevation (degrees)')
+       # im, _, _ = cls.plot_range_time(dmap_data, beam_num,
+       #                                parameter='pwr0', ax=snr_ax)
+       # im, _, _ = cls.plot_range_time(dmap_data, beam_num, parameter='w_l',
+       #                                ax=spect_ax)
 
-        im, _, _ = cls.plot_range_time(dmap_data, beam_num, parameter='v',
-                                       ax=axes[6], color_bar=False)
-        plt.colorbar(im, cax=g_axes[6,1])
-        axes[6].set_ylabel('velocity $m/s$')
+       # im, _, _ = cls.plot_range_time(dmap_data, beam_num, parameter='elv',
+       #                                ax=elv_ax)
 
-        axes[6].set_xlabel("Date UTC")
+       # im, _, _ = cls.plot_range_time(dmap_data, beam_num, parameter='v',
+       #                                ax=v_ax)
+
+        #v_ax.set_xlabel("Date UTC")
         plt.subplots_adjust(wspace=0, hspace=0)
-        plt.tight_layout()
 
