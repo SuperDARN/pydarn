@@ -24,13 +24,8 @@ import os
 import copy
 
 import pydarn
-import 
-
-# import rawacf_data_sets
-# import fitacf_data_sets
-# import iqdat_data_sets
-# import map_data_sets
-# import grid_data_sets
+import borealis_rawacf_data_sets
+import borealis_bfiq_data_sets
 
 pydarn_logger = logging.getLogger('pydarn')
 
@@ -154,21 +149,28 @@ class TestBorealisWrite(unittest.TestCase):
         ------------------
         Contains file name of the data if given to it.
         """
-        rawacf_data = copy.deepcopy(rawacf_data_sets.rawacf_data)
-        Borealis = pydarn.BorealisWrite(rawacf_data, "rawacf_test.rawacf")
-        self.assertEqual(Borealis.filename, "rawacf_test.rawacf")
+        rawacf_data = copy.deepcopy(borealis_rawacf_data_sets.borealis_rawacf_data)
+        writer = pydarn.BorealisWrite(rawacf_data, "test_rawacf.rawacf.hdf5")
+        self.assertEqual(writer.filename, "test_rawacf.rawacf.hdf5")
 
-    def test_empty_record(self):
+    def test_writing_rawacf(self):
         """
-        Tests if an empty record is given. This will later be changed for
-        real-time implementation.
+        Tests write_rawacf method - writes a rawacf file
 
         Expected behaviour
         ------------------
-        Raise DmapDataError if no data is provided to the constructor
+        Rawacf file is produced
         """
-        with self.assertRaises(pydarn.dmap_exceptions.DmapDataError):
-            pydarn.BorealisWrite([], 'dummy_file.acf')
+        rawacf_data = copy.deepcopy(borealis_rawacf_data_sets.borealis_rawacf_data)
+
+        writer = pydarn.BorealisWrite(rawacf_data, "test_rawacf.rawacf.hdf5")
+        writer.write_rawacf()
+        # only testing the file is created since it should only be created
+        # at the last step after all checks have passed
+        # Testing the integrity of the insides of the file will be part of
+        # integration testing since we need BorealisRead for that.
+        self.assertTrue(os.path.isfile("test_rawacf.rawacf.hdf5"))
+        os.remove("test_rawacf.rawacf.hdf5")
 
     def test_incorrect_filename_input_using_write_methods(self):
         """
@@ -179,15 +181,11 @@ class TestBorealisWrite(unittest.TestCase):
         All should raise a FilenameRequiredError - if no file name is given
         what do we write to ¯\_(ツ)_/¯
         """
-        rawacf_data = copy.deepcopy(rawacf_data_sets.rawacf_data)
-        dmap_data = pydarn.BorealisWrite(rawacf_data)
+        rawacf_data = copy.deepcopy(borealis_rawacf_data_sets.borealis_rawacf_data)
+        writer = pydarn.BorealisWrite(rawacf_data)
         with self.assertRaises(pydarn.dmap_exceptions.FilenameRequiredError):
-            dmap_data.write_rawacf()
-            dmap_data.write_fitacf()
-            dmap_data.write_iqdat()
-            dmap_data.write_grid()
-            dmap_data.write_map()
-            dmap_data.write_dmap()
+            writer.write_rawacf()
+            writer.write_bfiq()
 
     def test_BorealisWrite_missing_field_rawacf(self):
         """
@@ -196,19 +194,20 @@ class TestBorealisWrite(unittest.TestCase):
 
         Expected behaviour
         ------------------
-        Raises SuperBorealisFieldMissingError - because the rawacf data is
-        missing field nave
+        Raises BorealisFieldMissingError - because the rawacf data is
+        missing field num_sequences
         """
-        rawacf_missing_field = copy.deepcopy(rawacf_data_sets.rawacf_data)
-        del rawacf_missing_field[2]['nave']
+        rawacf_missing_field = copy.deepcopy(borealis_rawacf_data_sets.borealis_rawacf_data)
+        keys = sorted(list(rawacf_missing_field.keys()))
+        del rawacf_missing_field[keys[0]]['num_sequences']
 
-        dmap = pydarn.BorealisWrite(rawacf_missing_field)
+        writer = pydarn.BorealisWrite(rawacf_missing_field, "test_rawacf.rawacf.hdf5")
 
         try:
-            dmap.write_rawacf("test_rawacf.rawacf")
-        except pydarn.superBorealis_exceptions.SuperBorealisFieldMissingError as err:
-            self.assertEqual(err.fields, {'nave'})
-            self.assertEqual(err.record_number, 2)
+            writer.write_rawacf()
+        except pydarn.borealis_exceptions.BorealisFieldMissingError as err:
+            self.assertEqual(err.fields, {'num_sequences'})
+            self.assertEqual(err.record_name, keys[0])
 
     def test_extra_field_rawacf(self):
         """
@@ -217,19 +216,20 @@ class TestBorealisWrite(unittest.TestCase):
 
         Expected behaviour
         ------------------
-        Raises SuperBorealisExtraFieldError because the rawacf data
+        Raises BorealisExtraFieldError because the rawacf data
         has an extra field dummy
         """
-        rawacf_extra_field = copy.deepcopy(rawacf_data_sets.rawacf_data)
-        rawacf_extra_field[1]['dummy'] = pydarn.DmapScalar('dummy', 'nothing',
-                                                           chr(1), 's')
-        dmap = pydarn.BorealisWrite(rawacf_extra_field)
+        rawacf_extra_field = copy.deepcopy(borealis_rawacf_data_sets.borealis_rawacf_data)
+        keys = sorted(list(rawacf_extra_field.keys()))
+        rawacf_extra_field[keys[0]]['dummy'] = 'dummy'
+
+        writer = pydarn.BorealisWrite(rawacf_extra_field, "test_rawacf.rawacf.hdf5")
 
         try:
-            dmap.write_rawacf("test_rawacf.rawacf")
-        except pydarn.superBorealis_exceptions.SuperBorealisExtraFieldError as err:
+            writer.write_rawacf()
+        except pydarn.borealis_exceptions.BorealisExtraFieldError as err:
             self.assertEqual(err.fields, {'dummy'})
-            self.assertEqual(err.record_number, 1)
+            self.assertEqual(err.record_name, keys[0])
 
     def test_incorrect_data_format_rawacf(self):
         """
@@ -238,114 +238,159 @@ class TestBorealisWrite(unittest.TestCase):
 
         Expected Behaviour
         -------------------
-        Raises SuperBorealisDataFormatTypeError because the rawacf data has the
-        wrong type for the scan field
+        Raises BorealisDataFormatTypeError because the rawacf data has the
+        wrong type for the scan_start_marker field
         """
-        rawacf_incorrect_fmt = copy.deepcopy(rawacf_data_sets.rawacf_data)
-        rawacf_incorrect_fmt[2]['scan'] = \
-            rawacf_incorrect_fmt[2]['scan']._replace(data_type_fmt='c')
-        dmap = pydarn.BorealisWrite(rawacf_incorrect_fmt)
+        rawacf_incorrect_fmt = copy.deepcopy(borealis_rawacf_data_sets.borealis_rawacf_data)
+        keys = sorted(list(rawacf_incorrect_fmt.keys()))
+        rawacf_incorrect_fmt[keys[0]]['scan_start_marker'] = 1
+
+        writer = pydarn.BorealisWrite(rawacf_incorrect_fmt, "test_rawacf.rawacf.hdf5")
 
         try:
-            dmap.write_rawacf("test_rawacf.rawacf")
-        except pydarn.superBorealis_exceptions.SuperBorealisDataFormatTypeError as err:
-            self.assertEqual(err.incorrect_params['scan'], 'h')
-            self.assertEqual(err.record_number, 2)
+            writer.write_rawacf()
+        except pydarn.borealis_exceptions.BorealisDataFormatTypeError as err:
+            self.assertEqual(err.incorrect_params['scan_start_marker'], 'bool')
+            self.assertEqual(err.record_name, keys[0])
 
-    def test_writing_rawacf(self):
+    def test_writing_bfiq(self):
         """
-        Tests write_rawacf method - writes a rawacf file
+        Tests write_bfiq method - writes a bfiq file
 
         Expected behaviour
         ------------------
-        Rawacf file is produced
+        bfiq file is produced
         """
-        rawacf_data = copy.deepcopy(rawacf_data_sets.rawacf_data)
+        bfiq_data = copy.deepcopy(borealis_bfiq_data_sets.borealis_bfiq_data)
 
-        dmap = pydarn.BorealisWrite(rawacf_data)
-
-        dmap.write_rawacf("test_rawacf.rawacf")
+        writer = pydarn.BorealisWrite(bfiq_data, "test_bfiq.bfiq.hdf5")
+        writer.write_bfiq()
         # only testing the file is created since it should only be created
         # at the last step after all checks have passed
         # Testing the integrity of the insides of the file will be part of
         # integration testing since we need BorealisRead for that.
-        self.assertTrue(os.path.isfile("test_rawacf.rawacf"))
-        os.remove("test_rawacf.rawacf")
+        self.assertTrue(os.path.isfile("test_bfiq.bfiq.hdf5"))
+        os.remove("test_bfiq.bfiq.hdf5")
 
-    def test_writing_iqdat(self):
+    def test_missing_bfiq_field(self):
         """
-        Tests write_iqdat method - writes a iqdat file
-
-        Expected behaviour
-        ------------------
-        iqdat file is produced
-        """
-        iqdat_data = copy.deepcopy(iqdat_data_sets.iqdat_data)
-        dmap = pydarn.BorealisWrite(iqdat_data)
-
-        dmap.write_iqdat("test_iqdat.iqdat")
-        self.assertTrue(os.path.isfile("test_iqdat.iqdat"))
-        os.remove("test_iqdat.iqdat")
-
-    def test_missing_iqdat_field(self):
-        """
-        Tests write_iqdat method - writes a iqdat structure file for the
+        Tests write_bfiq method - writes a bfiq structure file for the
         given data
 
         Expected behaviour
         ------------------
-        Raises SuperBorealisFieldMissingError - because the iqdat data is
-        missing field chnnum
+        Raises BorealisFieldMissingError - because the bfiq data is
+        missing field antenna_arrays_order
         """
-
-        iqdat_missing_field = copy.deepcopy(iqdat_data_sets.iqdat_data)
-        del iqdat_missing_field[1]['chnnum']
-        dmap = pydarn.BorealisWrite(iqdat_missing_field)
+        bfiq_missing_field = copy.deepcopy(borealis_bfiq_data_sets.borealis_bfiq_data)
+        keys = sorted(list(bfiq_missing_field.keys()))
+        del bfiq_missing_field[keys[0]]['antenna_arrays_order']
+        writer = pydarn.BorealisWrite(bfiq_missing_field, "test_bfiq.bfiq.hdf5")
 
         try:
-            dmap.write_iqdat("test_iqdat.iqdat")
-        except pydarn.superBorealis_exceptions.SuperBorealisFieldMissingError as err:
-            self.assertEqual(err.fields, {'chnnum'})
-            self.assertEqual(err.record_number, 1)
+            writer.write_bfiq()
+        except pydarn.borealis_exceptions.BorealisFieldMissingError as err:
+            self.assertEqual(err.fields, {'antenna_arrays_order'})
+            self.assertEqual(err.record_name, keys[0])
 
-    def test_extra_iqdat_field(self):
+    def test_extra_bfiq_field(self):
         """
-        Tests write_iqdat method - writes a iqdat structure file for the
+        Tests write_bfiq method - writes a bfiq structure file for the
         given data
 
         Expected behaviour
         ------------------
-        Raises SuperBorealisExtraFieldError because the iqdat data
+        Raises BorealisExtraFieldError because the bfiq data
         has an extra field dummy
         """
-        iqdat_extra_field = copy.deepcopy(iqdat_data_sets.iqdat_data)
-        iqdat_extra_field[2]['dummy'] = \
-            pydarn.DmapArray('dummy', np.array([1, 2]), chr(1), 'c', 1, [2])
-        dmap = pydarn.BorealisWrite(iqdat_extra_field)
+        bfiq_extra_field = copy.deepcopy(borealis_bfiq_data_sets.borealis_bfiq_data)
+        keys = sorted(list(bfiq_extra_field.keys()))
+        bfiq_extra_field[keys[0]]['dummy'] = 'dummy'
+        writer = pydarn.BorealisWrite(bfiq_extra_field, "test_bfiq.bfiq.hdf5")
 
         try:
-            dmap.write_iqdat("test_iqdat.iqdat")
-        except pydarn.superBorealis_exceptions.SuperBorealisExtraFieldError as err:
+            writer.write_bfiq()
+        except pydarn.borealis_exceptions.BorealisExtraFieldError as err:
             self.assertEqual(err.fields, {'dummy'})
-            self.assertEqual(err.record_number, 2)
+            self.assertEqual(err.record_name, keys[0])
 
-    def test_incorrect_iqdat_data_type(self):
+    def test_incorrect_bfiq_data_type(self):
         """
-        Tests write_iqdat method - writes a iqdat structure file for the
+        Tests write_bfiq method - writes a bfiq structure file for the
         given data
 
         Expected Behaviour
         -------------------
-        Raises SuperBorealisDataFormatTypeError because the iqdat data has the
-        wrong type for the lagfr field
+        Raises BorealisDataFormatTypeError because the bfiq data has the
+        wrong type for the first_range_rtt field
         """
-        iqdat_incorrect_fmt = copy.deepcopy(iqdat_data_sets.iqdat_data)
-        iqdat_incorrect_fmt[2]['lagfr'] = \
-            iqdat_incorrect_fmt[2]['lagfr']._replace(data_type_fmt='d')
-        dmap = pydarn.BorealisWrite(iqdat_incorrect_fmt)
+        bfiq_incorrect_fmt = copy.deepcopy(borealis_bfiq_data_sets.borealis_bfiq_data)
+        keys = sorted(list(bfiq_incorrect_fmt.keys()))
+        bfiq_incorrect_fmt[keys[0]]['first_range_rtt'] = 5
+        writer = pydarn.BorealisWrite(bfiq_incorrect_fmt, "test_bfiq.bfiq.hdf5")
 
         try:
-            dmap.write_iqdat("test_iqdat.iqdat")
-        except pydarn.superBorealis_exceptions.SuperBorealisDataFormatTypeError as err:
-            self.assertEqual(err.incorrect_params['lagfr'], 'h')
-            self.assertEqual(err.record_number, 2)
+            writer.write_bfiq()
+        except pydarn.borealis_exceptions.BorealisDataFormatTypeError as err:
+            self.assertEqual(err.incorrect_params['first_range_rtt'], 'np.float32')
+            self.assertEqual(err.record_name, keys[0])
+
+
+class TestBorealisConvert(unittest.TestCase):
+    """
+    Tests BorealisWrite class
+    """
+    def setUp(self):
+        pass
+
+    def test_borealis_convert_constructor(self):
+        """
+        Tests BorealisConvert constructor
+
+        Expected behaviour
+        ------------------
+        Contains file name of the data if given to it.
+        """
+        file_path = borealis_rawacf_file
+        converter = pydarn.BorealisConvert(file_path)
+        self.assertIsInstance(converter.group_names, list)
+        self.assertGreater(len(converter.group_names), 0)
+        self.assertEqual(converter.origin_filetype, 'rawacf')
+
+    def test_borealis_convert_to_rawacf(self):
+        """
+        Tests BorealisConvert to rawacf
+
+        Expected behaviour
+        ------------------
+        write a darn rawacf
+        """    	
+        file_path = borealis_rawacf_file
+        converter = pydarn.BorealisConvert(file_path)
+        converter.write_to_dmap("rawacf", "test_rawacf.rawacf.dmap")
+
+        # only testing the file is created since it should only be created
+        # at the last step after all checks have passed
+        # Testing the integrity of the insides of the file will be part of
+        # integration testing since we need BorealisRead for that.
+        self.assertTrue(os.path.isfile("test_rawacf.rawacf.dmap"))
+        os.remove("test_rawacf.rawacf.dmap")
+
+    def test_borealis_convert_to_iqdat(self):
+        """
+        Tests BorealisConvert to iqdat
+
+        Expected behaviour
+        ------------------
+        write a darn iqdat
+        """    	
+        file_path = borealis_bfiq_file
+        converter = pydarn.BorealisConvert(file_path)
+        converter.write_to_dmap("iqdat", "test_iqdat.iqdat.dmap")
+
+        # only testing the file is created since it should only be created
+        # at the last step after all checks have passed
+        # Testing the integrity of the insides of the file will be part of
+        # integration testing since we need BorealisRead for that.
+        self.assertTrue(os.path.isfile("test_iqdat.iqdat.dmap"))
+        os.remove("test_iqdat.iqdat.dmap")
