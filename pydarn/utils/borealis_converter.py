@@ -41,7 +41,7 @@ def create_dmap_filename(filename_to_convert, dmap_filetype):
     """
     basename = os.path.basename(filename_to_convert)
     basename_without_ext = '.'.join(basename.split('.')[0:-2]) # all but .rawacf.hdf5, for example.
-    dmap_filename = os.path.dirname(filename_to_convert) + basename_without_ext + '.' + dmap_filetype + '.dmap'
+    dmap_filename = os.path.dirname(filename_to_convert) + '/' + basename_without_ext + '.' + dmap_filetype + '.dmap'
     return dmap_filename
 
 
