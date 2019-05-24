@@ -5,7 +5,7 @@ Test data sets for Borealis Rawacf.
 from collections import OrderedDict
 from numpy import array, int16, float32, zeros
 
-borealis_rawacf_data = [OrderedDict([(1558583991060, {
+borealis_rawacf_data = OrderedDict([(1558583991060, {
 	"borealis_git_hash" : 'v0.2-61-gc13ab34', 
 	"timestamp_of_write" : 1558583994.245457, 
 	"experiment_id" : 100000000,
@@ -134,4 +134,4 @@ borealis_rawacf_data = [OrderedDict([(1558583991060, {
     "xcfs" : zeros(1725), 
     "noise_at_freq" : [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.], 
     "data_normalization_factor" : 9999999.999999996
-	})])]
+	})])
