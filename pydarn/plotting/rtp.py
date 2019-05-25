@@ -654,34 +654,34 @@ class RTP():
 #                                     label='sky Noise')
 #        g_axes[0, 1].legend(handles=[vertical_line])
 
-
-
-        search_ax.set_ylabel('Search Noise')
+        #search_ax.set_ylabel('Search Noise')
         cls.plot_time_series(dmap_data, beam_num, parameter='noise.search',
-                             scale='log', ax=search_ax, linestyle='--')
+                             scale='log', ax=search_ax, linestyle='--',
+                             label='Search Noise')
+        trans = search_ax.get_yaxis_transform()
+        search_ax.set_ylabel('Search\n Noise', rotation=0, labelpad=30)
         search_ax.set_xticks([])
-        search_ax.legend('Search Noise')
+        search_ax.axhline(y=1, xmin=-0.5, xmax=0, clip_on=False)
 
         sky_ax = search_ax.twinx()
-        sky_ax.set_ylabel('Sky Noise')
         cls.plot_time_series(dmap_data, beam_num, parameter='noise.sky',
                              scale='log', ax=sky_ax, linestyle='--')
         sky_ax.set_xticks([])
+        sky_ax.set_ylabel('Sky\n Noise', rotation=0, labelpad=25)
+        #tfreq_ax.set_ylabel('Freq $MHz$')
+        #cls.plot_time_series(dmap_data, beam_num, parameter='tfreq',
+        #                     ax=tfreq_ax)
+        #tfreq_ax.set_xticks([])
 
-        tfreq_ax.set_ylabel('Freq $MHz$')
-        cls.plot_time_series(dmap_data, beam_num, parameter='tfreq',
-                             ax=tfreq_ax)
-        tfreq_ax.set_xticks([])
+        #nave_ax = tfreq_ax.twinx()
+        #nave_ax.set_ylabel('Nave')
+        #cls.plot_time_series(dmap_data, beam_num, parameter='nave',
+        #                     ax=nave_ax, linestyle='--')
+        #nave_ax.set_xticks([])
 
-        nave_ax = tfreq_ax.twinx()
-        nave_ax.set_ylabel('Nave')
-        cls.plot_time_series(dmap_data, beam_num, parameter='nave',
-                             ax=nave_ax, linestyle='--')
-        nave_ax.set_xticks([])
-
-        cls.plot_time_series(dmap_data, beam_num, parameter='cp',
-                             ax=cp_ax)
-        cp_ax.set_xticks([])
+        #cls.plot_time_series(dmap_data, beam_num, parameter='cp',
+        #                     ax=cp_ax)
+        #cp_ax.set_xticks([])
         #p = get(gca, 'Position')
         #set(gca, 'Position', p*0.5)
 
