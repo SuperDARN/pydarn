@@ -20,7 +20,7 @@ If you have any questions or concerns please submit an **Issue** on the SuperDAR
     - [Read/Write SuperDARN](user/darn.md)
     - [Range-Time plots](user/range_time.md)
     - [Time-Series plots](user/time_series.md)
-    - [Summar plots](user/summary.md)
+    - [Summary plots](user/summary.md)
   - Code Documentation
     - [`ReadDmap`](code/ReadDmap.md)
     - [`WriteDmap`](code/WriteDmap.md)
