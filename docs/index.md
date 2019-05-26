@@ -34,7 +34,7 @@ If you have any questions or concerns please submit an **Issue** on the SuperDAR
     - [Structure](developer/structure_guide.md)
     - [Documentation Style](developer/documentation_guide.md)
     - [Testing](developer/testing_guide.md)
-    - [Committing Code](developer/commity_guide.md)
+    - [Committing Code](developer/community_guide.md)
     - [Release](developer/release_guidelines.md)
   - History
     - [V 0.0](history/v_0_0.md)
