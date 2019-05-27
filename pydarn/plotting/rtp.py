@@ -57,7 +57,7 @@ class RTP():
     @classmethod
     def plot_range_time(cls, dmap_data: List[dict], *args,
                         parameter: str = 'power', beam_num: int = 0, ax=None,
-                        **kwargs):
+                        norm=None, **kwargs):
         """
 
         Future Work
@@ -274,7 +274,22 @@ class RTP():
                         for j in range(len(dmap_record['slist'])):
                             # if it is ground scatter store a very
                             # low number in that cell
-                            if settings['ground_scatter'] and\
+                            if not settings['ground_scatter'] or\
+                               dmap_recod['gflg'][j] == 0:
+                                z[i][dmap_record['slist'][j]] = \
+                                        dmap_record[parameter][j]
+                                # check if boundaries have been set
+                                if settings["boundary"] is None:
+                                    # see if data within boundaries
+                                    #if z_min < dmap_record[parameter][j] and\
+                                    #   z_max > dmap_record[parameter][j]:
+                                    # calculate min and max value
+                                    if z[i][dmap_record['slist'][j]] < z_min:
+                                        z_min = z[i][dmap_record['slist'][j]]
+                                    if z[i][dmap_record['slist'][j]] > z_max:
+                                        z_max = z[i][dmap_record['slist'][j]]
+
+                            elif settings['ground_scatter'] and\
                                dmap_record['gflg'][j] == 1:
                                 # chosen value from davitpy to make the
                                 # ground scatter a different color
@@ -282,24 +297,6 @@ class RTP():
                                 z[i][dmap_record['slist'][j]] = -1000000
                             # otherwise store parameter value
                             # TODO: refactor and clean up this code
-                            elif cls.__filter_data_check(dmap_record,
-                                                         settings, j):
-                                # check if boundaries have been set
-                                if settings["boundary"]:
-                                    # see if data within boundaries
-                                    if z_min < dmap_record[parameter][j] and\
-                                       z_max > dmap_record[parameter][j]:
-                                        z[i][dmap_record['slist'][j]] = \
-                                                dmap_record[parameter][j]
-                                else:
-                                    z[i][dmap_record['slist'][j]] = \
-                                            dmap_record[parameter][j]
-                                    # calculate min and max value
-                                    if z[i][dmap_record['slist'][j]] < z_min or\
-                                       z_min is None:
-                                        z_min = z[i][dmap_record['slist'][j]]
-                                    if z[i][dmap_record['slist'][j]] > z_max:
-                                        z_max = z[i][dmap_record['slist'][j]]
                     # a KeyError may be thrown because slist is not created
                     # due to bad quality data.
                     except KeyError as err:
@@ -312,11 +309,13 @@ class RTP():
         time_axis, elev_axis = np.meshgrid(x, y)
         z_data = np.ma.masked_where(np.isnan(z.T), z.T)
 
-        norm = colors.Normalize(z_min, z_max)
+        if norm is None:
+            norm = colors.Normalize(z_min, z_max)
 
         cmap = cm.get_cmap(settings['color_map'])
         # set ground scatter to grey
-        cmap.set_under('grey', 1.0)
+        if settings['ground_scatter']:
+            cmap.set_under('grey', 1.0)
 
         # plot!
         im = ax.pcolormesh(time_axis, elev_axis, z_data, lw=0.01,
@@ -655,9 +654,9 @@ class RTP():
         search_ax.set_ylabel('Search\n Noise', rotation=0, labelpad=30)
         search_ax.set_xticks([])
         search_ax.set_ylim(1e0, 1e6)
-        search_ax.axhline(y=1.07, xmin=-0.11, xmax=-0.05, clip_on=False,
+        search_ax.axhline(y=1.1, xmin=-0.11, xmax=-0.05, clip_on=False,
                           color='k')
-        search_ax.yaxis.set_label_coords(-0.08, 0.079)
+        search_ax.yaxis.set_label_coords(-0.08, 0.085)
         yticks = search_ax.yaxis.get_major_ticks()
 
         sky_ax = search_ax.twinx()
@@ -665,10 +664,10 @@ class RTP():
                              scale='log', ax=sky_ax, linestyle='--', color='k')
         sky_ax.set_xticks([])
         sky_ax.set_ylabel('Sky\n Noise', rotation=0, labelpad=25)
-        sky_ax.axhline(y=1.09, xmin=1.07, xmax=1.13, clip_on=False,
+        sky_ax.axhline(y=1.1, xmin=1.07, xmax=1.13, clip_on=False,
                           linestyle='--', color='k')
         sky_ax.set_ylim(1e0, 1e6)
-        sky_ax.yaxis.set_label_coords(1.1, 0.79)
+        sky_ax.yaxis.set_label_coords(1.1, 0.7)
         yticks = sky_ax.yaxis.get_major_ticks()
 
         tfreq_ax.set_ylabel('Freq $MHz$')
@@ -676,7 +675,7 @@ class RTP():
                              ax=tfreq_ax)
         tfreq_ax.set_xticks([])
         tfreq_ax.set_ylabel('Freq\n($MHz$)', rotation=0, labelpad=30)
-        tfreq_ax.axhline(y=0.09, xmin=-0.11, xmax=-0.05, clip_on=False)
+        tfreq_ax.axhline(y=0.2, xmin=-0.11, xmax=-0.05, clip_on=False, color='k')
         tfreq_ax.yaxis.set_label_coords(-0.08, 0.09)
         tfreq_ax.set_ylim(0, 20)
 
@@ -685,8 +684,8 @@ class RTP():
                              ax=nave_ax, linestyle='--')
         nave_ax.set_xticks([])
         nave_ax.set_ylabel('Nave', rotation=0, labelpad=30)
-        nave_ax.axhline(y=0.07, xmin=1.07, xmax=1.13, clip_on=False,
-                        linestyle='--')
+        nave_ax.axhline(y=0.2, xmin=1.07, xmax=1.13, clip_on=False,
+                        linestyle='--', color='k')
         nave_ax.yaxis.set_label_coords(1.1, 0.4)
         nave_ax.set_ylim(0,80)
 
@@ -694,31 +693,32 @@ class RTP():
                              ax=cp_ax, cp_name=False)
         cp_ax.set_xticks([])
         cp_ax.set_ylabel('CPID', rotation=0, labelpad=30)
-        cp_ax.yaxis.set_label_coords(-0.08, 0)
+        cp_ax.yaxis.set_label_coords(-0.08, 0.079)
 
 
         cls.plot_range_time(dmap_data, beam_num, color_bar_label='SNR ($dB$)',
-                            parameter='pwr0', ax=snr_ax)
+                            parameter='pwr0', ax=snr_ax, boundary=(0, 30))
         snr_ax.set_ylabel('Range Gates')
         snr_ax.set_xticks([])
-        snr_ax.set_ylim(0, 35)
         cls.plot_range_time(dmap_data, beam_num, parameter='v', color_bar_label='Velocity ($m/s$)',
-                            ax=vel_ax)
+                            ax=vel_ax, color_map='jet_r', boundary=(-200, 200))
 
         vel_ax.set_ylabel('Range Gates')
         vel_ax.set_xticks([])
-        vel_ax.set_ylim(-200,200)
         cls.plot_range_time(dmap_data, beam_num, parameter='w_l',
-                            color_bar_label='Spect Width\n ($m/s$)', ax=spect_ax)
+                            color_bar_label='Spect Width\n ($m/s$)',
+                            ax=spect_ax, boundary=(0, 150))
         spect_ax.set_xticks([])
         spect_ax.set_ylabel('Range Gates')
-        spect_ax.set_ylim(0, 160)
 
-        cls.plot_range_time(dmap_data, beam_num, parameter='elv', color_bar_label='Elevation ($degrees$)',
-                                       ax=elv_ax)
+        cls.plot_range_time(dmap_data, beam_num, parameter='elv', color_bar_label='Elevation\n ($degrees$)',
+                                       ax=elv_ax, boundary=(0, 50))
         elv_ax.set_ylabel('Range Gates')
-        elv_ax.set_ylim(0, 60)
         elv_ax.set_xlabel("Date UTC")
-        plt.title('Summary Plot', y = 2.4)
+        plt.title('Rankin Inlet (Fitacf 2.5)  2018 Feb 20  Beam 7', y = 2.4)
         plt.subplots_adjust(wspace=0, hspace=0)
 
+    @classmethod
+    def __generate_title(start_time, end_time):
+        title_format = "{Radar name} Fitacf {version}"\
+                "  {start_date} - {end_date}  Beam {num}"
