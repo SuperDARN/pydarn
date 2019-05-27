@@ -42,7 +42,8 @@ from typing import Union, List
 import math
 from collections import OrderedDict
 
-from pydarn import borealis_exceptions, DarnWrite, borealis_formats, dict2dmap
+from pydarn import borealis_exceptions, DarnWrite, borealis_formats
+from pydarn.utils.conversions import dict2dmap
 
 pydarn_log = logging.getLogger('pydarn')
 
