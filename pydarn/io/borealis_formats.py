@@ -2,7 +2,7 @@
 # Authors: Marina Schmidt
 """
 This file contains several class with the fields that pertain to
-SuperDARN Borealis HDF5 files. 
+SuperDARN Borealis HDF5 files.
 
 Classes:
 --------
@@ -14,7 +14,7 @@ BorealisRawrf
 
 Notes:
 ------
-Borealis stage iq data will not be included here (intermediate writes 
+Borealis stage iq data will not be included here (intermediate writes
 can be done between rawrf and output_ptrs_iq processing)
 
 """
@@ -51,7 +51,7 @@ class BorealisRawacf():
         "samples_data_type" : np.unicode_, # C data type of the samples such as complex float.
         "data_normalization_factor" : np.float64 # data normalization factor determined by the filter scaling in the decimation scheme.
     }
-    
+
     array_dtypes = {
         "pulses" : np.uint32, # The pulse sequence in units of the tau_spacing.
         "lags" : np.uint32, # The lags created from combined pulses.
@@ -99,9 +99,9 @@ class BorealisBfiq():
         "first_range_rtt" : np.float32, # Round trip time of flight to first range in microseconds.
         "first_range" : np.float32, # Distance to first range in km.
         "num_ranges" : np.uint32, # Number of ranges to calculate correlations for.
-        "data_normalization_factor" : np.float64 # data normalization factor determined by the filter scaling in the decimation scheme.    
+        "data_normalization_factor" : np.float64 # data normalization factor determined by the filter scaling in the decimation scheme.
     }
-    
+
     array_dtypes = {
         "pulses" : np.uint32, # The pulse sequence in units of the tau_spacing.
         "lags" : np.uint32, # The lags created from combined pulses.
@@ -145,9 +145,9 @@ class BorealisOutputPtrsIq():
         "freq" : np.uint32, # The frequency used for this experiment slice in kHz.
         "samples_data_type" : np.unicode_, # C data type of the samples such as complex float.
         "num_samps" : np.uint32, # Number of samples in the sampling period.
-        "data_normalization_factor" : np.float64 # data normalization factor determined by the filter scaling in the decimation scheme.    
+        "data_normalization_factor" : np.float64 # data normalization factor determined by the filter scaling in the decimation scheme.
     }
-    
+
     array_dtypes = {
         "pulses" : np.uint32, # The pulse sequence in units of the tau_spacing.
         "pulse_phase_offset" : np.float32, # For pulse encoding phase, in desgrees offset. Contains one phase offset per pulse in pulses.
@@ -186,7 +186,7 @@ class BorealisRawrf():
         "rx_center_freq" : np.float64, # The center frequency of this data in kHz
         "num_samps" : np.uint32 # Number of samples in the sampling period.
     }
-    
+
     array_dtypes = {
         "sqn_timestamps" : np.float64, # A list of GPS timestamps of the beginning of transmission for each
                              # sampling period in the integration time. Seconds since epoch.
