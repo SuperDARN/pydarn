@@ -508,6 +508,7 @@ class RTP():
         ax.xaxis.set_major_formatter(dates.DateFormatter(date_fmt))
         ax.xaxis.set_minor_locator(dates.HourLocator())
         ax.margins(x=0)
+        ax.tick_params(axis='y', which='minor')
         return lines
 
     @classmethod
@@ -627,80 +628,97 @@ class RTP():
     def plot_summary(cls, dmap_data: List[dict], *args, beam_num: int =0, **kwargs):
 
         fig = plt.figure(figsize=(11, 8.5))
-
+        # position: [left, bottom, width, height]
         noise_position = [0.1, 0.88, 0.76, 0.06]
-        frequency_position = [0.1, 0.82, 0.76, 0.06]
-        cpid_position = [0.1, 0.77, 0.76, 0.05]
+        frequency_position = [0.1, 0.80, 0.76, 0.06]
+        cpid_position = [0.1, 0.72, 0.76, 0.06]
 
         search_ax = fig.add_axes(noise_position)
         tfreq_ax = fig.add_axes(frequency_position)
         cp_ax = fig.add_axes(cpid_position)
 
+        figheight = 0.72
+        snr_pos = [0.1,  0.56, 0.95, 0.14]
+        vel_pos = [0.1, 0.40, 0.95, 0.14]
+        spect_pos = [0.1, 0.24, 0.95, 0.14]
+        elv_pos = [0.1, 0.08, 0.95, 0.14]
 
-#        fig, g_axes = plt.subplots(7, 2, sharex='col', figsize=(8,12),
-#                                 gridspec_kw = {'width_ratios' : (10,0.2)})
-#        axes = g_axes[:, 0]
-#        for i in range(0, 3):
-#            g_axes[i, 1].axis('off')
-#
-#        axes[0].set_ylabel('Sky Noise')
-#        cls.plot_time_series(dmap_data, beam_num, parameter='noise.sky',
-#                             scale='log', ax=axes[0])
-#
-#        vertical_line = lines.Line2D([], [],
-#                                     linestyle='--',
-#                                     markersize=10,
-#                                     markeredgewidth=1.5,
-#                                     label='sky Noise')
-#        g_axes[0, 1].legend(handles=[vertical_line])
+        snr_ax = fig.add_axes(snr_pos)
+        vel_ax = fig.add_axes(vel_pos)
+        spect_ax = fig.add_axes(spect_pos)
+        elv_ax = fig.add_axes(elv_pos)
 
-        #search_ax.set_ylabel('Search Noise')
         cls.plot_time_series(dmap_data, beam_num, parameter='noise.search',
                              scale='log', ax=search_ax, linestyle='--',
                              label='Search Noise')
         trans = search_ax.get_yaxis_transform()
         search_ax.set_ylabel('Search\n Noise', rotation=0, labelpad=30)
         search_ax.set_xticks([])
-        search_ax.axhline(y=1, xmin=-0.5, xmax=0, clip_on=False)
+        search_ax.set_ylim(1e0, 1e6)
+        search_ax.axhline(y=1.07, xmin=-0.11, xmax=-0.05, clip_on=False,
+                          color='k')
+        search_ax.yaxis.set_label_coords(-0.08, 0.079)
+        yticks = search_ax.yaxis.get_major_ticks()
 
         sky_ax = search_ax.twinx()
         cls.plot_time_series(dmap_data, beam_num, parameter='noise.sky',
-                             scale='log', ax=sky_ax, linestyle='--')
+                             scale='log', ax=sky_ax, linestyle='--', color='k')
         sky_ax.set_xticks([])
         sky_ax.set_ylabel('Sky\n Noise', rotation=0, labelpad=25)
-        #tfreq_ax.set_ylabel('Freq $MHz$')
-        #cls.plot_time_series(dmap_data, beam_num, parameter='tfreq',
-        #                     ax=tfreq_ax)
-        #tfreq_ax.set_xticks([])
+        sky_ax.axhline(y=1.09, xmin=1.07, xmax=1.13, clip_on=False,
+                          linestyle='--', color='k')
+        sky_ax.set_ylim(1e0, 1e6)
+        sky_ax.yaxis.set_label_coords(1.1, 0.79)
+        yticks = sky_ax.yaxis.get_major_ticks()
 
-        #nave_ax = tfreq_ax.twinx()
-        #nave_ax.set_ylabel('Nave')
-        #cls.plot_time_series(dmap_data, beam_num, parameter='nave',
-        #                     ax=nave_ax, linestyle='--')
-        #nave_ax.set_xticks([])
+        tfreq_ax.set_ylabel('Freq $MHz$')
+        cls.plot_time_series(dmap_data, beam_num, parameter='tfreq',
+                             ax=tfreq_ax)
+        tfreq_ax.set_xticks([])
+        tfreq_ax.set_ylabel('Freq\n($MHz$)', rotation=0, labelpad=30)
+        tfreq_ax.axhline(y=0.09, xmin=-0.11, xmax=-0.05, clip_on=False)
+        tfreq_ax.yaxis.set_label_coords(-0.08, 0.09)
+        tfreq_ax.set_ylim(0, 20)
 
-        #cls.plot_time_series(dmap_data, beam_num, parameter='cp',
-        #                     ax=cp_ax)
-        #cp_ax.set_xticks([])
-        #p = get(gca, 'Position')
-        #set(gca, 'Position', p*0.5)
+        nave_ax = tfreq_ax.twinx()
+        cls.plot_time_series(dmap_data, beam_num, parameter='nave',
+                             ax=nave_ax, linestyle='--')
+        nave_ax.set_xticks([])
+        nave_ax.set_ylabel('Nave', rotation=0, labelpad=30)
+        nave_ax.axhline(y=0.07, xmin=1.07, xmax=1.13, clip_on=False,
+                        linestyle='--')
+        nave_ax.yaxis.set_label_coords(1.1, 0.4)
+        nave_ax.set_ylim(0,80)
 
-       # snr_ax = fig.add_axes()
-       # spect_ax = fig.add_axes()
-       # elv_ax = fig.add_axes()
-       # v_ax = fig.add_axes()
+        cls.plot_time_series(dmap_data, beam_num, parameter='cp',
+                             ax=cp_ax, cp_name=False)
+        cp_ax.set_xticks([])
+        cp_ax.set_ylabel('CPID', rotation=0, labelpad=30)
+        cp_ax.yaxis.set_label_coords(-0.08, 0)
 
-       # im, _, _ = cls.plot_range_time(dmap_data, beam_num,
-       #                                parameter='pwr0', ax=snr_ax)
-       # im, _, _ = cls.plot_range_time(dmap_data, beam_num, parameter='w_l',
-       #                                ax=spect_ax)
 
-       # im, _, _ = cls.plot_range_time(dmap_data, beam_num, parameter='elv',
-       #                                ax=elv_ax)
+        cls.plot_range_time(dmap_data, beam_num, color_bar_label='SNR ($dB$)',
+                            parameter='pwr0', ax=snr_ax)
+        snr_ax.set_ylabel('Range Gates')
+        snr_ax.set_xticks([])
+        snr_ax.set_ylim(0, 35)
+        cls.plot_range_time(dmap_data, beam_num, parameter='v', color_bar_label='Velocity ($m/s$)',
+                            ax=vel_ax)
 
-       # im, _, _ = cls.plot_range_time(dmap_data, beam_num, parameter='v',
-       #                                ax=v_ax)
+        vel_ax.set_ylabel('Range Gates')
+        vel_ax.set_xticks([])
+        vel_ax.set_ylim(-200,200)
+        cls.plot_range_time(dmap_data, beam_num, parameter='w_l',
+                            color_bar_label='Spect Width\n ($m/s$)', ax=spect_ax)
+        spect_ax.set_xticks([])
+        spect_ax.set_ylabel('Range Gates')
+        spect_ax.set_ylim(0, 160)
 
-        #v_ax.set_xlabel("Date UTC")
+        cls.plot_range_time(dmap_data, beam_num, parameter='elv', color_bar_label='Elevation ($degrees$)',
+                                       ax=elv_ax)
+        elv_ax.set_ylabel('Range Gates')
+        elv_ax.set_ylim(0, 60)
+        elv_ax.set_xlabel("Date UTC")
+        plt.title('Summary Plot', y = 2.4)
         plt.subplots_adjust(wspace=0, hspace=0)
 
