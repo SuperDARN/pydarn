@@ -12,8 +12,8 @@ import numpy as np
 from typing import List
 from datetime import datetime, timedelta
 
-from pydarn import DmapArray, DmapScalar, dmap2dict, rtp_exceptions
-
+from pydarn import (DmapArray, DmapScalar, dmap2dict, rtp_exceptions,
+                    SuperDARNRadars)
 
 class RTP():
     """
@@ -383,18 +383,11 @@ class RTP():
         if not ax:
             ax = plt.gca()
 
-        # get parameter info
-        parameter_tuple = cls.parameter_type.get(parameter, parameter)
-        if isinstance(parameter_tuple, tuple):
-            parameter = parameter_tuple[0]
-        else:
-            parameter = parameter_tuple
-
         # Determine if a DmapRecord was passed in, instead of a list
         try:
             if isinstance(dmap_data[0][parameter], DmapArray) or\
                isinstance(dmap_data[0][parameter], DmapScalar):
-                dmap_data = utils.conversions.dmap2dict(dmap_data)
+                dmap_data = dmap2dict(dmap_data)
         except KeyError:
             raise rtp_exceptions.RTPUnknownParameter(parameter)
 
@@ -610,7 +603,8 @@ class RTP():
         pass
 
     @classmethod
-    def plot_summary(cls, dmap_data: List[dict], *args, beam_num: int =0, **kwargs):
+    def plot_summary(cls, dmap_data: List[dict], *args, beam_num: int =0,
+                     ground_scatter=False, title=None, **kwargs):
 
         fig = plt.figure(figsize=(11, 8.5))
         # position: [left, bottom, width, height]
@@ -633,7 +627,7 @@ class RTP():
         spect_ax = fig.add_axes(spect_pos)
         elv_ax = fig.add_axes(elv_pos)
 
-        cls.plot_time_series(dmap_data, beam_num, parameter='noise.search',
+        cls.plot_time_series(dmap_data, beam_num=beam_num, parameter='noise.search',
                              scale='log', ax=search_ax, linestyle='--',
                              label='Search Noise')
         trans = search_ax.get_yaxis_transform()
@@ -646,8 +640,9 @@ class RTP():
         yticks = search_ax.yaxis.get_major_ticks()
 
         sky_ax = search_ax.twinx()
-        cls.plot_time_series(dmap_data, beam_num, parameter='noise.sky',
-                             scale='log', ax=sky_ax, linestyle='--', color='k')
+        cls.plot_time_series(dmap_data, beam_num=beam_num,
+                             parameter='noise.sky', scale='log',
+                             ax=sky_ax, linestyle='--', color='k')
         sky_ax.set_xticks([])
         sky_ax.set_ylabel('Sky\n Noise', rotation=0, labelpad=25)
         sky_ax.axhline(y=1.1, xmin=1.07, xmax=1.13, clip_on=False,
@@ -657,16 +652,17 @@ class RTP():
         yticks = sky_ax.yaxis.get_major_ticks()
 
         tfreq_ax.set_ylabel('Freq $MHz$')
-        cls.plot_time_series(dmap_data, beam_num, parameter='tfreq',
+        cls.plot_time_series(dmap_data, beam_num=beam_num, parameter='tfreq',
                              ax=tfreq_ax)
         tfreq_ax.set_xticks([])
         tfreq_ax.set_ylabel('Freq\n($MHz$)', rotation=0, labelpad=30)
-        tfreq_ax.axhline(y=0.2, xmin=-0.11, xmax=-0.05, clip_on=False, color='k')
+        tfreq_ax.axhline(y=0.2, xmin=-0.11, xmax=-0.05, clip_on=False,
+                         color='k')
         tfreq_ax.yaxis.set_label_coords(-0.08, 0.09)
         tfreq_ax.set_ylim(0, 20)
 
         nave_ax = tfreq_ax.twinx()
-        cls.plot_time_series(dmap_data, beam_num, parameter='nave',
+        cls.plot_time_series(dmap_data, beam_num=beam_num, parameter='nave',
                              ax=nave_ax, linestyle='--')
         nave_ax.set_xticks([])
         nave_ax.set_ylabel('Nave', rotation=0, labelpad=30)
@@ -675,36 +671,56 @@ class RTP():
         nave_ax.yaxis.set_label_coords(1.1, 0.4)
         nave_ax.set_ylim(0,80)
 
-        cls.plot_time_series(dmap_data, beam_num, parameter='cp',
+        cls.plot_time_series(dmap_data, beam_num=beam_num, parameter='cp',
                              ax=cp_ax, cp_name=False)
         cp_ax.set_xticks([])
         cp_ax.set_ylabel('CPID', rotation=0, labelpad=30)
         cp_ax.yaxis.set_label_coords(-0.08, 0.079)
 
 
-        cls.plot_range_time(dmap_data, beam_num, color_bar_label='SNR ($dB$)',
-                            parameter='pwr0', ax=snr_ax, boundary=(0, 30))
+        cls.plot_range_time(dmap_data, beam_num=beam_num, color_bar_label='SNR ($dB$)',
+                            parameter='p_l', ax=snr_ax, boundary=(0, 30))
         snr_ax.set_ylabel('Range Gates')
         snr_ax.set_xticks([])
-        cls.plot_range_time(dmap_data, beam_num, parameter='v', color_bar_label='Velocity ($m/s$)',
+        cls.plot_range_time(dmap_data, beam_num=beam_num, parameter='v', color_bar_label='Velocity ($m/s$)',
                             ax=vel_ax, color_map='jet_r', boundary=(-200, 200))
 
         vel_ax.set_ylabel('Range Gates')
         vel_ax.set_xticks([])
-        cls.plot_range_time(dmap_data, beam_num, parameter='w_l',
+        cls.plot_range_time(dmap_data, beam_num=beam_num, parameter='w_l',
                             color_bar_label='Spect Width\n ($m/s$)',
                             ax=spect_ax, boundary=(0, 150))
         spect_ax.set_xticks([])
         spect_ax.set_ylabel('Range Gates')
 
-        cls.plot_range_time(dmap_data, beam_num, parameter='elv', color_bar_label='Elevation\n ($degrees$)',
+        cls.plot_range_time(dmap_data, beam_num=beam_num, parameter='elv', color_bar_label='Elevation\n ($degrees$)',
                                        ax=elv_ax, boundary=(0, 50))
         elv_ax.set_ylabel('Range Gates')
         elv_ax.set_xlabel("Date UTC")
-        plt.title('Rankin Inlet (Fitacf 2.5)  2018 Feb 20  Beam 7', y = 2.4)
+        if title is None:
+            plt.title(cls.__generate_title(beam_num), y=2.4)
+        else:
+            plot.title(title, y=2.4)
         plt.subplots_adjust(wspace=0, hspace=0)
 
     @classmethod
-    def __generate_title(start_time, end_time):
-        title_format = "{Radar name} Fitacf {version}"\
-                "  {start_date} - {end_date}  Beam {num}"
+    def __generate_title(cls, beam_num: int):
+        start_time = cls.__time2datetime(cls.dmap_data[0])
+        end_time = cls.__time2datetime(cls.dmap_data[-1])
+
+        if cls.dmap_data[0]['fitacf.revision.major'] == 5:
+            version = "2.5"
+        else:
+            version = "{major}.{minor}"\
+                    "".format(major=cls.dmap_data[0]['fitacf.revision.major'],
+                              minor=cls.dmap_data[0]['fitacf.revision.minor'])
+
+
+        radar_name = SuperDARNRadars.radars[cls.dmap_data[0]['stid']].name
+        title_format = "{name} Fitacf {version}"\
+                "  {start_date} - {end_date}  Beam {num}"\
+                "".format(name=radar_name, version=version,
+                          start_date=start_time.strftime("%Y %b %d"),
+                          end_date=end_time.strftime("%Y %b %d"),
+                          num=beam_num)
+        return title_format
