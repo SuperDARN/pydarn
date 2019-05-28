@@ -259,15 +259,11 @@ class RTP():
                             # if it is ground scatter store a very
                             # low number in that cell
                             if not settings['ground_scatter'] or\
-                               dmap_recod['gflg'][j] == 0:
+                               dmap_record['gflg'][j] == 0:
                                 z[i][dmap_record['slist'][j]] = \
                                         dmap_record[parameter][j]
                                 # check if boundaries have been set
                                 if settings["boundary"] is None:
-                                    # see if data within boundaries
-                                    #if z_min < dmap_record[parameter][j] and\
-                                    #   z_max > dmap_record[parameter][j]:
-                                    # calculate min and max value
                                     if z[i][dmap_record['slist'][j]] < z_min:
                                         z_min = z[i][dmap_record['slist'][j]]
                                     if z[i][dmap_record['slist'][j]] > z_max:
@@ -678,23 +674,28 @@ class RTP():
         cp_ax.yaxis.set_label_coords(-0.08, 0.079)
 
 
-        cls.plot_range_time(dmap_data, beam_num=beam_num, color_bar_label='SNR ($dB$)',
+        cls.plot_range_time(dmap_data, beam_num=beam_num,
+                            ground_scatter=ground_scatter, color_bar_label='SNR ($dB$)',
                             parameter='p_l', ax=snr_ax, boundary=(0, 30))
         snr_ax.set_ylabel('Range Gates')
         snr_ax.set_xticks([])
-        cls.plot_range_time(dmap_data, beam_num=beam_num, parameter='v', color_bar_label='Velocity ($m/s$)',
+        cls.plot_range_time(dmap_data, beam_num=beam_num, parameter='v',
+                            ground_scatter=ground_scatter, color_bar_label='Velocity ($m/s$)',
                             ax=vel_ax, color_map='jet_r', boundary=(-200, 200))
 
         vel_ax.set_ylabel('Range Gates')
         vel_ax.set_xticks([])
         cls.plot_range_time(dmap_data, beam_num=beam_num, parameter='w_l',
+                            ground_scatter=ground_scatter,
                             color_bar_label='Spect Width\n ($m/s$)',
                             ax=spect_ax, boundary=(0, 150))
         spect_ax.set_xticks([])
         spect_ax.set_ylabel('Range Gates')
 
-        cls.plot_range_time(dmap_data, beam_num=beam_num, parameter='elv', color_bar_label='Elevation\n ($degrees$)',
-                                       ax=elv_ax, boundary=(0, 50))
+        cls.plot_range_time(dmap_data, beam_num=beam_num, parameter='elv',
+                            ground_scatter=ground_scatter,
+                            color_bar_label='Elevation\n ($degrees$)',
+                            ax=elv_ax, boundary=(0, 50))
         elv_ax.set_ylabel('Range Gates')
         elv_ax.set_xlabel("Date UTC")
         if title is None:
