@@ -2,7 +2,7 @@ import sys
 import os
 import argparse
 
-from pydarn.borealis_io.borealis import BorealisConvert
+from pydarn import BorealisConvert
 
 def usage_msg():
     """
@@ -30,6 +30,8 @@ def borealis_conversion_parser():
                                                    "SuperDARN dmap type. (e.g. 20190327.2210.38.sas.0.bfiq.hdf5)")
     parser.add_argument("dmap_filetype", help="SuperDARN dmap type to convert to. Possible types include "
                                               "iqdat and rawacf.")
+    parser.add_argument("--dmap_filename", help="The filename you would like to write to. Default will replace "
+                                                "the last two extensions of the input file with [dmap_filetype].dmap")
 
     return parser
 
@@ -62,7 +64,10 @@ def main():
     parser = borealis_conversion_parser()
     args = parser.parse_args()
 
-    dmap_filename = create_dmap_filename(args.borealis_hdf5_file, args.dmap_filetype)
+    if not args.dmap_filename:
+        dmap_filename = create_dmap_filename(args.borealis_hdf5_file, args.dmap_filetype)
+    else:
+        dmap_filename = args.dmap_filename
     borealis_converter(args.borealis_hdf5_file, args.dmap_filetype, dmap_filename)
 
 
