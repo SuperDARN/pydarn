@@ -992,14 +992,14 @@ class BorealisConvert():
         recs = []
         for k, v in self._borealis_records.items():
             shaped_data = {}
-            shaped_data['main_acfs'] = v['main_acfs'].reshape(v['correlation_dimensions']).astype(np.complex128) / (v['data_normalization_factor']**2) * np.iinfo(np.int16).max
+            shaped_data['main_acfs'] = v['main_acfs'].reshape(v['correlation_dimensions']).astype(np.complex128) * ((np.iinfo(np.int16).max**2) / (v['data_normalization_factor']**2)) 
             # scale by the scale squared to make up for mult in correlation
             # correlation_descriptors are num_beams, num_ranges, num_lags
             if 'intf_acfs' in v.keys():
-                shaped_data['intf_acfs'] = v['intf_acfs'].reshape(v['correlation_dimensions']).astype(np.complex128) / (v['data_normalization_factor']**2) * np.iinfo(np.int16).max
+                shaped_data['intf_acfs'] = v['intf_acfs'].reshape(v['correlation_dimensions']).astype(np.complex128) * ((np.iinfo(np.int16).max**2) / (v['data_normalization_factor']**2)) 
                 # multiply by this to scale to int16 for dmap.
             if 'xcfs' in v.keys():
-                shaped_data['xcfs'] = v['xcfs'].reshape(v['correlation_dimensions']).astype(np.complex128) / (v['data_normalization_factor']**2) * np.iinfo(np.int16).max
+                shaped_data['xcfs'] = v['xcfs'].reshape(v['correlation_dimensions']).astype(np.complex128) * ((np.iinfo(np.int16).max**2) / (v['data_normalization_factor']**2))
 
             if v['borealis_git_hash'][0] == 'v' and v['borealis_git_hash'][2] == '.':
                 borealis_major_revision = v['borealis_git_hash'][1]
