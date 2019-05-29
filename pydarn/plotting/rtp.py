@@ -675,7 +675,7 @@ class RTP():
 
 
         cls.plot_range_time(dmap_data, beam_num=beam_num,
-                            ground_scatter=ground_scatter, color_bar_label='SNR ($dB$)',
+                            color_bar_label='SNR ($dB$)',
                             parameter='p_l', ax=snr_ax, boundary=(0, 30))
         snr_ax.set_ylabel('Range Gates')
         snr_ax.set_xticks([])
