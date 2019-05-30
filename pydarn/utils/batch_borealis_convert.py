@@ -63,5 +63,3 @@ if __name__ == "__main__":
     
     rawacf_pool.map(rawacf_borealis_converter, rawacf_hdf5_files)
     bfiq_pool.map(bfiq_borealis_converter, bfiq_hdf5_files)
-
-    main()
