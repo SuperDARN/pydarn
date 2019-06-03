@@ -40,7 +40,9 @@ def main():
     for group_name in sorted_keys:
 
         # APPLY CHANGE HERE
-        recs[group_name]['data_dimensions'][0] = 2
+        # recs[group_name]['data_dimensions'][0] = 2
+        recs[group_name]['main_acfs'] = recs[group_name]['main_acfs'] * -1 
+        recs[group_name]['xcfs'] = recs[group_name]['xcfs'] * -1
 
         write_dict = {}
         write_dict[group_name] = convert_to_numpy(recs[group_name])
