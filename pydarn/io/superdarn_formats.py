@@ -3,6 +3,11 @@
 """
 This file contains several class pertaining to dmap format types
 that are used by SuperDARN.
+
+For description of these fields and their units see the following reference
+materials:
+    https://superdarn.github.io/rst/superdarn/src.doc/rfc/index.html
+    https://radar-software-toolkit-rst.readthedocs.io/en/latest/
 """
 
 
@@ -65,6 +70,10 @@ class Rawacf():
         'acfd': 'f',
         'xcfd': 'f',
         }
+    extra_fields = {
+            'ifmode': 'h',
+            'mplgexs': 'h',
+            }
 
 
 class Fitacf():
@@ -148,7 +157,10 @@ class Fitacf():
         'w_s_e': 'f',
         'sd_l': 'f',
         'sd_s': 'f',
-        'sd_phi': 'f',
+        'sd_phi': 'f'}
+
+
+    elevation_fields = {
         'x_qflg': 'c',
         'x_gflg': 'c',
         'x_p_l': 'f',
@@ -168,7 +180,8 @@ class Fitacf():
         'elv_high': 'f',
         'x_sd_l': 'f',
         'x_sd_s': 'f',
-        'x_sd_phi': 'f'}
+        'x_sd_phi': 'f'
+    }
 
 
 class Grid():
