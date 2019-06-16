@@ -157,7 +157,10 @@ class Fitacf():
         'w_s_e': 'f',
         'sd_l': 'f',
         'sd_s': 'f',
-        'sd_phi': 'f',
+        'sd_phi': 'f'}
+
+
+    elevation_fields = {
         'x_qflg': 'c',
         'x_gflg': 'c',
         'x_p_l': 'f',
@@ -177,7 +180,8 @@ class Fitacf():
         'elv_high': 'f',
         'x_sd_l': 'f',
         'x_sd_s': 'f',
-        'x_sd_phi': 'f'}
+        'x_sd_phi': 'f'
+    }
 
 
 class Grid():
