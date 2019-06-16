@@ -12,7 +12,7 @@ import numpy as np
 from typing import List
 from datetime import datetime, timedelta
 
-from pydarn import DmapArray, DmapScalar, utils, rtp_exceptions
+from pydarn import DmapArray, DmapScalar, dmap2dict, rtp_exceptions
 
 
 class RTP():
@@ -34,22 +34,11 @@ class RTP():
     summary_plot
 
     """
-    # Default parameter types that davitpy supports and are usually involved
-    # in a summary plot
-    parameter_type = {'power': ('p_l', r'Signal to Noise ($dB$)'),
-                      'velocity': ('v', r'Velocity ($m/s$)'),
-                      'elevation': ('elv', r'Elevation (degrees)'),
-                      'spectral width': ('w_l', r'Spectral Width ($m/s$)'),
-                      'frequency': ('freq', ''),
-                      'search noise': ('noise.search', ''),
-                      'sky noise': ('noise.sky', ''),
-                      'control program id': ('cpid', ''),
-                      'nave': ('nave', '')}
 
     @classmethod
     def plot_range_time(cls, dmap_data: List[dict], *args,
-                        parameter: str = 'power', beam_num: int = 0, ax=None,
-                        **kwargs):
+                        parameter: str = 'p_l', beam_num: int = 0, ax=None,
+                        color_norm = None, **kwargs):
         """
 
         Future Work
@@ -99,6 +88,10 @@ class RTP():
             https://matplotlib.org/tutorials/colors/colormaps.html
             default: jet
             note: to reverse the color just add _r to the string name
+        color_norm: matplotlib.colors.Normalization object
+            This object use dependency injection to use any normalization
+            method with the zmin and zmax.
+            defualt: colors.Normalization()
         ax: matplotlib.axes
             axes object for another way of plotting
             default: None
@@ -168,19 +161,11 @@ class RTP():
         if not ax:
             ax = plt.gca()
 
-        # Determine if it is a supported parameter type
-        parameter_tuple = cls.parameter_type.get(parameter, parameter)
-        if isinstance(parameter_tuple, tuple):
-            settings['color_bar_label'] = parameter_tuple[1]
-            parameter = parameter_tuple[0]
-        else:
-            parameter = parameter_tuple
-
         # Determine if a DmapRecord was passed in, instead of a list
         try:
             if isinstance(dmap_data[0][parameter], DmapArray) or\
                isinstance(dmap_data[0][parameter], DmapScalar):
-                dmap_data = utils.conversions.dmap2dict(dmap_data)
+                dmap_data = dmap2dict(dmap_data)
         except KeyError:
             raise rtp_exceptions.RTPUnknownParameter(parameter)
         cls.dmap_data = dmap_data
@@ -305,7 +290,10 @@ class RTP():
         time_axis, elev_axis = np.meshgrid(x, y)
         z_data = np.ma.masked_where(np.isnan(z.T), z.T)
 
-        norm = colors.Normalize(z_min, z_max)
+        if color_norm is None:
+            norm = colors.Normalize(z_min, z_max)
+        else:
+            norm = color_norm(z_min, z_max)
 
         cmap = cm.get_cmap(settings['color_map'])
         # set ground scatter to grey
