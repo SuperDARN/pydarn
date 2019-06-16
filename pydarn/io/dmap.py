@@ -176,6 +176,32 @@ class DmapRead():
         if self.dmap_end_bytes == 0:
             raise dmap_exceptions.EmptyFileError(self.dmap_file)
 
+    def __repr__(self):
+        """ for representation of the class object"""
+        # __class__.__name__ allows to grab the class name such that
+        # when a class inherits this one, the class name will be the child
+        # class and not the parent class (dmap classes)
+        return "{class_name}({filename}, {cursor}, {rec_num}, {total})"\
+                "".format(class_name=self.__class__.__name__,
+                          filename=self.dmap_file,
+                          cursor=self.cursor,
+                          total=self.dmap_end_bytes,
+                          rec_num=self.rec_num)
+
+
+    def __str__(self):
+        """ for printing of the class object"""
+        # __class__.__name__ allows to grab the class name such that
+        # when a class inherits this one, the class name will be the child
+        # class and not the parent class (dmap classes)
+        return "Reading from {filename} at cursor: {cursor} "\
+                "record number: {rec_num} with"\
+                " a total number of bytes: {total_bytes}"\
+                "".format(filename=self.dmap_file,
+                          cursor=self.cursor,
+                          rec_num=self.rec_num,
+                          total_bytes=self.dmap_end_bytes)
+
     def zero_negative_check(self, element: int, element_name: str):
         """
         Checks if the element <= 0 bytes. If true then raise a ZeroByteError.
@@ -515,6 +541,8 @@ class DmapRead():
 
         array_shape = [self.read_data('i', 4)
                        for i in range(0, array_dimension)]
+        if array_dimension > 1:
+            array_shape.reverse()
 
         # slist is the array that holds the range gates that have valid data
         # when qflg is 1
@@ -751,8 +779,8 @@ class DmapRead():
         if data_type_fmt == 'c':
             # In RST rtypes.h file, chars are defined as int8
             # allowing this assumption to be allowed for now
-             array = np.frombuffer(self.dmap_buffer, np.int8,
-                                   total_number_cells, self.cursor)
+            array = np.frombuffer(self.dmap_buffer, np.int8,
+                                  total_number_cells, self.cursor)
         else:
             array = np.frombuffer(self.dmap_buffer, data_type_fmt,
                                   total_number_cells, self.cursor)
@@ -777,21 +805,6 @@ class DmapWrite(object):
 
     Methods
     -------
-    write_iqdat(filename)
-        Writes dmap records to SuperDARN IQDAT file structure
-        with the given filename
-    write_fitacf(filename)
-        Write dmap records to SuperDARN RAWACF file structure
-        with the given filename
-    write_rawacf(filename)
-        Writes dmap records to SuperDARN FITACF file structure
-        with the given filename
-    write_grid(filename)
-        Writes dmap records to SuperDARN GRID file structure
-        with the given filename
-    write_map(filename)
-        Writes dmap records to SuperDARN MAP file structure
-        with the given filename
     write_dmap(filename)
         Writes dmap records to DMAP format with the given filename
     write_dmap_stream(dmap_records)
@@ -857,6 +870,25 @@ class DmapWrite(object):
         self.filename = filename
         self.rec_num = 0
         pydarn_logger.debug("Initiating DmapWrite")
+
+    def __repr__(self):
+        """ for representation of the class object"""
+        # __class__.__name__ allows to grab the class name such that
+        # when a class inherits this one, the class name will be the child
+        # class and not the parent class (dmap classes)
+        return "{class_name}({filename}, {rec_num})"\
+               "".format(class_name=self.__class__.__name__,
+                         filename=self.filename,
+                         rec_num=self.rec_num)
+
+    def __str__(self):
+        """ for printing of the class object"""
+        # __class__.__name__ allows to grab the class name such that
+        # when a class inherits this one, the class name will be the child
+        # class and not the parent class (dmap classes)
+        return "Writing to filename: {filename} at record number: {rec_num}"\
+               "".format(filename=self.filename,
+                         rec_num=self.rec_num)
 
     # HONEY BADGER method: Because dmap just don't care
     def write_dmap(self, filename: str = ""):
@@ -1066,6 +1098,8 @@ class DmapWrite(object):
 
         array_dim_bytes = struct.pack('i', array.dimension)
         array_shape_bytes = bytes()
+        if array.dimension > 1:
+            array.shape.reverse()
         for size in array.shape:
             array_shape_bytes += struct.pack('i', size)
 
