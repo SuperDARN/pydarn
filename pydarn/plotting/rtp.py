@@ -7,12 +7,14 @@
 Range-time Intensity plots
 """
 import matplotlib.pyplot as plt
-from matplotlib import dates, colors, cm, ticker
 import numpy as np
-from typing import List
-from datetime import datetime, timedelta
 
-from pydarn import DmapArray, DmapScalar, utils, rtp_exceptions, SuperDARNCpids
+from datetime import datetime, timedelta
+from matplotlib import dates, colors, cm, ticker
+from typing import List
+
+from pydarn import (dmap2dict, DmapArray, DmapScalar,
+                    rtp_exceptions, SuperDARNCpids)
 
 
 class RTP():
@@ -45,7 +47,7 @@ class RTP():
     @classmethod
     def plot_range_time(cls, dmap_data: List[dict], *args,
                         parameter: str = 'p_l', beam_num: int = 0, ax=None,
-                        color_norm = None, **kwargs):
+                        color_norm=None, **kwargs):
         """
 
         Future Work
@@ -329,10 +331,10 @@ class RTP():
     @classmethod
     def plot_time_series(cls, dmap_data: List[dict], *args,
                          parameter: str = 'frequency', beam_num: int = 0,
-                         ax=None, time_span=None,
-                         date_fmt: str='%y/%m/%d\n %H:%M',
+                         ax=None, time_span: tuple = None,
+                         date_fmt: str = '%y/%m/%d\n %H:%M',
                          channel='all', scale: str = 'linear',
-                         cp_name: bool=True, **kwargs):
+                         cp_name: bool = True, **kwargs):
         """
         Plots the time series of a scalar parameter
 
@@ -397,7 +399,7 @@ class RTP():
         try:
             if isinstance(dmap_data[0][parameter], DmapArray) or\
                isinstance(dmap_data[0][parameter], DmapScalar):
-                dmap_data = utils.conversions.dmap2dict(dmap_data)
+                dmap_data = dmap2dict(dmap_data)
         except KeyError:
             raise rtp_exceptions.RTPUnknownParameter(parameter)
 
@@ -432,23 +434,29 @@ class RTP():
                             ax.text(x=time + timedelta(seconds=600), y=0.5,
                                     s=dmap_record['cp'])
                             if cp_name:
-                                cpid_command = dmap_record['combf'].split(' ')
-                                if len(cpid_command) == 1:
-                                    cp_name = cpid_command[0]
-                                elif len(cpid_command) == 0:
-                                    cp_name = 'unknown'
-                                else:
-                                    cp_name = cpid_command[1]
+                                # Keepig this commented code in to show how
+                                # we could get the name from the file; however,
+                                # there is not set format for combf field ...
+                                # so we will use the dictionary to prevent
+                                # errors or incorrect names on the plot.
+                                # However, we should get it from the file
+                                # not a dictionary that might not be updated
+                                # cpid_command = dmap_record['combf'].split(' ')
+                                # if len(cpid_command) == 1:
+                                #     cp_name = cpid_command[0]
+                                # elif len(cpid_command) == 0:
+                                #     cp_name = 'unknown'
+                                # else:
+                                #     cp_name = cpid_command[1]
                                 ax.text(x=time + timedelta(seconds=600),
                                         y=0.4,
-                                        s=cp_name)
-                                        #s=SuperDARNCpids.cpids.get(dmap_record['cp'], 'unknown'))
+                                        s=SuperDARNCpids.cpids.get(dmap_record['cp'],
+                                                                   'unknown'))
 
             # Check if the old cp ID change, if not then there was no data
             if old_cpid == 0:
                 raise rtp_exceptions.RTPNoDataFoundError(parameter, beam_num,
                                                          start_time, end_time)
-
 
             # to get rid of y-axis numbers
             ax.set_yticks([])
@@ -459,7 +467,7 @@ class RTP():
             # date time
             x = []
             for dmap_record in cls.dmap_data:
-                #TODO: this check could be a function call
+                # TODO: this check could be a function call
                 time = cls.__time2datetime(dmap_record)
                 if start_time <= time and time <= end_time:
                     if (dmap_record['bmnum'] == beam_num or
@@ -500,7 +508,8 @@ class RTP():
 
     @classmethod
     # TODO: could parallelize this method
-    def __filter_data_check(cls, dmap_record: dict, settings: dict, j: int) -> bool:
+    def __filter_data_check(cls, dmap_record: dict,
+                            settings: dict, j: int) -> bool:
         """
         checks for data that does not meet the criteria of the filtered
         settings
