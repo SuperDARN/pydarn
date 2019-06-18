@@ -1,13 +1,13 @@
 # Copyright 2018 SuperDARN
 # Authors: Marina Schmidt and Keith Kotyk
 """
-This file contains classes to reading and writing of DMAP file formats used by
+This file contains classes to reading and writing of DMap file formats used by
 SuperDARN.
 
 Classes:
 --------
-DmapRead : Reads DMAP files
-DmapWrite : writes DMAP Record structure into a DMAP file
+DmapRead : Reads DMap files
+DmapWrite : writes DMAP Record structure into a DMap file
 
 Exceptions:
 -----------
@@ -45,9 +45,9 @@ from pydarn import DmapArray
 from pydarn import DmapScalar
 
 # Keeping these global definitions for readability purposes
-# Data types use in DMAP files
+# Data types use in DMap files
 DMAP = 0
-CHAR = 1  # CHAR is defined as an int8 in RST rtypes.h
+CHAR = 1  # CHAR is defined as an int8 in RST rtypes.h https://github.com/SuperDARN/rst
 SHORT = 2
 INT = 3
 FLOAT = 4
@@ -59,33 +59,42 @@ USHORT = 17
 UINT = 18
 ULONG = 19
 
-# Dictionary of DMAP types (key) to quickly convert the format and byte size
+# Dictionary of DMap types (key) to quickly convert the format and byte size
 # (value-tuple)
+# DMap stands for DataMap documented in:
+# https://superdarn.github.io/rst/superdarn/src.doc/rfc/0006.html
+# https://radar-software-toolkit-rst.readthedocs.io/en/latest/ (In developement)
 DMAP_DATA_TYPES = {DMAP: ('', 0),
                    CHAR: ('c', 1),  # CHAR is defined as an int8 in RST rtypes.h
-                   SHORT: ('h', 2),
-                   INT: ('i', 4),
-                   FLOAT: ('f', 4),
-                   DOUBLE: ('d', 8),
-                   STRING: ('s', 1),
-                   LONG: ('q', 8),
-                   UCHAR: ('B', 1),
-                   USHORT: ('H', 2),
-                   UINT: ('I', 4),
-                   ULONG: ('Q', 8)}
+                   SHORT: ('h', 2),  # defined as int16
+                   INT: ('i', 4),  # defined as int32
+                   FLOAT: ('f', 4),  # defined as float32
+                   DOUBLE: ('d', 8),  # equavalece to float64
+                   STRING: ('s', 1),  # strings are an array of characters 1 byte bit
+                   LONG: ('q', 8),  # defined as int64
+                   UCHAR: ('B', 1),  # unsigned int8
+                   USHORT: ('H', 2),  # unsigned int16
+                   UINT: ('I', 4),  # unsigned int32
+                   ULONG: ('Q', 8)}  # unsigned int64
+# unsigned refers to how the integer is stored in the byte string, meaning
+# the first bit is part of the number and not referring
+# to the sign of the integer
 
 pydarn_logger = logging.getLogger('pydarn')
 
 
 class DmapRead():
     """
-    Reading and testing the integrity of DMAP files/stream.
+    Reading and testing the integrity of DMap files/stream.
+    DMap is describe in the RST documentation:
+    - https://superdarn.github.io/rst/superdarn/src.doc/rfc/0006.html
+    - https://radar-software-toolkit-rst.readthedocs.io/en/latest/ (In developement)
     ...
 
     Attributes
     ----------
     dmap_file : str
-        DMAP file name or data stream (give data_stream=True)
+        DMap file name or data stream (give data_stream=True)
     cursor : int
         Current position in the byte array
     dmap_end_bytes : int
@@ -144,7 +153,7 @@ class DmapRead():
         self.dmap_end_bytes = 0  # total number of bytes in the dmap_file
 
         """
-        Dmap records are stored in a deque data structure for
+        DMap records are stored in a deque data structure for
         memory efficiency and performance. Acts the same as a stack/list.
         See DEVELOPER_README.md for more information.
         """
@@ -283,7 +292,7 @@ class DmapRead():
 
         while self.cursor < self.dmap_end_bytes:
             """
-            DMAP files headers contain the following:
+            DMap files headers contain the following:
                 - encoding identifier: is a unique 32-bit integer that
                   indicates how the block was constructed.
                   It is used to differentiate between the possible future
@@ -445,7 +454,7 @@ class DmapRead():
         DmapDataError
             if the data type format is DMAP
             NOTE: In RST, this is allowed, if an example shows up where this is
-            allowed DMAP files raise as an issue in the GitHub so the code can
+            allowed DMap files raise as an issue in the GitHub so the code can
             be re-accessed.
 
         See Also
@@ -866,7 +875,7 @@ class DmapWrite(object):
         Parameters:
         -----------
         filename : str
-            The name of the DMAP file including path
+            The name of the DMap file including path
 
         WARNING:
         --------
