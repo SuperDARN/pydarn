@@ -75,7 +75,7 @@ class RTP():
         channel : int
             The channel 1, 2, 'all'
             default : 1
-        ground_scatter : boolean
+        groundscatter : boolean
             Flag to indicate if ground scatter should be plotted.
             default : False
         date_fmt : str
@@ -148,7 +148,7 @@ class RTP():
             matplotlib color map object
         """
         # Settings
-        settings = {'ground_scatter': False,
+        settings = {'groundscatter': False,
                     'channel': 'all',
                     'date_fmt': "%y/%m/%d\n%H:%M",
                     'color_bar': True,
@@ -261,7 +261,7 @@ class RTP():
                         for j in range(len(dmap_record['slist'])):
                             # if it is ground scatter store a very
                             # low number in that cell
-                            if settings['ground_scatter'] and\
+                            if settings['groundscatter'] and\
                                dmap_record['gflg'][j] == 1:
                                 # chosen value from davitpy to make the
                                 # ground scatter a different color
