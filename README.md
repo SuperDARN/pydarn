@@ -2,7 +2,6 @@
 
 Data Visuallization python library for SuperDARN data. 
 
-hel
 > Warning: pyDARN currently has not been official released; however, you can use the `develop` branch to use and help test pyDARN
 
 
