@@ -35,10 +35,11 @@ Notes
 -----
 DmapRead and DmapWrite are inherited by DarnRead and DarnWrite
 """
-from typing import Union, List
 import logging
 
-from pydarn import superdarn_exceptions, DmapRead, DmapWrite, superdarn_formats
+from typing import Union, List
+
+from pydarn import DmapRead, DmapWrite, superdarn_exceptions, superdarn_formats
 
 pydarn_log = logging.getLogger('pydarn')
 
