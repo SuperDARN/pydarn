@@ -32,13 +32,13 @@ git@github.com:SuperDARNCanada/backscatter.git
 written by Keith Kotyk
 """
 
+import collections
+import logging
+import numpy as np
 import os
 import struct
-import numpy as np
-import logging
-import collections
 
-from typing import Union, List
+from typing import List, Union
 
 from pydarn import dmap_exceptions
 from pydarn import DmapArray
