@@ -193,12 +193,12 @@ class TestRTP(unittest.TestCase):
         plt.title("Simple Elevation no ground scatter, beam 7 Saskatoon plot")
         plt.show()
 
-    def test_ground_scatter_range_time_plot(self):
+    def test_groundscatter_range_time_plot(self):
         """
         plots a simple elevation rang-time plot with ground scatter
         """
         pydarn.RTP.plot_range_time(self.fitacf_data, parameter='elv',
-                                   beam_num=7, ground_scatter=True)
+                                   beam_num=7, groundscatter=True)
         plt.title("Elevation with Ground Scatter with beam 7")
         plt.show()
 
@@ -230,7 +230,7 @@ class TestRTP(unittest.TestCase):
         plots power range-time with ground scatter
         """
         pydarn.RTP.plot_range_time(self.fitacf_data, parameter='p_l',
-                                   beam_num=7, ground_scatter=True)
+                                   beam_num=7, groundscatter=True)
         plt.title("Elevation with Ground Scatter")
         plt.show()
 
@@ -304,7 +304,7 @@ class TestRTP(unittest.TestCase):
                                        beam_num=7,
                                        time_span=(datetime(2018, 12, 8, 0, 0),
                                                   datetime(2018, 12, 8, 8, 0)),
-                                       ground_scatter=True)
+                                       groundscatter=True)
 
     def test_gapped_data_range_time_plt(self):
         """
@@ -319,7 +319,7 @@ class TestRTP(unittest.TestCase):
             gapped_data.append(self.fitacf_data[i])
 
         pydarn.RTP.plot_range_time(gapped_data, parameter='elv',
-                                   beam_num=7, ground_scatter=True,
+                                   beam_num=7, groundscatter=True,
                                    boundary=(0, 57))
         plt.title("Gapped Elevation Data")
         plt.show()
@@ -332,7 +332,7 @@ class TestRTP(unittest.TestCase):
                                    beam_num=7,
                                    time_span=(datetime(2018, 2, 20, 0, 0),
                                               datetime(2018, 2, 20, 8, 0)),
-                                   ground_scatter=True)
+                                   groundscatter=True)
         plt.title("Time range between 00:00 - 08:00")
         plt.show()
 
