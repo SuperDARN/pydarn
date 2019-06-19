@@ -1,19 +1,22 @@
-import pydarn
-import unittest
-import numpy as np
-import logging
-import bz2
-import os
+# Copyright (C) 2019 SuperDARN
+# Author: Marina Schmidt
 
-import rawacf_data_sets
-import rawacf_dict_sets
+import bz2
+import copy
+import logging
+import numpy as np
+import os
+import unittest
+
+import pydarn
+
+import dmap_data_sets
 import fitacf_data_sets
+import grid_data_sets
 import iqdat_data_sets
 import map_data_sets
-import grid_data_sets
-import dmap_data_sets
-import copy
-
+import rawacf_data_sets
+import rawacf_dict_sets
 
 # Test files
 rawacf_stream = "../testfiles/20170410.1801.00.sas.stream.rawacf.bz2"
