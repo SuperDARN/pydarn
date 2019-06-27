@@ -16,7 +16,7 @@ def usage_msg():
     :returns: the usage message
     """
 
-    usage_message = """ batch_borealis_convert.py [-h] -bz2 directory_to_convert 
+    usage_message = """ batch_borealis_convert.py [-h] directory_to_convert 
     
     Pass in the directory you wish to convert. Filenames with .bfiq.hdf5 will be attempted to be 
     converted to iqdat dmap. Filenames with .rawacf.hdf5 will be attempted to be converted to 
