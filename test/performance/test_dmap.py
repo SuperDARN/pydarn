@@ -1,7 +1,10 @@
-import pydarn
-import cProfile, pstats, io
+import cProfile
+import io
 import logging
+import pstats
 import os
+
+import pydarn
 
 """
 This is a simple testing script for the Dmap read and write
