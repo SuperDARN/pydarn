@@ -35,10 +35,11 @@ Notes
 -----
 DmapRead and DmapWrite are inherited by DarnRead and DarnWrite
 """
-from typing import Union, List
 import logging
 
-from pydarn import superdarn_exceptions, DmapRead, DmapWrite, superdarn_formats
+from typing import Union, List
+
+from pydarn import DmapRead, DmapWrite, superdarn_exceptions, superdarn_formats
 
 pydarn_log = logging.getLogger('pydarn')
 
@@ -117,6 +118,9 @@ class DarnUtilities():
         # convert dictionaries to set to do some set magic
         sets = [set(dic) for dic in dict_list]  # TODO: if data types don't matter in the structure format then they can become sets instead of dictionaries.
         # create a complete set list
+        # * - expands the list out into multiple set arguments
+        # then the union operator creates it into a full unique set
+        # example: s = [{'a','v'}, {'v','x'}] => set.union(*s) = {'a', 'v', 'x'}
         complete_set = set.union(*sets)
         return complete_set
 
@@ -140,21 +144,24 @@ class DarnUtilities():
         -------
         SuperDARNFieldMissing
         """
-        # Needed to get the intersection between the record and complete
-        # file structure types
-        complete_set = DarnUtilities.dict_list2set(file_struct_list)
+
         missing_fields = set()
+        """
+        We have to check each possible subset to see if there is a missing
+        field in the subset or if the whole subset is missing. If there
+        is a missing field then raise a SuperDARNFieldMissingError.
+        If a full subset is missing then this is technically okay because
+        RST will add fields, or do not included fields based on the commands,
+        and options the user uses to process the data.
+        Some fields are not included if the data is not good quality,
+        this occurs in the fitting FITACF files types due to the fitting
+        procedure in fitacf 2.5 and 3.0.
+        """
+
         for file_struct in file_struct_list:
-            # An intersection of a set returns what both sets have in common
-            # then comparing the difference from the subset of types
-            # you can determine what is missing.
             diff_fields = \
                 DarnUtilities.dict_key_diff(file_struct,
-                                            set(record).
-                                            intersection(complete_set))
-            # For Grid and Map files this is needed because depending
-            # on command line options to generate the grid and map files
-            # some fields are added in.
+                                            record)
             # If 0 nothing missing, if len(file_struct) then
             # that subset is missing only meaning that command option was
             # not used, not necessarily meaning that it is a record.
@@ -193,8 +200,8 @@ class DarnUtilities():
             raise superdarn_exceptions.SuperDARNExtraFieldError(rec_num,
                                                                 extra_fields)
 
-    # TODO: Do we want to check this? If not, then change
-    # SuperDARN_format_structure types to sets to get rid
+    # TODO: Do we want to keep this? If not, then change
+    # SuperDARN_format_structure types to sets and get rid
     # of dict_list2set method.
     @staticmethod
     def incorrect_types_check(file_struct_list: List[dict], record: dict,
@@ -256,7 +263,7 @@ class DarnRead(DmapRead):
     read_iqdat()
         reads and checks iqdat DMAP binary data
     read_rawacf()
-        reads and checks rawacf DMAP binar data
+        reads and checks rawacf DMAP binary data
     read_fitacf()
         reads and checks fitacf DMAP binary data
     read_grid()
@@ -322,6 +329,13 @@ class DarnRead(DmapRead):
         See Also
         --------
         read_record() - inherited from DmapRead
+        missing_field_check(format_fields, record, self.rec_num) - checks
+                        for missing fields. See this method for information
+                        on why we use format_fields.
+        extra_field_check(format_fields, record, self.rec_num) - checks for
+                        extra fields in the record
+        incorrect_types_check(format_fields, record, self.rec_num) - checks
+                        for incorrect data types for SuperDARN file fields
         """
         record = self.read_record()
         DarnUtilities.missing_field_check(format_fields, record, self.rec_num)
@@ -338,7 +352,8 @@ class DarnRead(DmapRead):
         ----------
         format_fields : List[dict]
             Is a list of dictionaries for the fields that are possible in a
-            SuperDARN file type
+            SuperDARN file type. See missing_field_check method in
+            DarnUtilities for more information on this parameter
 
         See Also
         --------
@@ -374,7 +389,8 @@ class DarnRead(DmapRead):
         """
         pydarn_log.debug("Reading Rawacf file: {}".format(self.dmap_file))
 
-        file_struct_list = [superdarn_formats.Rawacf.types]
+        file_struct_list = [superdarn_formats.Rawacf.types,
+                            superdarn_formats.Rawacf.extra_fields]
         self._read_darn_records(file_struct_list)
         return self._dmap_records
 
@@ -388,8 +404,15 @@ class DarnRead(DmapRead):
             DMAP record of the Fitacf data
         """
         pydarn_log.debug("Reading Fitacf file: {}".format(self.dmap_file))
+
+        # We need to separate the fields into subsets because fitacf fitting
+        # methods 2.5 and 3.0 do not include a subset of fields if the data
+        # quality is not "good". See missing_field_check method in
+        # DarnUtilities for more information.
         file_struct_list = [superdarn_formats.Fitacf.types,
-                            superdarn_formats.Fitacf.fitted_fields]
+                            superdarn_formats.Fitacf.extra_fields,
+                            superdarn_formats.Fitacf.fitted_fields,
+                            superdarn_formats.Fitacf.elevation_fields]
         self._read_darn_records(file_struct_list)
         return self._dmap_records
 
@@ -403,6 +426,10 @@ class DarnRead(DmapRead):
             DMAP record of the Grid data
         """
         pydarn_log.debug("Reading Grid file: {}".format(self.dmap_file))
+        # We need to separate the fields into subsets because grid files
+        # can exclude extra fields if the option -ext is not passed in
+        # when generating the grid file in RST. See missing_field_check
+        # method in DarnUtilities for more information.
         file_struct_list = [superdarn_formats.Grid.types,
                             superdarn_formats.Grid.fitted_fields,
                             superdarn_formats.Grid.extra_fields]
@@ -419,6 +446,13 @@ class DarnRead(DmapRead):
             DMAP record of the Map data
         """
         pydarn_log.debug("Reading Map file: {}".format(self.dmap_file))
+        # We need to separate the fields into subsets because map files
+        # can exclude extra fields if the grid file does not contain them.
+        # Other subsets are related to what processing commands are used to
+        # generate the final map file, example: map_addhmb. This command is
+        # not necessarily to generate a map file but it add the Heppner Maynard
+        # boundary to the map file. See missing_field_check
+        # method in DarnUtilities for more information.
         file_struct_list = [superdarn_formats.Map.types,
                             superdarn_formats.Map.extra_fields,
                             superdarn_formats.Map.fit_fields,
@@ -551,7 +585,8 @@ class DarnWrite(DmapWrite):
         pydarn_log.debug("Writing Rawacf file: {}".format(self.filename))
         self._filename_check(filename)
         self._empty_record_check()
-        file_struct_list = [superdarn_formats.Rawacf.types]
+        file_struct_list = [superdarn_formats.Rawacf.types,
+                            superdarn_formats.Rawacf.extra_fields]
         self.superDARN_file_structure_to_bytes(file_struct_list)
         with open(self.filename, 'wb') as f:
             f.write(self.dmap_bytearr)
@@ -584,8 +619,14 @@ class DarnWrite(DmapWrite):
 
         self._filename_check(filename)
         self._empty_record_check()
+        # We need to separate the fields into subsets because fitacf fitting
+        # methods 2.5 and 3.0 do not include a subset of fields if the data
+        # quality is not "good". See missing_field_check method in
+        # DarnUtilities for more information.
         file_struct_list = [superdarn_formats.Fitacf.types,
-                            superdarn_formats.Fitacf.fitted_fields]
+                            superdarn_formats.Fitacf.extra_fields,
+                            superdarn_formats.Fitacf.fitted_fields,
+                            superdarn_formats.Fitacf.elevation_fields]
         self.superDARN_file_structure_to_bytes(file_struct_list)
         with open(self.filename, 'wb') as f:
             f.write(self.dmap_bytearr)
@@ -618,10 +659,10 @@ class DarnWrite(DmapWrite):
 
         self._filename_check(filename)
         self._empty_record_check()
-        # Grid files can have extra fields based on how they are processed.
-        # If the command line option used in make_grid (See RST documentation)
-        # uses the command line option -ext then power and
-        # spectral width fields are included as well.
+        # We need to separate the fields into subsets because grid files
+        # can exclude extra fields if the option -ext is not passed in
+        # when generating the grid file in RST. See missing_field_check
+        # method in DarnUtilities for more information.
         file_struct_list = [superdarn_formats.Grid.types,
                             superdarn_formats.Grid.fitted_fields,
                             superdarn_formats.Grid.extra_fields]
@@ -657,11 +698,13 @@ class DarnWrite(DmapWrite):
 
         self._filename_check(filename)
         self._empty_record_check()
-        # Map files can have extra fields based on how they are processed.
-        # If the command line option map_grid -ext (See RST documentation) is
-        # used then power and spectral width is included into the fields.
-        # Other fields are also included on which map_add<methods> are used on
-        # the map file processing.
+        # We need to separate the fields into subsets because map files
+        # can exclude extra fields if the grid file does not contain them.
+        # Other subsets are related to what processing commands are used to
+        # generate the final map file, example: map_addhmb. This command is
+        # not necessarily to generate a map file but it add the Heppner Maynard
+        # boundary to the map file. See missing_field_check
+        # method in DarnUtilities for more information.
         file_struct_list = [superdarn_formats.Map.types,
                             superdarn_formats.Map.extra_fields,
                             superdarn_formats.Map.fit_fields,
@@ -689,6 +732,19 @@ class DarnWrite(DmapWrite):
         allowed in the SuperDARN file type
         SuperDARNDataFormatTypeError - Wrong format data type error for the
         SuperDARN file type fields in the DMAP record
+
+        See Also
+        --------
+        Within superdarn.py module:
+        DarnUtilities.missing_field_check(format_fields, record, self.rec_num)
+                - checks for missing fields. See this method for information
+                  on why we use format_fields.
+        DarnUtilties.extra_field_check(format_fields, record, self.rec_num)
+                - checks for extra fields in the record
+        DarnUtilities.incorrect_types_check(format_fields, record,
+                                            self.rec_num)
+                - checks for incorrect data types for SuperDARN file fields
+
         """
         self.rec_num = 0
         pydarn_log.debug("Checking and converting SuperDARN data to bytes ")
