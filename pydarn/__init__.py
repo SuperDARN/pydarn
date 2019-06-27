@@ -15,6 +15,7 @@ import yaml
 # Importing pydarn exception classes
 from .exceptions import dmap_exceptions
 from .exceptions import superdarn_exceptions
+from .exceptions import rtp_exceptions
 
 # Importing pydarn pydmap data structure classes
 from .io.datastructures import DmapScalar
@@ -37,6 +38,7 @@ from .utils.conversions import dmap2dict
 
 # import plotting
 from .plotting.superdarn_radars import SuperDARNRadars
+from .plotting.superdarn_cpid import SuperDARNCpids
 from .plotting.rtp import RTP
 
 """
