@@ -1,30 +1,30 @@
-# Copyright (C) 2016  SuperDARN Canada
+# Copyright (C) 2019 SuperDARN
 # Author: Marina Schmidt
 
-
-import unittest
+import bz2
+import collections
+import copy
+import logging
 import numpy as np
 import os
-import logging
-import bz2
-import copy
-import collections
+import unittest
 
 import pydarn
+
 import dmap_data_sets
 
 pydarn_logger = logging.getLogger('pydarn')
 
 # Test files
-rawacf_stream = "./testfiles/20170410.1801.00.sas.stream.rawacf.bz2"
-rawacf_file = "./testfiles/20170410.1801.00.sas.rawacf"
-fitacf_file = "./testfiles/20180220.C0.rkn.fitacf"
-map_file = "./testfiles/20170114.map"
-iqdat_file = "testfiles/20160316.1945.01.rkn.iqdat"
-grid_file = "./testfiles/20180220.C0.rkn.grid"
+rawacf_stream = "../testfiles/20170410.1801.00.sas.stream.rawacf.bz2"
+rawacf_file = "../testfiles/20170410.1801.00.sas.rawacf"
+fitacf_file = "../testfiles/20180220.C0.rkn.fitacf"
+map_file = "../testfiles/20170114.map"
+iqdat_file = "../testfiles/20160316.1945.01.rkn.iqdat"
+grid_file = "../testfiles/20180220.C0.rkn.grid"
 # Black listed files
-corrupt_file1 = "./testfiles/20070117.1001.00.han.rawacf"
-corrupt_file2 = "./testfiles/20090320.1601.00.pgr.rawacf"
+corrupt_file1 = "../testfiles/20070117.1001.00.han.rawacf"
+corrupt_file2 = "../testfiles/20090320.1601.00.pgr.rawacf"
 
 
 class TestDmapRead(unittest.TestCase):
@@ -53,7 +53,7 @@ class TestDmapRead(unittest.TestCase):
         Expected bahaviour: raises FileNotFoundError
         """
         self.assertRaises(FileNotFoundError, pydarn.DmapRead,
-                          './testfiles/somefile.rawacf')
+                          '../testfiles/somefile.rawacf')
 
     def test_empty_file(self):
         """
@@ -62,7 +62,7 @@ class TestDmapRead(unittest.TestCase):
         Expected behaviour: raise EmptyFileError
         """
         self.assertRaises(pydarn.dmap_exceptions.EmptyFileError,
-                          pydarn.DmapRead, './testfiles/empty.rawacf')
+                          pydarn.DmapRead, '../testfiles/empty.rawacf')
 
     def test_open_dmap_file(self):
         """
@@ -73,7 +73,7 @@ class TestDmapRead(unittest.TestCase):
             - bytearray instance is created from reading in the file
             - bytearray is not empty
         """
-        file_path = rawacf_file
+        file_path = fitacf_file
         dm = pydarn.DmapRead(file_path)
         self.assertIsInstance(dm.dmap_bytearr, bytearray)
         self.assertGreater(dm.dmap_end_bytes, 0)
@@ -89,6 +89,24 @@ class TestDmapRead(unittest.TestCase):
         file_path = rawacf_file
         dm = pydarn.DmapRead(file_path)
         dm.test_initial_data_integrity()
+
+    def test_read_dmap_file(self):
+        """
+        Tests DmapRead test read_dmap.
+
+        Behaviour: raising no exceptions
+        """
+        file_path = fitacf_file
+        dm = pydarn.DmapRead(file_path)
+        dmap_records = dm.read_records()
+        self.assertIsInstance(dmap_records, collections.deque)
+        self.assertIsInstance(dmap_records[0], collections.OrderedDict)
+        self.assertIsInstance(dmap_records[4]['bmnum'], pydarn.DmapScalar)
+        self.assertIsInstance(dmap_records[1]['ptab'], pydarn.DmapArray)
+        self.assertIsInstance(dmap_records[7]['channel'].value, int)
+        self.assertIsInstance(dmap_records[2]['ltab'].value, np.ndarray)
+        self.assertEqual(dmap_records[0]['ptab'].dimension, 1)
+        self.assertEqual(dmap_records[50]['gflg'].value[1], 0)
 
     # TODO: Again dependent on the file used :/
     def test_integrity_check_corrupt_file1(self):
@@ -225,6 +243,45 @@ class TestDmapWrite(unittest.TestCase):
         self.assertTrue(os.path.isfile("test_dmap.dmap"))
 
         os.remove("test_dmap.dmap")
+
+    def test_scalar(self):
+        """
+        Test DmapWrite writing a character scalar type.
+
+        Behaviour: Raised DmapCharError
+        Dmap cannot write characters as they are treated as strings and not
+        int8 - RST standard for char types.
+        """
+        scalar = pydarn.DmapScalar('channel', 'c', 1, 'c')
+        dmap_write = pydarn.DmapWrite()
+        with self.assertRaises(pydarn.dmap_exceptions.DmapCharError):
+            dmap_write.dmap_scalar_to_bytes(scalar)
+
+    def test_String_array(self):
+        """
+        Test DmapWrite writing string arrays
+
+        Behaviour: Raised DmapDataError
+        DmapWrite doesn't support writing string arrays because DmapRead does
+        not support string arrays.
+        """
+        array = pydarn.DmapArray('xcf', np.array(['dog', 'cat', 'mouse']),
+                                 9, 's', 1, [3])
+        dmap_write = pydarn.DmapWrite()
+        with self.assertRaises(pydarn.dmap_exceptions.DmapDataError):
+                dmap_write.dmap_array_to_bytes(array)
+
+    def test_character_array(self):
+        """
+        Test DmapWrite writing character arrays.
+
+        Behaviour: Raised DmapCharError
+        """
+        array = pydarn.DmapArray('channel', np.array(['d', 'c', 'm']),
+                                 1, 'c', 1, [3])
+        dmap_write = pydarn.DmapWrite()
+        with self.assertRaises(pydarn.dmap_exceptions.DmapCharError):
+            dmap_write.dmap_array_to_bytes(array)
 
 
 if __name__ == '__main__':
