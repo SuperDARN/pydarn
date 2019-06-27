@@ -4,7 +4,7 @@
 # https://github.com/vtsuperdarn/davitpy/blob/master/davitpy
 
 """
-Range-time Intensity plots
+Range-time Parameter plots (a.k.a Intensity)
 """
 import matplotlib.pyplot as plt
 import numpy as np
@@ -19,7 +19,7 @@ from pydarn import (dmap2dict, DmapArray, DmapScalar,
 
 class RTP():
     """
-    Range-time intensity plots SuperDARN data using the following fields:
+    Range-time Parameter plots SuperDARN data using the following fields:
 
     Class pattern design: Builder
     This class inherits matplotlib.pyplot to inherit plotting features as well
@@ -49,6 +49,8 @@ class RTP():
                         parameter: str = 'p_l', beam_num: int = 0, ax=None,
                         color_norm=None, **kwargs):
         """
+        Plots a range-time parameter plot of the given
+        field name in the dmap_data
 
         Future Work
         -----------
@@ -76,7 +78,7 @@ class RTP():
             The channel 1, 2, 'all'
             default : 1
         groundscatter : boolean
-            Flag to indicate if ground scatter should be plotted.
+            Flag to indicate if groundscatter should be plotted.
             default : False
         date_fmt : str
             format of x-axis date ticks, follow datetime format
@@ -211,7 +213,7 @@ class RTP():
         x = []
 
         # We cannot simply use numpy's built in min and max function
-        # because of the ground scatter value
+        # because of the groundscatter value
         if settings["boundary"]:
             z_min, z_max = settings["boundary"]
         else:
@@ -259,12 +261,12 @@ class RTP():
                     try:
                         # get the range gates that have "good" data in it
                         for j in range(len(dmap_record['slist'])):
-                            # if it is ground scatter store a very
+                            # if it is groundscatter store a very
                             # low number in that cell
                             if settings['groundscatter'] and\
                                dmap_record['gflg'][j] == 1:
                                 # chosen value from davitpy to make the
-                                # ground scatter a different color
+                                # groundscatter a different color
                                 # from the color map
                                 z[i][dmap_record['slist'][j]] = -1000000
                             # otherwise store parameter value
@@ -305,7 +307,7 @@ class RTP():
             norm = color_norm(z_min, z_max)
 
         cmap = cm.get_cmap(settings['color_map'])
-        # set ground scatter to grey
+        # set groundscatter to grey
         cmap.set_under('grey', 1.0)
 
         # plot!
@@ -596,7 +598,7 @@ class RTP():
 
         Returns
         -------
-        datetime:
+        datetime object
             returns a datetime object of the records time stamp
         """
         year = dmap_record['time.yr']
