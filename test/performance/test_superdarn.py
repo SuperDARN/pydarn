@@ -1,8 +1,10 @@
-import pydarn
-import cProfile, pstats, io
+import cProfile
+import io
 import logging
+import pstats
 import os
 
+import pydarn
 """
 Testing script for the performance on the various SuperDARN file types
 for read and writing. This script requires files so may fail if the
