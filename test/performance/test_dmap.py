@@ -8,11 +8,8 @@ This is a simple testing script for the Dmap read and write
 methods. Warning: need a file to read in.
 """
 logging.getLogger('pydarn').setLevel(logging.INFO)
-#@profile
-#def mem_profile():
 fitacf_file = "../testfiles/20180220.0001.00.rkn.3.0.fitacf"
 dmap = pydarn.DmapRead(fitacf_file)
-#dmap = pydarn.DmapRead("../testfiles/20170410.1801.00.sas.rawacf")
 pr = cProfile.Profile()
 pr.enable()
 d = dmap.read_records()
@@ -41,4 +38,3 @@ print("Performance for Dmap Write")
 print(s.getvalue())
 
 os.remove("test_dmap_performance.dmap")
-#mem_profile()
