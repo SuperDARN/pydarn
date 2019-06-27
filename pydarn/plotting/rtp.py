@@ -612,16 +612,6 @@ class RTP():
         return datetime(year=year, month=month, day=day, hour=hour,
                         minute=minute, second=second, microsecond=micro_sec)
 
-    # Needs its own method because it generates vertical lines when
-    # the cpid changes
-    @classmethod
-    def __plot_cpid(cls, *args, **kwargs):
-        pass
-
-    @classmethod
-    def __plot_scalar(cls, *args, **kwargs):
-        pass
-
     @classmethod
     def summaryplot(cls, *args, dmap_data: List[dict],
                     parameters: str, lines: str, **kwargs):
