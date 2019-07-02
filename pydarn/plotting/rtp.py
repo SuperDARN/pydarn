@@ -202,8 +202,7 @@ class RTP():
 
         # y-axis coordinates, i.e., range gates,
         # TODO: implement variant other coordinate systems for the y-axis
-        y = np.linspace(0, cls.dmap_data[0]['nrang'],
-                        cls.dmap_data[0]['nrang'])
+        y = np.arange(0, cls.dmap_data[0]['nrang'], 1)
         y_max = cls.dmap_data[0]['nrang']
 
         # z: parameter data mapped into the color mesh
@@ -299,6 +298,7 @@ class RTP():
             raise rtp_exceptions.RTPNoDataFoundError(parameter, beam_num,
                                                      start_time, end_time)
         time_axis, elev_axis = np.meshgrid(x, y)
+        print(y)
         z_data = np.ma.masked_where(np.isnan(z.T), z.T)
 
         if color_norm is None:
@@ -328,7 +328,7 @@ class RTP():
             cb = ax.figure.colorbar(im, ax=ax)
             cb.set_label(settings['color_bar_label'])
 
-        return im, cb, cmap
+        return im, cb, cmap, time_axis, elev_axis, z_data
 
     @classmethod
     def plot_time_series(cls, dmap_data: List[dict], *args,
