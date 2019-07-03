@@ -1,13 +1,13 @@
 # Copyright 2018 SuperDARN
 # Authors: Marina Schmidt and Keith Kotyk
 """
-This file contains classes to reading and writing of DMAP file formats used by
+This file contains classes to reading and writing of  formats used by
 SuperDARN.
 
 Classes:
 --------
-DmapRead : Reads DMAP files
-DmapWrite : writes DMAP Record structure into a DMAP file
+DmapRead : Reads s
+DmapWrite : writes DMap record structure into a
 
 Exceptions:
 -----------
@@ -32,22 +32,22 @@ git@github.com:SuperDARNCanada/backscatter.git
 written by Keith Kotyk
 """
 
+import collections
+import logging
+import numpy as np
 import os
 import struct
-import numpy as np
-import logging
-import collections
 
-from typing import Union, List
+from typing import List, Union
 
 from pydarn import dmap_exceptions
 from pydarn import DmapArray
 from pydarn import DmapScalar
 
 # Keeping these global definitions for readability purposes
-# Data types use in DMAP files
+# Data types use in s
 DMAP = 0
-CHAR = 1  # CHAR is defined as an int8 in RST rtypes.h
+CHAR = 1  # CHAR is defined as an int8 in RST rtypes.h https://github.com/SuperDARN/rst
 SHORT = 2
 INT = 3
 FLOAT = 4
@@ -59,33 +59,42 @@ USHORT = 17
 UINT = 18
 ULONG = 19
 
-# Dictionary of DMAP types (key) to quickly convert the format and byte size
+# Dictionary of DMap types (key) to quickly convert the format and byte size
 # (value-tuple)
+# DMap stands for DataMap documented in:
+# https://superdarn.github.io/rst/superdarn/src.doc/rfc/0006.html
+# https://radar-software-toolkit-rst.readthedocs.io/en/latest/ (In developement)
 DMAP_DATA_TYPES = {DMAP: ('', 0),
                    CHAR: ('c', 1),  # CHAR is defined as an int8 in RST rtypes.h
-                   SHORT: ('h', 2),
-                   INT: ('i', 4),
-                   FLOAT: ('f', 4),
-                   DOUBLE: ('d', 8),
-                   STRING: ('s', 1),
-                   LONG: ('q', 8),
-                   UCHAR: ('B', 1),
-                   USHORT: ('H', 2),
-                   UINT: ('I', 4),
-                   ULONG: ('Q', 8)}
+                   SHORT: ('h', 2),  # defined as int16
+                   INT: ('i', 4),  # defined as int32
+                   FLOAT: ('f', 4),  # defined as float32
+                   DOUBLE: ('d', 8),  # equavalece to float64
+                   STRING: ('s', 1),  # strings are an array of characters 1 byte bit
+                   LONG: ('q', 8),  # defined as int64
+                   UCHAR: ('B', 1),  # unsigned int8
+                   USHORT: ('H', 2),  # unsigned int16
+                   UINT: ('I', 4),  # unsigned int32
+                   ULONG: ('Q', 8)}  # unsigned int64
+# unsigned refers to how the integer is stored in the byte string, meaning
+# the first bit is part of the number and not referring
+# to the sign of the integer
 
 pydarn_logger = logging.getLogger('pydarn')
 
 
 class DmapRead():
     """
-    Reading and testing the integrity of DMAP files/stream.
+    Reading and testing the integrity of s/stream.
+    DMap is describe in the RST documentation:
+    - https://superdarn.github.io/rst/superdarn/src.doc/rfc/0006.html
+    - https://radar-software-toolkit-rst.readthedocs.io/en/latest/ (In developement)
     ...
 
     Attributes
     ----------
     dmap_file : str
-        DMAP file name or data stream (give data_stream=True)
+         name or data stream (give data_stream=True)
     cursor : int
         Current position in the byte array
     dmap_end_bytes : int
@@ -96,7 +105,7 @@ class DmapRead():
     test_initial_data_integrity()
         Quickly reads the byte array for any errors
     read_records()
-        Reads the byte array to obtain the DMAP records
+        Reads the byte array to obtain the DMap records
     zero_negative_check(element, element_name)
         Checks if the element is equal to zero
     check_data_type(data_type, data_name)
@@ -117,8 +126,8 @@ class DmapRead():
 
     def __init__(self, dmap_file: Union[str, bytes], data_stream=False):
         """
-        Reads the dmap file/stream into a byte array for further reading of the
-        dmap records.
+        Reads the /stream into a byte array for further reading of the
+        DMap records.
 
         Parameters
         ----------
@@ -144,7 +153,7 @@ class DmapRead():
         self.dmap_end_bytes = 0  # total number of bytes in the dmap_file
 
         """
-        Dmap records are stored in a deque data structure for
+        DMap records are stored in a deque data structure for
         memory efficiency and performance. Acts the same as a stack/list.
         See DEVELOPER_README.md for more information.
         """
@@ -159,7 +168,7 @@ class DmapRead():
             if os.path.getsize(self.dmap_file) == 0:
                 raise dmap_exceptions.EmptyFileError(self.dmap_file)
 
-            # Read binary dmap file
+            # Read binary
             with open(self.dmap_file, 'rb') as f:
                 self.dmap_bytearr = bytearray(f.read())
             pydarn_logger.debug("DMAP Read file: {}".format(self.dmap_file))
@@ -175,6 +184,32 @@ class DmapRead():
         self.dmap_end_bytes = len(self.dmap_bytearr)
         if self.dmap_end_bytes == 0:
             raise dmap_exceptions.EmptyFileError(self.dmap_file)
+
+    def __repr__(self):
+        """ for representation of the class object"""
+        # __class__.__name__ allows to grab the class name such that
+        # when a class inherits this one, the class name will be the child
+        # class and not the parent class (dmap classes)
+        return "{class_name}({filename}, {cursor}, {rec_num}, {total})"\
+                "".format(class_name=self.__class__.__name__,
+                          filename=self.dmap_file,
+                          cursor=self.cursor,
+                          total=self.dmap_end_bytes,
+                          rec_num=self.rec_num)
+
+
+    def __str__(self):
+        """ for printing of the class object"""
+        # __class__.__name__ allows to grab the class name such that
+        # when a class inherits this one, the class name will be the child
+        # class and not the parent class (dmap classes)
+        return "Reading from {filename} at cursor: {cursor} "\
+                "record number: {rec_num} with"\
+                " a total number of bytes: {total_bytes}"\
+                "".format(filename=self.dmap_file,
+                          cursor=self.cursor,
+                          rec_num=self.rec_num,
+                          total_bytes=self.dmap_end_bytes)
 
     def zero_negative_check(self, element: int, element_name: str):
         """
@@ -276,14 +311,14 @@ class DmapRead():
         zero_check : raises ZeroByteError
         byte_check : raises MistmatchByteError
         """
-        pydarn_logger.debug("Testing the integrity of the dmap file/stream")
+        pydarn_logger.debug("Testing the integrity of the /stream")
         total_block_size = 0  # unit of bytes
         if self.cursor != 0:
             raise dmap_exceptions.CursorError(self.cursor, 0, self.rec_num)
 
         while self.cursor < self.dmap_end_bytes:
             """
-            DMAP files headers contain the following:
+            s headers contain the following:
                 - encoding identifier: is a unique 32-bit integer that
                   indicates how the block was constructed.
                   It is used to differentiate between the possible future
@@ -325,7 +360,7 @@ class DmapRead():
 
     def read_records(self) -> collections.deque:
         """
-        This method reads the records from the dmap file/stream passed
+        This method reads the records from the /stream passed
         into the instance.
 
 
@@ -337,16 +372,16 @@ class DmapRead():
 
         See Also
         --------
-        DmapRecord : dmap record's data structure
-        DmapScalar : dmap record's scalar data structure
-        DmapArray  : dmap record's array data structure
+        DmapRecord : DMap record's data structure
+        DmapScalar : DMap record's scalar data structure
+        DmapArray  : DMap record's array data structure
 
         See DEVELOPER_README.md for more information on
         DmapRecords data structure.
         """
 
         # read bytes until end of byte array
-        pydarn_logger.debug("Reading DMAP records")
+        pydarn_logger.debug("Reading DMap records")
         while self.cursor < self.dmap_end_bytes:
             new_record = self.read_record()
             self._dmap_records.append(new_record)
@@ -358,7 +393,7 @@ class DmapRead():
 
     def read_record(self) -> collections.OrderedDict:
         """
-        Reads a single dmap record from the byte array.
+        Reads a single DMap record from the byte array.
 
         Return
         ------
@@ -445,7 +480,7 @@ class DmapRead():
         DmapDataError
             if the data type format is DMAP
             NOTE: In RST, this is allowed, if an example shows up where this is
-            allowed DMAP files raise as an issue in the GitHub so the code can
+            allowed s raise as an issue in the GitHub so the code can
             be re-accessed.
 
         See Also
@@ -468,7 +503,7 @@ class DmapRead():
         else:
             message = "Error: Trying to read DMAP data type for a scalar."\
                     " Failed at record {}".format(self.rec_num)
-            # Not sure when this is used in a dmap file
+            # Not sure when this is used in a
             # so better to raise an error if used re-access the code.
             raise dmap_exceptions.DmapDataError(self.dmap_file, message)
 
@@ -477,7 +512,7 @@ class DmapRead():
 
     def read_array(self, record_size) -> DmapArray:
         """
-        Reads an array from a dmap record the byte arrays and
+        Reads an array from a DMap record the byte arrays and
         stores the data properties in a DmapArray structure.
 
         Return
@@ -515,6 +550,8 @@ class DmapRead():
 
         array_shape = [self.read_data('i', 4)
                        for i in range(0, array_dimension)]
+        if array_dimension > 1:
+            array_shape.reverse()
 
         # slist is the array that holds the range gates that have valid data
         # when qflg is 1
@@ -562,7 +599,7 @@ class DmapRead():
             message = "Error: Trying to read array of strings."\
                     " Currently not implemented."\
                     " Failed at record {}".format(self.rec_num)
-            # Not sure when this is used in a dmap file
+            # Not sure when this is used in a
             # so better to raise an error if used re-access the code.
             raise dmap_exceptions.DmapDataError(self.dmap_file, message)
             # FIXME: Not working
@@ -572,7 +609,7 @@ class DmapRead():
         elif array_type == DMAP:
             message = "Trying to read DMAP array data type."\
                     " Failed at record {}".format(self.rec_num)
-            # Not sure when this is used in a dmap file
+            # Not sure when this is used in a
             # so better to raise an error if used re-access the code.
             raise dmap_exceptions.DmapDataError(self.dmap_file, message)
         else:
@@ -751,8 +788,8 @@ class DmapRead():
         if data_type_fmt == 'c':
             # In RST rtypes.h file, chars are defined as int8
             # allowing this assumption to be allowed for now
-             array = np.frombuffer(self.dmap_buffer, np.int8,
-                                   total_number_cells, self.cursor)
+            array = np.frombuffer(self.dmap_buffer, np.int8,
+                                  total_number_cells, self.cursor)
         else:
             array = np.frombuffer(self.dmap_buffer, data_type_fmt,
                                   total_number_cells, self.cursor)
@@ -763,39 +800,24 @@ class DmapRead():
 
 class DmapWrite(object):
     """
-    Writes Dmap records to file or stream and writes SuperDARN file format.
+    Writes DMap records to file or stream and writes SuperDARN file format.
     ...
 
     Attributes
     -----------
     dmap_records : List[dict]
-        List of dmap records
+        List of DMap records
     filename : str
         Name of the file the user wants to write to
     dmap_bytearr : bytearray
-        Byte array representing the dmap records in bytes
+        Byte array representing the DMap records in bytes
 
     Methods
     -------
-    write_iqdat(filename)
-        Writes dmap records to SuperDARN IQDAT file structure
-        with the given filename
-    write_fitacf(filename)
-        Write dmap records to SuperDARN RAWACF file structure
-        with the given filename
-    write_rawacf(filename)
-        Writes dmap records to SuperDARN FITACF file structure
-        with the given filename
-    write_grid(filename)
-        Writes dmap records to SuperDARN GRID file structure
-        with the given filename
-    write_map(filename)
-        Writes dmap records to SuperDARN MAP file structure
-        with the given filename
     write_dmap(filename)
-        Writes dmap records to DMAP format with the given filename
+        Writes DMap records to DMAP format with the given filename
     write_dmap_stream(dmap_records)
-        Writes dmap records to DMAP format byte stream
+        Writes DMap records to DMAP format byte stream
     dict_key_diff(dict1, dict2)
         Returns a set of the difference between dict1 and dict2 keys
     missing_field_check(file_struct_list, record, rec_num)
@@ -811,10 +833,10 @@ class DmapWrite(object):
     dict_list2set(dict_list)
         Converts a list of dictionaries to a set containing their keys
     SuperDARN_file_structure_to_bytes(file_struct_list)
-        Converts dmap records to SuperDARN file structure bytes based
+        Converts DMap records to SuperDARN file structure bytes based
         on file_struct_list
     dmap_records_to_bytes()
-        Converts dmap records to byte array stored in dmap_bytearr
+        Converts DMap records to byte array stored in dmap_bytearr
     dmap_scalar_to_bytes(scalar)
         Converts a DmapScalar to bytes
     dmap_array_to_bytes(array)
@@ -822,7 +844,7 @@ class DmapWrite(object):
     """
     def __init__(self, dmap_records: List[dict] = [], filename: str = ""):
         """
-        Writes dmap records to a given filename of byte array in DMAP format,
+        Writes DMap records to a given filename of byte array in DMAP format,
         this includes the following SuperDARN file types:
                                                       - Iqdat
                                                       - Rawacf
@@ -833,12 +855,12 @@ class DmapWrite(object):
         Parameters
         ----------
         dmap_records : List[dict]
-            list of dictionaries representing a list of dmap records containing
+            list of dictionaries representing a list of DMap records containing
             DmapScalar and DmapArrays
         filename : str
             The path and name of the file the user wants to write to
         dmap_file_fmt : str
-            Dmap file types, the following are supported:
+             types, the following are supported:
                                      - 'iqdat' : SuperDARN file type
                                      - 'rawacf' : SuperDARN file type
                                      - 'fitacf' : SuperDARN file type
@@ -858,15 +880,34 @@ class DmapWrite(object):
         self.rec_num = 0
         pydarn_logger.debug("Initiating DmapWrite")
 
+    def __repr__(self):
+        """ for representation of the class object"""
+        # __class__.__name__ allows to grab the class name such that
+        # when a class inherits this one, the class name will be the child
+        # class and not the parent class (dmap classes)
+        return "{class_name}({filename}, {rec_num})"\
+               "".format(class_name=self.__class__.__name__,
+                         filename=self.filename,
+                         rec_num=self.rec_num)
+
+    def __str__(self):
+        """ for printing of the class object"""
+        # __class__.__name__ allows to grab the class name such that
+        # when a class inherits this one, the class name will be the child
+        # class and not the parent class (dmap classes)
+        return "Writing to filename: {filename} at record number: {rec_num}"\
+               "".format(filename=self.filename,
+                         rec_num=self.rec_num)
+
     # HONEY BADGER method: Because dmap just don't care
     def write_dmap(self, filename: str = ""):
         """
-        Writes dmap record to dmap file format.
+        Writes DMap record to  format.
 
         Parameters:
         -----------
         filename : str
-            The name of the DMAP file including path
+            The name of the  including path
 
         WARNING:
         --------
@@ -874,19 +915,19 @@ class DmapWrite(object):
         correct.
         """
         self._filename_check(filename)
-        pydarn_logger.debug("Writing dmap file: {}".format(self.filename))
+        pydarn_logger.debug("Writing : {}".format(self.filename))
         self.write_dmap_stream()
         with open(self.filename, 'wb') as f:
             f.write(self.dmap_bytearr)
 
     def write_dmap_stream(self, dmap_records: List[dict] = []) -> bytearray:
         """
-        Writes dmap record to dmap file format.
+        Writes DMap record to  format.
 
         Return
         ------
         dmap_bytearr : bytearray
-            Bytearray of the dmap records
+            Bytearray of the DMap records
 
         WARNING:
         --------
@@ -903,7 +944,7 @@ class DmapWrite(object):
     def _empty_record_check(self):
         if self.dmap_records == []:
             raise dmap_exceptions.DmapDataError(self.filename,
-                                                "Dmap record is empty "
+                                                "DMap record is empty "
                                                 "there is nothing to write.")
 
     def _filename_check(self, filename: str = ""):
@@ -927,27 +968,27 @@ class DmapWrite(object):
 
     def dmap_records_to_bytes(self):
         """
-        Loops through the dmap records and calls dmap_record_to_bytes
-        to convert the dmap records to a byte array.
+        Loops through the DMap records and calls dmap_record_to_bytes
+        to convert the DMap records to a byte array.
 
         Future use of this function is for parallelization.
         """
         # For performance increase len of the records can be
         # attribute value initialized in the class
-        pydarn_logger.debug("Converting DMAP records to bytes")
+        pydarn_logger.debug("Converting DMap records to bytes")
         for self.rec_num in range(len(self.dmap_records)):
             record = self.dmap_records[self.rec_num]
             self._dmap_record_to_bytes(record)
 
     def _dmap_record_to_bytes(self, record: dict):
         """
-        Converts dmap record to byte stream and stores in the
+        Converts DMap record to byte stream and stores in the
         dmap byte array
 
         Parameter
         ---------
         record : dict
-            Dmap record
+            DMap record
 
         Notes
         -----
@@ -1066,6 +1107,8 @@ class DmapWrite(object):
 
         array_dim_bytes = struct.pack('i', array.dimension)
         array_shape_bytes = bytes()
+        if array.dimension > 1:
+            array.shape.reverse()
         for size in array.shape:
             array_shape_bytes += struct.pack('i', size)
 
