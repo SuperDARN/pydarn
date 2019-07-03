@@ -1,16 +1,16 @@
-import pydarn
-import cProfile, pstats, io
+import cProfile
+import io
 import logging
+import pstats
 import os
 
+import pydarn
 """
 Testing script for the performance on the various SuperDARN file types
 for read and writing. This script requires files so may fail if the
 same structure is not setup.
 """
 logging.getLogger('pydarn').setLevel(logging.INFO)
-#@profile
-#def mem_profile():
 fitacf_file = "../testfiles/20180220.0001.00.rkn.3.0.fitacf"
 rawacf_file = "../testfiles/20170410.1801.00.sas.rawacf"
 map_file = "../testfiles/20170114.map"
@@ -200,6 +200,3 @@ print("File: ", map_file)
 print("Size: {} MB".format(os.path.getsize(map_file)/1000000))
 print("="*60)
 print(s.getvalue())
-
-
-#mem_profile()
