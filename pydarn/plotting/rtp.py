@@ -4,20 +4,22 @@
 # https://github.com/vtsuperdarn/davitpy/blob/master/davitpy
 
 """
-Range-time Intensity plots
+Range-time Parameter plots (a.k.a Intensity)
 """
 import matplotlib.pyplot as plt
-from matplotlib import dates, colors, cm, ticker, lines, gridspec
 import numpy as np
-from typing import List
-from datetime import datetime, timedelta
 
-from pydarn import (DmapArray, DmapScalar, dmap2dict, rtp_exceptions,
-                    SuperDARNRadars)
+from datetime import datetime, timedelta
+from matplotlib import dates, colors, cm, ticker
+from typing import List
+
+from pydarn import (dmap2dict, DmapArray, DmapScalar,
+                    rtp_exceptions, SuperDARNCpids)
+
 
 class RTP():
     """
-    Range-time intensity plots SuperDARN data using the following fields:
+    Range-time Parameter plots SuperDARN data using the following fields:
 
     Class pattern design: Builder
     This class inherits matplotlib.pyplot to inherit plotting features as well
@@ -34,6 +36,7 @@ class RTP():
     summary_plot
 
     """
+
     def __str__(self):
         return "This class is static class that provides"\
                 " the following methods: \n"\
@@ -41,12 +44,13 @@ class RTP():
                 "   - plot_time_series()\n"\
                 "   - plot_summary()\n"
 
-
     @classmethod
     def plot_range_time(cls, dmap_data: List[dict], *args,
                         parameter: str = 'p_l', beam_num: int = 0, ax=None,
-                        color_norm = None, **kwargs):
+                        color_norm=None, **kwargs):
         """
+        Plots a range-time parameter plot of the given
+        field name in the dmap_data
 
         Future Work
         -----------
@@ -73,8 +77,8 @@ class RTP():
         channel : int
             The channel 1, 2, 'all'
             default : 1
-        ground_scatter : boolean
-            Flag to indicate if ground scatter should be plotted.
+        groundscatter : boolean
+            Flag to indicate if groundscatter should be plotted.
             default : False
         date_fmt : str
             format of x-axis date ticks, follow datetime format
@@ -146,7 +150,7 @@ class RTP():
             matplotlib color map object
         """
         # Settings
-        settings = {'ground_scatter': False,
+        settings = {'groundscatter': False,
                     'channel': 'all',
                     'date_fmt': "%y/%m/%d\n%H:%M",
                     'color_bar': True,
@@ -198,8 +202,7 @@ class RTP():
 
         # y-axis coordinates, i.e., range gates,
         # TODO: implement variant other coordinate systems for the y-axis
-        y = np.linspace(0, cls.dmap_data[0]['nrang'],
-                        cls.dmap_data[0]['nrang'])
+        y = np.arange(0, cls.dmap_data[0]['nrang'], 1)
         y_max = cls.dmap_data[0]['nrang']
 
         # z: parameter data mapped into the color mesh
@@ -209,7 +212,7 @@ class RTP():
         x = []
 
         # We cannot simply use numpy's built in min and max function
-        # because of the ground scatter value
+        # because of the groundscatter value
         if settings["boundary"]:
             z_min, z_max = settings["boundary"]
         else:
@@ -256,23 +259,12 @@ class RTP():
                     try:
                         # get the range gates that have "good" data in it
                         for j in range(len(dmap_record['slist'])):
-                            # if it is ground scatter store a very
+                            # if it is groundscatter store a very
                             # low number in that cell
-                            if not settings['ground_scatter'] or\
-                               dmap_record['gflg'][j] == 0:
-                                z[i][dmap_record['slist'][j]] = \
-                                        dmap_record[parameter][j]
-                                # check if boundaries have been set
-                                if settings["boundary"] is None:
-                                    if z[i][dmap_record['slist'][j]] < z_min:
-                                        z_min = z[i][dmap_record['slist'][j]]
-                                    if z[i][dmap_record['slist'][j]] > z_max:
-                                        z_max = z[i][dmap_record['slist'][j]]
-
-                            elif settings['ground_scatter'] and\
+                            if settings['groundscatter'] and\
                                dmap_record['gflg'][j] == 1:
                                 # chosen value from davitpy to make the
-                                # ground scatter a different color
+                                # groundscatter a different color
                                 # from the color map
                                 z[i][dmap_record['slist'][j]] = -1000000
                             # otherwise store parameter value
@@ -287,6 +279,7 @@ class RTP():
             raise rtp_exceptions.RTPNoDataFoundError(parameter, beam_num,
                                                      start_time, end_time)
         time_axis, elev_axis = np.meshgrid(x, y)
+        print(y)
         z_data = np.ma.masked_where(np.isnan(z.T), z.T)
 
         if color_norm is None:
@@ -295,8 +288,8 @@ class RTP():
             norm = color_norm(z_min, z_max)
 
         cmap = cm.get_cmap(settings['color_map'])
-        # set ground scatter to grey
-        if settings['ground_scatter']:
+
+        if settings['groundscatter']:
             cmap.set_under('grey', 1.0)
 
         # plot!
@@ -317,15 +310,15 @@ class RTP():
             cb = ax.figure.colorbar(im, ax=ax)
             cb.set_label(settings['color_bar_label'])
 
-        return im, cb, cmap
+        return im, cb, cmap, time_axis, elev_axis, z_data
 
     @classmethod
     def plot_time_series(cls, dmap_data: List[dict], *args,
                          parameter: str = 'frequency', beam_num: int = 0,
-                         ax=None, time_span=None,
-                         date_fmt: str='%y/%m/%d\n %H:%M',
+                         ax=None, time_span: tuple = None,
+                         date_fmt: str = '%y/%m/%d\n %H:%M',
                          channel='all', scale: str = 'linear',
-                         cp_name: bool=True, **kwargs):
+                         cp_name: bool = True, **kwargs):
         """
         Plots the time series of a scalar parameter
 
@@ -418,23 +411,29 @@ class RTP():
                             ax.text(x=time + timedelta(seconds=600), y=0.5,
                                     s=dmap_record['cp'])
                             if cp_name:
-                                cpid_command = dmap_record['combf'].split(' ')
-                                if len(cpid_command) == 1:
-                                    cp_name = cpid_command[0]
-                                elif len(cpid_command) == 0:
-                                    cp_name = 'unknown'
-                                else:
-                                    cp_name = cpid_command[1]
+                                # Keepig this commented code in to show how
+                                # we could get the name from the file; however,
+                                # there is not set format for combf field ...
+                                # so we will use the dictionary to prevent
+                                # errors or incorrect names on the plot.
+                                # However, we should get it from the file
+                                # not a dictionary that might not be updated
+                                # cpid_command = dmap_record['combf'].split(' ')
+                                # if len(cpid_command) == 1:
+                                #     cp_name = cpid_command[0]
+                                # elif len(cpid_command) == 0:
+                                #     cp_name = 'unknown'
+                                # else:
+                                #     cp_name = cpid_command[1]
                                 ax.text(x=time + timedelta(seconds=600),
                                         y=0.4,
-                                        s=cp_name)
-                                        #s=SuperDARNCpids.cpids.get(dmap_record['cp'], 'unknown'))
+                                        s=SuperDARNCpids.cpids.get(dmap_record['cp'],
+                                                                   'unknown'))
 
             # Check if the old cp ID change, if not then there was no data
             if old_cpid == 0:
                 raise rtp_exceptions.RTPNoDataFoundError(parameter, beam_num,
                                                          start_time, end_time)
-
 
             # to get rid of y-axis numbers
             ax.set_yticks([])
@@ -445,7 +444,7 @@ class RTP():
             # date time
             x = []
             for dmap_record in cls.dmap_data:
-                #TODO: this check could be a function call
+                # TODO: this check could be a function call
                 time = cls.__time2datetime(dmap_record)
                 if start_time <= time and time <= end_time:
                     if (dmap_record['bmnum'] == beam_num or
@@ -487,7 +486,8 @@ class RTP():
 
     @classmethod
     # TODO: could parallelize this method
-    def __filter_data_check(cls, dmap_record: dict, settings: dict, j: int) -> bool:
+    def __filter_data_check(cls, dmap_record: dict,
+                            settings: dict, j: int) -> bool:
         """
         checks for data that does not meet the criteria of the filtered
         settings
@@ -574,7 +574,7 @@ class RTP():
 
         Returns
         -------
-        datetime:
+        datetime object
             returns a datetime object of the records time stamp
         """
         year = dmap_record['time.yr']
@@ -587,16 +587,6 @@ class RTP():
 
         return datetime(year=year, month=month, day=day, hour=hour,
                         minute=minute, second=second, microsecond=micro_sec)
-
-    # Needs its own method because it generates vertical lines when
-    # the cpid changes
-    @classmethod
-    def __plot_cpid(cls, *args, **kwargs):
-        pass
-
-    @classmethod
-    def __plot_scalar(cls, *args, **kwargs):
-        pass
 
     @classmethod
     def plot_summary(cls, dmap_data: List[dict], *args, beam_num: int =0,
