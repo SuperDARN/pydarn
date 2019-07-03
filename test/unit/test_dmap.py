@@ -1,16 +1,16 @@
-# Copyright (C) 2016  SuperDARN Canada
+# Copyright (C) 2019 SuperDARN
 # Author: Marina Schmidt
 
-
-import unittest
+import bz2
+import collections
+import copy
+import logging
 import numpy as np
 import os
-import logging
-import bz2
-import copy
-import collections
+import unittest
 
 import pydarn
+
 import dmap_data_sets
 
 pydarn_logger = logging.getLogger('pydarn')
