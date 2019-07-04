@@ -202,7 +202,7 @@ class RTP():
 
         # y-axis coordinates, i.e., range gates,
         # TODO: implement variant other coordinate systems for the y-axis
-        y = np.arange(0, cls.dmap_data[0]['nrang'], 1)
+        y = np.arange(0, cls.dmap_data[0]['nrang']+1, 1)
         y_max = cls.dmap_data[0]['nrang']
 
         # z: parameter data mapped into the color mesh
@@ -292,13 +292,12 @@ class RTP():
                     # due to bad quality data.
                     except KeyError:
                         continue
-
+        x.append(end_time)
         # Check if there is any data to plot
         if np.all(np.isnan(z)):
             raise rtp_exceptions.RTPNoDataFoundError(parameter, beam_num,
                                                      start_time, end_time)
         time_axis, elev_axis = np.meshgrid(x, y)
-        print(y)
         z_data = np.ma.masked_where(np.isnan(z.T), z.T)
 
         if color_norm is None:
