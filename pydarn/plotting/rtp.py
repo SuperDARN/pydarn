@@ -270,17 +270,10 @@ class RTP():
                             # TODO: refactor and clean up this code
                             elif cls.__filter_data_check(dmap_record,
                                                          settings, j):
-                                # check if boundaries have been set
-                                if settings["boundary"]:
-                                    # see if data within boundaries
-                                    if z_min < dmap_record[parameter][j] and\
-                                       z_max > dmap_record[parameter][j]:
-                                        z[i][dmap_record['slist'][j]] = \
-                                                dmap_record[parameter][j]
-                                else:
-                                    z[i][dmap_record['slist'][j]] = \
-                                            dmap_record[parameter][j]
+                                z[i][dmap_record['slist'][j]] = \
+                                        dmap_record[parameter][j]
                                     # calculate min and max value
+                                if not settings["boundary"]:
                                     if z[i][dmap_record['slist'][j]] < z_min or\
                                        z_min is None:
                                         z_min = z[i][dmap_record['slist'][j]]
@@ -709,6 +702,7 @@ class RTP():
         else:
             plot.title(title, y=2.4)
         plt.subplots_adjust(wspace=0, hspace=0)
+        return fig
 
     @classmethod
     def __generate_title(cls, beam_num: int):
