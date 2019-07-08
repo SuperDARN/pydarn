@@ -22,6 +22,8 @@ class SuperDARNFileTypeError(Exception):
             " the file type is correct or is"\
             " implemented.".format(file_type=self.file_type,
                                    filename=self.filename)
+        super().__init__(self.message)
+        pydarn_logger.error(self.message)
 
 
 class SuperDARNFieldMissingError(Exception):
@@ -42,6 +44,8 @@ class SuperDARNFieldMissingError(Exception):
         self.message = "Error: The following fields in record {num} are missing:"\
             " {fields}".format(num=self.record_number,
                                fields=self.fields)
+        super().__init__(self.message)
+        pydarn_logger.error(self.message)
 
 
 class SuperDARNExtraFieldError(Exception):
@@ -62,6 +66,8 @@ class SuperDARNExtraFieldError(Exception):
         self.message = "Error: The following fields in record {num} are not allowed:"\
             " {fields}".format(num=self.record_number,
                                fields=self.fields)
+        super().__init__(self.message)
+        pydarn_logger.error(self.message)
 
 
 class SuperDARNDataFormatTypeError(Exception):
@@ -83,3 +89,5 @@ class SuperDARNDataFormatTypeError(Exception):
             " need to be the data type:"\
             " {incorrect}".format(num=self.record_number,
                                   incorrect=self.incorrect_params)
+        super().__init__(self.message)
+        pydarn_logger.error(self.message)
