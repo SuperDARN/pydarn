@@ -195,7 +195,6 @@ class RTP():
                 cls.interval_time = kwargs['time_span'][1]
             else:
                 raise IndexError("time_span list must be length of 2 or 3")
-
         except KeyError:
             start_time = cls.__time2datetime(cls.dmap_data[0])
             end_time = cls.__time2datetime(cls.dmap_data[-1])
