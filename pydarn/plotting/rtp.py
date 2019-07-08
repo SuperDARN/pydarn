@@ -627,7 +627,7 @@ class RTP():
                              label='Search Noise')
         trans = search_ax.get_yaxis_transform()
         search_ax.set_ylabel('Search\n Noise', rotation=0, labelpad=30)
-        search_ax.set_xticks([])
+        search_ax.set_xticklabels([])
         search_ax.set_ylim(1e0, 1e6)
         search_ax.axhline(y=1.1, xmin=-0.11, xmax=-0.05, clip_on=False,
                           color='k')
@@ -638,7 +638,7 @@ class RTP():
         cls.plot_time_series(dmap_data, beam_num=beam_num,
                              parameter='noise.sky', scale='log',
                              ax=sky_ax, linestyle='--', color='k')
-        sky_ax.set_xticks([])
+        sky_ax.set_xticklabel([])
         sky_ax.set_ylabel('Sky\n Noise', rotation=0, labelpad=25)
         sky_ax.axhline(y=1.1, xmin=1.07, xmax=1.13, clip_on=False,
                           linestyle='--', color='k')
