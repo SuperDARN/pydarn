@@ -14,7 +14,7 @@ from matplotlib import dates, colors, cm, ticker
 from typing import List
 
 from pydarn import (dmap2dict, DmapArray, DmapScalar,
-                    rtp_exceptions, SuperDARNCpids)
+                    rtp_exceptions, SuperDARNCpids, SuperDARNRadars)
 
 
 class RTP():
@@ -268,6 +268,24 @@ class RTP():
                                 z[i][dmap_record['slist'][j]] = -1000000
                             # otherwise store parameter value
                             # TODO: refactor and clean up this code
+                            elif cls.__filter_data_check(dmap_record,
+                                                         settings, j):
+                                # check if boundaries have been set
+                                if settings["boundary"]:
+                                    # see if data within boundaries
+                                    if z_min < dmap_record[parameter][j] and\
+                                       z_max > dmap_record[parameter][j]:
+                                        z[i][dmap_record['slist'][j]] = \
+                                                dmap_record[parameter][j]
+                                else:
+                                    z[i][dmap_record['slist'][j]] = \
+                                            dmap_record[parameter][j]
+                                    # calculate min and max value
+                                    if z[i][dmap_record['slist'][j]] < z_min or\
+                                       z_min is None:
+                                        z_min = z[i][dmap_record['slist'][j]]
+                                    if z[i][dmap_record['slist'][j]] > z_max:
+                                        z_max = z[i][dmap_record['slist'][j]]
                     # a KeyError may be thrown because slist is not created
                     # due to bad quality data.
                     except KeyError:
