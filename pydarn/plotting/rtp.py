@@ -638,7 +638,7 @@ class RTP():
         cls.plot_time_series(dmap_data, beam_num=beam_num,
                              parameter='noise.sky', scale='log',
                              ax=sky_ax, linestyle='--', color='k')
-        sky_ax.set_xticklabel([])
+        sky_ax.set_xticklabels([])
         sky_ax.set_ylabel('Sky\n Noise', rotation=0, labelpad=25)
         sky_ax.axhline(y=1.1, xmin=1.07, xmax=1.13, clip_on=False,
                           linestyle='--', color='k')
