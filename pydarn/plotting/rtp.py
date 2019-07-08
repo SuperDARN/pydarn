@@ -640,7 +640,7 @@ class RTP():
         tfreq_ax.set_ylabel('Freq $MHz$')
         cls.plot_time_series(dmap_data, beam_num=beam_num, parameter='tfreq',
                              ax=tfreq_ax)
-        tfreq_ax.set_xticks([])
+        tfreq_ax.set_xticklabels([])
         tfreq_ax.set_ylabel('Freq\n($MHz$)', rotation=0, labelpad=30)
         tfreq_ax.axhline(y=0.2, xmin=-0.11, xmax=-0.05, clip_on=False,
                          color='k')
@@ -659,7 +659,7 @@ class RTP():
 
         cls.plot_time_series(dmap_data, beam_num=beam_num, parameter='cp',
                              ax=cp_ax, cp_name=False)
-        cp_ax.set_xticks([])
+        cp_ax.set_xticklabels([])
         cp_ax.set_ylabel('CPID', rotation=0, labelpad=30)
         cp_ax.yaxis.set_label_coords(-0.08, 0.079)
 
@@ -668,18 +668,18 @@ class RTP():
                             color_bar_label='SNR ($dB$)',
                             parameter='p_l', ax=snr_ax, boundary=(0, 30))
         snr_ax.set_ylabel('Range Gates')
-        snr_ax.set_xticks([])
+        snr_ax.set_xticklabels([])
         cls.plot_range_time(dmap_data, beam_num=beam_num, parameter='v',
                             ground_scatter=ground_scatter, color_bar_label='Velocity ($m/s$)',
                             ax=vel_ax, color_map='jet_r', boundary=(-200, 200))
 
         vel_ax.set_ylabel('Range Gates')
-        vel_ax.set_xticks([])
+        vel_ax.set_xticklabels([])
         cls.plot_range_time(dmap_data, beam_num=beam_num, parameter='w_l',
                             ground_scatter=ground_scatter,
                             color_bar_label='Spect Width\n ($m/s$)',
                             ax=spect_ax, boundary=(0, 150))
-        spect_ax.set_xticks([])
+        spect_ax.set_xticklabels([])
         spect_ax.set_ylabel('Range Gates')
 
         cls.plot_range_time(dmap_data, beam_num=beam_num, parameter='elv',
