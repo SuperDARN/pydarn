@@ -1,6 +1,7 @@
 site_name: PyDARN Documentation
 repo_url: https://github.com/superdarn/pydarn
 theme: readthedocs
+extra_css: [css/pydarn.css]
 nav:
 - Home: index.md
 - About: about.md
