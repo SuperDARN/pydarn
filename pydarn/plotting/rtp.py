@@ -291,7 +291,6 @@ class RTP():
             raise rtp_exceptions.RTPNoDataFoundError(parameter, beam_num,
                                                      start_time, end_time)
         time_axis, elev_axis = np.meshgrid(x, y)
-        print(y)
         z_data = np.ma.masked_where(np.isnan(z.T), z.T)
 
         if color_norm is None:
