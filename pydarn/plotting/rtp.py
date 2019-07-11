@@ -202,7 +202,7 @@ class RTP():
 
         # y-axis coordinates, i.e., range gates,
         # TODO: implement variant other coordinate systems for the y-axis
-        y = np.arange(0, cls.dmap_data[0]['nrang'], 1)
+        y = np.arange(0, cls.dmap_data[0]['nrang']+1, 1)
         y_max = cls.dmap_data[0]['nrang']
 
         # z: parameter data mapped into the color mesh
@@ -272,17 +272,10 @@ class RTP():
                             # TODO: refactor and clean up this code
                             elif cls.__filter_data_check(dmap_record,
                                                          settings, j):
-                                # check if boundaries have been set
-                                if settings["boundary"]:
-                                    # see if data within boundaries
-                                    if z_min < dmap_record[parameter][j] and\
-                                       z_max > dmap_record[parameter][j]:
-                                        z[i][dmap_record['slist'][j]] = \
-                                                dmap_record[parameter][j]
-                                else:
-                                    z[i][dmap_record['slist'][j]] = \
-                                            dmap_record[parameter][j]
+                                z[i][dmap_record['slist'][j]] = \
+                                        dmap_record[parameter][j]
                                     # calculate min and max value
+                                if not settings["boundary"]:
                                     if z[i][dmap_record['slist'][j]] < z_min or\
                                        z_min is None:
                                         z_min = z[i][dmap_record['slist'][j]]
@@ -292,7 +285,7 @@ class RTP():
                     # due to bad quality data.
                     except KeyError:
                         continue
-
+        x.append(end_time)
         # Check if there is any data to plot
         if np.all(np.isnan(z)):
             raise rtp_exceptions.RTPNoDataFoundError(parameter, beam_num,
@@ -309,8 +302,9 @@ class RTP():
         cmap = cm.get_cmap(settings['color_map'])
         # set groundscatter to grey
         cmap.set_under('grey', 1.0)
-
+        cmap.set_bad(color='w', alpha=1.)
         # plot!
+        #im = ax.imshow(z_data, aspect='auto', origin='lower', extent=[dates.date2num(x[0]),dates.date2num(x[-1]), 0, y[-1]])
         im = ax.pcolormesh(time_axis, elev_axis, z_data, lw=0.01,
                            cmap=cmap, norm=norm)
         # setup some standard axis information
