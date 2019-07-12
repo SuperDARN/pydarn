@@ -301,7 +301,9 @@ class RTP():
         if settings['groundscatter']:
             cmap.set_under('grey', 1.0)
 
+        cmap.set_bad(color='w', alpha=1.)
         # plot!
+        #im = ax.imshow(z_data, aspect='auto', origin='lower', extent=[dates.date2num(x[0]),dates.date2num(x[-1]), 0, y[-1]])
         im = ax.pcolormesh(time_axis, elev_axis, z_data, lw=0.01,
                            cmap=cmap, norm=norm)
         # setup some standard axis information
@@ -323,7 +325,7 @@ class RTP():
 
     @classmethod
     def plot_time_series(cls, dmap_data: List[dict], *args,
-                         parameter: str = 'frequency', beam_num: int = 0,
+                         parameter: str = 'tfreq', beam_num: int = 0,
                          ax=None, time_span: tuple = None,
                          date_fmt: str = '%y/%m/%d\n %H:%M',
                          channel='all', scale: str = 'linear',
@@ -435,7 +437,7 @@ class RTP():
                                 # else:
                                 #     cp_name = cpid_command[1]
                                 ax.text(x=time + timedelta(seconds=600),
-                                        y=0.4,
+                                        y=0.2,
                                         s=SuperDARNCpids.cpids.get(dmap_record['cp'],
                                                                    'unknown'))
 
