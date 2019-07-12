@@ -325,7 +325,7 @@ class RTP():
 
     @classmethod
     def plot_time_series(cls, dmap_data: List[dict], *args,
-                         parameter: str = 'frequency', beam_num: int = 0,
+                         parameter: str = 'tfreq', beam_num: int = 0,
                          ax=None, time_span: tuple = None,
                          date_fmt: str = '%y/%m/%d\n %H:%M',
                          channel='all', scale: str = 'linear',
@@ -383,13 +383,6 @@ class RTP():
         if not ax:
             ax = plt.gca()
 
-        # get parameter info
-        parameter_tuple = cls.parameter_type.get(parameter, parameter)
-        if isinstance(parameter_tuple, tuple):
-            parameter = parameter_tuple[0]
-        else:
-            parameter = parameter_tuple
-
         # Determine if a DmapRecord was passed in, instead of a list
         try:
             if isinstance(dmap_data[0][parameter], DmapArray) or\
@@ -444,7 +437,7 @@ class RTP():
                                 # else:
                                 #     cp_name = cpid_command[1]
                                 ax.text(x=time + timedelta(seconds=600),
-                                        y=0.4,
+                                        y=0.2,
                                         s=SuperDARNCpids.cpids.get(dmap_record['cp'],
                                                                    'unknown'))
 
