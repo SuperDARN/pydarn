@@ -593,30 +593,103 @@ class RTP():
                      ground_scatter=False, title=None, **kwargs):
 
         fig = plt.figure(figsize=(11, 8.5))
+
+        # axes objects in order of creation:
+        # [noise, tfreq, cp, snr, vel, spect, elv]
+        num_plots = 7
+        axes = []
+        axes_parameters = [('noise.search', 'noise.sky'), ('tfreq', 'nave'),
+                           ('cp'), ('p_l'), ('v'), ('w_l'), ('elv')]
+        labels = [('Search\n Noise', 'Sky\n Noise'), ('Freq\n ($MHz$)', 'Nave'),
+                  ('CP ID'), ('SNR ($dB$)'), ('Velocity\n ($m/s$)'),
+                  ('Spect Width\n ($m/s$)'), ('Elevation\n ($degrees$)')]
+
+        # Boundary limits for each parameter type
+        parameter_limits=[((1e6, 1e6), (1e6, 1e6)), ((0, 20), (0, 80)), (), (0,40)]
+        for i in range(7):
+            # time-series plots
+            if i < 3:
+                axes.append(fig.add_axes([0.1, 0.88 - (i*0.08), 0.95, 0.06]))
+            # range-time plots
+            else:
+                axes.append(fig.add_axes([0.1, 0.56 - (i*0.16), 0.95, 0.14]))
+
         # position: [left, bottom, width, height]
-        noise_position = [0.1, 0.88, 0.76, 0.06]
-        frequency_position = [0.1, 0.80, 0.76, 0.06]
-        cpid_position = [0.1, 0.72, 0.76, 0.06]
+        #noise_position = [0.1, 0.88, 0.76, 0.06]
+        #frequency_position = [0.1, 0.80, 0.76, 0.06]
+        #cpid_position = [0.1, 0.72, 0.76, 0.06]
 
-        search_ax = fig.add_axes(noise_position)
-        tfreq_ax = fig.add_axes(frequency_position)
-        cp_ax = fig.add_axes(cpid_position)
+        #snr_pos = [0.1,  0.56, 0.95, 0.14]
+        #vel_pos = [0.1, 0.40, 0.95, 0.14]
+        #spect_pos = [0.1, 0.24, 0.95, 0.14]
+        #elv_pos = [0.1, 0.08, 0.95, 0.14]
 
-        figheight = 0.72
-        snr_pos = [0.1,  0.56, 0.95, 0.14]
-        vel_pos = [0.1, 0.40, 0.95, 0.14]
-        spect_pos = [0.1, 0.24, 0.95, 0.14]
-        elv_pos = [0.1, 0.08, 0.95, 0.14]
+        #search_ax = fig.add_axes(noise_position)
+        #tfreq_ax = fig.add_axes(frequency_position)
+        #cp_ax = fig.add_axes(cpid_position)
 
-        snr_ax = fig.add_axes(snr_pos)
-        vel_ax = fig.add_axes(vel_pos)
-        spect_ax = fig.add_axes(spect_pos)
-        elv_ax = fig.add_axes(elv_pos)
+        #snr_ax = fig.add_axes(snr_pos)
+        #vel_ax = fig.add_axes(vel_pos)
+        #spect_ax = fig.add_axes(spect_pos)
+        #elv_ax = fig.add_axes(elv_pos)
+
+        for i in range(7):
+            # plot time-series
+            if i < 3:
+                # for noise.search and frequency plots as they share x-axis
+                # with noise.sky and nave
+                if i == 0:
+                    scale = 'log'
+                else:
+                    scale = 'linear'
+                if i < 2:
+                    cls.plot_time_series(dmap_data, beam_num=beam_num,
+                                         parameter=axes_parameters[i](0),
+                                         scale=scale, ax=axes[i],
+                                         linestyle='--', label=labels[i](0))
+                    axes[i].set_ylabel(labels[i](0), rotation=0, labelpad=30)
+                    axes[i].set_xticklabels([])
+                    axes[i].set_ylim(parameter_limits[i](0),
+                                     parameter_limits[i](1))
+                    axes[i].axhline(y=1.1, xmin=-0.11, xmax=-0.05,
+                                    clip_on=False, color='k')
+                    axes[i].yaxis.set_label_coords(-0.08, 0.085)
+                    yticks = axes[i].yaxis.get_major_ticks()
+
+                    second_ax = axes[i].twinx()
+                    cls.plot_time_series(dmap_data, beam_num=beam_num,
+                                         parameter=axes_parameters[i](0),
+                                         scale=scale, ax=second_ax,
+                                         linestyle='--', color='k')
+                    sky_ax.set_xticklabels([])
+                    sky_ax.set_ylabel('Sky\n Noise', rotation=0, labelpad=25)
+                    sky_ax.axhline(y=1.1, xmin=1.07, xmax=1.13, clip_on=False,
+                                      linestyle='--', color='k')
+                    sky_ax.set_ylim(1e0, 1e6)
+                    sky_ax.yaxis.set_label_coords(1.1, 0.7)
+                    yticks = sky_ax.yaxis.get_major_ticks()
+
+
+            # plot cp id
+            elif i == 2:
+                    cls.plot_time_series(dmap_data, beam_num=beam_num,
+                                         parameter=axes_parameters[i],
+                                         ax=axes[i])
+
+                axes[i].set_xticks([])
+
+            # plot range-time
+            else:
+                cls.plot_range_time(dmap_data, beam_num=beam_num,
+                                    color_bar_label='SNR ($dB$)',
+                                    parameter='p_l', ax=axes[i], boundary=(0, 30))
+                snr_ax.set_ylabel('Range Gates')
+                snr_ax.set_xticks([])
+
 
         cls.plot_time_series(dmap_data, beam_num=beam_num, parameter='noise.search',
                              scale='log', ax=search_ax, linestyle='--',
                              label='Search Noise')
-        trans = search_ax.get_yaxis_transform()
         search_ax.set_ylabel('Search\n Noise', rotation=0, labelpad=30)
         search_ax.set_xticks([])
         search_ax.set_ylim(1e0, 1e6)
