@@ -15,6 +15,8 @@ class RTPIncorrectPlotMethodError(Exception):
                 " array data types, and plot_time_series is for scalar"\
                 " data types.".format(parameter=self.parameter,
                                       data_type=self.data_type)
+        super().__init__(self.message)
+        pydarn_logger.error(self.message)
 
 
 class RTPNoDataFoundError(Exception):
@@ -34,6 +36,8 @@ class RTPNoDataFoundError(Exception):
                                      beam_num=self.beam_num,
                                      start_time=self.start_time.strftime("%Y %m %d %H:%M"),
                                      end_time=self.end_time.strftime("%Y %m %d %H:%M"))
+        super().__init__(self.message)
+        pydarn_logger.error(self.message)
 
 
 class RTPUnknownParameter(Exception):
@@ -43,5 +47,6 @@ class RTPUnknownParameter(Exception):
     def __init__(self, parameter):
         self.parameter = parameter
         self.message = "Error: The following parameter was not found in the data set. Please make sure it is typed correctly or you are using the correct data."
-
+        super().__init__(self.message)
+        pydarn_logger.error(self.message)
 
