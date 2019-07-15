@@ -14,7 +14,7 @@ from matplotlib import dates, colors, cm, ticker
 from typing import List
 
 from pydarn import (dmap2dict, DmapArray, DmapScalar,
-                    rtp_exceptions, SuperDARNCpids)
+                    rtp_exceptions, SuperDARNCpids, SuperDARNRadars)
 
 
 class RTP():
@@ -195,14 +195,13 @@ class RTP():
                 cls.interval_time = kwargs['time_span'][1]
             else:
                 raise IndexError("time_span list must be length of 2 or 3")
-
         except KeyError:
             start_time = cls.__time2datetime(cls.dmap_data[0])
             end_time = cls.__time2datetime(cls.dmap_data[-1])
 
         # y-axis coordinates, i.e., range gates,
         # TODO: implement variant other coordinate systems for the y-axis
-        y = np.arange(0, cls.dmap_data[0]['nrang'], 1)
+        y = np.arange(0, cls.dmap_data[0]['nrang']+1, 1)
         y_max = cls.dmap_data[0]['nrang']
 
         # z: parameter data mapped into the color mesh
@@ -269,17 +268,27 @@ class RTP():
                                 z[i][dmap_record['slist'][j]] = -1000000
                             # otherwise store parameter value
                             # TODO: refactor and clean up this code
+                            elif cls.__filter_data_check(dmap_record,
+                                                         settings, j):
+                                z[i][dmap_record['slist'][j]] = \
+                                        dmap_record[parameter][j]
+                                    # calculate min and max value
+                                if not settings["boundary"]:
+                                    if z[i][dmap_record['slist'][j]] < z_min or\
+                                       z_min is None:
+                                        z_min = z[i][dmap_record['slist'][j]]
+                                    if z[i][dmap_record['slist'][j]] > z_max:
+                                        z_max = z[i][dmap_record['slist'][j]]
                     # a KeyError may be thrown because slist is not created
                     # due to bad quality data.
-                    except KeyError as err:
-                           continue
-
+                    except KeyError:
+                        continue
+        x.append(end_time)
         # Check if there is any data to plot
         if np.all(np.isnan(z)):
             raise rtp_exceptions.RTPNoDataFoundError(parameter, beam_num,
                                                      start_time, end_time)
         time_axis, elev_axis = np.meshgrid(x, y)
-        print(y)
         z_data = np.ma.masked_where(np.isnan(z.T), z.T)
 
         if color_norm is None:
@@ -292,7 +301,9 @@ class RTP():
         if settings['groundscatter']:
             cmap.set_under('grey', 1.0)
 
+        cmap.set_bad(color='w', alpha=1.)
         # plot!
+        #im = ax.imshow(z_data, aspect='auto', origin='lower', extent=[dates.date2num(x[0]),dates.date2num(x[-1]), 0, y[-1]])
         im = ax.pcolormesh(time_axis, elev_axis, z_data, lw=0.01,
                            cmap=cmap, norm=norm)
         # setup some standard axis information
@@ -314,7 +325,7 @@ class RTP():
 
     @classmethod
     def plot_time_series(cls, dmap_data: List[dict], *args,
-                         parameter: str = 'frequency', beam_num: int = 0,
+                         parameter: str = 'tfreq', beam_num: int = 0,
                          ax=None, time_span: tuple = None,
                          date_fmt: str = '%y/%m/%d\n %H:%M',
                          channel='all', scale: str = 'linear',
@@ -426,7 +437,7 @@ class RTP():
                                 # else:
                                 #     cp_name = cpid_command[1]
                                 ax.text(x=time + timedelta(seconds=600),
-                                        y=0.4,
+                                        y=0.2,
                                         s=SuperDARNCpids.cpids.get(dmap_record['cp'],
                                                                    'unknown'))
 
@@ -691,7 +702,7 @@ class RTP():
                              scale='log', ax=search_ax, linestyle='--',
                              label='Search Noise')
         search_ax.set_ylabel('Search\n Noise', rotation=0, labelpad=30)
-        search_ax.set_xticks([])
+        search_ax.set_xticklabels([])
         search_ax.set_ylim(1e0, 1e6)
         search_ax.axhline(y=1.1, xmin=-0.11, xmax=-0.05, clip_on=False,
                           color='k')
@@ -702,7 +713,7 @@ class RTP():
         cls.plot_time_series(dmap_data, beam_num=beam_num,
                              parameter='noise.sky', scale='log',
                              ax=sky_ax, linestyle='--', color='k')
-        sky_ax.set_xticks([])
+        sky_ax.set_xticklabels([])
         sky_ax.set_ylabel('Sky\n Noise', rotation=0, labelpad=25)
         sky_ax.axhline(y=1.1, xmin=1.07, xmax=1.13, clip_on=False,
                           linestyle='--', color='k')
@@ -713,7 +724,7 @@ class RTP():
         tfreq_ax.set_ylabel('Freq $MHz$')
         cls.plot_time_series(dmap_data, beam_num=beam_num, parameter='tfreq',
                              ax=tfreq_ax)
-        tfreq_ax.set_xticks([])
+        tfreq_ax.set_xticklabels([])
         tfreq_ax.set_ylabel('Freq\n($MHz$)', rotation=0, labelpad=30)
         tfreq_ax.axhline(y=0.2, xmin=-0.11, xmax=-0.05, clip_on=False,
                          color='k')
@@ -732,7 +743,7 @@ class RTP():
 
         cls.plot_time_series(dmap_data, beam_num=beam_num, parameter='cp',
                              ax=cp_ax, cp_name=False)
-        cp_ax.set_xticks([])
+        cp_ax.set_xticklabels([])
         cp_ax.set_ylabel('CPID', rotation=0, labelpad=30)
         cp_ax.yaxis.set_label_coords(-0.08, 0.079)
 
@@ -741,18 +752,18 @@ class RTP():
                             color_bar_label='SNR ($dB$)',
                             parameter='p_l', ax=snr_ax, boundary=(0, 30))
         snr_ax.set_ylabel('Range Gates')
-        snr_ax.set_xticks([])
+        snr_ax.set_xticklabels([])
         cls.plot_range_time(dmap_data, beam_num=beam_num, parameter='v',
                             ground_scatter=ground_scatter, color_bar_label='Velocity ($m/s$)',
                             ax=vel_ax, color_map='jet_r', boundary=(-200, 200))
 
         vel_ax.set_ylabel('Range Gates')
-        vel_ax.set_xticks([])
+        vel_ax.set_xticklabels([])
         cls.plot_range_time(dmap_data, beam_num=beam_num, parameter='w_l',
                             ground_scatter=ground_scatter,
                             color_bar_label='Spect Width\n ($m/s$)',
                             ax=spect_ax, boundary=(0, 150))
-        spect_ax.set_xticks([])
+        spect_ax.set_xticklabels([])
         spect_ax.set_ylabel('Range Gates')
 
         cls.plot_range_time(dmap_data, beam_num=beam_num, parameter='elv',
@@ -766,6 +777,7 @@ class RTP():
         else:
             plot.title(title, y=2.4)
         plt.subplots_adjust(wspace=0, hspace=0)
+        return fig
 
     @classmethod
     def __generate_title(cls, beam_num: int):
