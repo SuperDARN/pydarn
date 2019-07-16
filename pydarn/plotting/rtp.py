@@ -33,8 +33,7 @@ class RTP():
     -------
     plot_profile
     plot_scalar
-    summary_plot
-
+    plot_summary
     """
 
     def __str__(self):
@@ -64,48 +63,37 @@ class RTP():
         dmap_data : List[dict]
         parameter : str
             string/key name indicating which parameter to plot.
-            default: power
-            standard parameters:
-                - power
-                - elevation
-                - spectral width
-                - velocity
+            default: p_l
         beam_num : int
-        scalar : boolean
+        ax: matplotlib.axes
+            axes object for another way of plotting
+            default: None
+        color_norm: matplotlib.colors.Normalization object
+            This object use dependency injection to use any normalization
+            method with the zmin and zmax.
+            defualt: colors.Normalization()
         time_span : [datetime, datetime]
             List containing the start time and end time as datetime objects,
-        channel : int
-            The channel 1, 2, 'all'
-            default : 1
+        channel : int or str
+            The channel 0, 1, 2, 'all'
+            default : 'all'
         groundscatter : boolean
             Flag to indicate if groundscatter should be plotted.
             default : False
         date_fmt : str
             format of x-axis date ticks, follow datetime format
-            default: '%y/%m/%d \n %H:%M'
+            default: '%y/%m/%d\n %H:%M'
         color_bar: boolean
             boolean to indicate if a color bar should be included
             default: True
         color_bar_label: str
             the label that appears next to the color bar
             default: ''
-            Certain standard parameters have pre-set labels:
-            elevation: 'elevation $degrees$'
-            power: 'signal to noise $dB$'
-            spectral width: 'spectral width $m/s$'
-            velocity: 'velocity $m/s$'
         color_map: str
             matplotlib colour map
             https://matplotlib.org/tutorials/colors/colormaps.html
-            default: jet
+            default: viridis
             note: to reverse the color just add _r to the string name
-        color_norm: matplotlib.colors.Normalization object
-            This object use dependency injection to use any normalization
-            method with the zmin and zmax.
-            defualt: colors.Normalization()
-        ax: matplotlib.axes
-            axes object for another way of plotting
-            default: None
         boundary: (int, int)
             min and max values to include in the plot and set for normalization
             of the color map.
@@ -136,7 +124,7 @@ class RTP():
         Raises
         ------
         RTPUnknownParameterError
-        RTPInocrrectParameterPlotError
+        RTPIncorrectPlotMethodError
         RTPNoDataFoundError
         IndexError
 
@@ -148,6 +136,12 @@ class RTP():
             matplotlib color bar
         cmap: matplotlib.cm
             matplotlib color map object
+        time_axis: list
+            list representing the x-axis datetime objects
+        y_axis: list
+            list representing the y-axis range gates
+        z_data: 2D numpy array
+            2D array of the parameters values at the given time and range gate
         """
         # Settings
         settings = {'groundscatter': False,
@@ -272,10 +266,10 @@ class RTP():
                                                          settings, j):
                                 z[i][dmap_record['slist'][j]] = \
                                         dmap_record[parameter][j]
-                                    # calculate min and max value
+                                # calculate min and max value
                                 if not settings["boundary"]:
-                                    if z[i][dmap_record['slist'][j]] < z_min or\
-                                       z_min is None:
+                                    if z[i][dmap_record['slist'][j]] < z_min \
+                                       or z_min is None:
                                         z_min = z[i][dmap_record['slist'][j]]
                                     if z[i][dmap_record['slist'][j]] > z_max:
                                         z_max = z[i][dmap_record['slist'][j]]
@@ -303,7 +297,6 @@ class RTP():
 
         cmap.set_bad(color='w', alpha=1.)
         # plot!
-        #im = ax.imshow(z_data, aspect='auto', origin='lower', extent=[dates.date2num(x[0]),dates.date2num(x[-1]), 0, y[-1]])
         im = ax.pcolormesh(time_axis, elev_axis, z_data, lw=0.01,
                            cmap=cmap, norm=norm)
         # setup some standard axis information
@@ -339,41 +332,44 @@ class RTP():
             List of dictionaries representing SuperDARN data
         parameter : str
             Scalar parameter to plot
-            default: frequency
+            default: tfreq
+        beam_num : int
+            beam number
+            default: 0
+        ax : matplotlib axes object
+            option to pass in axes object from matplotlib.pyplot
+            default: plt.gca()
         time_span : (datetime, datetime)
             tuple containing the start time and end time
+        date_fmt : datetime format string
+            Date format for the x-axis
+            default: '%y/%m/%d \n %H:%M'
+        channel : int or str
+            integer indicating which channel to plot or 'all' to
+            plot all channels
+            default: 'all'
+        scale: str
+            The y-axis scaling. This is not used for plotting the cp ID
+            Default: log
         cp_name : bool
             If True, the cp ID name will be printed
             along side the number. Otherwise the cp ID will
             just be printed. This is only used for the parameter cp
             default: True
-        scale: str
-            The y-axis scaling. This is not used for plotting the cp ID
-            Default: log
-        beam_num : int
-            beam number
-            default: 0
-        channel : int or str
-            integer indicating which channel to plot or 'all' to
-            plot all channels
-            default: 'all'
-        date_fmt : datetime format string
-            Date format for the x-axis
-            default: '%y/%m/%d \n %H:%M'
-        ax : matplotlib axes object
-            option to pass in axes object from matplotlib.pyplot
-            default: None
-            side note: this will default to using plt.gca()
-
         Returns
         -------
-        None if it is a cp ID plot; otherwise returns lines object returned
-        from plot_date
+        lines: list
+            list of matplotlib.lines.Lines2D object representing the
+            time-series data if plotting parameter cp then it will be None
+        x: list
+            list of datetime objects representing x-axis time series
+        y: list
+            list of scalar values for each datetime object
 
         Raises
         ------
         RTPUnknownParameterError
-        RTPInocrrectParameterPlotError
+        RTPIncorrectPlotMethodError
         RTPNoDataFoundError
         IndexError
 
@@ -406,6 +402,12 @@ class RTP():
                              "you passed in a time_span list of "
                              "length: {}".format(len(time_span)))
 
+        # initialized here for return purposes
+        lines = None
+        # parameter data
+        y = []
+        # date time
+        x = []
         # plot CPID
         if parameter == 'cp':
             ax.set_xlim(start_time, end_time)
@@ -422,7 +424,7 @@ class RTP():
                             ax.text(x=time + timedelta(seconds=600), y=0.5,
                                     s=dmap_record['cp'])
                             if cp_name:
-                                # Keepig this commented code in to show how
+                                # Keeping this commented code in to show how
                                 # we could get the name from the file; however,
                                 # there is not set format for combf field ...
                                 # so we will use the dictionary to prevent
@@ -448,12 +450,7 @@ class RTP():
 
             # to get rid of y-axis numbers
             ax.set_yticks([])
-            lines = None
         else:
-            # parameter data
-            y = []
-            # date time
-            x = []
             for dmap_record in cls.dmap_data:
                 # TODO: this check could be a function call
                 time = cls.__time2datetime(dmap_record)
@@ -493,7 +490,225 @@ class RTP():
         ax.xaxis.set_minor_locator(dates.HourLocator())
         ax.margins(x=0)
         ax.tick_params(axis='y', which='minor')
-        return lines
+        return lines, x, y
+
+    @classmethod
+    def plot_summary(cls, dmap_data: List[dict], *args, beam_num: int = 0,
+                     groundscatter: bool = False, figsize: tuple = (11, 8.5),
+                     boundary: dict = {}, color_map: str = 'viridis',
+                     plot_elv: bool = True,
+                     title=None, **kwargs):
+        """
+        Plots the summary of the following SuperDARN parameter plots:
+            - noise.search : (time-series)
+            - noise.sky :  (time-series)
+            - tfreq : transmission frequency (time-series)
+            - nave : number of averages  (time-series)
+            - cp : control program ID (time-series)
+            - p_l : Signal to Noise ratio (range-time)
+            - v : velocity (range-time)
+            - w_l : spectral width (range-time)
+            - elv : elevation (optional) (range-time)
+
+        Future Work
+        ------------
+        day-night terminators
+        slant ranges
+
+        Parameters
+        ----------
+        dmap_data: List[dict]
+            List of dictionaries of the data to be plotted containing the
+            parameter fields used in the summary plot.
+        beam_num : int
+        ax: matplotlib.axes
+            axes object for another way of plotting
+            default: None
+        groundscatter : boolean
+            Flag to indicate if groundscatter should be plotted.
+            Placed only on the velocity plot.
+            default : False
+        figsize : (int,int)
+            tuple containing (height, width) figure size
+            default: 11 x 8.5
+        color_map: str
+            matplotlib colour map
+            https://matplotlib.org/tutorials/colors/colormaps.html
+            default: viridis
+            note: to reverse the color just add _r to the string name
+        boundary: (int, int)
+            min and max values to include in the plot and set for normalization
+            of the color map.
+            default: None
+                - the min and max values in the data are used instead
+        plot_elv: boolean
+            boolean determines if elevation should be plotted or not.
+            If there is no data for elevation data field then elevation is not
+            plotted.
+            default: True
+        title: str
+            title of the plot
+            default: auto-generated by the files details
+            {radar name} Fitacf {version} {start_date} - {end_date}  Beam {num}
+        Raises
+        ------
+        IndexError
+        RTPUnknownParameterError
+        RTPIncorrectPlotMethodError
+        RTPNoDataFoundError
+
+        See Also
+        --------
+        plot_range_time : plots range-time parameter
+        plot_time_series : plots time-series
+
+        Return
+        ------
+        fig: matplotlib.pyplot.figure object
+        axes: list
+            list of matplotlib.pyplot.axes objects to generate
+            the subplots in the summary plot
+
+        """
+        # default boundary ranges for the various parameter
+        boundary_ranges = {'noise.search': (1e0, 1e6),
+                           'noise.sky': (1e0, 1e6),
+                           'tfreq': (0, 20),
+                           'nave': (0, 80),
+                           'p_l': (0, 30),
+                           'v': (-200, 200),
+                           'w_l': (0, 150),
+                           'elv': (0, 50)}
+        boundary_ranges.update(boundary)
+
+        fig = plt.figure(figsize=figsize)
+
+        # axes objects in order of creation:
+        # [noise, tfreq, cp, snr, vel, spect, elv]
+        # Check if the radar has elevation information if not
+        # do not plot elevation
+        try:
+            if dmap_data[0]['elv'] and plot_elv:
+                num_plots = 7
+            else:
+                num_plots = 6
+        except KeyError:
+            num_plots = 6
+        axes = []
+        # List of parameters plotted in the summary plot, tuples are used
+        # for shared plot parameters like noise.search and noise.sky
+        axes_parameters = [('noise.search', 'noise.sky'), ('tfreq', 'nave'),
+                           ('cp'), ('p_l'), ('v'), ('w_l'), ('elv')]
+        # labels to show on the summary plot for each parameter
+        labels = [('Search \n Noise', 'Sky\n Noise'),
+                  ('Freq\n ($MHz$)', 'Nave'), ('CP ID'), ('SNR ($dB$)'),
+                  ('Velocity\n ($m \dot s^{-1}$)'),
+                  ('Spectral Width\n ($m/s$)'),
+                  ('Elevation\n ($degrees$)')]
+
+        for i in range(num_plots):
+            # time-series plots
+            # position: [left, bottom, width, height]
+            if i < 3:
+                axes.append(fig.add_axes([0.1, 0.88 - (i*0.08), 0.76, 0.06]))
+            # range-time plots
+            else:
+                axes.append(fig.add_axes([0.1, 1.04 - (i*0.16), 0.95, 0.14]))
+
+        for i in range(num_plots):
+            # plot time-series
+            if i < 2:
+                # for noise.search and frequency plots as they share x-axis
+                # with noise.sky and nave
+                if i == 0:
+                    scale = 'log'
+                else:
+                    scale = 'linear'
+                # plot time-series parameters that share a plot
+                if i < 2:
+                    cls.plot_time_series(dmap_data, beam_num=beam_num,
+                                         parameter=axes_parameters[i][0],
+                                         scale=scale, ax=axes[i],
+                                         linestyle='--', label=labels[i][0],
+                                         **kwargs)
+                    axes[i].set_ylabel(labels[i][0], rotation=0, labelpad=30)
+                    axes[i].set_ylim(boundary_ranges[axes_parameters[i][0]][0],
+                                     boundary_ranges[axes_parameters[i][0]][1])
+                    axes[i].axhline(y=1.1, xmin=-0.11, xmax=-0.05,
+                                    clip_on=False, color='k')
+                    axes[i].yaxis.set_label_coords(-0.08, 0.085)
+
+                    # plot the shared parameter
+                    second_ax = axes[i].twinx()
+                    cls.plot_time_series(dmap_data, beam_num=beam_num,
+                                         parameter=axes_parameters[i][0],
+                                         scale=scale, ax=second_ax,
+                                         linestyle='--', color='k',
+                                         **kwargs)
+                    second_ax.set_xticklabels([])
+                    second_ax.set_ylabel(labels[i][1], rotation=0, labelpad=25)
+                    second_ax.axhline(y=1.1, xmin=1.07, xmax=1.13,
+                                      clip_on=False, linestyle='--', color='k')
+                    second_ax.set_ylim(boundary_ranges[axes_parameters[i][1]][0],
+                                       boundary_ranges[axes_parameters[i][1]][1])
+                    second_ax.yaxis.set_label_coords(1.1, 0.7)
+
+            # plot cp id
+            elif i == 2:
+                    cls.plot_time_series(dmap_data, beam_num=beam_num,
+                                         parameter=axes_parameters[i],
+                                         ax=axes[i], **kwargs)
+                    axes[i].set_ylabel('CPID', rotation=0, labelpad=30)
+                    axes[i].yaxis.set_label_coords(-0.08, 0.079)
+            # plot range-time
+            else:
+                # Current standard is to only have groundscatter
+                # on the velocity plot. This may change in the future.
+                if groundscatter and axes_parameters[i] == 'v':
+                    grndflg = True
+                else:
+                    grndflg = False
+                cls.plot_range_time(dmap_data, beam_num=beam_num,
+                                    color_bar_label=labels[i],
+                                    parameter=axes_parameters[i], ax=axes[i],
+                                    groundscatter=grndflg,
+                                    color_map=color_map,
+                                    boundary=boundary_ranges[axes_parameters[i]],
+                                    **kwargs)
+                axes[i].set_ylabel('Range Gates')
+            if i < num_plots-1:
+                axes[i].set_xticklabels([])
+            # last plot needs the label on the x-axis
+            else:
+                axes[i].set_xlabel('Date (UTC)')
+
+        if title is None:
+            plt.title(cls.__generate_title(beam_num), y=2.4)
+        else:
+            plt.title(title, y=2.4)
+        plt.subplots_adjust(wspace=0, hspace=0)
+        return fig, axes
+
+    @classmethod
+    def __generate_title(cls, beam_num: int):
+        start_time = cls.__time2datetime(cls.dmap_data[0])
+        end_time = cls.__time2datetime(cls.dmap_data[-1])
+
+        if cls.dmap_data[0]['fitacf.revision.major'] == 5:
+            version = "2.5"
+        else:
+            version = "{major}.{minor}"\
+                    "".format(major=cls.dmap_data[0]['fitacf.revision.major'],
+                              minor=cls.dmap_data[0]['fitacf.revision.minor'])
+
+        radar_name = SuperDARNRadars.radars[cls.dmap_data[0]['stid']].name
+        title_format = "{name} Fitacf {version}"\
+                       "  {start_date} - {end_date}  Beam {num}"\
+                       "".format(name=radar_name, version=version,
+                                 start_date=start_time.strftime("%Y %b %d"),
+                                 end_date=end_time.strftime("%Y %b %d"),
+                                 num=beam_num)
+        return title_format
 
     @classmethod
     # TODO: could parallelize this method
@@ -598,135 +813,3 @@ class RTP():
 
         return datetime(year=year, month=month, day=day, hour=hour,
                         minute=minute, second=second, microsecond=micro_sec)
-
-    @classmethod
-    def plot_summary(cls, dmap_data: List[dict], *args, beam_num: int = 0,
-                     ground_scatter : bool = False, figsize : tuple = (11, 8.5),
-                     boundary : dict = {}, color_map : str = 'viridis',
-                     plot_elv : bool = True,
-                     title=None, **kwargs):
-
-        boundary_ranges = {'noise.search': (1e0, 1e6),
-                           'noise.sky': (1e0, 1e6),
-                           'tfreq': (0, 20),
-                           'nave': (0, 80),
-                           'p_l': (0, 30),
-                           'v': (-200, 200),
-                           'w_l': (0, 150),
-                           'elv': (0, 50)
-                          }
-        boundary_ranges.update(boundary)
-
-        fig = plt.figure(figsize=figsize)
-
-        # axes objects in order of creation:
-        # [noise, tfreq, cp, snr, vel, spect, elv]
-        # Check if the radar has elevation information if not
-        # do not plot elevation
-        try:
-            if dmap_data[0]['elv'] and plot_elv:
-                num_plots = 7
-            else:
-                num_plots = 6
-        except KeyError:
-            num_plots = 6
-        axes = []
-        axes_parameters = [('noise.search', 'noise.sky'), ('tfreq', 'nave'),
-                           ('cp'), ('p_l'), ('v'), ('w_l'), ('elv')]
-        labels = [('Search\n Noise', 'Sky\n Noise'), ('Freq\n ($MHz$)', 'Nave'),
-                  ('CP ID'), ('SNR ($dB$)'), ('Velocity\n ($m \dot s^{-1}$)'),
-                  ('Spect Width\n ($m/s$)'), ('Elevation\n ($degrees$)')]
-
-        for i in range(num_plots):
-            # time-series plots
-            # position: [left, bottom, width, height]
-            if i < 3:
-                axes.append(fig.add_axes([0.1, 0.88 - (i*0.08), 0.76, 0.06]))
-            # range-time plots
-            else:
-                axes.append(fig.add_axes([0.1, 1.04 - (i*0.16), 0.95, 0.14]))
-
-        for i in range(num_plots):
-            # plot time-series
-            if i < 2:
-                # for noise.search and frequency plots as they share x-axis
-                # with noise.sky and nave
-                if i == 0:
-                    scale = 'log'
-                else:
-                    scale = 'linear'
-                if i < 2:
-                    cls.plot_time_series(dmap_data, beam_num=beam_num,
-                                         parameter=axes_parameters[i][0],
-                                         scale=scale, ax=axes[i],
-                                         linestyle='--', label=labels[i][0])
-                    axes[i].set_ylabel(labels[i][0], rotation=0, labelpad=30)
-                    axes[i].set_ylim(boundary_ranges[axes_parameters[i][0]][0],
-                                     boundary_ranges[axes_parameters[i][0]][1])
-                    axes[i].axhline(y=1.1, xmin=-0.11, xmax=-0.05,
-                                    clip_on=False, color='k')
-                    axes[i].yaxis.set_label_coords(-0.08, 0.085)
-                    yticks = axes[i].yaxis.get_major_ticks()
-
-                    second_ax = axes[i].twinx()
-                    cls.plot_time_series(dmap_data, beam_num=beam_num,
-                                         parameter=axes_parameters[i][0],
-                                         scale=scale, ax=second_ax,
-                                         linestyle='--', color='k')
-                    second_ax.set_xticklabels([])
-                    second_ax.set_ylabel(labels[i][1], rotation=0, labelpad=25)
-                    second_ax.axhline(y=1.1, xmin=1.07, xmax=1.13, clip_on=False,
-                                      linestyle='--', color='k')
-                    second_ax.set_ylim(boundary_ranges[axes_parameters[i][1]][0],
-                                       boundary_ranges[axes_parameters[i][1]][1])
-                    second_ax.yaxis.set_label_coords(1.1, 0.7)
-                    yticks = second_ax.yaxis.get_major_ticks()
-
-            # plot cp id
-            elif i == 2:
-                    cls.plot_time_series(dmap_data, beam_num=beam_num,
-                                         parameter=axes_parameters[i],
-                                         ax=axes[i])
-                    axes[i].set_ylabel('CPID', rotation=0, labelpad=30)
-                    axes[i].yaxis.set_label_coords(-0.08, 0.079)
-            # plot range-time
-            else:
-                cls.plot_range_time(dmap_data, beam_num=beam_num,
-                                    color_bar_label=labels[i],
-                                    parameter=axes_parameters[i], ax=axes[i],
-                                    color_map=color_map,
-                                    boundary=boundary_ranges[axes_parameters[i]])
-                axes[i].set_ylabel('Range Gates')
-            if i < num_plots-1:
-                axes[i].set_xticklabels([])
-            else:
-                axes[i].set_xlabel('Date (UTC)')
-
-        if title is None:
-            plt.title(cls.__generate_title(beam_num), y=2.4)
-        else:
-            plot.title(title, y=2.4)
-        plt.subplots_adjust(wspace=0, hspace=0)
-        return fig
-
-    @classmethod
-    def __generate_title(cls, beam_num: int):
-        start_time = cls.__time2datetime(cls.dmap_data[0])
-        end_time = cls.__time2datetime(cls.dmap_data[-1])
-
-        if cls.dmap_data[0]['fitacf.revision.major'] == 5:
-            version = "2.5"
-        else:
-            version = "{major}.{minor}"\
-                    "".format(major=cls.dmap_data[0]['fitacf.revision.major'],
-                              minor=cls.dmap_data[0]['fitacf.revision.minor'])
-
-
-        radar_name = SuperDARNRadars.radars[cls.dmap_data[0]['stid']].name
-        title_format = "{name} Fitacf {version}"\
-                "  {start_date} - {end_date}  Beam {num}"\
-                "".format(name=radar_name, version=version,
-                          start_date=start_time.strftime("%Y %b %d"),
-                          end_date=end_time.strftime("%Y %b %d"),
-                          num=beam_num)
-        return title_format
