@@ -1,6 +1,6 @@
 # Copyright (C) 2019 SuperDARN
 # Author: Marian Schmidt
-# This code is improvement based on rti.py in the DaVitpy library
+# This code is improvement based on rtp.py in the DaVitpy library
 # https://github.com/vtsuperdarn/davitpy/blob/master/davitpy
 
 """
@@ -63,15 +63,15 @@ class RTP():
         dmap_data : List[dict]
         parameter : str
             string/key name indicating which parameter to plot.
-            default: p_l
+            Default: p_l
         beam_num : int
         ax: matplotlib.axes
             axes object for another way of plotting
-            default: None
+            Default: None
         color_norm: matplotlib.colors.Normalization object
             This object use dependency injection to use any normalization
             method with the zmin and zmax.
-            defualt: colors.Normalization()
+            Default: colors.Normalization()
         time_span : [datetime, datetime]
             List containing the start time and end time as datetime objects,
         channel : int or str
@@ -79,25 +79,25 @@ class RTP():
             default : 'all'
         groundscatter : boolean
             Flag to indicate if groundscatter should be plotted.
-            default : False
+            Default : False
         date_fmt : str
             format of x-axis date ticks, follow datetime format
-            default: '%y/%m/%d\n %H:%M'
+            Default: '%y/%m/%d\n %H:%M'
         color_bar: boolean
             boolean to indicate if a color bar should be included
-            default: True
+            Default: True
         color_bar_label: str
             the label that appears next to the color bar
-            default: ''
+            Default: ''
         color_map: str
             matplotlib colour map
             https://matplotlib.org/tutorials/colors/colormaps.html
-            default: viridis
+            Default: viridis
             note: to reverse the color just add _r to the string name
         boundary: (int, int)
             min and max values to include in the plot and set for normalization
             of the color map.
-            default: None
+            Default: None
                 - the min and max values in the data are used instead
         max_array_filter : dict
             dictionary that contains the key parameter names and the values to
@@ -332,22 +332,22 @@ class RTP():
             List of dictionaries representing SuperDARN data
         parameter : str
             Scalar parameter to plot
-            default: tfreq
+            Default: tfreq
         beam_num : int
             beam number
-            default: 0
+            Default: 0
         ax : matplotlib axes object
             option to pass in axes object from matplotlib.pyplot
-            default: plt.gca()
+            Default: plt.gca()
         time_span : (datetime, datetime)
             tuple containing the start time and end time
         date_fmt : datetime format string
             Date format for the x-axis
-            default: '%y/%m/%d \n %H:%M'
+            Default: '%y/%m/%d \n %H:%M'
         channel : int or str
             integer indicating which channel to plot or 'all' to
             plot all channels
-            default: 'all'
+            Default: 'all'
         scale: str
             The y-axis scaling. This is not used for plotting the cp ID
             Default: log
@@ -355,7 +355,7 @@ class RTP():
             If True, the cp ID name will be printed
             along side the number. Otherwise the cp ID will
             just be printed. This is only used for the parameter cp
-            default: True
+            Default: True
         Returns
         -------
         lines: list
@@ -461,7 +461,7 @@ class RTP():
                         # construct the x-axis array
                         x.append(time)
                         if parameter == 'tfreq':
-                            # Convert KHz to MHz by dividing by 1000
+                            # Convert kHz to MHz by dividing by 1000
                             y.append(dmap_record[parameter]/1000)
                         else:
                             y.append(dmap_record[parameter])
@@ -523,32 +523,32 @@ class RTP():
         beam_num : int
         ax: matplotlib.axes
             axes object for another way of plotting
-            default: None
+            Default: None
         groundscatter : boolean
             Flag to indicate if groundscatter should be plotted.
             Placed only on the velocity plot.
             default : False
         figsize : (int,int)
             tuple containing (height, width) figure size
-            default: 11 x 8.5
+            Default: 11 x 8.5
         color_map: str
             matplotlib colour map
             https://matplotlib.org/tutorials/colors/colormaps.html
-            default: viridis
+            Default: viridis
             note: to reverse the color just add _r to the string name
         boundary: (int, int)
             min and max values to include in the plot and set for normalization
             of the color map.
-            default: None
+            Default: None
                 - the min and max values in the data are used instead
         plot_elv: boolean
             boolean determines if elevation should be plotted or not.
             If there is no data for elevation data field then elevation is not
             plotted.
-            default: True
+            Default: True
         title: str
             title of the plot
-            default: auto-generated by the files details
+            Default: auto-generated by the files details
             {radar name} Fitacf {version} {start_date} - {end_date}  Beam {num}
         Raises
         ------
@@ -767,10 +767,10 @@ class RTP():
 
         Parameters
         ----------
-        paraneter: str
+        parameter: str
             string key word name of the parameter
         expected_type: str
-            string decsribing an array or scalar type
+            string describing an array or scalar type
             to determine which one is needed for the type of plot
 
         Raises
@@ -787,7 +787,7 @@ class RTP():
                 raise rtp_exceptions.RTPIncorrectPlotMethodError(parameter,
                                                                  data_type)
 
-    # TODO: move to a utils or superDARN utils
+    # TODO: move to a utils or SuperDARN utils
     @classmethod
     def __time2datetime(cls, dmap_record: dict) -> datetime:
         """
