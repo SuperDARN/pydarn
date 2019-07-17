@@ -270,7 +270,7 @@ class BorealisUtilities():
         # the rest of the parameters in the
         # record are numpy arrays (HDF5 datasets)
         incorrect_types_check.update({param: 'np.ndarray of ' +
-                                      str(record[param].dtype)  # str(datasets_type_dict[param])
+                                      str(datasets_type_dict[param])  # str(datasets_type_dict[param])
                                       for param in datasets_type_dict.keys()
                                       if record[param].dtype.type !=
                                       datasets_type_dict[param]})
@@ -492,16 +492,17 @@ class BorealisRead():
 
 class BorealisWrite():
 
-    def __init__(self, borealis_records: OrderedDict = OrderedDict(), filename: str = ""):
+    def __init__(self, filename: str, borealis_records: OrderedDict = OrderedDict()):
         """
         Write borealis records to a file.
 
         Parameters
         ----------
-        borealis_records : OrderedDict(dict)
-            OrderedDict of borealis records
         filename : str
             Name of the file the user wants to write to
+        borealis_records : OrderedDict(dict)
+            OrderedDict of borealis records
+
         """
         self.borealis_records = borealis_records
         self.filename = filename
@@ -681,7 +682,7 @@ class BorealisWrite():
         BorealisUtilities.incorrect_types_check(attribute_types, dataset_types,
                                                 record,
                                                 self._current_record_name)
-        dd.io.save(self.file_name, {self._current_record_name: record},
+        dd.io.save(self.filename, {self._current_record_name: record},
                    compression=None)
 
 
