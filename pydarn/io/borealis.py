@@ -1038,6 +1038,7 @@ class BorealisConvert():
             for beam_index, beam in enumerate(v['beam_nums']):
                 # this beam, all ranges lag 0
                 lag_zero = shaped_data['main_acfs'][beam_index, :, 0]
+                lag_zero[-10:] = shaped_data['main_acfs'][beam_index,-10:,-1] 
                 lag_zero_power = (lag_zero.real**2 + lag_zero.imag**2)**0.5
 
                 correlation_dict = {}
