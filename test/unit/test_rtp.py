@@ -37,9 +37,9 @@ class TestRTP(unittest.TestCase):
 
     def test_unknown_parameter_time_series_plot(self):
         """
-        Trying to plot a time-series plot using an unkown parameter called
+        Trying to plot a time-series plot using an unknown parameter called
         dummy
-        Expected behaviour is a raised exception for uknown paramter dummy
+        Expected behaviour is a raised exception for unknown parameter dummy
         """
         with self.assertRaises(pydarn.rtp_exceptions.RTPUnknownParameter):
             pydarn.RTP.plot_time_series(self.fitacf_data,
@@ -63,7 +63,7 @@ class TestRTP(unittest.TestCase):
         """
         with self.assertRaises(pydarn.rtp_exceptions.RTPIncorrectPlotMethodError):
             pydarn.RTP.plot_time_series(self.fitacf_data,
-                                        parameter='elevation',
+                                        parameter='elv',
                                         beam_num=7)
 
     def test_multiplots_time_series_plots(self):
@@ -414,11 +414,73 @@ class TestRTP(unittest.TestCase):
         """
         plots a simple time series plot
         """
-        pydarn.RTP.plot_time_series(self.fitacf_data, parameter='frequency',
+        pydarn.RTP.plot_time_series(self.fitacf_data, parameter='tfreq',
                                     beam_num=7)
         plt.ylim(8, 18)
         plt.title("Simple Frequency plot for Beam 7")
         plt.show()
+
+    def test_simple_summary_plot(self):
+        """
+        plot default summary options
+        """
+        pydarn.RTP.plot_summary(self.fitacf_data, beam_num=8)
+        plt.show()
+
+    def test_grounscatter_with_summary_plot(self):
+        """
+        plot groundscatter with summary plot
+        Should only show ground scatter on velocity
+        """
+        pydarn.RTP.plot_summary(self.fitacf_data, beam_num=8,
+                                groundscatter=True)
+        plt.show()
+
+    def test_figsize_summary_plot(self):
+        """
+        plot a summary plot with a different figure size
+        """
+        pydarn.RTP.plot_summary(self.fitacf_data, beam_num=8,
+                                figsize=(14,8))
+        plt.show()
+
+    def test_boundary_wtih_summary_plot(self):
+        """
+        plot a summary plot with a different boundary range for velocity
+        and nave
+        """
+
+        boundary = {'v': (-100,100),
+                    'nave': (0, 100)}
+        pydarn.RTP.plot_summary(self.fitacf_data, beam_num=7,
+                                boundary=boundary)
+        plt.show()
+
+    def test_color_map_with_summary_plot(self):
+        """
+        plot a normal summary plot with a different color map: jet
+        """
+        pydarn.RTP.plot_summary(self.fitacf_data, beam_num=7,
+                                color_map='jet')
+        plt.show()
+
+    def test_no_plotting_elevation_summary_plot(self):
+        """
+        plot a summary plot with elevation
+        """
+        pydarn.RTP.plot_summary(self.fitacf_data, beam_num=8,
+                                plot_elv=False)
+
+        plt.show()
+
+    def test_summary_plot_with_custom_title(self):
+        """
+        plot summary plot with a custom title
+        """
+        pydarn.RTP.plot_summary(self.fitacf_data, beam_num=8,
+                                title="Summary plot of Rankin Inlet on Feb 22nd, 2018 for beam 8")
+        plt.show()
+
 
 if __name__ == '__main__':
     unittest.main()
