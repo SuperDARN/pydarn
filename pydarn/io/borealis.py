@@ -1044,7 +1044,9 @@ class BorealisConvert():
                 for key in shaped_data:  # all available correlation types have been included here
                     # num_ranges x num_lags (complex)
                     this_correlation = shaped_data[key][beam_index, :, :-1]
-                    # this_correlation[:,0] = shaped_data[key][beam_index,:,-1] # set the lag0 to the alternate lag0 from end of array
+                    # set the lag0 to the alternate lag0 for the end of the array 
+                    # (when interference of first pulse would occur)
+                    this_correlation[-10:-1,0] = shaped_data[key][beam_index,-10:-1,-1] 
                     # shape num_beams x num_ranges x num_lags, now num_ranges x num_lags-1 b/c alternate lag-0 not included.
 
                     # (num_ranges x num_lags, flattened)
