@@ -14,6 +14,7 @@ class BorealisFileTypeError(Exception):
     file_type : str
         SuperDARN Borealis file type that is not implement or correct
     """
+
     def __init__(self, filename: str, file_type: str):
         self.filename = filename
         self.file_type = file_type
@@ -22,7 +23,7 @@ class BorealisFileTypeError(Exception):
             " the file type is correct and that the file type has been"\
             " implemented.".format(file_type=self.file_type,
                                    filename=self.filename)
-        Exception.__init__(self,self.message)
+        Exception.__init__(self, self.message)
 
 
 class BorealisFieldMissingError(Exception):
@@ -37,13 +38,14 @@ class BorealisFieldMissingError(Exception):
     fields : set
         set of fields that are missing from the record
     """
+
     def __init__(self, record_name: int, fields: set):
         self.record_name = record_name
         self.fields = fields
         self.message = "The following fields in record {num} are missing:"\
             " {fields}".format(num=self.record_name,
                                fields=self.fields)
-        Exception.__init__(self,self.message)
+        Exception.__init__(self, self.message)
 
 
 class BorealisExtraFieldError(Exception):
@@ -58,13 +60,14 @@ class BorealisExtraFieldError(Exception):
     fields : set
         set of fields that are missing from the record
     """
+
     def __init__(self, record_name: int, fields: set):
         self.record_name = record_name
         self.fields = fields
         self.message = "The following fields in record {num} are not allowed:"\
             " {fields}".format(num=self.record_name,
                                fields=self.fields)
-        Exception.__init__(self,self.message)
+        Exception.__init__(self, self.message)
 
 
 class BorealisDataFormatTypeError(Exception):
@@ -79,6 +82,7 @@ class BorealisDataFormatTypeError(Exception):
     record_name : int
         record name of the problem record
     """
+
     def __init__(self, incorrect_types: set, record_name: int):
         self.incorrect_params = incorrect_types
         self.record_name = record_name
@@ -86,7 +90,7 @@ class BorealisDataFormatTypeError(Exception):
             " need to be the data type:"\
             " {incorrect}".format(num=self.record_name,
                                   incorrect=self.incorrect_params)
-        Exception.__init__(self,self.message)
+        Exception.__init__(self, self.message)
 
 
 class BorealisConversionTypesError(Exception):
@@ -102,6 +106,7 @@ class BorealisConversionTypesError(Exception):
     dmap_filetype : str
         desired SuperDARN legacy dmap type, ex. iqdat.
     """
+
     def __init__(self, filename: str, origin_filetype: str, dmap_filetype: str):
         self.filename = filename
         self.origin_filetype = origin_filetype
@@ -109,8 +114,8 @@ class BorealisConversionTypesError(Exception):
         self.message = "{filename} cannot be converted from its origin_filetype "\
                        "{origin_filetype} to legacy dmap filetype {dmap_filetype} because the "\
                        "types are not compatible or currently not supported.".format(filename=self.filename,
-                        origin_filetype=self.origin_filetype, dmap_filetype=self.dmap_filetype)
-        Exception.__init__(self,self.message)
+                                                                                     origin_filetype=self.origin_filetype, dmap_filetype=self.dmap_filetype)
+        Exception.__init__(self, self.message)
 
 
 class BorealisConvert2IqdatError(Exception):
@@ -122,12 +127,14 @@ class BorealisConvert2IqdatError(Exception):
     error_str : str
         explanation for why the file cannot be converted to legacy DARN iqdat.
     """
-    def __init__(self, error_str : str):
+
+    def __init__(self, error_str: str):
         self.error_str = error_str
         self.message = "The file cannot be converted to legacy iqdat due to "\
             "the following error which indicates increased complexity not accounted for "\
-            "in DARN iqdat format: {error_str}".format(error_str=self.error_str)
-        Exception.__init__(self,self.message)
+            "in DARN iqdat format: {error_str}".format(
+                error_str=self.error_str)
+        Exception.__init__(self, self.message)
 
 
 class BorealisConvert2RawacfError(Exception):
@@ -139,9 +146,11 @@ class BorealisConvert2RawacfError(Exception):
     error_str : str
         explanation for why the file cannot be converted to DARN rawacf.
     """
-    def __init__(self, error_str : str):
+
+    def __init__(self, error_str: str):
         self.error_str = error_str
         self.message = "The file cannot be converted to legacy rawacf due to "\
             "the following error which indicates increased complexity not accounted for "\
-            "in DARN rawacf format: {error_str}".format(error_str=self.error_str)
-        Exception.__init__(self,self.message)
+            "in DARN rawacf format: {error_str}".format(
+                error_str=self.error_str)
+        Exception.__init__(self, self.message)
