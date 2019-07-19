@@ -1,6 +1,6 @@
 # Copyright (C) 2019 SuperDARN
 # Author: Marian Schmidt
-# This code is improvement based on rtp.py in the DaVitpy library
+# This code is improvement based on rti.py in the DaVitpy library
 # https://github.com/vtsuperdarn/davitpy/blob/master/davitpy
 
 """
@@ -45,8 +45,8 @@ class RTP():
                 "   - plot_summary()\n"
 
     @classmethod
-    def plot_range_time(cls, dmap_data: List[dict], *args,
-                        parameter: str = 'p_l', beam_num: int = 0, ax=None,
+    def plot_range_time(cls, dmap_data: List[dict], parameter: str = 'p_l',
+                        beam_num: int = 0, ax=None,
                         color_norm=None, **kwargs):
         """
         Plots a range-time parameter plot of the given
@@ -318,7 +318,7 @@ class RTP():
         return im, cb, cmap, time_axis, elev_axis, z_data
 
     @classmethod
-    def plot_time_series(cls, dmap_data: List[dict], *args,
+    def plot_time_series(cls, dmap_data: List[dict],
                          parameter: str = 'tfreq', beam_num: int = 0,
                          ax=None, time_span: tuple = None,
                          date_fmt: str = '%y/%m/%d\n %H:%M',
@@ -494,7 +494,7 @@ class RTP():
         return lines, x, y
 
     @classmethod
-    def plot_summary(cls, dmap_data: List[dict], *args, beam_num: int = 0,
+    def plot_summary(cls, dmap_data: List[dict], beam_num: int = 0,
                      groundscatter: bool = False, channel: int = 'all',
                      figsize: tuple = (11, 8.5), boundary: dict = {},
                      color_map: str = 'viridis', plot_elv: bool = True,
