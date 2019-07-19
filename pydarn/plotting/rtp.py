@@ -8,6 +8,7 @@ Range-time Parameter plots (a.k.a Intensity)
 """
 import matplotlib.pyplot as plt
 import numpy as np
+import warnings
 
 from datetime import datetime, timedelta
 from matplotlib import dates, colors, cm, ticker
@@ -471,7 +472,6 @@ class RTP():
                         if diff_time.seconds/60 > 2.0:
                             x.append(time)
                             y.append(np.nan)  # for masking the data
-
             # Check if there is any data to plot
             if np.all(np.isnan(y)) or len(x) == 0:
                 raise rtp_exceptions.RTPNoDataFoundError(parameter, beam_num,
@@ -484,6 +484,7 @@ class RTP():
             lines = ax.plot_date(x, my, fmt='k', tz=None, xdate=True,
                                  ydate=False,
                                  **kwargs)
+            ax.set_xlim(start_time, end_time)
             ax.set_yscale(scale)
         # set date format and minor hourly locators
         ax.xaxis.set_major_formatter(dates.DateFormatter(date_fmt))
@@ -494,9 +495,9 @@ class RTP():
 
     @classmethod
     def plot_summary(cls, dmap_data: List[dict], *args, beam_num: int = 0,
-                     groundscatter: bool = False, figsize: tuple = (11, 8.5),
-                     boundary: dict = {}, color_map: str = 'viridis',
-                     plot_elv: bool = True,
+                     groundscatter: bool = False, channel: int = 'all',
+                     figsize: tuple = (11, 8.5), boundary: dict = {},
+                     color_map: str = 'viridis', plot_elv: bool = True,
                      title=None, **kwargs):
         """
         Plots the summary of the following SuperDARN parameter plots:
@@ -528,6 +529,10 @@ class RTP():
             Flag to indicate if groundscatter should be plotted.
             Placed only on the velocity plot.
             default : False
+        channel : int
+            channel number that will be plotted
+            in the summary plot.
+            default: 'all'
         figsize : (int,int)
             tuple containing (height, width) figure size
             Default: 11 x 8.5
@@ -602,9 +607,9 @@ class RTP():
         # labels to show on the summary plot for each parameter
         labels = [('Search \n Noise', 'Sky\n Noise'),
                   ('Freq\n ($MHz$)', 'Nave'), ('CP ID'), ('SNR ($dB$)'),
-                  ('Velocity\n ($m \dot s^{-1}$)'),
-                  ('Spectral Width\n ($m/s$)'),
-                  ('Elevation\n ($degrees$)')]
+                  ('Velocity\n ($m\ s^{-1}$)'),
+                  ('Spectral Width\n ($m\ s-1$)'),
+                  ('Elevation\n ($\degree$)')]
 
         for i in range(num_plots):
             # time-series plots
@@ -626,11 +631,17 @@ class RTP():
                     scale = 'linear'
                 # plot time-series parameters that share a plot
                 if i < 2:
-                    cls.plot_time_series(dmap_data, beam_num=beam_num,
-                                         parameter=axes_parameters[i][0],
-                                         scale=scale, ax=axes[i],
-                                         linestyle='--', label=labels[i][0],
-                                         **kwargs)
+                    with warnings.catch_warnings(record=True) as w:
+                        cls.plot_time_series(dmap_data, beam_num=beam_num,
+                                             parameter=axes_parameters[i][0],
+                                             channel=channel, scale=scale,
+                                             ax=axes[i], linestyle='--',
+                                             label=labels[i][0], **kwargs)
+                    if len(w) > 0:
+                        warnings.warn("Warning: {parameter} raised the"
+                                      " following warning: {message}"
+                                      "".format(parameter=axes_parameters[i][0],
+                                                message=str(w[0].message)))
                     axes[i].set_ylabel(labels[i][0], rotation=0, labelpad=30)
                     axes[i].set_ylim(boundary_ranges[axes_parameters[i][0]][0],
                                      boundary_ranges[axes_parameters[i][0]][1])
@@ -640,11 +651,19 @@ class RTP():
 
                     # plot the shared parameter
                     second_ax = axes[i].twinx()
-                    cls.plot_time_series(dmap_data, beam_num=beam_num,
-                                         parameter=axes_parameters[i][0],
-                                         scale=scale, ax=second_ax,
-                                         linestyle='--', color='k',
-                                         **kwargs)
+                    # warnings are not caught with try/except
+                    with warnings.catch_warnings(record=True) as w:
+                        cls.plot_time_series(dmap_data, beam_num=beam_num,
+                                             parameter=axes_parameters[i][0],
+                                             channel=channel,
+                                             scale=scale, ax=second_ax,
+                                             linestyle='--', color='k',
+                                             **kwargs)
+                    if len(w) > 0:
+                        warnings.warn("Warning: {parameter} raised the"
+                                      " following warning: {message}"
+                                      "".format(parameter=axes_parameters[i][1],
+                                                message=str(w[0].message)))
                     second_ax.set_xticklabels([])
                     second_ax.set_ylabel(labels[i][1], rotation=0, labelpad=25)
                     second_ax.axhline(y=1.1, xmin=1.07, xmax=1.13,
@@ -657,6 +676,7 @@ class RTP():
             elif i == 2:
                     cls.plot_time_series(dmap_data, beam_num=beam_num,
                                          parameter=axes_parameters[i],
+                                         channel=channel,
                                          ax=axes[i], **kwargs)
                     axes[i].set_ylabel('CPID', rotation=0, labelpad=30)
                     axes[i].yaxis.set_label_coords(-0.08, 0.079)
@@ -672,7 +692,7 @@ class RTP():
                                     color_bar_label=labels[i],
                                     parameter=axes_parameters[i], ax=axes[i],
                                     groundscatter=grndflg,
-                                    color_map=color_map,
+                                    channel=channel, color_map=color_map,
                                     boundary=boundary_ranges[axes_parameters[i]],
                                     **kwargs)
                 axes[i].set_ylabel('Range Gates')
@@ -683,14 +703,14 @@ class RTP():
                 axes[i].set_xlabel('Date (UTC)')
 
         if title is None:
-            plt.title(cls.__generate_title(beam_num), y=2.4)
+            plt.title(cls.__generate_title(beam_num, channel), y=2.4)
         else:
             plt.title(title, y=2.4)
         plt.subplots_adjust(wspace=0, hspace=0)
         return fig, axes
 
     @classmethod
-    def __generate_title(cls, beam_num: int):
+    def __generate_title(cls, beam_num: int, channel: int):
         start_time = cls.__time2datetime(cls.dmap_data[0])
         end_time = cls.__time2datetime(cls.dmap_data[-1])
 
@@ -708,6 +728,8 @@ class RTP():
                                  start_date=start_time.strftime("%Y %b %d"),
                                  end_date=end_time.strftime("%Y %b %d"),
                                  num=beam_num)
+        if type(channel) is int:
+            title_format += " channel {ch_num}".format(ch_num=channel)
         return title_format
 
     @classmethod
