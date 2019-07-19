@@ -321,7 +321,7 @@ class RTP():
             cb = ax.figure.colorbar(im, ax=ax)
             cb.set_label(settings['color_bar_label'])
 
-        return im, cb, cmap, time_axis, elev_axis, z_data
+        return im, cb, cmap, x, y, z_data
 
     @classmethod
     def plot_time_series(cls, dmap_data: List[dict], *args,
