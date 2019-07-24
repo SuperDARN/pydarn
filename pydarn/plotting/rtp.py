@@ -589,7 +589,7 @@ class RTP():
 
         # default color maps for the summary plot
         color_map = {'noise.search': 'k',
-                     'noise.sky': 'red',
+                     'noise.sky': 'grey',
                      'tfreq': 'k',
                      'nave': 'red',
                      'p_l': 'viridis',
@@ -660,7 +660,7 @@ class RTP():
                     axes[i].set_ylabel(labels[i][0], rotation=0, labelpad=30)
                     axes[i].axhline(y=boundary_ranges[axes_parameters[i][0]][0] + 0.8,
                                     xmin=-0.11, xmax=-0.05,
-                                    clip_on=False, color='k')
+                                    clip_on=False, color=color_map[axes_parameters[i][0]])
                     axes[i].set_ylim(boundary_ranges[axes_parameters[i][0]][0],
                                      boundary_ranges[axes_parameters[i][0]][1])
                     axes[i].yaxis.set_label_coords(-0.08, 0.085)
@@ -683,8 +683,10 @@ class RTP():
                                                 message=str(w[0].message)))
                     second_ax.set_xticklabels([])
                     second_ax.set_ylabel(labels[i][1], rotation=0, labelpad=25)
-                    second_ax.axhline(y=boundary_ranges[axes_parameters[i][1]][0] + 0.8, xmin=1.07, xmax=1.13,
-                                      clip_on=False, linestyle='--', color='k')
+                    second_ax.axhline(y=boundary_ranges[axes_parameters[i][1]][0] +
+                                      0.8, xmin=1.07, xmax=1.13,
+                                      clip_on=False, linestyle='--',
+                                      color=color_map[axes_parameters[i][1]])
                     second_ax.set_ylim(boundary_ranges[axes_parameters[i][1]][0],
                                        boundary_ranges[axes_parameters[i][1]][1])
                     second_ax.yaxis.set_label_coords(1.1, 0.7)
