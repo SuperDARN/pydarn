@@ -312,7 +312,7 @@ class RTP():
         # create color bar if True
         cb = None
         if settings['color_bar']:
-            cb = ax.figure.colorbar(im, ax=ax)
+            cb = ax.figure.colorbar(im, ax=ax, extend='both')
             cb.set_label(settings['color_bar_label'])
 
         return im, cb, cmap, time_axis, elev_axis, z_data
@@ -497,7 +497,7 @@ class RTP():
     def plot_summary(cls, dmap_data: List[dict], beam_num: int = 0,
                      groundscatter: bool = False, channel: int = 'all',
                      figsize: tuple = (11, 8.5), boundary: dict = {},
-                     color_map: str = 'viridis', plot_elv: bool = True,
+                     color_maps: dict = {}, plot_elv: bool = True,
                      title=None, **kwargs):
         """
         Plots the summary of the following SuperDARN parameter plots:
@@ -536,10 +536,11 @@ class RTP():
         figsize : (int,int)
             tuple containing (height, width) figure size
             Default: 11 x 8.5
-        color_map: str
-            matplotlib colour map
+        color_maps: dict
+            dictionary of matplotlib color maps for the summary
+            plot parameters.
             https://matplotlib.org/tutorials/colors/colormaps.html
-            Default: viridis
+            Default: viridis for all parameter except RdBu for velocity
             note: to reverse the color just add _r to the string name
         boundary: (int, int)
             min and max values to include in the plot and set for normalization
@@ -578,13 +579,25 @@ class RTP():
         # default boundary ranges for the various parameter
         boundary_ranges = {'noise.search': (1e0, 1e6),
                            'noise.sky': (1e0, 1e6),
-                           'tfreq': (0, 20),
+                           'tfreq': (8, 22),
                            'nave': (0, 80),
                            'p_l': (0, 30),
                            'v': (-200, 200),
                            'w_l': (0, 150),
                            'elv': (0, 50)}
         boundary_ranges.update(boundary)
+
+        # default color maps for the summary plot
+        color_map = {'noise.search': 'k',
+                     'noise.sky': 'red',
+                     'tfreq': 'k',
+                     'nave': 'red',
+                     'p_l': 'viridis',
+                     'v': 'RdBu',
+                     'w_l': 'viridis',
+                     'elv': 'viridis'}
+        color_map.update(color_maps)
+
 
         fig = plt.figure(figsize=figsize)
 
@@ -629,13 +642,15 @@ class RTP():
                     scale = 'log'
                 else:
                     scale = 'linear'
+
                 # plot time-series parameters that share a plot
                 if i < 2:
                     with warnings.catch_warnings(record=True) as w:
                         cls.plot_time_series(dmap_data, beam_num=beam_num,
                                              parameter=axes_parameters[i][0],
                                              channel=channel, scale=scale,
-                                             ax=axes[i], linestyle='--',
+                                             color=color_map[axes_parameters[i][0]],
+                                             ax=axes[i], linestyle='-',
                                              label=labels[i][0], **kwargs)
                     if len(w) > 0:
                         warnings.warn("Warning: {parameter} raised the"
@@ -643,10 +658,11 @@ class RTP():
                                       "".format(parameter=axes_parameters[i][0],
                                                 message=str(w[0].message)))
                     axes[i].set_ylabel(labels[i][0], rotation=0, labelpad=30)
+                    axes[i].axhline(y=boundary_ranges[axes_parameters[i][0]][0] + 0.8,
+                                    xmin=-0.11, xmax=-0.05,
+                                    clip_on=False, color='k')
                     axes[i].set_ylim(boundary_ranges[axes_parameters[i][0]][0],
                                      boundary_ranges[axes_parameters[i][0]][1])
-                    axes[i].axhline(y=1.1, xmin=-0.11, xmax=-0.05,
-                                    clip_on=False, color='k')
                     axes[i].yaxis.set_label_coords(-0.08, 0.085)
 
                     # plot the shared parameter
@@ -655,9 +671,10 @@ class RTP():
                     with warnings.catch_warnings(record=True) as w:
                         cls.plot_time_series(dmap_data, beam_num=beam_num,
                                              parameter=axes_parameters[i][0],
+                                             color=color_map[axes_parameters[i][1]],
                                              channel=channel,
                                              scale=scale, ax=second_ax,
-                                             linestyle='--', color='k',
+                                             linestyle='--',
                                              **kwargs)
                     if len(w) > 0:
                         warnings.warn("Warning: {parameter} raised the"
@@ -666,11 +683,21 @@ class RTP():
                                                 message=str(w[0].message)))
                     second_ax.set_xticklabels([])
                     second_ax.set_ylabel(labels[i][1], rotation=0, labelpad=25)
-                    second_ax.axhline(y=1.1, xmin=1.07, xmax=1.13,
+                    second_ax.axhline(y=boundary_ranges[axes_parameters[i][1]][0] + 0.8, xmin=1.07, xmax=1.13,
                                       clip_on=False, linestyle='--', color='k')
                     second_ax.set_ylim(boundary_ranges[axes_parameters[i][1]][0],
                                        boundary_ranges[axes_parameters[i][1]][1])
                     second_ax.yaxis.set_label_coords(1.1, 0.7)
+
+                    #if scale == 'log':
+                    #    axes[i].yaxis.set_minor_locator(ticker.LogLocator())
+                    #    second_ax.yaxis.set_minor_locator(ticker.LogLocator())
+                    #else:
+                    if scale == 'linear':
+                        second_ax.set_yticks(boundary_ranges[axes_parameters[i][1]])
+                        axes[i].set_yticks(boundary_ranges[axes_parameters[i][0]])
+                        axes[i].yaxis.set_minor_locator(ticker.LinearLocator())
+                        second_ax.yaxis.set_minor_locator(ticker.LinearLocator())
 
             # plot cp id
             elif i == 2:
@@ -692,7 +719,8 @@ class RTP():
                                     color_bar_label=labels[i],
                                     parameter=axes_parameters[i], ax=axes[i],
                                     groundscatter=grndflg,
-                                    channel=channel, color_map=color_map,
+                                    channel=channel,
+                                    color_map=color_map[axes_parameters[i]],
                                     boundary=boundary_ranges[axes_parameters[i]],
                                     **kwargs)
                 axes[i].set_ylabel('Range Gates')
