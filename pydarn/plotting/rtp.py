@@ -617,7 +617,7 @@ class RTP():
             # need to use any because some records at the start
             # can be partial which doesn't mean there is no elv
             # data
-            if any(i in d for d in dmap_data) and plot_elv:
+            if any('elv' in d for d in dmap_data) and plot_elv:
                 num_plots = 7
             else:
                 num_plots = 6
