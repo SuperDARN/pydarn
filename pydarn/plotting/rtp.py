@@ -614,7 +614,10 @@ class RTP():
         # Check if the radar has elevation information if not
         # do not plot elevation
         try:
-            if dmap_data[0]['elv'] and plot_elv:
+            # need to use any because some records at the start
+            # can be partial which doesn't mean there is no elv
+            # data
+            if any(i in d for d in dmap_data) and plot_elv:
                 num_plots = 7
             else:
                 num_plots = 6
