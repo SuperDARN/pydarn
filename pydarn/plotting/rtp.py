@@ -506,7 +506,7 @@ class RTP():
                      groundscatter: bool = False, channel: int = 'all',
                      figsize: tuple = (11, 8.5), boundary: dict = {},
                      color_maps: dict = {}, plot_elv: bool = True,
-                     title=None, **kwargs):
+                     title=None):
         """
         Plots the summary of the following SuperDARN parameter plots:
             - noise.search : (time-series)
@@ -584,6 +584,12 @@ class RTP():
             the subplots in the summary plot
 
         """
+        print("*"*80)
+        print("* WARNING: maplotlib default dpi may cause distortion in range gate            *")
+        print("*          and time period. The figure size can be adjusted with the           *")
+        print("*          the option figsize and dpi can be adjusted when saving the file     *")
+        print("*"*80)
+
         # default boundary ranges for the various parameter
         boundary_ranges = {'noise.search': (1e0, 1e6),
                            'noise.sky': (1e0, 1e6),
@@ -597,11 +603,11 @@ class RTP():
 
         # default color maps for the summary plot
         color_map = {'noise.search': 'k',
-                     'noise.sky': 'grey',
+                     'noise.sky': 'k',
                      'tfreq': 'k',
-                     'nave': 'red',
+                     'nave': 'k',
                      'p_l': 'viridis',
-                     'v': 'RdBu',
+                     'v': 'viridis',
                      'w_l': 'viridis',
                      'elv': 'viridis'}
         color_map.update(color_maps)
@@ -662,7 +668,7 @@ class RTP():
                                              channel=channel, scale=scale,
                                              color=color_map[axes_parameters[i][0]],
                                              ax=axes[i], linestyle='-',
-                                             label=labels[i][0], **kwargs)
+                                             label=labels[i][0])
                     if len(w) > 0:
                         warnings.warn("Warning: {parameter} raised the"
                                       " following warning: {message}"
@@ -685,8 +691,7 @@ class RTP():
                                              color=color_map[axes_parameters[i][1]],
                                              channel=channel,
                                              scale=scale, ax=second_ax,
-                                             linestyle='--',
-                                             **kwargs)
+                                             linestyle='--')
                     if len(w) > 0:
                         warnings.warn("Warning: {parameter} raised the"
                                       " following warning: {message}"
@@ -717,7 +722,7 @@ class RTP():
                     cls.plot_time_series(dmap_data, beam_num=beam_num,
                                          parameter=axes_parameters[i],
                                          channel=channel,
-                                         ax=axes[i], **kwargs)
+                                         ax=axes[i])
                     axes[i].set_ylabel('CPID', rotation=0, labelpad=30)
                     axes[i].yaxis.set_label_coords(-0.08, 0.079)
             # plot range-time
@@ -734,8 +739,7 @@ class RTP():
                                     groundscatter=grndflg,
                                     channel=channel,
                                     color_map=color_map[axes_parameters[i]],
-                                    boundary=boundary_ranges[axes_parameters[i]],
-                                    **kwargs)
+                                    boundary=boundary_ranges[axes_parameters[i]])
                 axes[i].set_ylabel('Range Gates')
             if i < num_plots-1:
                 axes[i].set_xticklabels([])
