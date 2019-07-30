@@ -21,13 +21,13 @@ def borealis_write_to_dmap(filename, dmap_filetype, dmap_filename):
 
     Parameters
     ----------
-    filename : str
+    filename: str
         Name of the file where Borealis hdf5 data is stored, to read from.
-    dmap_filetype : str
+    dmap_filetype: str
         Type of DARN dmap filetype you would like to convert to. Possible
         types include 'iqdat' and 'rawacf'. Borealis 'bfiq' can be converted 
         to iqdat, and Borealis 'rawacf' can be converted to DARN rawacf.
-    dmap_filename : str
+    dmap_filename: str
         Name of the file that you want to save the DARN dmap file to. 
 
     Raises
