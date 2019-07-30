@@ -7,7 +7,7 @@ This test suite is to test the implementation for the following classes:
     BorealisWrite
 Support for the following Borealis file types:
     rawrf
-    output_ptrs_iq
+    antennas_iq
     bfiq
     rawacf
 And supports conversion to the following Borealis types:
@@ -33,7 +33,7 @@ pydarn_logger = logging.getLogger('pydarn')
 
 borealis_bfiq_file = "../test_files/20190523.0200.00.sas.0.bfiq.hdf5"
 borealis_rawacf_file = "../test_files/20190523.0200.00.sas.0.rawacf.hdf5"
-# borealis_output_ptrs_iq_file =
+# borealis_antennas_iq_file = 
 # borealis_rawrf_file =
 
 # Problem files

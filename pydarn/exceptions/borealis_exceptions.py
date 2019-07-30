@@ -18,7 +18,7 @@ See Also
 --------
 BorealisRawacf
 BorealisBfiq
-BorealisOutputPtrsIq
+BorealisAntennasIq
 BorealisRawrf
 
 """

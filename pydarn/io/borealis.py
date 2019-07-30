@@ -290,7 +290,7 @@ class BorealisRead():
     --------
     BorealisRawacf
     BorealisBfiq
-    BorealisOutputPtrsIq
+    BorealisAntennasIq
     BorealisRawrf
 
     Attributes
@@ -443,9 +443,9 @@ class BorealisRead():
         """
         pydarn_log.debug("Reading Borealis output_ptrs_iq file: {}"
                          "".format(self.filename))
-        attribute_types = 
-            borealis_formats.BorealisOutputPtrsIq.single_element_types
-        dataset_types = borealis_formats.BorealisOutputPtrsIq.array_dtypes
+        attribute_types = \
+            borealis_formats.BorealisAntennasIq.single_element_types
+        dataset_types = borealis_formats.BorealisAntennasIq.array_dtypes
         self._read_borealis_records(attribute_types, dataset_types)
         return self._records
 
@@ -540,7 +540,7 @@ class BorealisWrite():
     --------
     BorealisRawacf
     BorealisBfiq
-    BorealisOutputPtrsIq
+    BorealisAntennasIq
     BorealisRawrf
 
     Attributes
@@ -670,9 +670,9 @@ class BorealisWrite():
         """
         pydarn_log.debug(
             "Writing Borealis output_ptrs_iq file: {}".format(self.filename))
-        attribute_types = 
-            borealis_formats.BorealisOutputPtrsIq.single_element_types
-        dataset_types = borealis_formats.BorealisOutputPtrsIq.array_dtypes
+        attribute_types = \
+            borealis_formats.BorealisAntennasIq.single_element_types
+        dataset_types = borealis_formats.BorealisAntennasIq.array_dtypes
         self._write_borealis_records(attribute_types, dataset_types)
         return self.filename
 
@@ -757,8 +757,8 @@ class BorealisWrite():
                                               self._current_record_name)
         BorealisUtilities.extra_field_check(all_format_fields, record,
                                             self._current_record_name)
-        BorealisUtilities.incorrect_types_check(attribute_types, dataset_types,
-                                                record,
+        BorealisUtilities.incorrect_types_check(attribute_types, 
+                                                dataset_types, record,
                                                 self._current_record_name)
         dd.io.save(self.filename, {self._current_record_name: record},
                    compression=None)
@@ -986,6 +986,13 @@ class BorealisConvert():
         """
         Conversion for bfiq to iqdat dmap records.
 
+        See Also
+        --------
+        https://superdarn.github.io/rst/superdarn/src.doc/rfc/0027.html
+        https://borealis.readthedocs.io/en/latest/
+        BorealisBfiq
+        Iqdat
+
         Returns
         -------
         dmap_recs, the records converted to dmap format
@@ -995,12 +1002,14 @@ class BorealisConvert():
             # scale by normalization and then scale to integer max as per 
             # dmap style 
             data = v['data'].reshape(v['data_dimensions']).astype(
-                np.complex128) / v['data_normalization_factor'] * 
+                np.complex128) / v['data_normalization_factor'] * \
                 np.iinfo(np.int16).max
 
-            # data_descriptors are num_antenna_arrays, 
+            # data_descriptors (dimensions) are num_antenna_arrays, 
             # num_sequences, num_beams, num_samps
-            if v['borealis_git_hash'][0] == 'v' and v['borealis_git_hash'][2] == '.':
+            if v['borealis_git_hash'][0] == 'v' and \
+                    v['borealis_git_hash'][2] == '.':
+
                 borealis_major_revision = v['borealis_git_hash'][1]
                 borealis_minor_revision = v['borealis_git_hash'][3]
             else:
@@ -1011,11 +1020,11 @@ class BorealisConvert():
             offset = 2 * v['antenna_arrays_order'].shape[0] * v['num_samps']
 
             for beam_index, beam in enumerate(v['beam_nums']):
-
                 # grab this beam's data
-                # shape is num_antenna_arrays x num_sequences x num_samps
+                # shape is now num_antenna_arrays x num_sequences x num_samps
                 this_data = data[:, :, beam_index, :]
-                # iqdat shape is num_sequences x num_antennas_arrays x num_samps x 2 (real, imag), flattened
+                # iqdat shape is num_sequences x num_antennas_arrays x 
+                # num_samps x 2 (real, imag), flattened
                 reshaped_data = []
                 for i in range(v['num_sequences']):
                     # get the samples for each array 1 after the other
@@ -1030,25 +1039,32 @@ class BorealisConvert():
                 int_data = np.empty(flattened_data.size * 2, dtype=np.int16)
                 int_data[0::2] = flattened_data.real
                 int_data[1::2] = flattened_data.imag
-                # int_data.reshape([v['data_dimensions'][1], v['data_dimensions'][0], v['data_dimensions'][3], 2]) # num_sequences, num_antenna_arrays, num_samps, 2
 
                 # flattening done in convert_to_dmap_datastructures
-
                 record_dict = {
                     'radar.revision.major': np.int8(borealis_major_revision),
                     'radar.revision.minor': np.int8(borealis_minor_revision),
                     'origin.code': np.int8(100),  # indicating Borealis origin
-                    'origin.time': datetime.utcfromtimestamp(v['timestamp_of_write']).strftime("%c"),
-                    'origin.command': 'Borealis ' + v['borealis_git_hash'] + ' ' + v['experiment_name'],
+                    'origin.time': datetime.utcfromtimestamp(
+                        v['timestamp_of_write']).strftime("%c"),
+                    'origin.command': 'Borealis ' + v['borealis_git_hash'] + \
+                        ' ' + v['experiment_name'],
                     'cp': np.int16(v['experiment_id']),
                     'stid': np.int16(code_to_stid[v['station']]),
-                    'time.yr': np.int16(datetime.utcfromtimestamp(v['sqn_timestamps'][0]).year),
-                    'time.mo': np.int16(datetime.utcfromtimestamp(v['sqn_timestamps'][0]).month),
-                    'time.dy': np.int16(datetime.utcfromtimestamp(v['sqn_timestamps'][0]).day),
-                    'time.hr': np.int16(datetime.utcfromtimestamp(v['sqn_timestamps'][0]).hour),
-                    'time.mt': np.int16(datetime.utcfromtimestamp(v['sqn_timestamps'][0]).minute),
-                    'time.sc': np.int16(datetime.utcfromtimestamp(v['sqn_timestamps'][0]).second),
-                    'time.us': np.int32(datetime.utcfromtimestamp(v['sqn_timestamps'][0]).microsecond),
+                    'time.yr': np.int16(datetime.utcfromtimestamp(
+                        v['sqn_timestamps'][0]).year),
+                    'time.mo': np.int16(datetime.utcfromtimestamp(
+                        v['sqn_timestamps'][0]).month),
+                    'time.dy': np.int16(datetime.utcfromtimestamp(
+                        v['sqn_timestamps'][0]).day),
+                    'time.hr': np.int16(datetime.utcfromtimestamp(
+                        v['sqn_timestamps'][0]).hour),
+                    'time.mt': np.int16(datetime.utcfromtimestamp(
+                        v['sqn_timestamps'][0]).minute),
+                    'time.sc': np.int16(datetime.utcfromtimestamp(
+                        v['sqn_timestamps'][0]).second),
+                    'time.us': np.int32(datetime.utcfromtimestamp(
+                        v['sqn_timestamps'][0]).microsecond),
                     'txpow': np.int16(-1),
                     'nave': np.int16(v['num_sequences']),
                     'atten': np.int16(0),
@@ -1081,36 +1097,42 @@ class BorealisConvert():
                     'lvmax': np.int32(20000),
                     'iqdata.revision.major': np.int32(1),
                     'iqdata.revision.minor': np.int32(0),
-                    'combf': 'Converted from Borealis file: ' + self.filename + ' record ' + k + ' ; Number of beams in record: ' +\
-                    str(len(v['beam_nums'])) + ' ; ' + \
-                    v['experiment_comment'] + ' ; ' + v['slice_comment'],
+                    'combf': 'Converted from Borealis file: ' + \
+                        self.filename  + ' record ' + k + \
+                        ' ; Number of beams in record: ' + \
+                        str(len(v['beam_nums'])) + ' ; ' + \
+                        v['experiment_comment'] + ' ; ' + v['slice_comment'],
                     'seqnum': np.int32(v['num_sequences']),
                     'chnnum': np.int32(v['antenna_arrays_order'].shape[0]),
                     'smpnum': np.int32(v['num_samps']),
-                    # NOTE: The following is a hack. This is currently how iqdat files are
-                    # being processed . RST make_raw does not use first range information
-                    # at all, only skip number. However ROS provides the number of ranges
-                    # to the first range as the skip number. Skip number was originally intended
-                    # to identify bad ranges due to digital receiver rise time. Borealis skpnum
-                    # should in theory =0 as the first sample from Borealis decimated (prebfiq)
+                    # NOTE: The following is a hack. This is currently how 
+                    # iqdat files are being processed . RST make_raw does 
+                    # not use first range information at all, only skip number.
+                    # However ROS provides the number of ranges to the first 
+                    # range as the skip number. Skip number was originally 
+                    # intended to identify bad ranges due to digital receiver 
+                    # rise time. Borealis skpnum should in theory =0 as the 
+                    # first sample from Borealis decimated (prebfiq)
                     # data is centred on the first pulse.
                     'skpnum': np.int32(v['first_range']/v['range_sep']),
-
                     'ptab': v['pulses'].astype(np.int16),
                     'ltab': v['lags'].astype(np.int16),
                     # timestamps in ms
-                    'tsc': np.array([math.floor(x/1e3) for x in v['sqn_timestamps']], dtype=np.int32),
-                    'tus': np.array([math.fmod(x, 1000.0) * 1e3 for x in v['sqn_timestamps']], dtype=np.int32),
-                    'tatten': np.array([0] * v['num_sequences'], dtype=np.int16),
+                    'tsc': np.array([math.floor(x/1e3) for x in 
+                        v['sqn_timestamps']], dtype=np.int32),
+                    'tus': np.array([math.fmod(x, 1000.0) * 1e3 for x in 
+                        v['sqn_timestamps']], dtype=np.int32),
+                    'tatten': np.array([0] * v['num_sequences'], 
+                        dtype=np.int16),
                     'tnoise': v['noise_at_freq'].astype(np.float32),
-                    'toff': np.array([i * offset for i in range(v['num_sequences'])], dtype=np.int32),
-                    'tsze': np.array([offset] * v['num_sequences'], dtype=np.int32),
+                    'toff': np.array([i * offset for i in 
+                        range(v['num_sequences'])], dtype=np.int32),
+                    'tsze': np.array([offset] * v['num_sequences'], 
+                        dtype=np.int32),
                     'data': int_data
                 }
-
                 recs.append(record_dict)
-                # dmap_record_dict = self._convert_to_dmap_datastructures(record_dict)
-                # dmap_recs.append(dmap_record_dict)
+
         dmap_recs = dict2dmap(recs)
         return dmap_recs
 
@@ -1118,28 +1140,44 @@ class BorealisConvert():
         """
         Conversion for Borealis hdf5 rawacf to DARN dmap rawacf files.
 
+        See Also
+        --------
+        https://superdarn.github.io/rst/superdarn/src.doc/rfc/0008.html
+        https://borealis.readthedocs.io/en/latest/
+        BorealisRawacf
+        Rawacf
+
         Returns
         -------
         dmap_recs, the records converted to dmap format
         """
 
-        #dmap_recs = []
         recs = []
         for k, v in self._borealis_records.items():
             shaped_data = {}
-            shaped_data['main_acfs'] = v['main_acfs'].reshape(v['correlation_dimensions']).astype(
-                np.complex128) * ((np.iinfo(np.int16).max**2) / (v['data_normalization_factor']**2))
-            # scale by the scale squared to make up for mult in correlation
             # correlation_descriptors are num_beams, num_ranges, num_lags
-            if 'intf_acfs' in v.keys():
-                shaped_data['intf_acfs'] = v['intf_acfs'].reshape(v['correlation_dimensions']).astype(
-                    np.complex128) * ((np.iinfo(np.int16).max**2) / (v['data_normalization_factor']**2))
-                # multiply by this to scale to int16 for dmap.
-            if 'xcfs' in v.keys():
-                shaped_data['xcfs'] = v['xcfs'].reshape(v['correlation_dimensions']).astype(
-                    np.complex128) * ((np.iinfo(np.int16).max**2) / (v['data_normalization_factor']**2))
 
-            if v['borealis_git_hash'][0] == 'v' and v['borealis_git_hash'][2] == '.':
+            # scale by the scale squared to make up for the multiply 
+            # in correlation (integer max squared)
+            shaped_data['main_acfs'] = v['main_acfs'].reshape(
+                v['correlation_dimensions']).astype(
+                np.complex128) * ((np.iinfo(np.int16).max**2) / \
+                (v['data_normalization_factor']**2))
+
+
+            if 'intf_acfs' in v.keys():
+                shaped_data['intf_acfs'] = v['intf_acfs'].reshape(
+                    v['correlation_dimensions']).astype(
+                    np.complex128) * ((np.iinfo(np.int16).max**2) / \
+                    (v['data_normalization_factor']**2))
+            if 'xcfs' in v.keys():
+                shaped_data['xcfs'] = v['xcfs'].reshape(
+                    v['correlation_dimensions']).astype(
+                    np.complex128) * ((np.iinfo(np.int16).max**2) / \
+                    (v['data_normalization_factor']**2))
+
+            if v['borealis_git_hash'][0] == 'v' and \
+                    v['borealis_git_hash'][2] == '.':
                 borealis_major_revision = v['borealis_git_hash'][1]
                 borealis_minor_revision = v['borealis_git_hash'][3]
             else:
@@ -1155,14 +1193,16 @@ class BorealisConvert():
                 lag_zero_power = (lag_zero.real**2 + lag_zero.imag**2)**0.5
 
                 correlation_dict = {}
-                for key in shaped_data:  # all available correlation types have been included here
+                for key in shaped_data:  
                     # num_ranges x num_lags (complex)
                     this_correlation = shaped_data[key][beam_index, :, :-1]
-                    # set the lag0 to the alternate lag0 for the end of the array 
-                    # (when interference of first pulse would occur)
-                    this_correlation[-10:,0] = shaped_data[key][beam_index,-10:,-1] 
-                    # shape num_beams x num_ranges x num_lags, now num_ranges x num_lags-1 b/c 
-                    # alternate lag-0 combined with lag-0 (only used for last ranges)
+                    # set the lag0 to the alternate lag0 for the end of the 
+                    # array (when interference of first pulse would occur)
+                    this_correlation[-10:,0] = \
+                        shaped_data[key][beam_index,-10:,-1] 
+                    # shape num_beams x num_ranges x num_lags, now num_ranges 
+                    # x num_lags-1 b/c alternate lag-0 combined with lag-0 
+                    # (only used for last ranges)
 
                     # (num_ranges x num_lags, flattened)
                     flattened_data = np.array(this_correlation).flatten()
@@ -1173,8 +1213,10 @@ class BorealisConvert():
                     int_data[1::2] = flattened_data.imag
                     # num_ranges x num_lags x 2
                     new_data = int_data.reshape(
-                        v['correlation_dimensions'][1], v['correlation_dimensions'][2]-1, 2)
-                    # NOTE: Flattening happening in convert_to_dmap_datastructures
+                        v['correlation_dimensions'][1], 
+                        v['correlation_dimensions'][2]-1, 2)
+                    # NOTE: Flattening happening in 
+                    # convert_to_dmap_datastructures
                     # place the darn-style array in the dict
                     correlation_dict[key] = new_data
 
@@ -1182,17 +1224,26 @@ class BorealisConvert():
                     'radar.revision.major': np.int8(borealis_major_revision),
                     'radar.revision.minor': np.int8(borealis_minor_revision),
                     'origin.code': np.int8(100),  # indicating Borealis origin
-                    'origin.time': datetime.utcfromtimestamp(v['timestamp_of_write']).strftime("%c"),
-                    'origin.command': 'Borealis ' + v['borealis_git_hash'] + ' ' + v['experiment_name'],
+                    'origin.time': datetime.utcfromtimestamp(
+                        v['timestamp_of_write']).strftime("%c"),
+                    'origin.command': 'Borealis ' + v['borealis_git_hash'] + \
+                        ' ' + v['experiment_name'],
                     'cp': np.int16(v['experiment_id']),
                     'stid': np.int16(code_to_stid[v['station']]),
-                    'time.yr': np.int16(datetime.utcfromtimestamp(v['sqn_timestamps'][0]).year),
-                    'time.mo': np.int16(datetime.utcfromtimestamp(v['sqn_timestamps'][0]).month),
-                    'time.dy': np.int16(datetime.utcfromtimestamp(v['sqn_timestamps'][0]).day),
-                    'time.hr': np.int16(datetime.utcfromtimestamp(v['sqn_timestamps'][0]).hour),
-                    'time.mt': np.int16(datetime.utcfromtimestamp(v['sqn_timestamps'][0]).minute),
-                    'time.sc': np.int16(datetime.utcfromtimestamp(v['sqn_timestamps'][0]).second),
-                    'time.us': np.int32(datetime.utcfromtimestamp(v['sqn_timestamps'][0]).microsecond),
+                    'time.yr': np.int16(datetime.utcfromtimestamp(
+                        v['sqn_timestamps'][0]).year),
+                    'time.mo': np.int16(datetime.utcfromtimestamp(
+                        v['sqn_timestamps'][0]).month),
+                    'time.dy': np.int16(datetime.utcfromtimestamp(
+                        v['sqn_timestamps'][0]).day),
+                    'time.hr': np.int16(datetime.utcfromtimestamp(
+                        v['sqn_timestamps'][0]).hour),
+                    'time.mt': np.int16(datetime.utcfromtimestamp(
+                        v['sqn_timestamps'][0]).minute),
+                    'time.sc': np.int16(datetime.utcfromtimestamp(
+                        v['sqn_timestamps'][0]).second),
+                    'time.us': np.int32(datetime.utcfromtimestamp(
+                        v['sqn_timestamps'][0]).microsecond),
                     'txpow': np.int16(-1),
                     'nave': np.int16(v['num_sequences']),
                     'atten': np.int16(0),
@@ -1226,23 +1277,22 @@ class BorealisConvert():
                     'lvmax': np.int32(20000),
                     'rawacf.revision.major': np.int32(1),
                     'rawacf.revision.minor': np.int32(0),
-                    'combf': 'Converted from Borealis file: ' + self.filename + ' record ' + k + ' ; Number of beams in record: ' +\
-                    str(len(v['beam_nums'])) + ' ; ' + \
-                    v['experiment_comment'] + ' ; ' + v['slice_comment'],
+                    'combf': 'Converted from Borealis file: ' + \
+                        self.filename + ' record ' + k + \
+                        ' ; Number of beams in record: ' + \
+                        str(len(v['beam_nums'])) + ' ; ' + \
+                        v['experiment_comment'] + ' ; ' + v['slice_comment'],
                     'thr': np.float32(0),
                     'ptab': v['pulses'].astype(np.int16),
                     'ltab': v['lags'].astype(np.int16),
                     'pwr0': lag_zero_power.astype(np.float32),
                     # list from 0 to num_ranges
-                    'slist': np.array(list(range(0, v['correlation_dimensions'][1]))).astype(np.int16),
+                    'slist': np.array(list(range(0, 
+                        v['correlation_dimensions'][1]))).astype(np.int16),
                     'acfd': correlation_dict['main_acfs'],
                     'xcfd': correlation_dict['xcfs']
-                    # TODO: intf acfs or lag zero power?
                 }
-
                 recs.append(record_dict)
-                # dmap_record_dict = self._convert_to_dmap_datastructures(record_dict)
-                # dmap_recs.append(dmap_record_dict)
 
         dmap_recs = dict2dmap(recs)
         return dmap_recs
