@@ -8,7 +8,7 @@ Classes
 -------
 BorealisRawacf
 BorealisBfiq
-BorealisOutputPtrsIq
+BorealisAntennasIq
 BorealisRawrf
 
 Notes
@@ -222,7 +222,7 @@ class BorealisBfiq():
     }
 
 
-class BorealisOutputPtrsIq():
+class BorealisAntennasIq():
     """
     Class containing Borealis Antennas iq data fields and their types.
 
