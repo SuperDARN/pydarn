@@ -1,4 +1,4 @@
-# Copyright (C) 2019  SuperDARN
+# Copyright 2019 SuperDARN Canada, University of Saskatchewan
 # Author: Marci Detwiller
 """
 This test suite is to test the implementation for the following classes:

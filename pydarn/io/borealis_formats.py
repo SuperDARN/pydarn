@@ -32,10 +32,10 @@ class BorealisRawacf():
 
     Attributes
     ----------
-    single_element_types : dict
+    single_element_types: dict
         Dictionary of data field name to type expected in that field for a 
         dictionary of Borealis data.
-    array_dtypes : dict
+    array_dtypes: dict
         Dictionary of data field name to array of given numpy dtype expected  
         in the field for a dictionary of Borealis data.
     """
@@ -128,10 +128,10 @@ class BorealisBfiq():
 
     Attributes
     ----------
-    single_element_types : dict
+    single_element_types: dict
         Dictionary of data field name to type expected in that field for a 
         dictionary of Borealis data.
-    array_dtypes : dict
+    array_dtypes: dict
         Dictionary of data field name to array of given numpy dtype expected  
         in the field for a dictionary of Borealis data.
     """
@@ -228,10 +228,10 @@ class BorealisOutputPtrsIq():
 
     Attributes
     ----------
-    single_element_types : dict
+    single_element_types: dict
         Dictionary of data field name to type expected in that field for a 
         dictionary of Borealis data.
-    array_dtypes : dict
+    array_dtypes: dict
         Dictionary of data field name to array of given numpy dtype expected  
         in the field for a dictionary of Borealis data.
     """
@@ -316,10 +316,10 @@ class BorealisRawrf():
 
     Attributes
     ----------
-    single_element_types : dict
+    single_element_types: dict
         Dictionary of data field name to type expected in that field for a 
         dictionary of Borealis data.
-    array_dtypes : dict
+    array_dtypes: dict
         Dictionary of data field name to array of given numpy dtype expected  
         in the field for a dictionary of Borealis data.
     """
