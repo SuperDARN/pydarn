@@ -8,9 +8,9 @@ Classes
 -------
 BorealisUtilities: utilites class that contains static methods for
 SuperDARN file type checking
-BorealisRead : Reads Borealis SuperDARN file types (hdf5)
-BorealisWrite : Writes Borealis SuperDARN file types (hdf5
-BorealisConvert : Writes Borealis SuperDARN files types to
+BorealisRead: Reads Borealis SuperDARN file types (hdf5)
+BorealisWrite: Writes Borealis SuperDARN file types (hdf5
+BorealisConvert: Writes Borealis SuperDARN files types to
 SuperDARN DARN files with dmap record structure
 
 Exceptions
@@ -141,14 +141,14 @@ class BorealisUtilities():
 
         Parameters
         ----------
-        dict1 : dict or set
+        dict1: dict or set
             dictionary or set to subtract from
-        dict2 : dict or set
+        dict2: dict or set
             dictionary or set subtracting from dict1
 
         Returns
         -------
-        dict_diff : set
+        dict_diff: set
             difference between dict1 and dict2 keys or the sets
         """
         diff_dict = set(dict1) - set(dict2)
@@ -161,12 +161,12 @@ class BorealisUtilities():
 
         Parameters
         ----------
-        dict_list : list
+        dict_list: list
             list of dictionaries
 
         Returns
         -------
-        complete_set : set
+        complete_set: set
             set containing all dictionary key from the list of dicts
         """
         # convert dictionaries to set to do some set magic
@@ -188,11 +188,11 @@ class BorealisUtilities():
 
         Parameters
         ----------
-        file_struct_list : List[dict]
+        file_struct_list: List[dict]
             List of dictionaries for the possible file structure fields
-        record : dict
+        record: dict
             Dictionary representing the dmap record
-        record_name : int
+        record_name: int
             The name of the record (first sequence start time)
 
         Raises
@@ -222,11 +222,11 @@ class BorealisUtilities():
 
         Parameters
         ----------
-        file_struct_list : List[dict]
+        file_struct_list: List[dict]
             List of dictionaries for the possible file structure fields
-        record : dict
+        record: dict
             Dmap record
-        record_name : int
+        record_name: int
             Record name for better error message information
 
         Raises
@@ -253,14 +253,14 @@ class BorealisUtilities():
 
         Parameters
         ----------
-        attributes_type_dict : dict
+        attributes_type_dict: dict
             Dictionary with the required types for the attributes in the file.
-        datasets_type_dict : dict
+        datasets_type_dict: dict
             Dictionary with the require dtypes for the numpy
             arrays in the file.
-        record : dict
+        record: dict
             Dmap record
-        record_name : int
+        record_name: int
             Record name for a better error message information
 
         Raises
@@ -295,11 +295,11 @@ class BorealisRead():
 
     Attributes
     ----------
-    filename : str
+    filename: str
         The filename of the Borealis HDF5 file being read.
-    group_names : list(str)
-    current_record_name : str
-    records : OrderedDict{dict}
+    group_names: list(str)
+    current_record_name: str
+    records: OrderedDict{dict}
     """
 
     def __init__(self, filename: str):
@@ -308,7 +308,7 @@ class BorealisRead():
 
         Parameters
         ----------
-        filename : str
+        filename: str
             file name containing Borealis hdf5 data.
 
         Raises
@@ -377,7 +377,7 @@ class BorealisRead():
 
         Returns
         -------
-        records : OrderedDict{dict}
+        records: OrderedDict{dict}
             records of borealis data. Keys are timestamps of write (ms).
 
         Raises
@@ -406,7 +406,7 @@ class BorealisRead():
 
         Returns
         -------
-        records : OrderedDict{dict}
+        records: OrderedDict{dict}
             records of beamformed iq data. Keys are timestamps of write (ms).
         """
         pydarn_log.debug("Reading Borealis bfiq file: {}"
@@ -422,7 +422,7 @@ class BorealisRead():
 
         Returns
         -------
-        records : OrderedDict{dict}
+        records: OrderedDict{dict}
             records of borealis rawacf data. Keys are timestamps of write (ms).
         """
         pydarn_log.debug(
@@ -438,7 +438,7 @@ class BorealisRead():
 
         Returns
         -------
-        records : OrderedDict{dict}
+        records: OrderedDict{dict}
             records of borealis rawacf data. Keys are timestamps of write (ms).
         """
         pydarn_log.debug("Reading Borealis output_ptrs_iq file: {}"
@@ -455,7 +455,7 @@ class BorealisRead():
 
         Returns
         -------
-        records : OrderedDict{dict}
+        records: OrderedDict{dict}
             records of borealis rawacf data. Keys are timestamps of write (ms).
         """
         pydarn_log.debug("Reading Borealis rawrf file: {}"
@@ -472,9 +472,9 @@ class BorealisRead():
 
         Parameters
         ----------
-        attribute_types : dict
+        attribute_types: dict
             Dictionary with the required types for the attributes in the file.
-        dataset_types : dict
+        dataset_types: dict
             Dictionary with the require dtypes for the numpy arrays in the 
             file.
 
@@ -493,9 +493,9 @@ class BorealisRead():
 
         Parameters
         ----------
-        attribute_types : dict
+        attribute_types: dict
             Dictionary with the required types for the attributes in the file.
-        dataset_types : dict
+        dataset_types: dict
             Dictionary with the require dtypes for the numpy arrays in the 
             file.
 
@@ -545,15 +545,15 @@ class BorealisWrite():
 
     Attributes
     ----------
-    filename : str
+    filename: str
         The filename of the Borealis HDF5 file being read.
-    borealis_records : OrderedDict{dict}
+    borealis_records: OrderedDict{dict}
         The dictionary of Borealis records to write to HDF5 file.
     }
-    group_names : list(str)
+    group_names: list(str)
         The list of record names of the Borealis data. These values 
         are the write time of the record in ms since epoch.
-    current_record_name : str
+    current_record_name: str
     """
 
     def __init__(self, filename: str, 
@@ -563,9 +563,9 @@ class BorealisWrite():
 
         Parameters
         ----------
-        filename : str
+        filename: str
             Name of the file the user wants to write to
-        borealis_records : OrderedDict{dict}
+        borealis_records: OrderedDict{dict}
             OrderedDict of borealis records
 
         """
@@ -699,9 +699,9 @@ class BorealisWrite():
 
         Parameters
         ----------
-        attributes_type_dict : dict
+        attributes_type_dict: dict
             Dictionary with the required types for the attributes in the file.
-        datasets_type_dict : dict
+        datasets_type_dict: dict
             Dictionary with the require dtypes for the numpy arrays in the 
             file.
 
@@ -724,9 +724,9 @@ class BorealisWrite():
 
         Parameters
         ----------
-        attributes_type_dict : dict
+        attributes_type_dict: dict
             Dictionary with the required types for the attributes in the file.
-        datasets_type_dict : dict
+        datasets_type_dict: dict
             Dictionary with the require dtypes for the numpy arrays in the 
             file.
 
@@ -779,12 +779,12 @@ class BorealisConvert():
 
     Attributes
     ----------
-    filename : str
+    filename: str
         The filename of the Borealis HDF5 file being read.
-    origin_filetype : str
-    borealis_records : OrderedDict{dict}
-    group_names : list[str]
-    dmap_records : list[dict]
+    origin_filetype: str
+    borealis_records: OrderedDict{dict}
+    group_names: list[str]
+    dmap_records: list[dict]
     """
 
 
@@ -794,7 +794,7 @@ class BorealisConvert():
 
         Parameters
         ----------
-        filename : str
+        filename: str
             Name of file to read records from
         """
         self.filename = filename
@@ -855,11 +855,11 @@ class BorealisConvert():
 
         Parameters
         ----------
-        dmap_filetype : str
+        dmap_filetype: str
             Intended DARN filetype to write to as dmap.
             The following dmap types are supported:
-                                     - 'iqdat' : Iqdat SuperDARN file type
-                                     - 'rawacf' : Rawacf SuperDARN file type
+                                     - 'iqdat': Iqdat SuperDARN file type
+                                     - 'rawacf': Rawacf SuperDARN file type
         dmap_filename: str
             Filename with directory you want to write to.
 
@@ -888,11 +888,11 @@ class BorealisConvert():
 
         Parameters
         ----------
-        dmap_filetype : str
+        dmap_filetype: str
             Intended DARN filetype to write to as dmap.
             The following dmap types are supported:
-                                     - 'iqdat' : Iqdat SuperDARN file type
-                                     - 'rawacf' : Rawacf SuperDARN file type
+                                     - 'iqdat': Iqdat SuperDARN file type
+                                     - 'rawacf': Rawacf SuperDARN file type
 
         Raises
         ------

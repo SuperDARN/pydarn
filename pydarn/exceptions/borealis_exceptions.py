@@ -33,14 +33,14 @@ class BorealisFileTypeError(Exception):
 
     Parameters
     ----------
-    filename : str
+    filename: str
         name of the file associated to the wrong SuperDARN Borealis file type
-    file_type : str
+    file_type: str
         SuperDARN Borealis file type that is not implement or correct
 
     Attributes
     ----------
-    message : str
+    message: str
         The message to display with the error
     """
 
@@ -61,14 +61,14 @@ class BorealisFieldMissingError(Exception):
 
     Parameters
     ----------
-    record_name : int
+    record_name: int
         record name of the problem record
-    fields : set
+    fields: set
         set of fields that are missing from the record
 
     Attributes
     ----------
-    message : str
+    message: str
         The message to display with the error
     """
 
@@ -88,14 +88,14 @@ class BorealisExtraFieldError(Exception):
 
     Parameters
     ----------
-    record_name : int
+    record_name: int
         record name of the problem record
-    fields : set
+    fields: set
         set of fields that are missing from the record
 
     Attributes
     ----------
-    message : str
+    message: str
         The message to display with the error
     """
 
@@ -115,14 +115,14 @@ class BorealisDataFormatTypeError(Exception):
 
     Parameters
     ----------
-    incorrect_type : dict
+    incorrect_type: dict
         set of the fields that have incorrect types
-    record_name : int
+    record_name: int
         record name of the problem record
 
     Attributes
     ----------
-    message : str
+    message: str
         The message to display with the error
     """
 
@@ -140,16 +140,16 @@ class BorealisConversionTypesError(Exception):
 
     Parameters
     ----------
-    filename : str
+    filename: str
         name of the file attempting to convert
     origin_filetype: str
         Borealis origin filetype, ex. bfiq.
-    dmap_filetype : str
+    dmap_filetype: str
         desired SuperDARN dmap type, ex. iqdat.
 
     Attributes
     ----------
-    message : str
+    message: str
         The message to display with the error
     """
 
@@ -171,12 +171,12 @@ class BorealisConvert2IqdatError(Exception):
 
     Parameters
     ----------
-    error_str : str
+    error_str: str
         explanation for why the file cannot be converted to DARN iqdat.
 
     Attributes
     ----------
-    message : str
+    message: str
         The message to display with the error
     """
 
@@ -194,12 +194,12 @@ class BorealisConvert2RawacfError(Exception):
 
     Parameters
     ----------
-    error_str : str
+    error_str: str
         explanation for why the file cannot be converted to DARN rawacf.
     
     Attributes
     ----------
-    message : str
+    message: str
         The message to display with the error
     """
 
