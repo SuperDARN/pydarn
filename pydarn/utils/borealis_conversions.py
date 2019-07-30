@@ -1,3 +1,14 @@
+# Copyright 2019 SuperDARN Canada, University of Saskatchewan
+# Author: Marci Detwiller
+"""
+This file contains a function to convert Borealis hdf5 files to DARN dmap files,
+using the BorealisConvert class from the pydarn io borealis module. 
+
+Notes
+-----
+BorealisConvert uses both BorealisRead and DarnWrite classes to convert files. 
+
+"""
 import logging
 
 from pydarn import BorealisConvert
