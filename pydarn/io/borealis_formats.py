@@ -1,23 +1,26 @@
-# Copyright 2018 SuperDARN
-# Authors: Marina Schmidt
+# Copyright 2019 SuperDARN Canada, University of Saskatchewan
+# Author: Marci Detwiller
 """
-This file contains several class with the fields that pertain to
-SuperDARN Borealis HDF5 files. For more information on Borealis 
-data files, see https://borealis.readthedocs.io/en/latest/ 
+This file contains several classes with the fields that pertain to
+SuperDARN Borealis HDF5 files. 
 
-Classes:
---------
+Classes
+-------
 BorealisRawacf
 BorealisBfiq
 BorealisOutputPtrsIq
 BorealisRawrf
 
-Notes:
-------
+Notes
+-----
 Debug data files such as Borealis stage iq data (an intermediate
 product that can be generated during filtering and decimating, showing
-progression from rawrf to output ptrs iq files) will not be included here 
+progression from rawrf to output ptrs iq files) will not be included here.
+This is a debug format only and should not be used for higher level 
+data products.
 
+For more information on Borealis data files, see:
+https://borealis.readthedocs.io/en/latest/ 
 """
 
 import numpy as np
@@ -25,8 +28,18 @@ import numpy as np
 
 class BorealisRawacf():
     """
-    Class containing Borealis Rawacf fields
+    Class containing Borealis Rawacf data fields and their types.
+
+    Attributes
+    ----------
+    single_element_types : dict
+        Dictionary of data field name to type expected in that field for a 
+        dictionary of Borealis data.
+    array_dtypes : dict
+        Dictionary of data field name to array of given numpy dtype expected  
+        in the field for a dictionary of Borealis data.
     """
+
     single_element_types = {
         # Identifies the version of Borealis that made this data.
         "borealis_git_hash": np.unicode_,
@@ -60,8 +73,8 @@ class BorealisRawacf():
         "int_time": np.float32,  
         # Length of the pulse in microseconds.
         "tx_pulse_len": np.uint32,  
-        # The minimum spacing between pulses, spacing between pulses is always a
-        # multiple of this in microseconds.
+        # The minimum spacing between pulses, spacing between pulses is always
+        # a multiple of this in microseconds.
         "tau_spacing": np.uint32,
         # Number of main array antennas.
         "main_antenna_count": np.uint32,  
@@ -69,15 +82,16 @@ class BorealisRawacf():
         "intf_antenna_count": np.uint32,
         # The frequency used for this experiment slice in kHz.
         "freq": np.uint32,
-        # str denoting C data type of the samples included in the data array, such 
-        # as 'complex float'.
+        # str denoting C data type of the samples included in the data array, 
+        # such as 'complex float'.
         "samples_data_type": np.unicode_,
-        # data normalization factor determined by the filter scaling in the decimation scheme.
+        # data normalization factor determined by the filter scaling in the 
+        # decimation scheme.
         "data_normalization_factor": np.float64
     }
 
     array_dtypes = {
-        # The pulse sequence in units of the tau_spacing.
+        # The pulse sequence in multiples of the tau_spacing.
         "pulses": np.uint32, 
         # The lags created from combined pulses.
         "lags": np.uint32,  
@@ -92,7 +106,8 @@ class BorealisRawacf():
         "beam_azms": np.float64,
         # Noise at the receive frequency, should be an array 
         # (one value per sequence) (TODO units??) (TODO document 
-        # FFT resolution bandwidth for this value, should be = output_sample rate?)
+        # FFT resolution bandwidth for this value, should be = output_sample 
+        # rate?)
         "noise_at_freq": np.float64,
         # Denotes what each acf/xcf dimension represents.
         "correlation_descriptors": np.unicode_,
@@ -109,7 +124,16 @@ class BorealisRawacf():
 
 class BorealisBfiq():
     """
-    Class contain Borealis Bfiq fields
+    Class containing Borealis Bfiq data fields and their types.
+
+    Attributes
+    ----------
+    single_element_types : dict
+        Dictionary of data field name to type expected in that field for a 
+        dictionary of Borealis data.
+    array_dtypes : dict
+        Dictionary of data field name to array of given numpy dtype expected  
+        in the field for a dictionary of Borealis data.
     """
 
     single_element_types = {
@@ -139,8 +163,8 @@ class BorealisBfiq():
         "int_time": np.float32,  
         # Length of the pulse in microseconds.
         "tx_pulse_len": np.uint32,  
-        # The minimum spacing between pulses, spacing between pulses is always a
-        # multiple of this. In microseconds.
+        # The minimum spacing between pulses, spacing between pulses is always 
+        # a multiple of this. In microseconds.
         "tau_spacing": np.uint32,
         # Number of main array antennas.
         "main_antenna_count": np.uint32,  
@@ -148,8 +172,8 @@ class BorealisBfiq():
         "intf_antenna_count": np.uint32,
         # The frequency used for this experiment slice in kHz.
         "freq": np.uint32,
-        # str denoting C data type of the samples included in the data array, such 
-        # as 'complex float'.
+        # str denoting C data type of the samples included in the data array, 
+        # such as 'complex float'.
         "samples_data_type": np.unicode_,
         # Number of samples in the sampling period.
         "num_samps": np.uint32,  
@@ -161,12 +185,13 @@ class BorealisBfiq():
         "first_range": np.float32,  
         # Number of ranges to calculate correlations for.
         "num_ranges": np.uint32,
-        # data normalization factor determined by the filter scaling in the decimation scheme.
+        # data normalization factor determined by the filter scaling in the 
+        # decimation scheme.
         "data_normalization_factor": np.float64
     }
 
     array_dtypes = {
-        # The pulse sequence in units of the tau_spacing.
+        # The pulse sequence in multiples of the tau_spacing.
         "pulses": np.uint32,  
         # The lags created from combined pulses.
         "lags": np.uint32,  
@@ -199,7 +224,16 @@ class BorealisBfiq():
 
 class BorealisOutputPtrsIq():
     """
-    Class contain Borealis Bfiq fields
+    Class containing Borealis Antennas iq data fields and their types.
+
+    Attributes
+    ----------
+    single_element_types : dict
+        Dictionary of data field name to type expected in that field for a 
+        dictionary of Borealis data.
+    array_dtypes : dict
+        Dictionary of data field name to array of given numpy dtype expected  
+        in the field for a dictionary of Borealis data.
     """
 
     single_element_types = {
@@ -229,8 +263,8 @@ class BorealisOutputPtrsIq():
         "int_time": np.float32,  
         # Length of the pulse in microseconds.
         "tx_pulse_len": np.uint32,  
-        # The minimum spacing between pulses, spacing between pulses is always a
-        # multiple of this in microseconds.
+        # The minimum spacing between pulses, spacing between pulses is always 
+        # a multiple of this in microseconds.
         "tau_spacing": np.uint32,
         # Number of main array antennas.
         "main_antenna_count": np.uint32, 
@@ -238,17 +272,18 @@ class BorealisOutputPtrsIq():
         "intf_antenna_count": np.uint32,
         # The frequency used for this experiment slice in kHz.
         "freq": np.uint32,
-        # str denoting C data type of the samples included in the data array, such 
-        # as 'complex float'.
+        # str denoting C data type of the samples included in the data array, 
+        # such as 'complex float'.
         "samples_data_type": np.unicode_,
         # Number of samples in the sampling period.
         "num_samps": np.uint32,  
-        # data normalization factor determined by the filter scaling in the decimation scheme.
+        # data normalization factor determined by the filter scaling in the 
+        # decimation scheme.
         "data_normalization_factor": np.float64
     }
 
     array_dtypes = {
-        # The pulse sequence in units of the tau_spacing.
+        # The pulse sequence in multiples of the tau_spacing.
         "pulses": np.uint32,  
         # For pulse encoding phase, in desgrees offset. Contains one phase 
         # offset per pulse in pulses.
@@ -277,7 +312,16 @@ class BorealisOutputPtrsIq():
 
 class BorealisRawrf():
     """
-    Class contain Borealis Rawrf fields
+    Class containing Borealis Rawrf data fields and their types.
+
+    Attributes
+    ----------
+    single_element_types : dict
+        Dictionary of data field name to type expected in that field for a 
+        dictionary of Borealis data.
+    array_dtypes : dict
+        Dictionary of data field name to array of given numpy dtype expected  
+        in the field for a dictionary of Borealis data.
     """
 
     single_element_types = {
@@ -307,8 +351,8 @@ class BorealisRawrf():
         "main_antenna_count": np.uint32,  
         # Number of interferometer array antennas.
         "intf_antenna_count": np.uint32,
-        # str denoting C data type of the samples included in the data array, such 
-        # as 'complex float'.
+        # str denoting C data type of the samples included in the data array, 
+        # such as 'complex float'.
         "samples_data_type": np.unicode_,
         # The center frequency of this data in kHz
         "rx_center_freq": np.float64,  
