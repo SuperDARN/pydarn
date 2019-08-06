@@ -43,8 +43,6 @@ class BorealisRawacf():
     single_element_types = {
         # Identifies the version of Borealis that made this data.
         "borealis_git_hash": np.unicode_,
-        # Timestamp of when the record was written. Seconds since epoch.
-        "timestamp_of_write": np.float64,
         # Number used to identify experiment.
         "experiment_id": np.int64,  
         # Name of the experiment file.
@@ -139,8 +137,6 @@ class BorealisBfiq():
     single_element_types = {
         # Identifies the version of Borealis that made this data.
         "borealis_git_hash": np.unicode_,
-        # Timestamp of when the record was written. Seconds since epoch.
-        "timestamp_of_write": np.float64,
         # Number used to identify experiment.
         "experiment_id": np.int64,  
         # Name of the experiment file.
@@ -239,8 +235,6 @@ class BorealisAntennasIq():
     single_element_types = {
         # Identifies the version of Borealis that made this data.
         "borealis_git_hash": np.unicode_,
-        # Timestamp of when the record was written. Seconds since epoch.
-        "timestamp_of_write": np.float64,
         # Number used to identify experiment.
         "experiment_id": np.int64,  
         # Name of the experiment file.
@@ -327,8 +321,6 @@ class BorealisRawrf():
     single_element_types = {
         # Identifies the version of Borealis that made this data.
         "borealis_git_hash": np.unicode_,
-        # Timestamp of when the record was written. Seconds since epoch.
-        "timestamp_of_write": np.float64,
         # Number used to identify experiment.
         "experiment_id": np.int64,  
         # Name of the experiment file.
