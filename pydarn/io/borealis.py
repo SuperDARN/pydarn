@@ -1046,7 +1046,7 @@ class BorealisConvert():
                     'radar.revision.minor': np.int8(borealis_minor_revision),
                     'origin.code': np.int8(100),  # indicating Borealis origin
                     'origin.time': datetime.utcfromtimestamp(
-                        v['timestamp_of_write']).strftime("%c"),
+                        v['sqn_timestamps'][0]).strftime("%c"),
                     'origin.command': 'Borealis ' + v['borealis_git_hash'] + \
                         ' ' + v['experiment_name'],
                     'cp': np.int16(v['experiment_id']),
@@ -1225,7 +1225,7 @@ class BorealisConvert():
                     'radar.revision.minor': np.int8(borealis_minor_revision),
                     'origin.code': np.int8(100),  # indicating Borealis origin
                     'origin.time': datetime.utcfromtimestamp(
-                        v['timestamp_of_write']).strftime("%c"),
+                        v['sqn_timestamps'][0]).strftime("%c"),
                     'origin.command': 'Borealis ' + v['borealis_git_hash'] + \
                         ' ' + v['experiment_name'],
                     'cp': np.int16(v['experiment_id']),
