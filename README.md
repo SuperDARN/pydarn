@@ -1,4 +1,4 @@
-# pydarn
+# pyDARN
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) [![Python 3.6](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/downloads/release/python-360/) [![GitHub version](https://badge.fury.io/gh/boennemann%2Fbadges.svg)](http://badge.fury.io/gh/boennemann%2Fbadges)
 
 SuperDARN data visualization library. 
@@ -41,12 +41,27 @@ The following example shows how to read in a FITACF file, one of the SuperDARN's
 
 ```python
 import pydarn
-dmap_file = "./20180410.C0.sas.fitacf"
-dmap_reader = pydarn.DarnRead(dmap_file)
-dmap_data = dmap_reader.read_fitacf() 
+import bz2
 
-# dmap_data[record number][paramter name].value
-print(dmap_data[0]['bmnum'].value) 
+#read in FITACF file that is compressed with bzip2
+fitacf_file = "20170514.C0.rkn.fitacf.bz2"
+with bz2.open(fitacf_file) as fp:
+        fitacf_stream = fp.read()
+	
+# Reading in the compression stream
+dmap = pydarn.DarnRead(fitacf_stream, True)
+fitacf_dmap = dmap.read_fitacf()
+
+#convert to a dictionary
+fitacf_data = pydarn.dmap2dict(fitacf_dmap)
+
+#Do some parsing of the data!
+elv_list = []
+for fitacf_rec in fitacf_data:
+    if fitacf_rec['bmnum'] == 5:
+        elv_list.append(fitacf_rec['elv'])
+
+print(elv_list[100])
 ```
 
 #### Generate Range-time Parameter Plot
@@ -133,3 +148,4 @@ Run the code and two log files will be produced:
   * 0.0.1 
     * Add: dmap DmapRead DmapWrite implemented.
     * Add: superdarn DarnRead DarnWrite implemented
+    * Add: utils for converting dmap2dict and dict2dmap
