@@ -591,10 +591,10 @@ class RTP():
         print("*"*80)
 
         # default boundary ranges for the various parameter
-        boundary_ranges = {'noise.search': (1e0, 1e6),
-                           'noise.sky': (1e0, 1e6),
+        boundary_ranges = {'noise.search': (1e0, 1e5),
+                           'noise.sky': (1e0, 1e5),
                            'tfreq': (8, 22),
-                           'nave': (0, 80),
+                           'nave': (0, 60),
                            'p_l': (0, 30),
                            'v': (-200, 200),
                            'w_l': (0, 150),
@@ -687,7 +687,7 @@ class RTP():
                     # warnings are not caught with try/except
                     with warnings.catch_warnings(record=True) as w:
                         cls.plot_time_series(dmap_data, beam_num=beam_num,
-                                             parameter=axes_parameters[i][0],
+                                             parameter=axes_parameters[i][1],
                                              color=color_map[axes_parameters[i][1]],
                                              channel=channel,
                                              scale=scale, ax=second_ax,
