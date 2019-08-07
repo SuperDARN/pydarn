@@ -174,13 +174,17 @@ class RTP():
 
         # Determine if a DmapRecord was passed in, instead of a list
         try:
-            if isinstance(dmap_data[0][parameter], DmapArray) or\
-               isinstance(dmap_data[0][parameter], DmapScalar):
+            # because of partial records we need to find the first
+            # record that has that parameter
+            index_first_match = next(i for i,d in enumerate(dmap_data)
+                                     if parameter in d)
+            if isinstance(dmap_data[index_first_match][parameter], DmapArray) or\
+               isinstance(dmap_data[index_first_match][parameter], DmapScalar):
                 dmap_data = dmap2dict(dmap_data)
-        except KeyError:
+        except StopIteration:
             raise rtp_exceptions.RTPUnknownParameter(parameter)
         cls.dmap_data = dmap_data
-        cls.__check_data_type(parameter, 'array')
+        cls.__check_data_type(parameter, 'array', index_first_match)
         # Calculate the time span range, either passed in or calculated
         # based on the dmap_data records
         # TODO: move this to it's own method
@@ -202,8 +206,7 @@ class RTP():
 
         # y-axis coordinates, i.e., range gates,
         # TODO: implement variant other coordinate systems for the y-axis
-        y = np.linspace(0, cls.dmap_data[0]['nrang'],
-                        cls.dmap_data[0]['nrang'])
+        y = np.arange(0, cls.dmap_data[0]['nrang']+1, 1)
         y_max = cls.dmap_data[0]['nrang']
 
         # z: parameter data mapped into the color mesh
@@ -217,8 +220,8 @@ class RTP():
         if settings["boundary"]:
             z_min, z_max = settings["boundary"]
         else:
-            z_min = cls.dmap_data[0][parameter][0]
-            z_max = cls.dmap_data[0][parameter][0]
+            z_min = cls.dmap_data[index_first_match][parameter][0]
+            z_max = cls.dmap_data[index_first_match][parameter][0]
         for dmap_record in cls.dmap_data:
             # get time difference to test if there is some gap data
             time = cls.__time2datetime(dmap_record)
@@ -273,17 +276,10 @@ class RTP():
                             # TODO: refactor and clean up this code
                             elif cls.__filter_data_check(dmap_record,
                                                          settings, j):
-                                # check if boundaries have been set
-                                if settings["boundary"]:
-                                    # see if data within boundaries
-                                    if z_min < dmap_record[parameter][j] and\
-                                       z_max > dmap_record[parameter][j]:
-                                        z[i][dmap_record['slist'][j]] = \
-                                                dmap_record[parameter][j]
-                                else:
-                                    z[i][dmap_record['slist'][j]] = \
-                                            dmap_record[parameter][j]
+                                z[i][dmap_record['slist'][j]] = \
+                                        dmap_record[parameter][j]
                                     # calculate min and max value
+                                if not settings["boundary"]:
                                     if z[i][dmap_record['slist'][j]] < z_min or\
                                        z_min is None:
                                         z_min = z[i][dmap_record['slist'][j]]
@@ -293,7 +289,7 @@ class RTP():
                     # due to bad quality data.
                     except KeyError:
                         continue
-
+        x.append(end_time)
         # Check if there is any data to plot
         if np.all(np.isnan(z)):
             raise rtp_exceptions.RTPNoDataFoundError(parameter, beam_num,
@@ -309,8 +305,9 @@ class RTP():
         cmap = cm.get_cmap(settings['color_map'])
         # set groundscatter to grey
         cmap.set_under('grey', 1.0)
-
+        cmap.set_bad(color='w', alpha=1.)
         # plot!
+        #im = ax.imshow(z_data, aspect='auto', origin='lower', extent=[dates.date2num(x[0]),dates.date2num(x[-1]), 0, y[-1]])
         im = ax.pcolormesh(time_axis, elev_axis, z_data, lw=0.01,
                            cmap=cmap, norm=norm)
         # setup some standard axis information
@@ -328,11 +325,11 @@ class RTP():
             cb = ax.figure.colorbar(im, ax=ax)
             cb.set_label(settings['color_bar_label'])
 
-        return im, cb, cmap
+        return im, cb, cmap, x, y, z_data
 
     @classmethod
     def plot_time_series(cls, dmap_data: List[dict], *args,
-                         parameter: str = 'frequency', beam_num: int = 0,
+                         parameter: str = 'tfreq', beam_num: int = 0,
                          ax=None, time_span: tuple = None,
                          date_fmt: str = '%y/%m/%d\n %H:%M',
                          channel='all', scale: str = 'linear',
@@ -390,23 +387,20 @@ class RTP():
         if not ax:
             ax = plt.gca()
 
-        # get parameter info
-        parameter_tuple = cls.parameter_type.get(parameter, parameter)
-        if isinstance(parameter_tuple, tuple):
-            parameter = parameter_tuple[0]
-        else:
-            parameter = parameter_tuple
-
         # Determine if a DmapRecord was passed in, instead of a list
         try:
-            if isinstance(dmap_data[0][parameter], DmapArray) or\
-               isinstance(dmap_data[0][parameter], DmapScalar):
+            # because of partial records we need to find the first
+            # record that has that parameter
+            index_first_match = next(i for i,d in enumerate(dmap_data)
+                                     if parameter in d)
+            if isinstance(dmap_data[index_first_match][parameter], DmapArray) or\
+               isinstance(dmap_data[index_first_match][parameter], DmapScalar):
                 dmap_data = dmap2dict(dmap_data)
-        except KeyError:
+        except StopIteration:
             raise rtp_exceptions.RTPUnknownParameter(parameter)
 
         cls.dmap_data = dmap_data
-        cls.__check_data_type(parameter, 'scalar')
+        cls.__check_data_type(parameter, 'scalar', index_first_match)
         # Calculate the time span range, either passed in or calculated
         # based on the dmap_data records
         if time_span is None:
@@ -451,7 +445,7 @@ class RTP():
                                 # else:
                                 #     cp_name = cpid_command[1]
                                 ax.text(x=time + timedelta(seconds=600),
-                                        y=0.4,
+                                        y=0.2,
                                         s=SuperDARNCpids.cpids.get(dmap_record['cp'],
                                                                    'unknown'))
 
@@ -558,7 +552,7 @@ class RTP():
         return pass_flg
 
     @classmethod
-    def __check_data_type(cls, parameter: str, expected_type: str):
+    def __check_data_type(cls, parameter: str, expected_type: str, i: int):
         """
         Checks to make sure the plot type is correct
         for the data structure
@@ -575,7 +569,7 @@ class RTP():
         -------
         RTPIncorrectPlotMethodError
         """
-        data_type = cls.dmap_data[0][parameter]
+        data_type = cls.dmap_data[i][parameter]
         if expected_type == 'array':
             if not isinstance(data_type, np.ndarray):
                 raise rtp_exceptions.RTPIncorrectPlotMethodError(parameter,
