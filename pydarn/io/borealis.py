@@ -1017,14 +1017,16 @@ class BorealisConvert():
         """
         recs = []
         for k, v in self._borealis_records.items():
+            # data_descriptors (dimensions) are num_antenna_arrays, 
+            # num_sequences, num_beams, num_samps
             # scale by normalization and then scale to integer max as per 
             # dmap style 
             data = v['data'].reshape(v['data_dimensions']).astype(
                 np.complex128) / v['data_normalization_factor'] * \
                 np.iinfo(np.int16).max
 
-            # data_descriptors (dimensions) are num_antenna_arrays, 
-            # num_sequences, num_beams, num_samps
+            # Borealis git tag version numbers. If not a tagged version,
+            # then use 255.255
             if v['borealis_git_hash'][0] == 'v' and \
                     v['borealis_git_hash'][2] == '.':
 
@@ -1144,7 +1146,7 @@ class BorealisConvert():
                     'skpnum': np.int32(v['first_range']/v['range_sep']),
                     'ptab': v['pulses'].astype(np.int16),
                     'ltab': v['lags'].astype(np.int16),
-                    # timestamps in ms
+                    # timestamps in ms, convert to seconds and us.
                     'tsc': np.array([math.floor(x/1e3) for x in 
                         v['sqn_timestamps']], dtype=np.int32),
                     'tus': np.array([math.fmod(x, 1000.0) * 1e3 for x in 
@@ -1183,14 +1185,12 @@ class BorealisConvert():
         for k, v in self._borealis_records.items():
             shaped_data = {}
             # correlation_descriptors are num_beams, num_ranges, num_lags
-
             # scale by the scale squared to make up for the multiply 
             # in correlation (integer max squared)
             shaped_data['main_acfs'] = v['main_acfs'].reshape(
                 v['correlation_dimensions']).astype(
                 np.complex128) * ((np.iinfo(np.int16).max**2) / \
                 (v['data_normalization_factor']**2))
-
 
             if 'intf_acfs' in v.keys():
                 shaped_data['intf_acfs'] = v['intf_acfs'].reshape(
@@ -1203,6 +1203,8 @@ class BorealisConvert():
                     np.complex128) * ((np.iinfo(np.int16).max**2) / \
                     (v['data_normalization_factor']**2))
 
+            # Borealis git tag version numbers. If not a tagged version,
+            # then use 255.255
             if v['borealis_git_hash'][0] == 'v' and \
                     v['borealis_git_hash'][2] == '.':
                 borealis_major_revision = v['borealis_git_hash'][1]
@@ -1238,7 +1240,8 @@ class BorealisConvert():
                         flattened_data.size * 2, dtype=np.float32)
                     int_data[0::2] = flattened_data.real
                     int_data[1::2] = flattened_data.imag
-                    # num_ranges x num_lags x 2
+                    # num_ranges x num_lags x 2; num_lags is one less than 
+                    # in Borealis file because Borealis keeps alternate lag0
                     new_data = int_data.reshape(
                         v['correlation_dimensions'][1], 
                         v['correlation_dimensions'][2]-1, 2)
