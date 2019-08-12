@@ -758,7 +758,6 @@ class RTP():
     def __generate_title(cls, beam_num: int, channel: int):
         start_time = cls.__time2datetime(cls.dmap_data[0])
         end_time = cls.__time2datetime(cls.dmap_data[-1])
-
         if cls.dmap_data[0]['fitacf.revision.major'] == 5:
             version = "2.5"
         else:
@@ -767,11 +766,25 @@ class RTP():
                               minor=cls.dmap_data[0]['fitacf.revision.minor'])
 
         radar_name = SuperDARNRadars.radars[cls.dmap_data[0]['stid']].name
+        # Date time formats:
+        #   %Y - year
+        #   %b - month abbreviation
+        #   %d - day
+        #   %H - Hour
+        #   %M - Month
+        if end_time.day == start_time.day:
+            end_format = "%H:%M"
+        elif end_time.month == start_time.month:
+            end_format = "%d %H:%M"
+        elif end_time.year == start_time.year:
+            end_format = "%b %d %H:%M"
+        else:
+            end_format = "%Y %b %d %H:%M"
         title_format = "{name} Fitacf {version}"\
                        "  {start_date} - {end_date}  Beam {num}"\
                        "".format(name=radar_name, version=version,
-                                 start_date=start_time.strftime("%Y %b %d"),
-                                 end_date=end_time.strftime("%Y %b %d"),
+                                 start_date=start_time.strftime("%Y %b %d %H:%M"),
+                                 end_date=end_time.strftime(end_format),
                                  num=beam_num)
         if type(channel) is int:
             title_format += " channel {ch_num}".format(ch_num=channel)
