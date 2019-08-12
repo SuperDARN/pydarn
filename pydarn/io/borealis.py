@@ -9,9 +9,9 @@ Classes
 BorealisUtilities: utilites class that contains static methods for
 SuperDARN file type checking
 BorealisRead: Reads Borealis SuperDARN file types (hdf5)
-BorealisWrite: Writes Borealis SuperDARN file types (hdf5
+BorealisWrite: Writes Borealis SuperDARN file types (hdf5)
 BorealisConvert: Writes Borealis SuperDARN files types to
-SuperDARN DARN files with dmap record structure
+SuperDARN DARN files with DMap record structure
 
 Exceptions
 ----------
@@ -25,7 +25,7 @@ BorealisConvert2RawacfError
 
 Future work
 -----------
-Update to convert a restructured Borealis file into dmap directly
+Update to convert a restructured Borealis file into DMap directly
 when Borealis files become restructured to save storage space.
 
 Notes
@@ -41,14 +41,17 @@ import os
 
 from collections import OrderedDict
 from datetime import datetime
-from pydarn import borealis_exceptions, DarnWrite, borealis_formats
-from pydarn.utils.conversions import dict2dmap
 from typing import Union, List
 
+from pydarn import borealis_exceptions, DarnWrite, borealis_formats
+# from pydarn.utils.conversions import dict2dmap
 
 pydarn_log = logging.getLogger('pydarn')
 
 # 3 letter radar code, mapped to station id for DARN files conversion.
+# TODO: when merged with plotting, remove this dictionary and call the 
+#    one in the plotting folder... also move Radars.py to a more 
+#    central location.
 code_to_stid = {
     "tst": 0,
     "gbr": 1,
@@ -191,7 +194,7 @@ class BorealisUtilities():
         file_struct_list: List[dict]
             List of dictionaries for the possible file structure fields
         record: dict
-            Dictionary representing the dmap record
+            Dictionary representing the DMap record
         record_name: int
             The name of the record (first sequence start time)
 
@@ -225,7 +228,7 @@ class BorealisUtilities():
         file_struct_list: List[dict]
             List of dictionaries for the possible file structure fields
         record: dict
-            Dmap record
+            DMap record
         record_name: int
             Record name for better error message information
 
@@ -259,7 +262,7 @@ class BorealisUtilities():
             Dictionary with the require dtypes for the numpy
             arrays in the file.
         record: dict
-            Dmap record
+            DMap record
         record_name: int
             Record name for a better error message information
 
@@ -369,16 +372,25 @@ class BorealisRead():
         """
         return self._records
 
-    def read_file(self, borealis_filetype: str):
+    def read_file(self, borealis_filetype: str) -> dict:
         """
-        Reads the specified Borealis file using the other specific functions.
+        Reads the specified Borealis file using the other functions for 
+        the proper file type.
 
         Reads the entire file.
+
+        See Also
+        --------
+        read_bfiq
+        read_rawacf
+        read_antennas_iq
+        read_rawrf
 
         Returns
         -------
         records: OrderedDict{dict}
-            records of borealis data. Keys are timestamps of write (ms).
+            records of borealis data. Keys are first sequence timestamp 
+            (in ms).
 
         Raises
         ------
@@ -390,8 +402,8 @@ class BorealisRead():
         elif borealis_filetype == 'rawacf':
             self.read_rawacf()
             return self._records
-        elif borealis_filetype == 'output_ptrs_iq':
-            self.read_output_ptrs_iq()
+        elif borealis_filetype == 'antennas_iq':
+            self.read_antennas_iq()
             return self._records
         elif borealis_filetype == 'rawrf':
             self.read_rawrf()
@@ -407,7 +419,8 @@ class BorealisRead():
         Returns
         -------
         records: OrderedDict{dict}
-            records of beamformed iq data. Keys are timestamps of write (ms).
+            records of beamformed iq data. Keys are first sequence timestamp
+            (in ms).
         """
         pydarn_log.debug("Reading Borealis bfiq file: {}"
                          "".format(self.filename))
@@ -423,7 +436,8 @@ class BorealisRead():
         Returns
         -------
         records: OrderedDict{dict}
-            records of borealis rawacf data. Keys are timestamps of write (ms).
+            records of borealis rawacf data. Keys are first sequence timestamp 
+            (in ms).
         """
         pydarn_log.debug(
             "Reading Borealis rawacf file: {}".format(self.filename))
@@ -432,16 +446,17 @@ class BorealisRead():
         self._read_borealis_records(attribute_types, dataset_types)
         return self._records
 
-    def read_output_ptrs_iq(self) -> dict:
+    def read_antennas_iq(self) -> dict:
         """
-        Reads Borealis output_ptrs_iq file
+        Reads Borealis antennas_iq file
 
         Returns
         -------
         records: OrderedDict{dict}
-            records of borealis rawacf data. Keys are timestamps of write (ms).
+            records of borealis antennas iq data. Keys are first sequence
+            timestamp (in ms).
         """
-        pydarn_log.debug("Reading Borealis output_ptrs_iq file: {}"
+        pydarn_log.debug("Reading Borealis antennas_iq file: {}"
                          "".format(self.filename))
         attribute_types = \
             borealis_formats.BorealisAntennasIq.single_element_types
@@ -456,7 +471,8 @@ class BorealisRead():
         Returns
         -------
         records: OrderedDict{dict}
-            records of borealis rawacf data. Keys are timestamps of write (ms).
+            records of borealis rawrf data. Keys are first sequence timestamp
+            (in ms).
         """
         pydarn_log.debug("Reading Borealis rawrf file: {}"
                          "".format(self.filename))
@@ -607,7 +623,7 @@ class BorealisWrite():
             filetype to write as. Currently supported:
                 - bfiq
                 - rawacf
-                - output_ptrs_iq
+                - antennas_iq
                 - rawrf
 
         Raises
@@ -619,8 +635,8 @@ class BorealisWrite():
             self.write_bfiq()
         elif borealis_filetype == 'rawacf':
             self.write_rawacf()
-        elif borealis_filetype == 'output_ptrs_iq':
-            self.write_output_ptrs_iq()
+        elif borealis_filetype == 'antennas_iq':
+            self.write_antennas_iq()
         elif borealis_filetype == 'rawrf':
             self.write_rawrf()
         else:
@@ -659,9 +675,9 @@ class BorealisWrite():
         self._write_borealis_records(attribute_types, dataset_types)
         return self.filename
 
-    def write_output_ptrs_iq(self) -> str:
+    def write_antennas_iq(self) -> str:
         """
-        Writes Borealis output_ptrs_iq file
+        Writes Borealis antennas_iq file
 
         Returns
         -------
@@ -669,7 +685,7 @@ class BorealisWrite():
             Filename of written file.
         """
         pydarn_log.debug(
-            "Writing Borealis output_ptrs_iq file: {}".format(self.filename))
+            "Writing Borealis antennas_iq file: {}".format(self.filename))
         attribute_types = \
             borealis_formats.BorealisAntennasIq.single_element_types
         dataset_types = borealis_formats.BorealisAntennasIq.array_dtypes
@@ -790,7 +806,7 @@ class BorealisConvert():
 
     def __init__(self, filename):
         """
-        Convert HDF5 Borealis records to a given DARN file with dmap format.
+        Convert HDF5 Borealis records to a given DARN file with DMap format.
 
         Parameters
         ----------
@@ -844,7 +860,7 @@ class BorealisConvert():
     @property
     def dmap_records(self):
         """
-        The converted dmap records to write to file.
+        The converted DMap records to write to file.
         """
         return self._dmap_records
 
@@ -856,10 +872,12 @@ class BorealisConvert():
         Parameters
         ----------
         dmap_filetype: str
-            Intended DARN filetype to write to as dmap.
-            The following dmap types are supported:
-                                     - 'iqdat': Iqdat SuperDARN file type
+            Intended DARN filetype to write to as DMap.
+            The following DMap types are supported:
+                                     - 'iqdat': Iqdat SuperDARN file type 
+                                     (converted from Borealis bfiq)
                                      - 'rawacf': Rawacf SuperDARN file type
+                                     (converted from Borealis rawacf)
         dmap_filename: str
             Filename with directory you want to write to.
 
@@ -884,13 +902,13 @@ class BorealisConvert():
 
     def _convert_records_to_dmap(self, dmap_filetype):
         """
-        Convert the Borealis records to the dmap filetype, if possible.
+        Convert the Borealis records to the DMap filetype, if possible.
 
         Parameters
         ----------
         dmap_filetype: str
-            Intended DARN filetype to write to as dmap.
-            The following dmap types are supported:
+            Intended DARN filetype to write to as DMap.
+            The following DMap types are supported:
                                      - 'iqdat': Iqdat SuperDARN file type
                                      - 'rawacf': Rawacf SuperDARN file type
 
@@ -900,7 +918,7 @@ class BorealisConvert():
 
         Returns
         -------
-        dmap_records, the records converted to dmap format
+        dmap_records, the records converted to DMap format
         """
         if dmap_filetype == 'iqdat':
             if self._is_convertible_to_iqdat():
@@ -984,7 +1002,7 @@ class BorealisConvert():
 
     def _convert_bfiq_to_iqdat(self):
         """
-        Conversion for bfiq to iqdat dmap records.
+        Conversion for bfiq to iqdat DMap records.
 
         See Also
         --------
@@ -995,7 +1013,7 @@ class BorealisConvert():
 
         Returns
         -------
-        dmap_recs, the records converted to dmap format
+        dmap_recs, the records converted to DMap format
         """
         recs = []
         for k, v in self._borealis_records.items():
@@ -1017,6 +1035,7 @@ class BorealisConvert():
                 borealis_minor_revision = 255
 
             slice_id = os.path.basename(self.filename).split('.')[-3]
+            # base offset for setting the toff field in DARN iqdat file.
             offset = 2 * v['antenna_arrays_order'].shape[0] * v['num_samps']
 
             for beam_index, beam in enumerate(v['beam_nums']):
@@ -1069,16 +1088,22 @@ class BorealisConvert():
                     'nave': np.int16(v['num_sequences']),
                     'atten': np.int16(0),
                     'lagfr': np.int16(v['first_range_rtt']),
+                    # smsep is in us; conversion from seconds
                     'smsep': np.int16(1e6/v['rx_sample_rate']),
                     'ercod': np.int16(0),
+                    # TODO: currently not implemented
                     'stat.agc': np.int16(0),
+                    # TODO: currently not implemented
                     'stat.lopwr': np.int16(0),
+                    # TODO: currently not implemented
                     'noise.search': np.float32(v['noise_at_freq'][0]),
+                    # TODO: currently not implemented
                     'noise.mean': np.float32(0),
                     'channel': np.int16(slice_id),
                     'bmnum': np.int16(beam),
                     'bmazm': np.float32(v['beam_azms'][beam_index]),
                     'scan': np.int16(v['scan_start_marker']),
+                    # no digital receiver offset or rxrise required in Borealis
                     'offset': np.int16(0),
                     'rxrise': np.int16(0),
                     'intt.sc': np.int16(math.floor(v['int_time'])),
@@ -1086,14 +1111,16 @@ class BorealisConvert():
                     'txpl': np.int16(v['tx_pulse_len']),
                     'mpinc': np.int16(v['tau_spacing']),
                     'mppul': np.int16(len(v['pulses'])),
-                    # an alternate lag-zero will be given.
+                    # an alternate lag-zero will be given, so subtract 1.
                     'mplgs': np.int16(v['lags'].shape[0] - 1),
                     'nrang': np.int16(v['num_ranges']),
                     'frang': np.int16(round(v['first_range'])),
                     'rsep': np.int16(round(v['range_sep'])),
                     'xcf': np.int16('intf' in v['antenna_arrays_order']),
                     'tfreq': np.int16(v['freq']),
+                    # mxpwr filler; cannot specify this information
                     'mxpwr': np.int32(-1),
+                    # lvmax RST default
                     'lvmax': np.int32(20000),
                     'iqdata.revision.major': np.int32(1),
                     'iqdata.revision.minor': np.int32(0),
@@ -1138,7 +1165,7 @@ class BorealisConvert():
 
     def _convert_rawacf_to_rawacf(self):
         """
-        Conversion for Borealis hdf5 rawacf to DARN dmap rawacf files.
+        Conversion for Borealis hdf5 rawacf to DARN DMap rawacf files.
 
         See Also
         --------
@@ -1149,7 +1176,7 @@ class BorealisConvert():
 
         Returns
         -------
-        dmap_recs, the records converted to dmap format
+        dmap_recs, the records converted to DMap format
         """
 
         recs = []
@@ -1250,14 +1277,19 @@ class BorealisConvert():
                     'lagfr': np.int16(v['first_range_rtt']),
                     'smsep': np.int16(1e6/v['rx_sample_rate']),
                     'ercod': np.int16(0),
+                    # TODO: currently not implemented
                     'stat.agc': np.int16(0),
+                    # TODO: currently not implemented
                     'stat.lopwr': np.int16(0),
+                    # TODO: currently not implemented
                     'noise.search': np.float32(v['noise_at_freq'][0]),
+                    # TODO: currently not implemented
                     'noise.mean': np.float32(0),
                     'channel': np.int16(slice_id),
                     'bmnum': np.int16(beam),
                     'bmazm': np.float32(v['beam_azms'][beam_index]),
                     'scan': np.int16(v['scan_start_marker']),
+                    # no digital receiver offset or rxrise required in Borealis
                     'offset': np.int16(0),
                     'rxrise': np.int16(0),
                     'intt.sc': np.int16(math.floor(v['int_time'])),
