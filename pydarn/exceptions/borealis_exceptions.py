@@ -45,10 +45,9 @@ class BorealisFileTypeError(Exception):
     """
 
     def __init__(self, filename: str, file_type: str):
-        self.message = "{file_type} is not a Borealis file format type."\
-            "{filename} was not used. Please check that the spelling of"\
-            " the file type is correct and that the file type has been"\
-            " implemented.".format(file_type=file_type,
+        self.message = "{file_type} is not a Borealis file format or has"\
+            " not been implemented yet. {filename} was not used. Please check"\
+            " the spelling of {file_type}.".format(file_type=file_type,
                                    filename=filename)
         Exception.__init__(self, self.message)
 
@@ -145,7 +144,7 @@ class BorealisConversionTypesError(Exception):
     origin_filetype: str
         Borealis origin filetype, ex. bfiq.
     dmap_filetype: str
-        desired SuperDARN dmap type, ex. iqdat.
+        desired SuperDARN DMap type, ex. iqdat.
 
     Attributes
     ----------
@@ -167,7 +166,7 @@ class BorealisConversionTypesError(Exception):
 
 class BorealisConvert2IqdatError(Exception):
     """
-    Raised when the file cannot be converted to DARN dmap iqdat format.
+    Raised when the file cannot be converted to DARN DMap iqdat format.
 
     Parameters
     ----------
@@ -190,7 +189,7 @@ class BorealisConvert2IqdatError(Exception):
 
 class BorealisConvert2RawacfError(Exception):
     """
-    Raised when the file cannot be converted to DARN dmap rawacf format.
+    Raised when the file cannot be converted to DARN DMap rawacf format.
 
     Parameters
     ----------
