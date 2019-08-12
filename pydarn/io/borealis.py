@@ -1089,8 +1089,8 @@ class BorealisConvert():
                     # an alternate lag-zero will be given.
                     'mplgs': np.int16(v['lags'].shape[0] - 1),
                     'nrang': np.int16(v['num_ranges']),
-                    'frang': np.int16(v['first_range']),
-                    'rsep': np.int16(v['range_sep']),
+                    'frang': np.int16(round(v['first_range'])),
+                    'rsep': np.int16(round(v['range_sep'])),
                     'xcf': np.int16('intf' in v['antenna_arrays_order']),
                     'tfreq': np.int16(v['freq']),
                     'mxpwr': np.int32(-1),
@@ -1268,8 +1268,8 @@ class BorealisConvert():
                     # an alternate lag-zero will be given.
                     'mplgs': np.int16(v['lags'].shape[0] - 1),
                     'nrang': np.int16(v['correlation_dimensions'][1]),
-                    'frang': np.int16(v['first_range']),
-                    'rsep': np.int16(v['range_sep']),
+                    'frang': np.int16(round(v['first_range'])),
+                    'rsep': np.int16(round(v['range_sep'])),
                     # False is list is empty.
                     'xcf': np.int16(bool('xcfs' in v.keys())),
                     'tfreq': np.int16(v['freq']),
