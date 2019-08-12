@@ -30,6 +30,10 @@ class BorealisRawacf():
     """
     Class containing Borealis Rawacf data fields and their types.
 
+    Rawacf data has been mixed, filtered, and decimated; beamformed and 
+    combined into antenna arrays; then autocorrelated and correlated between
+    antenna arrays to produce matrices of num_ranges x num_lags. 
+
     Attributes
     ----------
     single_element_types: dict
@@ -123,6 +127,11 @@ class BorealisRawacf():
 class BorealisBfiq():
     """
     Class containing Borealis Bfiq data fields and their types.
+
+    Bfiq data is beamformed i and q data. It has been mixed, filtered, 
+    decimated to the final output receive rate, and it has been beamformed
+    and all channels have been combined into their arrays. No correlation
+    or averaging has occurred.
 
     Attributes
     ----------
@@ -222,6 +231,10 @@ class BorealisAntennasIq():
     """
     Class containing Borealis Antennas iq data fields and their types.
 
+    Antennas iq data is data with all channels separated. It has been mixed
+    and filtered, but it has not been beamformed or combined into the 
+    entire antenna array data product. 
+
     Attributes
     ----------
     single_element_types: dict
@@ -307,6 +320,9 @@ class BorealisAntennasIq():
 class BorealisRawrf():
     """
     Class containing Borealis Rawrf data fields and their types.
+
+    Rawrf data is data that has been produced at the original receive bandwidth
+    and has not been mixed, filtered, or decimated. 
 
     Attributes
     ----------
