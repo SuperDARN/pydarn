@@ -46,7 +46,7 @@ class RTP():
 
     @classmethod
     def plot_range_time(cls, dmap_data: List[dict], parameter: str = 'p_l',
-                        beam_num: int = 0, ax=None,
+                        beam_num: int = 0, ax=None, background: str = 'w',
                         color_norm=None, **kwargs):
         """
         Plots a range-time parameter plot of the given
@@ -300,7 +300,7 @@ class RTP():
         if settings['groundscatter']:
             cmap.set_under('grey', 1.0)
 
-        cmap.set_bad(color='w', alpha=1.)
+        cmap.set_bad(color=background, alpha=1.)
         # plot!
         im = ax.pcolormesh(time_axis, elev_axis, z_data, lw=0.01,
                            cmap=cmap, norm=norm)
@@ -505,6 +505,7 @@ class RTP():
     def plot_summary(cls, dmap_data: List[dict], beam_num: int = 0,
                      groundscatter: bool = False, channel: int = 'all',
                      figsize: tuple = (11, 8.5), boundary: dict = {},
+                     background_color: str = 'w',
                      color_maps: dict = {}, plot_elv: bool = True,
                      title=None):
         """
@@ -717,14 +718,16 @@ class RTP():
                         axes[i].yaxis.set_minor_locator(ticker.LinearLocator())
                         second_ax.yaxis.set_minor_locator(ticker.LinearLocator())
 
+                axes[i].set_facecolor(background_color)
             # plot cp id
             elif i == 2:
-                    cls.plot_time_series(dmap_data, beam_num=beam_num,
-                                         parameter=axes_parameters[i],
-                                         channel=channel,
-                                         ax=axes[i])
-                    axes[i].set_ylabel('CPID', rotation=0, labelpad=30)
-                    axes[i].yaxis.set_label_coords(-0.08, 0.079)
+                cls.plot_time_series(dmap_data, beam_num=beam_num,
+                                     parameter=axes_parameters[i],
+                                     channel=channel,
+                                     ax=axes[i])
+                axes[i].set_ylabel('CPID', rotation=0, labelpad=30)
+                axes[i].yaxis.set_label_coords(-0.08, 0.079)
+                axes[i].set_facecolor(background_color)
             # plot range-time
             else:
                 # Current standard is to only have groundscatter
@@ -739,7 +742,8 @@ class RTP():
                                     groundscatter=grndflg,
                                     channel=channel,
                                     color_map=color_map[axes_parameters[i]],
-                                    boundary=boundary_ranges[axes_parameters[i]])
+                                    boundary=boundary_ranges[axes_parameters[i]],
+                                    background=background_color)
                 axes[i].set_ylabel('Range Gates')
             if i < num_plots-1:
                 axes[i].set_xticklabels([])
