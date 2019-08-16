@@ -13,6 +13,7 @@ BorealisDataFormatTypeError
 BorealisConversionTypesError
 BorealisConvert2IqdatError
 BorealisConvert2RawacfError
+ConvertFileOverWriteError
 
 See Also
 --------
@@ -207,4 +208,25 @@ class BorealisConvert2RawacfError(Exception):
             "the following error which indicates increased complexity not "\
             "accounted for in DARN iqdat format: {error_str}"\
             "".format(error_str=error_str)
+        Exception.__init__(self, self.message)
+
+
+class ConvertFileOverWriteError(Exception):
+    """
+    Trying to write to a file that also wish to read. 
+
+    Parameters
+    ----------
+    filename: str
+        name of the file associated to the wrong SuperDARN Borealis file type
+
+    Attributes
+    ----------
+    message: str
+        The message to display with the error
+    """
+
+    def __init__(self, filename: str, file_type: str):
+        self.message = "Writing to {filename} not permitted while reading"\
+            " as source to convert".format(filename=filename)
         Exception.__init__(self, self.message)
