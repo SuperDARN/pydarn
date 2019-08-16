@@ -15,8 +15,10 @@ from matplotlib import dates, colors, cm, ticker
 from typing import List
 
 from pydarn import (dmap2dict, DmapArray, DmapScalar,
-                    rtp_exceptions, SuperDARNCpids, SuperDARNRadars)
+                    rtp_exceptions, SuperDARNCpids, SuperDARNRadars,
+                    standard_warning_format)
 
+warnings.formatwarning = standard_warning_format
 
 class RTP():
     """
@@ -585,11 +587,11 @@ class RTP():
             the subplots in the summary plot
 
         """
-        print("*"*80)
-        print("* WARNING: maplotlib default dpi may cause distortion in range gate            *")
-        print("*          and time period. The figure size can be adjusted with the           *")
-        print("*          the option figsize and dpi can be adjusted when saving the file     *")
-        print("*"*80)
+        message="WARNING: maplotlib default dpi may cause distortion"\
+                " in range gates and time period. The figure size can"\
+                " be adjusted with the option figsize and dpi can be"\
+                " adjusted when saving the file."
+        warnings.warn(message)
 
         # default boundary ranges for the various parameter
         boundary_ranges = {'noise.search': (1e0, 1e5),
