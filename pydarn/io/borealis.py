@@ -51,9 +51,8 @@ from collections import OrderedDict
 from datetime import datetime
 from typing import Union, List
 
-from pydarn import borealis_exceptions, DarnWrite, borealis_formats, 
-                    dict2dmap
-# from pydarn.utils.conversions import dict2dmap
+from pydarn import borealis_exceptions, DarnWrite, borealis_formats
+from pydarn.utils.conversions import dict2dmap
 
 pydarn_log = logging.getLogger('pydarn')
 
@@ -399,7 +398,7 @@ class BorealisRead():
         -------
         records: OrderedDict{dict}
             records of borealis data. Keys are first sequence timestamp 
-            (in ms).
+            (in ms since epoch).
 
         Raises
         ------
@@ -429,7 +428,7 @@ class BorealisRead():
         -------
         records: OrderedDict{dict}
             records of beamformed iq data. Keys are first sequence timestamp
-            (in ms).
+            (in ms since epoch).
         """
         pydarn_log.debug("Reading Borealis bfiq file: {}"
                          "".format(self.filename))
@@ -446,7 +445,7 @@ class BorealisRead():
         -------
         records: OrderedDict{dict}
             records of borealis rawacf data. Keys are first sequence timestamp 
-            (in ms).
+            (in ms since epoch).
         """
         pydarn_log.debug(
             "Reading Borealis rawacf file: {}".format(self.filename))
@@ -463,7 +462,7 @@ class BorealisRead():
         -------
         records: OrderedDict{dict}
             records of borealis antennas iq data. Keys are first sequence
-            timestamp (in ms).
+            timestamp (in ms since epoch).
         """
         pydarn_log.debug("Reading Borealis antennas_iq file: {}"
                          "".format(self.filename))
@@ -481,7 +480,7 @@ class BorealisRead():
         -------
         records: OrderedDict{dict}
             records of borealis rawrf data. Keys are first sequence timestamp
-            (in ms).
+            (in ms since epoch).
         """
         pydarn_log.debug("Reading Borealis rawrf file: {}"
                          "".format(self.filename))
@@ -574,7 +573,6 @@ class BorealisWrite():
         The filename of the Borealis HDF5 file being read.
     borealis_records: OrderedDict{dict}
         The dictionary of Borealis records to write to HDF5 file.
-    }
     group_names: list(str)
         The list of record names of the Borealis data. These values 
         are the write time of the record in ms since epoch.
@@ -1385,7 +1383,7 @@ def borealis_write_to_dmap(filename, dmap_filetype, dmap_filename):
                           dmap_filename=dmap_filename))    
 
 
-def bfiq2iqdatdmap(filename, **kwargs):
+def bfiq2darniqdat(filename, **kwargs):
     """
     Convert the borealis bfiq hdf5 file to DARN iqdat filetype.
 
@@ -1431,10 +1429,12 @@ def bfiq2iqdatdmap(filename, **kwargs):
     if settings['dmap_filename'] == filename:
         raise ConvertFileOverWriteError(filename)
     
-    borealis_write_to_dmap(filename, 'bfiq', settings['dmap_filename'])
+    borealis_write_to_dmap(filename, 'iqdat', settings['dmap_filename'])
+
+    return settings['dmap_filename']
 
 
-def rawacf2rawacfdmap(filename, **kwargs):
+def rawacf2darnrawacf(filename, **kwargs):
     """
     Convert the borealis rawacf hdf5 file to DARN rawacf filetype.
 
@@ -1481,3 +1481,5 @@ def rawacf2rawacfdmap(filename, **kwargs):
         raise ConvertFileOverWriteError(filename)
     
     borealis_write_to_dmap(filename, 'rawacf', settings['dmap_filename'])
+
+    return settings['dmap_filename']
