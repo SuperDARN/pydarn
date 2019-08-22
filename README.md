@@ -29,6 +29,9 @@ You can check your python version with
       `$ python3 -m pip install --user virtualenv`  
       `$ python3 -m virtualenv <environment name>`  
 		  `$ source <environment name>/bin/activate`
+	* Install more dependencies in the virtualenv
+		  `$ pip3 install deepdish`
+		  `$ pip3 install pathlib2`
         * Navigate to where you cloned pydarn:  
 		  `$ python3 setup.py install`
     2. Install in the system (root privileges required):  
