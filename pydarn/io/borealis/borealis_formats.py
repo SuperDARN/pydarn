@@ -19,6 +19,8 @@ progression from rawrf to output ptrs iq files) will not be included here.
 This is a debug format only and should not be used for higher level 
 data products.
 
+See Also
+--------
 For more information on Borealis data files, see:
 https://borealis.readthedocs.io/en/latest/ 
 """
@@ -42,6 +44,19 @@ class BorealisRawacf():
     array_dtypes: dict
         Dictionary of data field name to array of given numpy dtype expected  
         in the field for a dictionary of Borealis data.
+    shared_fields: list
+        List of the fields that are restructured to a single value per
+        file in the Borealis array type files. 
+    unshared_fields: list
+        List of the fields that are restructured to be an array with first
+        dimension equal to the number of records in the file. 
+
+    Notes
+    -----
+    single_element_types.keys() + array_dtypes.keys() = all known fields
+    as well as 
+    shared_fields + unshared_fields = all known fields
+    in the Borealis Rawacf files.
     """
 
     single_element_types = {
@@ -123,6 +138,19 @@ class BorealisRawacf():
         "xcfs": np.complex64 
     }
 
+    shared_fields = ['beam_azms', 'beam_nums', 'blanked_samples', 
+                     'borealis_git_hash', 'correlation_descriptors',
+                     'data_normalization_factor', 'experiment_comment', 
+                     'experiment_id', 'experiment_name', 'first_range', 
+                     'first_range_rtt', 'freq', 'intf_antenna_count', 'lags', 
+                     'main_antenna_count', 'num_slices', 'pulses', 'range_sep',
+                     'rx_sample_rate', 'samples_data_type', 
+                     'scan_start_marker', 'slice_comment', 'station', 
+                     'tau_spacing', 'tx_pulse_len', 'correlation_dimensions']
+
+    unshared_fields = ['num_sequences', 'int_time', 'sqn_timestamps',
+                       'noise_at_freq', 'main_acfs', 'intf_acfs', 'xcfs']
+
 
 class BorealisBfiq():
     """
@@ -141,6 +169,19 @@ class BorealisBfiq():
     array_dtypes: dict
         Dictionary of data field name to array of given numpy dtype expected  
         in the field for a dictionary of Borealis data.
+    shared_fields: list
+        List of the fields that are restructured to a single value per
+        file in the Borealis array type files. 
+    unshared_fields: list
+        List of the fields that are restructured to be an array with first
+        dimension equal to the number of records in the file. 
+    
+    Notes
+    -----
+    single_element_types.keys() + array_dtypes.keys() = all known fields
+    as well as 
+    shared_fields + unshared_fields = all known fields
+    in the Borealis Bfiq files.
     """
 
     single_element_types = {
@@ -226,6 +267,21 @@ class BorealisBfiq():
         "data": np.complex64
     }
 
+    shared_fields =  ['antenna_arrays_order', 'beam_azms', 'beam_nums',
+                      'blanked_samples', 'borealis_git_hash', 
+                      'data_descriptors', 'data_normalization_factor', 
+                      'experiment_comment', 'experiment_id', 'experiment_name',
+                      'first_range', 'first_range_rtt', 'freq', 
+                      'intf_antenna_count', 'lags', 'main_antenna_count', 
+                      'num_ranges', 'num_samps', 'num_slices', 
+                      'pulse_phase_offset', 'pulses', 'range_sep', 
+                      'rx_sample_rate', 'samples_data_type', 
+                      'scan_start_marker', 'slice_comment', 'station', 
+                      'tau_spacing', 'tx_pulse_len']
+
+    unshared_fields = ['num_sequences', 'int_time', 'sqn_timestamps',
+                       'noise_at_freq', 'data_dimensions', 'data']
+
 
 class BorealisAntennasIq():
     """
@@ -243,6 +299,19 @@ class BorealisAntennasIq():
     array_dtypes: dict
         Dictionary of data field name to array of given numpy dtype expected  
         in the field for a dictionary of Borealis data.
+    shared_fields: list
+        List of the fields that are restructured to a single value per
+        file in the Borealis array type files. 
+    unshared_fields: list
+        List of the fields that are restructured to be an array with first
+        dimension equal to the number of records in the file. 
+    
+    Notes
+    -----
+    single_element_types.keys() + array_dtypes.keys() = all known fields
+    as well as 
+    shared_fields + unshared_fields = all known fields
+    in the Borealis Antennas_iq files.
     """
 
     single_element_types = {
@@ -315,6 +384,19 @@ class BorealisAntennasIq():
         # A contiguous set of samples (complex float) at given sample rate
         "data": np.complex64
     }
+
+    shared_fields = ['antenna_arrays_order', 'beam_azms', 'beam_nums', 
+                     'borealis_git_hash', 'data_descriptors',
+                     'data_normalization_factor', 'experiment_comment', 
+                     'experiment_id', 'experiment_name', 'freq', 
+                     'intf_antenna_count', 'main_antenna_count', 'num_samps',
+                     'num_slices', 'pulse_phase_offset', 'pulses', 
+                     'rx_sample_rate', 'samples_data_type', 
+                     'scan_start_marker', 'slice_comment', 'station', 
+                     'tau_spacing', 'tx_pulse_len']
+
+    unshared_fields = ['num_sequences', 'int_time', 'sqn_timestamps',
+                       'noise_at_freq', 'data_dimensions', 'data']
 
 
 class BorealisRawrf():
