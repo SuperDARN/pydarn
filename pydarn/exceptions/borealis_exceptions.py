@@ -206,7 +206,34 @@ class BorealisConvert2RawacfError(Exception):
     def __init__(self, error_str: str):
         self.message = "The file cannot be converted to DARN rawacf due to "\
             "the following error which indicates increased complexity not "\
-            "accounted for in DARN iqdat format: {error_str}"\
+            "accounted for in DARN rawacf format: {error_str}"\
+            "".format(error_str=error_str)
+        Exception.__init__(self, self.message)
+
+
+class BorealisRestructureError(Exception):
+    """
+    Raised when the file cannot be restructured to or from site/array 
+    styles. 
+
+    Parameters
+    ----------
+    error_str: str
+        explanation for why the file cannot be restructured.
+    
+    Attributes
+    ----------
+    message: str
+        The message to display with the error
+
+    See Also
+    --------
+    restructure_borealis.py
+    """
+
+    def __init__(self, error_str: str):
+        self.message = "The file cannot be restructured due to the "\
+            " following error: {error_str}"\
             "".format(error_str=error_str)
         Exception.__init__(self, self.message)
 
