@@ -1,9 +1,9 @@
 # Copyright 2019 SuperDARN Canada, University of Saskatchewan
 # Author: Liam Graham
+"""
+This file contains TODO
 
-#
-# restructure_borealis.py
-# 2019-08-08
+"""
 
 import deepdish as dd
 import numpy as np
@@ -20,22 +20,21 @@ from functools import reduce
 from pydarn import BorealisRawacf, BorealisBfiq, BorealisAntennasIq, \
                    BorealisRestructureError
 
-########################## RESTRUCTURING CODE #################################
-# Functions for restructuring Borealis files
-# for bfiq, antennas iq, and raw acf data into a smaller,
-# faster, and more usable format
-
-# The shared fields of the file are written as a single value in the file, and 
-# unshared fields are written as arrays where number of records is the first 
-# dimension.
-
-shared_rawacf = BorealisRawacf.shared_fields
-shared_bfiq = BorealisBfiq.shared_fields
-shared_antiq = BorealisAntennasIq.shared_fields
-
 
 class BorealisRestructureUtilities():
+    """
 
+    Functions for restructuring Borealis files
+    # for bfiq, antennas iq, and raw acf data into a smaller,
+    # faster, and more usable format
+
+    # The shared fields of the file are written as a single value in the file, and 
+    # unshared fields are written as arrays where number of records is the first 
+    # dimension.
+
+    """
+
+    @staticmethod
     def find_max_sequences(data):
         """
         Finds the maximum number of sequences between records in a Borealis data file
@@ -52,7 +51,7 @@ class BorealisRestructureUtilities():
                 max_seqs = data[k]["num_sequences"]
         return max_seqs
 
-
+    @staticmethod
     def iq_site_to_array(data_dict):
         """
         Restructuring method for pre bfiq data
@@ -79,7 +78,7 @@ class BorealisRestructureUtilities():
 
             first_dim = data_dict[first_key]["data_descriptors"][0]
             if first_dim == 'num_antennas':  # antenna iq file
-                for field in shared_antiq:
+                for field in BorealisAntennasIq.shared_fields:
                     new_data_dict[field] = data_dict[first_key][field]
 
                 num_antennas = dims[0]
@@ -90,7 +89,7 @@ class BorealisRestructureUtilities():
                 data_shape = (num_records, num_antennas, max_seqs, num_samps)
 
             elif first_dim == 'num_antenna_arrays':  # bfiq file
-                for field in shared_bfiq:
+                for field in BorealisBfiq.shared_fields:
                     new_data_dict[field] = data_dict[first_key][field]
                 num_arrays = dims[0]
                 num_beams = dims[2]
@@ -160,7 +159,7 @@ class BorealisRestructureUtilities():
 
         return new_data_dict
 
-
+    @staticmethod
     def rawacf_site_to_array(data_dict):
         """
         Restructuring method for rawacf data
@@ -179,7 +178,7 @@ class BorealisRestructureUtilities():
 
             # write shared fields to dictionary
             first_key = list(data_dict.keys())[0]
-            for field in shared_rawacf:
+            for field in BorealisRawacf.shared_fields:
                 new_data_dict[field] = data_dict[first_key][field]
 
             # handle unshared data fields
@@ -245,11 +244,11 @@ class BorealisRestructureUtilities():
         return new_data_dict
 
 
-    ########################## BACKCONVERSION CODE #####################################
+    ########################## BACKCONVERSION CODE ############################
     # Functions for converting restructured and compressed
     # Borealis files back to their original site format
 
-
+    @staticmethod
     def iq_array_to_site(data_dict):
         """
         Converts a restructured bfiq or antenna iq file back to its
@@ -300,6 +299,7 @@ class BorealisRestructureUtilities():
                                            '{}'.format(e))
         return ts_dict
 
+    @staticmethod
     def rawacf_array_to_site(data_dict):
         """
         Converts a restructured raw acf file back to its
