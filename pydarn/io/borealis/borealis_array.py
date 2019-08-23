@@ -1,17 +1,21 @@
 # Copyright 2019 SuperDARN Canada, University of Saskatchewan
 # Author: Marci Detwiller
 """
-This file contains classes for reading, writing, and
-converting of Borealis site file types. Site file types
-means Borealis site files, ie. stored in a record-by-record
-fashion, before being converted to array types only.
+This file contains classes for reading, and 
+writing of Borealis array file types. Array file 
+types are restructured Borealis files. Files are restructured
+after being written by the radar to condense all information 
+from that time period into arrays. The other type of 
+Borealis file is the site file. Site file types
+are Borealis site files, ie. stored in a record-by-record
+fashion, before being converted to array types.
 
 Classes
 -------
-BorealisSiteRead: Reads Borealis site SuperDARN file types (hdf5)
-BorealisSiteWrite: Writes Borealis SuperDARN file types (hdf5)
-BorealisConvert: Writes Borealis SuperDARN files types to
-SuperDARN DARN files with DMap record structure
+BorealisArrayRead: Reads array-style Borealis SuperDARN file types (hdf5). 
+    These are the files commonly distributed and available.
+BorealisArrayWrite: Writes array-style Borealis SuperDARN file types (hdf5).
+    These are the files commonly distributed and available.
 
 Exceptions
 ----------
@@ -26,7 +30,6 @@ ConvertFileOverWriteError
 
 Notes
 -----
-BorealisConvert makes use of DarnWrite to write to SuperDARN file types
 
 See Also
 --------
@@ -47,17 +50,17 @@ from datetime import datetime
 from typing import Union, List
 
 from pydarn import borealis_exceptions, DarnWrite, borealis_formats, \
-                   BorealisUtilities, borealis_site_to_array_dict
+				   BorealisUtilities, code_to_stid, borealis_array_to_site_dict
 from pydarn.utils.conversions import dict2dmap
-import restructure_borealis
 
 pydarn_log = logging.getLogger('pydarn')
 
 
-class BorealisSiteRead():
+class BorealisArrayRead():
     """
-    Class for reading Borealis 'site' filetypes. Site files are stored in
-    a record-by-record style.
+    Class for reading Borealis 'array' filetypes. Array files have
+    been restructured to no longer be read in record-by-record
+    style. 
 
     See Also
     --------
@@ -66,6 +69,10 @@ class BorealisSiteRead():
     BorealisAntennasIq
     BorealisRawrf
 
+    Attributes
+    ----------
+    filename: str
+        The filename of the Borealis HDF5 file being read.
     borealis_filetype: str
         The type of Borealis file. Types include:
         'bfiq'
@@ -75,8 +82,6 @@ class BorealisSiteRead():
     record_names: list(str)
     records: dict
     arrays: dict
-    current_record_name: str
-
     """
 
     def __init__(self, filename: str, borealis_filetype: str):
@@ -100,46 +105,30 @@ class BorealisSiteRead():
             Unable to open file
         """
         self.filename = filename
+
         if borealis_filetype not in ['bfiq', 'antennas_iq', 'rawacf', 'rawrf']:
             raise borealis_exceptions.BorealisFileTypeError(
                 self.filename, borealis_filetype)
         self.borealis_filetype = borealis_filetype
 
-        with h5py.File(self.filename, 'r') as f:
-            self._record_names = sorted(list(f.keys()))
-            # list of group names in the HDF5 file, to allow partial read.
-
-        self._current_record_name = ''  # Current HDF5 record group name.
-
         # Records are private to avoid tampering.
-        self._records = OrderedDict()
+        self._arrays = {}
 
     def __repr__(self):
         """ for representation of the class object"""
         # __class__.__name__ allows to grab the class name such that
         # when a class inherits this one, the class name will be the child
         # class and not the parent class
-        return "{class_name}({filename}, {current_record_name})"\
+        return "{class_name}({filename}, {borealis_filetype})"\
             "".format(class_name=self.__class__.__name__,
-                      filename=self.filename,
-                      current_record_name=self.current_record_name)
+                      filename=self.filename, 
+                      borealis_filetype=self.borealis_filetype)
 
     def __str__(self):
         """ for printing of the class object"""
 
-        return "Reading from {filename} at current record:"\
-            " {current_record_name} a total number of"\
-            " records: {total_records}"\
-            "".format(filename=self.filename,
-                      cursor=self.current_record_name,
-                      total_records=len(list(self.records.keys())))
-
-    @property
-    def current_record_name(self):
-        """
-        The name of the current record being read, string.
-        """
-        return self._current_record_name
+        return "Reading from {filename}"\
+            "".format(filename=self.filename)
 
     @property
     def record_names(self):
@@ -148,7 +137,7 @@ class BorealisSiteRead():
         These correspond to Borealis file record write times (in ms), and
         are equal to the group names in the site file types.
         """
-        return self._record_names
+        return sorted(list(records.keys()))
 
     @property
     def records(self):
@@ -156,7 +145,8 @@ class BorealisSiteRead():
         The Borealis data in a dictionary of records, according to the 
         site file format.
         """
-        return self._records
+        return borealis_array_to_site_dict(self.arrays, 
+                                           self.borealis_filetype)
 
     @property 
     def arrays(self):
@@ -164,8 +154,7 @@ class BorealisSiteRead():
         The Borealis data in a dictionary of arrays, according to the 
         restructured array file format.
         """
-        return borealis_site_to_array_dict(self.records, 
-                                           self.borealis_filetype)
+        return self._arrays
 
     def read_file(self) -> dict:
         """
@@ -286,7 +275,7 @@ class BorealisSiteRead():
             file.
 
         """
-        for record_name in self._record_names:
+        for record_name in self._group_names:
             self._current_record_name = record_name
             self._read_borealis_record(attribute_types, dataset_types)
 
@@ -357,7 +346,7 @@ class BorealisSiteWrite():
         The filename of the Borealis HDF5 file being read.
     borealis_records: OrderedDict{dict}
         The dictionary of Borealis records to write to HDF5 file.
-    record_names: list(str)
+    group_names: list(str)
         The list of record names of the Borealis data. These values 
         are the write time of the record in ms since epoch.
     current_record_name: str
@@ -379,7 +368,7 @@ class BorealisSiteWrite():
         """
         self.borealis_records = borealis_records
         self.filename = filename
-        self._record_names = sorted(list(borealis_records.keys()))
+        self._group_names = sorted(list(borealis_records.keys()))
         # list of group keys for partial write
         self._current_record_name = ''
 
@@ -518,7 +507,7 @@ class BorealisSiteWrite():
         OSError: file does not exist
 
         """
-        for record_name in self._record_names:
+        for record_name in self._group_names:
             self._current_record_name = record_name
             self._write_borealis_record(attribute_types, dataset_types)
 
