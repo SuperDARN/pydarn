@@ -1,33 +1,23 @@
 site_name: PyDARN Documentation
 repo_url: https://github.com/superdarn/pydarn
 theme: readthedocs
-extra_css: [css/pydarn.css]
+markdown_extensions:
+    - extra
+    - admonition
+    - toc
+
 nav:
-- Home: index.md
-- About: about.md
-- Installation:
-    - Linux: install.md
-    - MacOSx: install_mac.md
-    - Windows: install_windows.md 
-- HOWTO's:
-    - Read/Write DMAP: dmap.md
-    - Read/Write SuperDARN: darn.md
-    - Range-Time plots: range_time.md
-    - Time-Series plots: time_series.md
-    - Summary plots: summary.md
-- Code Documentation:
-    - ReadDmap: ReadDmap.md
-    - WriteDmap: WriteDmap.md
-    - ReadDarn: ReadDarn.md
-    - WriteDarn: WriteDarn.md 
-    - plot_range_time: plot_range_time.md
-    - plot_time_series: plot_time_series.md
-    - plot_summary: plot_summary.md
-- Developer Guide:
-    - Style: style_guide.md
-    - Structure: structure_guide.md 
-    - Documentation style: documentation_guide.md
-    - Testing: testing_guide.md
-    - Committing Code: committing_guide.md
-    - Release: release_guide.md 
-- History:
+    - Home: index.md
+    - About: about.md
+    - Installation: 
+        - Linux: user/install.md 
+        - MacOsX: user/install_mac.md 
+        - Windows: user/install_windoes.md 
+    - Tutorials:
+        - IO:
+            - Read/Write Dmap: user/dmap.md 
+            - Read/Write SuperDARN: user/darn.md 
+        - Plotting:
+            - Range-Time plots: user/range_time.md 
+            - Time-Series plots: user/time_series.md 
+            - Summary plots: user/summary.md
