@@ -231,8 +231,8 @@ class BorealisUtilities():
         attributes_type_dict: dict
             Dictionary with the required types for the attributes in the file.
         datasets_type_dict: dict
-            Dictionary with the require dtypes for the numpy
-            arrays in the file.
+            Dictionary with the require dtypes for the numpy array types in the 
+            file.
         record: dict
             DMap record
         record_name: str
@@ -314,7 +314,7 @@ class BorealisUtilities():
 
     @staticmethod
     def array_num_records_check(filename: str, unshared_parameters: List[str],
-                                file_data:dict):
+                                file_data: dict):
         """
         Checks the number of records in all unshared parameter fields to
         ensure they are the same for data integrity.
