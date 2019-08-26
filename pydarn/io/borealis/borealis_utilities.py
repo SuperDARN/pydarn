@@ -11,14 +11,9 @@ SuperDARN Borealis file type checking
 
 Exceptions
 ----------
-BorealisFileTypeError
 BorealisFieldMissingError
 BorealisExtraFieldError
 BorealisDataFormatTypeError
-BorealisConversionTypesError
-BorealisConvert2IqdatError
-BorealisConvert2RawacfError
-ConvertFileOverWriteError
 BorealisNumberOfRecordsError
 
 Notes
@@ -66,15 +61,26 @@ class BorealisUtilities():
         elements of the dict1 and dict2 sets/lists
     dict_list2set(dict_list)
         Converts a list of dictionaries to a set containing their keys
-    missing_field_check(file_struct_list, record, record_name)
-        Checks if there is any missing fields in the record from
+    missing_field_check(filename, file_struct_list, parameter_names, 
+            [record_name])
+        Checks if there is any missing fields in the record/file from
         a list of possible file fields
-    extra_field_check(file_struct_list, record, record_name)
-        Checks if there is any extra fields in the record from
+    extra_field_check(filename, file_struct_list, parameter_names, 
+            [record_name])
+        Checks if there is any extra fields in the record/file from
         a list of possible file fields
-    incorrect_types_check(file_struct_list, record_name)
+    record_incorrect_types_check(filename, attributes_type_dict,
+            datasets_type_dict, record, record_name)
         Checks if there is any incorrect types in the record from
         a list of possible file fields and their data type formats
+    array_incorrect_types_check(filename, attributes_type_dict,
+            datasets_type_dict, unshared_parameters, file_data)
+        Checks if there are any incorrect types in the file data
+        from a list of possible fields and their formats, and whether
+        the data is a shared field in the array file or not.
+    array_num_records_check(filename, unshared_parameters, file_data)
+        Checks if there is a consistent number of records in the arrays
+        from the array file.
     """
 
     @staticmethod
