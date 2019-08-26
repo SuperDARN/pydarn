@@ -19,6 +19,7 @@ BorealisConversionTypesError
 BorealisConvert2IqdatError
 BorealisConvert2RawacfError
 ConvertFileOverWriteError
+BorealisNumberOfRecordsError
 
 Notes
 -----
@@ -60,8 +61,9 @@ class BorealisUtilities():
 
     Static Methods
     --------------
-    dict_key_diff(dict1, dict2)
-        Returns a set of the difference between dict1 and dict2 keys
+    set_diff(dict1, dict2)
+        Returns a set of the difference between dict1 and dict2 keys or the 
+        elements of the dict1 and dict2 sets/lists
     dict_list2set(dict_list)
         Converts a list of dictionaries to a set containing their keys
     missing_field_check(file_struct_list, record, record_name)
@@ -76,8 +78,8 @@ class BorealisUtilities():
     """
 
     @staticmethod
-    def dict_key_diff(dict1: Union[dict, set],
-                      dict2: Union[dict, set]) -> set:
+    def set_diff(dict1: Union[dict, set, list],
+                      dict2: Union[dict, set, list]) -> set:
         """
         Determines the difference in the key set from the
         first dictionary to the second dictionary.
@@ -93,11 +95,11 @@ class BorealisUtilities():
 
         Returns
         -------
-        dict_diff: set
-            difference between dict1 and dict2 keys or the sets
+        dict_keys: set
+            difference between dict1 and dict2 keys or the sets/lists
         """
-        diff_dict = set(dict1) - set(dict2)
-        return diff_dict
+        diff_keys = set(dict1) - set(dict2)
+        return diff_keys
 
     @staticmethod
     def dict_list2set(dict_list: List[dict]) -> set:
@@ -125,24 +127,27 @@ class BorealisUtilities():
         return complete_set
 
     @staticmethod
-    def record_missing_field_check(file_struct_list: List[dict],
-                            record: dict, record_name: int):
+    def missing_field_check(filename: str, file_struct_list: List[dict],
+                            parameter_names: List[str], **kwargs):
         """
-        Checks if any fields are missing from the record compared to the file
-        structure.
+        Checks if any fields are missing from the file/record compared to the 
+        file structure.
 
         Parameters
         ----------
+        filename: str
+            Name of the file being checked
         file_struct_list: List[dict]
             List of dictionaries for the possible file structure fields
-        record: dict
-            Dictionary representing the DMap record
+        parameter_names: List[str]
+            List of parameter names in the file or in the record.
         record_name: int
-            The name of the record (first sequence start time)
+            The name of the record (first sequence start time), if in a 
+            record style file.
 
         Raises
         -------
-        BorealisFieldMissing
+        BorealisFieldMissingError
         
         Notes
         -----
@@ -151,42 +156,61 @@ class BorealisUtilities():
         """
         missing_fields = set()
         for file_struct in file_struct_list:
-            diff_fields = BorealisUtilities.dict_key_diff(file_struct, record)
+            diff_fields = BorealisUtilities.set_diff(file_struct, 
+                                                     parameter_names)
             if len(diff_fields) != 0:
                 missing_fields = missing_fields.union(diff_fields)
 
         if len(missing_fields) > 0:
-            raise borealis_exceptions.BorealisFieldMissingError(record_name,
-                                                                missing_fields)
+            if 'record_name' in kwargs.keys():
+                raise borealis_exceptions.BorealisFieldMissingError(filename,
+                                                    missing_fields,
+                                                    record_name=record_name)
+            else:
+                raise borealis_exceptions.BorealisFieldMissingError(filename,
+                                                        missing_fields)                
+
+    array_missing_field_check = record_missing_field_check = \
+        missing_field_check
 
     @staticmethod
-    def record_extra_field_check(file_struct_list: List[dict],
-                          record: dict, record_name: int):
+    def extra_field_check(filename: str, file_struct_list: List[dict],
+                          parameter_names: List[str], **kwargs):
         """
-        Check if there is an extra field in the record.
+        Check if there is an extra field in the file/record.
 
         Parameters
         ----------
+        filename: str
+            Name of the file being checked
         file_struct_list: List[dict]
             List of dictionaries for the possible file structure fields
-        record: dict
-            DMap record
+        parameter_names: List[str]
+            List of parameter names in the file.
         record_name: int
-            Record name for better error message information
+            Record name for better error message information, if in a 
+            record style file.
 
         Raises
         ------
-        BorealisExtraField
+        BorealisExtraFieldError
         """
         file_struct = BorealisUtilities.dict_list2set(file_struct_list)
-        extra_fields = BorealisUtilities.dict_key_diff(record, file_struct)
+        extra_fields = BorealisUtilities.set_diff(parameter_names, file_struct)
 
         if len(extra_fields) > 0:
-            raise borealis_exceptions.BorealisExtraFieldError(record_name,
-                                                              extra_fields)
+            if 'record_name' in kwargs.keys():
+                raise borealis_exceptions.BorealisExtraFieldError(filename,
+                                                    extra_fields,
+                                                    record_name=record_name)
+            else:
+                raise borealis_exceptions.BorealisExtraFieldError(filename,
+                                                        extra_fields)
+
+    array_extra_field_check = record_extra_field_check = extra_field_check
 
     @staticmethod
-    def record_incorrect_types_check(attributes_type_dict: dict,
+    def record_incorrect_types_check(filename: str, attributes_type_dict: dict,
                               datasets_type_dict: dict,
                               record: dict,
                               record_name: int):
@@ -198,6 +222,8 @@ class BorealisUtilities():
 
         Parameters
         ----------
+        filename: str
+            Name of the file being checked
         attributes_type_dict: dict
             Dictionary with the required types for the attributes in the file.
         datasets_type_dict: dict
@@ -210,7 +236,7 @@ class BorealisUtilities():
 
         Raises
         ------
-        BorealisFileFormatError
+        BorealisDataFormatTypeError
         """
         incorrect_types_check = {param: str(attributes_type_dict[param])
                                  for param in attributes_type_dict.keys()
@@ -224,40 +250,89 @@ class BorealisUtilities():
                                       datasets_type_dict[param]})
         if len(incorrect_types_check) > 0:
             raise borealis_exceptions.BorealisDataFormatTypeError(
-                incorrect_types_check, record_name)
+                filename, incorrect_types_check, record_name=record_name)
 
     @staticmethod
-    def array_missing_field_check(attributes_type_dict: dict,
-                                  datasets_type_dict: dict, 
-                                  parameter_names: List[str]):
+    def array_incorrect_types_check(filename: str,
+                              attributes_type_dict: dict,
+                              datasets_type_dict: dict, 
+                              unshared_parameters: List[str], 
+                              file_data: dict):
         """
-        Checks if any field provided is 
+        Checks if the file's data type formats are correct according 
+        to the file structure fields data type formats and whether or 
+        not the field is a shared field between records.
+
+        Checks both single element types and numpy array dtypes separately.
 
         Parameters
         ----------
-        file_struct_list: List[dict]
-            List of dictionaries for the possible file structure fields
-        record: dict
-            Dictionary representing the DMap record
-        record_name: int
-            The name of the record (first sequence start time)
+        filename: str
+            Name of the file being checked
+        attributes_type_dict: dict
+            Dictionary with the required types for the attributes in the file.
+        datasets_type_dict: dict
+            Dictionary with the require dtypes for the numpy
+            arrays in the file.
+        unshared_parameters: List[str]
+            List of parameter names that are not shared between all the records
+            in the array restructured file, i.e. will have a dimension = to 
+            number of records.
+        file_data: dict
+            dictionary containing all file information.
 
         Raises
-        -------
-        BorealisFieldMissing
-        
-        Notes
-        -----
-        Checks sets and subsets. Any missing fields are a problem because
-        Borealis field names are well-defined.
+        ------
+        BorealisDataFormatTypeError
         """
 
-    @staticmethod
-    def array_extra_field_check(attributes_type_dict: dict,
-                                datasets_type_dict: dict,
-                                parameter_names: List[str])
+        incorrect_types_check = {}
+
+        for data_field, field_value in file_data:
+            if data_field in attributes_type_dict:
+                if data_field not in unshared_parameters:    
+                    data_type = type(field_value)
+                else:
+                    # should be a numpy array of length = number of records.
+                    data_type = field_value.dtype.type 
+                incorrect_types_check.update({data_field: 
+                                str(attributes_type_dict[data_field]) if
+                                data_type != 
+                                attributes_type_dict[data_field]}) 
+            else: 
+                incorrect_types_check.update({data_field: 'np.ndarray of ' +
+                                str(datasets_type_dict[data_field]) if 
+                                field_value.dtype.type != 
+                                datasets_type_dict[data_field]})                   
+        if len(incorrect_types_check) > 0:
+            raise borealis_exceptions.BorealisDataFormatTypeError(
+                filename, incorrect_types_check)
 
     @staticmethod
-    def array_incorrect_types_check(attributes_type_dict: dict,
-                              datasets_type_dict: dict, parameter_name: str,
-                              paratmeter_array: np.ndarray)
+    def array_num_records_check(filename: str, unshared_parameters: List[str],
+                                file_data:dict):
+        """
+        Checks the number of records in all unshared parameter fields to
+        ensure they are the same for data integrity.
+
+        Parameters
+        ----------
+        filename: str
+            Name of the file being checked
+        unshared_parameters: List[str]
+            List of parameter names that are not shared between all the records
+            in the array restructured file, i.e. will have a dimension = to 
+            number of records.
+        file_data: dict
+            dictionary containing all file information.
+
+        Raises
+        ------
+        BorealisNumberOfRecordsError
+        """
+        num_records = {parameter: file_data[parameter].shape[0] for parameter
+                       in unshared_parameters}
+
+        dimensions = list(num_records.values())
+        if not all(x == dimensions[0] for x in dimensions):
+            raise borealis_exceptions.BorealisNumberOfRecordsError(num_records)
