@@ -128,7 +128,8 @@ class BorealisUtilities():
 
     @staticmethod
     def missing_field_check(filename: str, file_struct_list: List[dict],
-                            parameter_names: List[str], **kwargs):
+                            parameter_names: Union[List[str], dict, set], 
+                            **kwargs):
         """
         Checks if any fields are missing from the file/record compared to the 
         file structure.
@@ -139,9 +140,10 @@ class BorealisUtilities():
             Name of the file being checked
         file_struct_list: List[dict]
             List of dictionaries for the possible file structure fields
-        parameter_names: List[str]
-            List of parameter names in the file or in the record.
-        record_name: int
+        parameter_names: List[str], dict, set
+            List of parameter names, or set, or dict, in the file or in 
+            the record.
+        record_name: str
             The name of the record (first sequence start time), if in a 
             record style file.
 
@@ -175,7 +177,8 @@ class BorealisUtilities():
 
     @staticmethod
     def extra_field_check(filename: str, file_struct_list: List[dict],
-                          parameter_names: List[str], **kwargs):
+                          parameter_names: Union[List[str], dict, set],
+                          **kwargs):
         """
         Check if there is an extra field in the file/record.
 
@@ -185,9 +188,10 @@ class BorealisUtilities():
             Name of the file being checked
         file_struct_list: List[dict]
             List of dictionaries for the possible file structure fields
-        parameter_names: List[str]
-            List of parameter names in the file.
-        record_name: int
+        parameter_names: List[str], dict, set
+            List of parameter names, or set, or dict, in the file or in 
+            the record.
+        record_name: str
             Record name for better error message information, if in a 
             record style file.
 
@@ -213,7 +217,7 @@ class BorealisUtilities():
     def record_incorrect_types_check(filename: str, attributes_type_dict: dict,
                               datasets_type_dict: dict,
                               record: dict,
-                              record_name: int):
+                              record_name: str):
         """
         Checks if the record's data type formats are correct according 
         to the file structure fields data type formats.
@@ -231,7 +235,7 @@ class BorealisUtilities():
             arrays in the file.
         record: dict
             DMap record
-        record_name: int
+        record_name: str
             Record name for a better error message information
 
         Raises
