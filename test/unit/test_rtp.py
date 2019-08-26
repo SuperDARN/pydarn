@@ -163,8 +163,9 @@ class TestRTP(unittest.TestCase):
         with self.assertRaises(pydarn.rtp_exceptions.RTPNoDataFoundError):
             pydarn.RTP.plot_time_series(self.fitacf_data, parameter='cp',
                                        beam_num=7,
-                                       time_span=(datetime(2018, 12, 8, 0, 0),
-                                                  datetime(2018, 12, 8, 8, 0)))
+                                       start_time=datetime(2016, 12, 8, 0, 0),
+                                       end_time=datetime(2016, 12, 8, 8, 0))
+
     def test_no_data_time_series_plot(self):
         """
         raise an error of no data found because the time zone
@@ -173,20 +174,8 @@ class TestRTP(unittest.TestCase):
         with self.assertRaises(pydarn.rtp_exceptions.RTPNoDataFoundError):
             pydarn.RTP.plot_time_series(self.fitacf_data, parameter='tfreq',
                                        beam_num=7,
-                                       time_span=(datetime(2018, 12, 8, 0, 0),
-                                                  datetime(2018, 12, 8, 8, 0)))
-
-    def test_no_data_time_series_plot(self):
-        """
-        raise an error of no data found because the time zone
-        are out of the time range specified.
-        """
-        with self.assertRaises(IndexError):
-            pydarn.RTP.plot_time_series(self.fitacf_data, parameter='tfreq',
-                                       beam_num=7,
-                                       time_span=(datetime(2018, 12, 8, 0, 0),
-                                                  datetime(2018, 12, 8, 8, 0),
-                                                  datetime(2018, 12, 8, 8, 0)))
+                                       start_time=datetime(2018, 12, 8, 0, 0),
+                                       end_time=datetime(2018, 12, 8, 8, 0))
 
     def test_simple_range_time_plot(self):
         """
@@ -194,7 +183,7 @@ class TestRTP(unittest.TestCase):
         """
         pydarn.RTP.plot_range_time(self.fitacf_data, parameter='elv',
                                    beam_num=7,
-                                   boundary=(0, 57))
+                                   zmin=0, zmax=57)
         plt.title("Simple Elevation no ground scatter, beam 7 Saskatoon plot")
         plt.show()
 
@@ -207,13 +196,31 @@ class TestRTP(unittest.TestCase):
         plt.title("Elevation with Ground Scatter with beam 7")
         plt.show()
 
+    def test_groundscatter_color_range_time_plot(self):
+        """
+        plots a simple elevation rang-time plot with ground scatter
+        """
+        pydarn.RTP.plot_range_time(self.fitacf_data, parameter='p_l',
+                                   beam_num=7, groundscatter='r')
+        plt.title("Elevation with Ground Scatter with beam 7")
+        plt.show()
+
+    def test_groundscatter_color_range_time_plot(self):
+        """
+        plots a simple elevation rang-time plot with ground scatter
+        """
+        pydarn.RTP.plot_range_time(self.fitacf_data, parameter='p_l',
+                                   beam_num=7, groundscatter='r')
+        plt.title("Elevation with Ground Scatter with beam 7")
+        plt.show()
+
     def test_velocity_range_time_plot(self):
         """
         plots a velocity range-time plot for
         beam 5 with the reversed jet colour mapping
         """
         pydarn.RTP.plot_range_time(self.fitacf_data, parameter='v',
-                                   beam_num=5, color_map='jet_r')
+                                   beam_num=5, cmap='jet_r')
         plt.title("Velocity with reversed jet color map")
         plt.show()
 
@@ -223,9 +230,9 @@ class TestRTP(unittest.TestCase):
         parameter also added extra settings for the color bar.
         """
         pydarn.RTP.plot_range_time(self.fitacf_data, parameter='v_e',
-                                   beam_num=5, color_map='jet_r',
-                                   color_bar_label="velocity error $m/s$",
-                                   boundary=(-200, 200))
+                                   beam_num=5, cmap='jet_r',
+                                   colorbar_label="velocity error $m/s$",
+                                   zmin=-200, zmax=200)
         plt.title("Non-standard parameter: Velocity error\n"
                   " with reversed jet color map")
         plt.show()
@@ -307,8 +314,8 @@ class TestRTP(unittest.TestCase):
         with self.assertRaises(pydarn.rtp_exceptions.RTPNoDataFoundError):
             pydarn.RTP.plot_range_time(self.fitacf_data, parameter='elv',
                                        beam_num=7,
-                                       time_span=(datetime(2018, 12, 8, 0, 0),
-                                                  datetime(2018, 12, 8, 8, 0)),
+                                       start_time=datetime(2018, 12, 8, 0, 0),
+                                       end_time=datetime(2018, 12, 8, 8, 0),
                                        groundscatter=True)
 
     def test_gapped_data_range_time_plt(self):
@@ -325,18 +332,40 @@ class TestRTP(unittest.TestCase):
 
         pydarn.RTP.plot_range_time(gapped_data, parameter='elv',
                                    beam_num=7, groundscatter=True,
-                                   boundary=(0, 57))
+                                   zmin=0, zmax=57)
         plt.title("Gapped Elevation Data")
         plt.show()
 
-    def test_time_span_range_time_plot(self):
+    def test_start_time_range_time_plot(self):
         """
         plots an elevation range-time plot for a given time range
         """
         pydarn.RTP.plot_range_time(self.fitacf_data, parameter='elv',
                                    beam_num=7,
-                                   time_span=(datetime(2018, 2, 20, 0, 0),
-                                              datetime(2018, 2, 20, 8, 0)),
+                                   start_time=datetime(2018, 2, 20, 0, 0),
+                                   groundscatter=True)
+        plt.title("Time range between 00:00 - 08:00")
+        plt.show()
+
+    def test_end_time_range_time_plot(self):
+        """
+        plots an elevation range-time plot for a given time range
+        """
+        pydarn.RTP.plot_range_time(self.fitacf_data, parameter='elv',
+                                   beam_num=7,
+                                   end_time=datetime(2018, 2, 20, 8, 0),
+                                   groundscatter=True)
+        plt.title("Time range between 00:00 - 08:00")
+        plt.show()
+
+    def test_start_end_time_range_time_plot(self):
+        """
+        plots an elevation range-time plot for a given time range
+        """
+        pydarn.RTP.plot_range_time(self.fitacf_data, parameter='elv',
+                                   beam_num=7,
+                                   start_time=datetime(2018, 2, 20, 0, 0),
+                                   end_time=datetime(2018, 2, 20, 8, 0),
                                    groundscatter=True)
         plt.title("Time range between 00:00 - 08:00")
         plt.show()
@@ -364,13 +393,14 @@ class TestRTP(unittest.TestCase):
 
         plt.subplot(4, 1, 3)
         pydarn.RTP.plot_range_time(self.fitacf_data, parameter='v',
-                                   beam_num=7, color_map='jet_r')
+                                   beam_num=7, cmap='jet_r')
 
         plt.subplot(4, 1, 4)
         pydarn.RTP.plot_range_time(self.fitacf_data,
                                    parameter='w_l',
                                    beam_num=7)
 
+        self.assertEqual(plt.gcf().number, 1)
         plt.show()
 
     def test_range_time_data_format_plot(self):
@@ -381,15 +411,6 @@ class TestRTP(unittest.TestCase):
         pydarn.RTP.plot_range_time(self.fitacf_data, date_fmt="%H:%M")
         plt.xlabel("Date format HH:MM")
         plt.title("Change in date format")
-        plt.show()
-
-    def test_range_time_plot_with_no_color_bar(self):
-        """
-        plots a range-time plot with no color bar
-        """
-        pydarn.RTP.plot_range_time(self.fitacf_data, parameter='p_l',
-                                   color_bar=False)
-        plt.title("Elevation, No Color Bar")
         plt.show()
 
     def test_calling_scalar_parameter_for_range_time_plot(self):
@@ -456,12 +477,12 @@ class TestRTP(unittest.TestCase):
                                 boundary=boundary)
         plt.show()
 
-    def test_color_map_with_summary_plot(self):
+    def test_cmap_with_summary_plot(self):
         """
         plot a normal summary plot with a different color map: jet
         """
         pydarn.RTP.plot_summary(self.fitacf_data, beam_num=7,
-                                color_map='jet')
+                                cmaps={'v': 'jet'})
         plt.show()
 
     def test_no_plotting_elevation_summary_plot(self):

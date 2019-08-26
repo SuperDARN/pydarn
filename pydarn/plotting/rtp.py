@@ -48,8 +48,14 @@ class RTP():
 
     @classmethod
     def plot_range_time(cls, dmap_data: List[dict], parameter: str = 'p_l',
-                        beam_num: int = 0, ax=None, background: str = 'w',
-                        color_norm=None, **kwargs):
+                        beam_num: int = 0, channel: int = 'all', ax=None,
+                        background: str = 'w', groundscatter: bool = False,
+                        zmin: int = None, zmax: int = None,
+                        start_time: datetime = None, end_time: datetime = None,
+                        colorbar: plt.colorbar = None,
+                        colorbar_label: str = '', norm=colors.Normalize,
+                        cmap: str = 'viridis', filter_settings: dict = {},
+                        date_fmt: str = '%y/%m/%d\n %H:%M', **kwargs):
         """
         Plots a range-time parameter plot of the given
         field name in the dmap_data
@@ -63,66 +69,78 @@ class RTP():
 
         Parameters
         -----------
-        dmap_data : List[dict]
-        parameter : str
+        dmap_data: List[dict]
+        parameter: str
             string/key name indicating which parameter to plot.
             Default: p_l
         beam_num : int
+            The beam number of data to plot
+            Default: 0
         ax: matplotlib.axes
             axes object for another way of plotting
             Default: None
-        color_norm: matplotlib.colors.Normalization object
+        norm: matplotlib.colors.Normalization object
             This object use dependency injection to use any normalization
             method with the zmin and zmax.
             Default: colors.Normalization()
-        time_span : [datetime, datetime]
-            List containing the start time and end time as datetime objects,
+        start_time: datetime
+            Start time of the plot x-axis as a datetime object
+            Default: first record date
+        end_time: datetime
+            End time of the plot x-axis as a datetime object
+            Default: last record date
         channel : int or str
             The channel 0, 1, 2, 'all'
-            default : 'all'
-        groundscatter : boolean
-            Flag to indicate if groundscatter should be plotted.
-            Default : False
+            Default : 'all'
+        groundscatter : boolean or str
+            Flag to indicate if groundscatter should be plotted and a string
+            representing the color groundscatter should be plotted as.
+            Default : False, if True default color is grey
         date_fmt : str
             format of x-axis date ticks, follow datetime format
             Default: '%y/%m/%d\n %H:%M'
-        color_bar: boolean
+        colorbar: matplotlib.pyplot.colorbar
             boolean to indicate if a color bar should be included
             Default: True
-        color_bar_label: str
+        colorbar_label: str
             the label that appears next to the color bar
             Default: ''
-        color_map: str
+        cmap: str or matplotlib.cm
             matplotlib colour map
             https://matplotlib.org/tutorials/colors/colormaps.html
             Default: viridis
             note: to reverse the color just add _r to the string name
-        boundary: (int, int)
-            min and max values to include in the plot and set for normalization
-            of the color map.
-            Default: None
-                - the min and max values in the data are used instead
-        max_array_filter : dict
-            dictionary that contains the key parameter names and the values to
-            compare against. Will filter out any data points
-            that is above this value.
-        min_array_filter : dict
-            dictionary that contains the key parameter names and the value to
-            compare against. Will filter out any data points that is
-            below this value.
-        max_scalar_filter : dict
-            dictionary that contains the key parameter names and the values to
-            compare against. Will filter out data sections that is
-            above this value.
-        min_scalar_filter : dict
-            dictionary that contains the key parameter names and the value to
-            compare against. Will filter out data sections
-            that is below this value.
-        equal_scalar_filter : dict
-            dictionary that contains the key parameter names and the value to
-            compare against. Will filter out data sections
-            that is does not equal the value.
-
+        zmin: int
+            Minimum normalized value
+            Default: minimum parameter value in the data set
+        zmax: int
+            Maximum normalized value
+            Default: maximum parameter value in the data set
+        plot_filter: dict
+            dictionary of the following keys for filtering data out:
+            max_array_filter : dict
+                dictionary that contains the key parameter names and the values
+                to compare against. Will filter out any data points
+                that is above this value.
+            min_array_filter : dict
+                dictionary that contains the key parameter names and the value
+                to compare against. Will filter out any data points that is
+                below this value.
+            max_scalar_filter : dict
+                dictionary that contains the key parameter names and the values
+                to compare against. Will filter out data sections that is
+                above this value.
+            min_scalar_filter : dict
+                dictionary that contains the key parameter names and the value
+                to compare against. Will filter out data sections
+                that is below this value.
+            equal_scalar_filter : dict
+                dictionary that contains the key parameter names and the value
+                to compare against. Will filter out data sections
+                that is does not equal the value.
+        kwargs:
+            key names of variable settings of pcolormesh:
+            https://matplotlib.org/3.1.1/api/_as_gen/matplotlib.pyplot.pcolormesh.html
 
         Raises
         ------
@@ -147,25 +165,17 @@ class RTP():
             2D array of the parameters values at the given time and range gate
         """
         # Settings
-        settings = {'groundscatter': False,
-                    'channel': 'all',
-                    'date_fmt': "%y/%m/%d\n%H:%M",
-                    'color_bar': True,
-                    'color_bar_label': '',
-                    'color_map': 'viridis',
-                    'boundary': None,
-                    'min_array_filter': dict(),
-                    'max_array_filter': dict(),
-                    'min_scalar_filter': dict(),
-                    'max_scalar_filter': dict(),
-                    'equal_scalar_filter': dict()}
+        plot_filter = {'min_array_filter': dict(),
+                       'max_array_filter': dict(),
+                       'min_scalar_filter': dict(),
+                       'max_scalar_filter': dict(),
+                       'equal_scalar_filter': dict()}
 
-        settings.update(kwargs)
+        plot_filter.update(filter_settings)
 
         # If an axes object is not passed in then store
         # the equivalent object in matplotlib. This allows
         # for variant matplotlib plotting styles.
-
         if not ax:
             ax = plt.gca()
 
@@ -173,7 +183,7 @@ class RTP():
         try:
             # because of partial records we need to find the first
             # record that has that parameter
-            index_first_match = next(i for i,d in enumerate(dmap_data)
+            index_first_match = next(i for i, d in enumerate(dmap_data)
                                      if parameter in d)
             if isinstance(dmap_data[index_first_match][parameter], DmapArray) or\
                isinstance(dmap_data[index_first_match][parameter], DmapScalar):
@@ -182,26 +192,13 @@ class RTP():
             raise rtp_exceptions.RTPUnknownParameter(parameter)
         cls.dmap_data = dmap_data
         cls.__check_data_type(parameter, 'array', index_first_match)
-        # Calculate the time span range, either passed in or calculated
-        # based on the dmap_data records
-        # TODO: move this to it's own method
-        try:
-            if len(kwargs['time_span']) == 2:
-                start_time = kwargs['time_span'][0]
-                end_time = kwargs['time_span'][1]
-                cls.interval_time = None
-            elif len(kwargs['time_span']) == 3:
-                start_time = kwargs['time_span'][0]
-                end_time = kwargs['time_span'][2]
-                cls.interval_time = kwargs['time_span'][1]
-            else:
-                raise IndexError("time_span list must be length of 2 or 3")
-        except KeyError:
-            start_time = cls.__time2datetime(cls.dmap_data[0])
-            end_time = cls.__time2datetime(cls.dmap_data[-1])
+        start_time, end_time = cls.__determine_start_end_time(start_time,
+                                                              end_time)
 
         # y-axis coordinates, i.e., range gates,
         # TODO: implement variant other coordinate systems for the y-axis
+        # y shape needs to be +1 longer as requirement of how pcolormesh
+        # draws the pixels on the grid
         y = np.arange(0, cls.dmap_data[0]['nrang']+1, 1)
         y_max = cls.dmap_data[0]['nrang']
 
@@ -212,12 +209,18 @@ class RTP():
         x = []
 
         # We cannot simply use numpy's built in min and max function
-        # because of the groundscatter value
-        if settings["boundary"]:
-            z_min, z_max = settings["boundary"]
-        else:
-            z_min = cls.dmap_data[index_first_match][parameter][0]
-            z_max = cls.dmap_data[index_first_match][parameter][0]
+        # because of the groundscatter value :(
+
+        # These flags indicate if zmin and zmax should change
+        set_zmin = True
+        set_zmax = True
+        if not zmin:
+            zmin = cls.dmap_data[index_first_match][parameter][0]
+            set_zmin = False
+        if not zmax:
+            zmax = cls.dmap_data[index_first_match][parameter][0]
+            set_zmax = False
+
         for dmap_record in cls.dmap_data:
             # get time difference to test if there is some gap data
             time = cls.__time2datetime(dmap_record)
@@ -241,8 +244,8 @@ class RTP():
                                       axis=0)
             # Get data for the provided beam number
             if (beam_num == 'all' or dmap_record['bmnum'] == beam_num) and\
-               (settings['channel'] == 'all' or
-                    dmap_record['channel'] == settings['channel']):
+               (channel == 'all' or
+                    dmap_record['channel'] == channel):
                 if start_time <= time:
                     # construct the x-axis array
                     # Numpy datetime is used because it properly formats on the
@@ -257,29 +260,34 @@ class RTP():
                         z = np.insert(z, len(z), np.zeros(1, y_max) * np.nan,
                                       axis=0)
                     try:
+                        if len(dmap_record[parameter]) == dmap_record['nrang']:
+                            good_gates = range(len(dmap_record[parameter]))
+                        else:
+                            good_gates = dmap_record['slist']
+
                         # get the range gates that have "good" data in it
-                        for j in range(len(dmap_record['slist'])):
+                        for j in range(len(good_gates)):
                             # if it is groundscatter store a very
                             # low number in that cell
-                            if settings['groundscatter'] and\
+                            if groundscatter and\
                                dmap_record['gflg'][j] == 1:
                                 # chosen value from davitpy to make the
                                 # groundscatter a different color
                                 # from the color map
-                                z[i][dmap_record['slist'][j]] = -1000000
+                                z[i][good_gates[j]] = -1000000
                             # otherwise store parameter value
                             # TODO: refactor and clean up this code
                             elif cls.__filter_data_check(dmap_record,
-                                                         settings, j):
-                                z[i][dmap_record['slist'][j]] = \
+                                                         plot_filter, j):
+                                z[i][good_gates[j]] = \
                                         dmap_record[parameter][j]
                                 # calculate min and max value
-                                if not settings["boundary"]:
-                                    if z[i][dmap_record['slist'][j]] < z_min \
-                                       or z_min is None:
-                                        z_min = z[i][dmap_record['slist'][j]]
-                                    if z[i][dmap_record['slist'][j]] > z_max:
-                                        z_max = z[i][dmap_record['slist'][j]]
+                                if not set_zmin and\
+                                   z[i][good_gates[j]] < zmin:
+                                        zmin = z[i][good_gates[j]]
+                                if not set_zmax and \
+                                   z[i][good_gates[j]] > zmax:
+                                        zmax = z[i][good_gates[j]]
                     # a KeyError may be thrown because slist is not created
                     # due to bad quality data.
                     except KeyError:
@@ -289,26 +297,28 @@ class RTP():
         if np.all(np.isnan(z)):
             raise rtp_exceptions.RTPNoDataFoundError(parameter, beam_num,
                                                      start_time, end_time)
-        time_axis, elev_axis = np.meshgrid(x, y)
+        time_axis, y_axis = np.meshgrid(x, y)
         z_data = np.ma.masked_where(np.isnan(z.T), z.T)
 
-        if color_norm is None:
-            norm = colors.Normalize(z_min, z_max)
-        else:
-            norm = color_norm(z_min, z_max)
+        norm = norm(zmin, zmax)
 
-        cmap = cm.get_cmap(settings['color_map'])
+        if isinstance('str', type(cmap)):
+            cmap = cm.get_cmap(cmap)
 
-        if settings['groundscatter']:
+        if isinstance('str', type(groundscatter)):
+            cmap.set_under(groundscatter, 1.0)
+        elif groundscatter:
             cmap.set_under('grey', 1.0)
 
-        cmap.set_bad(color=background, alpha=1.)
+        # set the background color, this needs to happen to avoid
+        # the overlapping problem that occurs
+        # cmap.set_bad(color=background, alpha=1.)
         # plot!
-        im = ax.pcolormesh(time_axis, elev_axis, z_data, lw=0.01,
-                           cmap=cmap, norm=norm)
+        im = ax.pcolormesh(time_axis, y_axis, z_data, lw=0.01,
+                           cmap=cmap, norm=norm, **kwargs)
         # setup some standard axis information
         ax.set_xlim([start_time, end_time])
-        ax.xaxis.set_major_formatter(dates.DateFormatter(settings['date_fmt']))
+        ax.xaxis.set_major_formatter(dates.DateFormatter(date_fmt))
         ax.yaxis.set_ticks(np.arange(0, y_max+1, 15))
         ax.xaxis.set_minor_locator(dates.HourLocator())
         ax.yaxis.set_minor_locator(ticker.MultipleLocator(5))
@@ -316,17 +326,19 @@ class RTP():
         ax.margins(0)
 
         # create color bar if True
-        cb = None
-        if settings['color_bar']:
+        if not colorbar:
             cb = ax.figure.colorbar(im, ax=ax, extend='both')
-            cb.set_label(settings['color_bar_label'])
+
+        if colorbar_label != '':
+            cb.set_label(colorbar_label)
 
         return im, cb, cmap, x, y, z_data
 
     @classmethod
     def plot_time_series(cls, dmap_data: List[dict],
                          parameter: str = 'tfreq', beam_num: int = 0,
-                         ax=None, time_span: tuple = None,
+                         ax=None, start_time: datetime = None,
+                         end_time: datetime = None,
                          date_fmt: str = '%y/%m/%d\n %H:%M',
                          channel='all', scale: str = 'linear',
                          cp_name: bool = True, **kwargs):
@@ -341,13 +353,17 @@ class RTP():
             Scalar parameter to plot
             Default: tfreq
         beam_num : int
-            beam number
+            The beam number of data to plot
             Default: 0
         ax : matplotlib axes object
             option to pass in axes object from matplotlib.pyplot
             Default: plt.gca()
-        time_span : (datetime, datetime)
-            tuple containing the start time and end time
+        start_time: datetime
+            Start time of the plot x-axis as a datetime object
+            Default: first record date
+        end_time: datetime
+            End time of the plot x-axis as a datetime object
+            Default: last record date
         date_fmt : datetime format string
             Date format for the x-axis
             Default: '%y/%m/%d \n %H:%M'
@@ -363,6 +379,8 @@ class RTP():
             along side the number. Otherwise the cp ID will
             just be printed. This is only used for the parameter cp
             Default: True
+        kwargs
+            kwargs passed into lint_plot
         Returns
         -------
         lines: list
@@ -382,7 +400,7 @@ class RTP():
 
         """
         # check if axes object is passed in, if not
-        # default to plt.gca()
+        # Default to plt.gca()
         if not ax:
             ax = plt.gca()
 
@@ -390,7 +408,7 @@ class RTP():
         try:
             # because of partial records we need to find the first
             # record that has that parameter
-            index_first_match = next(i for i,d in enumerate(dmap_data)
+            index_first_match = next(i for i, d in enumerate(dmap_data)
                                      if parameter in d)
             if isinstance(dmap_data[index_first_match][parameter], DmapArray) or\
                isinstance(dmap_data[index_first_match][parameter], DmapScalar):
@@ -400,18 +418,8 @@ class RTP():
 
         cls.dmap_data = dmap_data
         cls.__check_data_type(parameter, 'scalar', index_first_match)
-        # Calculate the time span range, either passed in or calculated
-        # based on the dmap_data records
-        if time_span is None:
-            start_time = cls.__time2datetime(cls.dmap_data[0])
-            end_time = cls.__time2datetime(cls.dmap_data[-1])
-        elif len(time_span) == 2:
-            start_time = time_span[0]
-            end_time = time_span[1]
-        else:
-            raise IndexError("time_span list must be length of 2, "
-                             "you passed in a time_span list of "
-                             "length: {}".format(len(time_span)))
+        start_time, end_time = cls.__determine_start_end_time(start_time,
+                                                              end_time)
 
         # initialized here for return purposes
         lines = None
@@ -508,7 +516,7 @@ class RTP():
                      groundscatter: bool = False, channel: int = 'all',
                      figsize: tuple = (11, 8.5), boundary: dict = {},
                      background_color: str = 'w',
-                     color_maps: dict = {}, plot_elv: bool = True,
+                     cmaps: dict = {}, plot_elv: bool = True,
                      title=None):
         """
         Plots the summary of the following SuperDARN parameter plots:
@@ -539,25 +547,39 @@ class RTP():
         groundscatter : boolean
             Flag to indicate if groundscatter should be plotted.
             Placed only on the velocity plot.
-            default : False
+            Default : False
         channel : int
             channel number that will be plotted
             in the summary plot.
-            default: 'all'
+            Default: 'all'
         figsize : (int,int)
             tuple containing (height, width) figure size
             Default: 11 x 8.5
-        color_maps: dict
+        cmaps: dict
             dictionary of matplotlib color maps for the summary
             plot parameters.
             https://matplotlib.org/tutorials/colors/colormaps.html
-            Default: viridis for all parameter except RdBu for velocity
+            Default: viridis
             note: to reverse the color just add _r to the string name
-        boundary: (int, int)
-            min and max values to include in the plot and set for normalization
-            of the color map.
-            Default: None
-                - the min and max values in the data are used instead
+        boundary: dict
+            dict of the parameter names of a summary plot as key names:
+                - 'search.noise': search noise
+                - 'sky.noise': sky noise
+                - 'nave': number of averages
+                - 'tfreq': transmission frequency
+                - 'p_l': Signal to Noise
+                - 'v': velocity
+                - 'w_l': spectral width
+                - 'elv': elevation
+            with a tuple as the value (zmin, zmax) for the plots
+            Default: {'noise.search': (1e0, 1e5),
+                      'noise.sky': (1e0, 1e5),
+                      'tfreq': (8, 22),
+                      'nave': (0, 60),
+                      'p_l': (0, 30),
+                      'v': (-200, 200),
+                      'w_l': (0, 150),
+                      'elv': (0, 50)}
         plot_elv: boolean
             boolean determines if elevation should be plotted or not.
             If there is no data for elevation data field then elevation is not
@@ -585,15 +607,14 @@ class RTP():
         axes: list
             list of matplotlib.pyplot.axes objects to generate
             the subplots in the summary plot
-
         """
-        message="WARNING: maplotlib default dpi may cause distortion"\
-                " in range gates and time period. The figure size can"\
-                " be adjusted with the option figsize and dpi can be"\
-                " adjusted when saving the file."
+        message = "WARNING: matplotlib Default dpi may cause distortion"\
+                  " in range gates and time period. The figure size can"\
+                  " be adjusted with the option figsize and dpi can be"\
+                  " adjusted when saving the file."
         warnings.warn(message)
 
-        # default boundary ranges for the various parameter
+        # Default boundary ranges for the various parameter
         boundary_ranges = {'noise.search': (1e0, 1e5),
                            'noise.sky': (1e0, 1e5),
                            'tfreq': (8, 22),
@@ -604,17 +625,16 @@ class RTP():
                            'elv': (0, 50)}
         boundary_ranges.update(boundary)
 
-        # default color maps for the summary plot
-        color_map = {'noise.search': 'k',
-                     'noise.sky': 'k',
-                     'tfreq': 'k',
-                     'nave': 'k',
-                     'p_l': 'viridis',
-                     'v': 'viridis',
-                     'w_l': 'viridis',
-                     'elv': 'viridis'}
-        color_map.update(color_maps)
-
+        # Default color maps for the summary plot
+        cmap = {'noise.search': 'k',
+                'noise.sky': 'k',
+                'tfreq': 'k',
+                'nave': 'k',
+                'p_l': 'viridis',
+                'v': 'viridis',
+                'w_l': 'viridis',
+                'elv': 'viridis'}
+        cmap.update(cmaps)
 
         fig = plt.figure(figsize=figsize)
 
@@ -669,7 +689,7 @@ class RTP():
                         cls.plot_time_series(dmap_data, beam_num=beam_num,
                                              parameter=axes_parameters[i][0],
                                              channel=channel, scale=scale,
-                                             color=color_map[axes_parameters[i][0]],
+                                             color=cmap[axes_parameters[i][0]],
                                              ax=axes[i], linestyle='-',
                                              label=labels[i][0])
                     if len(w) > 0:
@@ -680,7 +700,7 @@ class RTP():
                     axes[i].set_ylabel(labels[i][0], rotation=0, labelpad=30)
                     axes[i].axhline(y=boundary_ranges[axes_parameters[i][0]][0] + 0.8,
                                     xmin=-0.11, xmax=-0.05,
-                                    clip_on=False, color=color_map[axes_parameters[i][0]])
+                                    clip_on=False, color=cmap[axes_parameters[i][0]])
                     axes[i].set_ylim(boundary_ranges[axes_parameters[i][0]][0],
                                      boundary_ranges[axes_parameters[i][0]][1])
                     axes[i].yaxis.set_label_coords(-0.08, 0.085)
@@ -691,7 +711,7 @@ class RTP():
                     with warnings.catch_warnings(record=True) as w:
                         cls.plot_time_series(dmap_data, beam_num=beam_num,
                                              parameter=axes_parameters[i][1],
-                                             color=color_map[axes_parameters[i][1]],
+                                             color=cmap[axes_parameters[i][1]],
                                              channel=channel,
                                              scale=scale, ax=second_ax,
                                              linestyle='--')
@@ -705,15 +725,10 @@ class RTP():
                     second_ax.axhline(y=boundary_ranges[axes_parameters[i][1]][0] +
                                       0.8, xmin=1.07, xmax=1.13,
                                       clip_on=False, linestyle='--',
-                                      color=color_map[axes_parameters[i][1]])
+                                      color=cmap[axes_parameters[i][1]])
                     second_ax.set_ylim(boundary_ranges[axes_parameters[i][1]][0],
                                        boundary_ranges[axes_parameters[i][1]][1])
                     second_ax.yaxis.set_label_coords(1.1, 0.7)
-
-                    #if scale == 'log':
-                    #    axes[i].yaxis.set_minor_locator(ticker.LogLocator())
-                    #    second_ax.yaxis.set_minor_locator(ticker.LogLocator())
-                    #else:
                     if scale == 'linear':
                         second_ax.set_yticks(boundary_ranges[axes_parameters[i][1]])
                         axes[i].set_yticks(boundary_ranges[axes_parameters[i][0]])
@@ -739,12 +754,13 @@ class RTP():
                 else:
                     grndflg = False
                 cls.plot_range_time(dmap_data, beam_num=beam_num,
-                                    color_bar_label=labels[i],
+                                    colorbar_label=labels[i],
                                     parameter=axes_parameters[i], ax=axes[i],
                                     groundscatter=grndflg,
                                     channel=channel,
-                                    color_map=color_map[axes_parameters[i]],
-                                    boundary=boundary_ranges[axes_parameters[i]],
+                                    cmap=cmap[axes_parameters[i]],
+                                    zmin=boundary_ranges[axes_parameters[i]][0],
+                                    zmax=boundary_ranges[axes_parameters[i]][1],
                                     background=background_color)
                 axes[i].set_ylabel('Range Gates')
             if i < num_plots-1:
@@ -899,3 +915,28 @@ class RTP():
 
         return datetime(year=year, month=month, day=day, hour=hour,
                         minute=minute, second=second, microsecond=micro_sec)
+
+    # TODO: if used in other plotting methods then this should moved to
+    #       utils
+    @classmethod
+    def __determine_start_end_time(cls, start_time, end_time):
+        """
+        Sets the start and end time based on import of dmap_data
+
+        Parameter
+        ---------
+        start_time: datetime
+            Start time is used to check if it was set or not
+        end_time: datetime
+            End time is used to check if it was set or not
+
+        Returns
+        -------
+        start_time: datetime
+        end_time: datetime
+        """
+        if not start_time:
+            start_time = cls.__time2datetime(cls.dmap_data[0])
+        if not end_time:
+            end_time = cls.__time2datetime(cls.dmap_data[-1])
+        return start_time, end_time
