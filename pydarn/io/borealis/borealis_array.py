@@ -27,6 +27,7 @@ BorealisConversionTypesError
 BorealisConvert2IqdatError
 BorealisConvert2RawacfError
 ConvertFileOverWriteError
+BorealisNumberOfRecordsError
 
 Notes
 -----
@@ -74,11 +75,10 @@ class BorealisArrayRead():
     filename: str
         The filename of the Borealis HDF5 file being read.
     borealis_filetype: str
-        The type of Borealis file. Types include:
+        The type of Borealis file. Restructured types include:
         'bfiq'
         'antennas_iq'
         'rawacf'
-        'rawrf'
     record_names: list(str)
     records: dict
     arrays: dict
@@ -168,13 +168,13 @@ class BorealisArrayRead():
         read_bfiq
         read_rawacf
         read_antennas_iq
-        read_rawrf
 
         Returns
         -------
-        records: OrderedDict{dict}
-            records of borealis data. Keys are first sequence timestamp 
-            (in ms since epoch).
+        arrays: dict
+            borealis data dictionary. Keys are data field names and
+            unshared fields have a first dimension = number of records 
+            in the file.
 
         Raises
         ------
@@ -186,83 +186,71 @@ class BorealisArrayRead():
             return self.read_rawacf()
         elif self.borealis_filetype == 'antennas_iq':
             return self.read_antennas_iq()
-        elif self.borealis_filetype == 'rawrf':
-            return self.read_rawrf()
         else:
             raise borealis_exceptions.BorealisFileTypeError(
                 self.filename, borealis_filetype)
 
     def read_bfiq(self) -> dict:
         """
-        Reads Borealis bfiq file
+        Reads Borealis bfiq file that has been structured into arrays.
 
         Returns
         -------
-        records: OrderedDict{dict}
-            records of beamformed iq data. Keys are first sequence timestamp
-            (in ms since epoch).
+        arrays: dict
+            The Borealis data in a dictionary of arrays, according to the 
+            restructured array file format.
         """
         pydarn_log.debug("Reading Borealis bfiq file: {}"
                          "".format(self.filename))
         attribute_types = borealis_formats.BorealisBfiq.single_element_types
         dataset_types = borealis_formats.BorealisBfiq.array_dtypes
-        self._read_borealis_records(attribute_types, dataset_types)
-        return self._records
+        unshared_fields = borealis_formats.BorealisBfiq.unshared_fields
+        self._read_borealis_arrays(attribute_types, dataset_types, 
+            unshared_fields)
+        return self._arrays
 
     def read_rawacf(self) -> dict:
         """
-        Reads Borealis rawacf file
+        Reads Borealis rawacf file that has been structured into arrays.
 
         Returns
         -------
-        records: OrderedDict{dict}
-            records of borealis rawacf data. Keys are first sequence timestamp 
-            (in ms since epoch).
+        arrays: dict
+            The Borealis data in a dictionary of arrays, according to the 
+            restructured array file format.
         """
         pydarn_log.debug(
             "Reading Borealis rawacf file: {}".format(self.filename))
         attribute_types = borealis_formats.BorealisRawacf.single_element_types
         dataset_types = borealis_formats.BorealisRawacf.array_dtypes
-        self._read_borealis_records(attribute_types, dataset_types)
-        return self._records
+        unshared_fields = borealis_formats.BorealisRawacf.unshared_fields
+        self._read_borealis_arrays(attribute_types, dataset_types, 
+            unshared_fields)
+        return self._arrays
 
     def read_antennas_iq(self) -> dict:
         """
-        Reads Borealis antennas_iq file
+        Reads Borealis antennas_iq file that has been structured into arrays.
 
         Returns
         -------
-        records: OrderedDict{dict}
-            records of borealis antennas iq data. Keys are first sequence
-            timestamp (in ms since epoch).
+        arrays: dict
+            The Borealis data in a dictionary of arrays, according to the 
+            restructured array file format.
         """
         pydarn_log.debug("Reading Borealis antennas_iq file: {}"
                          "".format(self.filename))
         attribute_types = \
             borealis_formats.BorealisAntennasIq.single_element_types
         dataset_types = borealis_formats.BorealisAntennasIq.array_dtypes
-        self._read_borealis_records(attribute_types, dataset_types)
-        return self._records
+        unshared_fields = borealis_formats.BorealisAntennasIq.unshared_fields
+        self._read_borealis_arrays(attribute_types, dataset_types, 
+            unshared_fields)
+        return self._arrays
 
-    def read_rawrf(self) -> dict:
-        """
-        Reads Borealis rawrf file
-
-        Returns
-        -------
-        records: OrderedDict{dict}
-            records of borealis rawrf data. Keys are first sequence timestamp
-            (in ms since epoch).
-        """
-        pydarn_log.debug("Reading Borealis rawrf file: {}"
-                         "".format(self.filename))
-        attribute_types = borealis_formats.BorealisRawrf.single_element_types
-        dataset_types = borealis_formats.BorealisRawrf.array_dtypes
-        self._read_borealis_records(attribute_types, dataset_types)
-        return self._records
-
-    def _read_borealis_records(self, attribute_types: dict,
-                               dataset_types: dict):
+    def _read_borealis_arrays(self, attribute_types: dict,
+                              dataset_types: dict, 
+                              unshared_fields: List[str]):
         """
         Read the entire file while checking all data fields.
 
@@ -273,65 +261,52 @@ class BorealisArrayRead():
         dataset_types: dict
             Dictionary with the require dtypes for the numpy arrays in the 
             file.
-
-        """
-        for record_name in self._group_names:
-            self._current_record_name = record_name
-            self._read_borealis_record(attribute_types, dataset_types)
-
-    def _read_borealis_record(self, attribute_types: dict,
-                              dataset_types: dict):
-        """
-        Read a Borealis HDF5 record. 
-
-        Several Borealis field checks are done to insure the integrity of the
-        file. Appends to the records dictionary.
-
-        Parameters
-        ----------
-        attribute_types: dict
-            Dictionary with the required types for the attributes in the file.
-        dataset_types: dict
-            Dictionary with the require dtypes for the numpy arrays in the 
-            file.
+        unshared_fields: List[str]
+            List of fields that are not shared between the records and 
+            therefore should be an array with first dimension = number of 
+            records
 
         Raises
         ------
-        OSError: file does not exist
         BorealisFieldMissingError - when a field is missing from the Borealis
-                                file/stream type
+                                file
         BorealisExtraFieldError - when an extra field is present in the
-                                Borealis file/stream type
+                                Borealis file
         BorealisDataFormatTypeError - when a field has the incorrect
-                                field type for the Borealis file/stream type
+                                field type for the Borealis file
+        BorealisNumberOfRecordsError - when the number of records cannot 
+                                be discerned from the arrays
 
         See Also
         --------
-        missing_field_check(format_fields, record, record_name) - checks
-            for missing fields. See this method for information
-            on why we use format_fields.
-        extra_field_check(format_fields, record, record_name) - checks for
-            extra fields in the record
-        incorrect_types_check(attribute_types_dict, dataset_types_dict, record,
-            record_name) - checks for incorrect data types for file fields
+        array_missing_field_check(filename, format_fields, parameters) 
+                        - checks for missing fields. See this 
+                        method for information on why we use format_fields.
+        array_extra_field_check(filename, format_fields, parameters) 
+                        - checks for extra fields in the record
+        array_incorrect_types_check(filename, attribute_types_dict, 
+                        dataset_types_dict, unshared_fields, file_data)
+                         - checks for incorrect data types for file fields
+        array_num_records_check(filename, unshared_fields, file_data)
         """
         all_format_fields = [attribute_types, dataset_types]
+        arrays = dd.io.load(self.filename)
+        BorealisUtilities.array_missing_field_check(self.filename,
+            all_format_fields, arrays)
+        BorealisUtilities.array_extra_field_check(self.filename,
+            all_format_fields, arrays)
+        BorealisUtilities.array_incorrect_types_check(self.filename,
+            attribute_types, dataset_types, unshared_fields, arrays)
+        BorealisUtilities.array_num_records_check(self.filename,
+            unshared_fields, arrays)
+        self._arrays = arrays
 
-        record = dd.io.load(self.filename, group='/' +
-                            self._current_record_name)
-        BorealisUtilities.missing_field_check(
-            all_format_fields, record, self._current_record_name)
-        BorealisUtilities.extra_field_check(
-            all_format_fields, record, self._current_record_name)
-        BorealisUtilities.incorrect_types_check(
-            attribute_types, dataset_types, record, self._current_record_name)
-        self._records[self._current_record_name] = record
 
-
-class BorealisSiteWrite():
+class BorealisArrayWrite():
     """
-    Class for writing Borealis 'site' filetypes. Site files are stored in
-    a record-by-record style.
+    Class for writing Borealis 'array' filetypes. Array files have
+    been restructured to no longer be read in record-by-record
+    style. 
 
     See Also
     --------
@@ -343,17 +318,19 @@ class BorealisSiteWrite():
     Attributes
     ----------
     filename: str
-        The filename of the Borealis HDF5 file being read.
-    borealis_records: OrderedDict{dict}
-        The dictionary of Borealis records to write to HDF5 file.
-    group_names: list(str)
-        The list of record names of the Borealis data. These values 
-        are the write time of the record in ms since epoch.
-    current_record_name: str
+        The filename of the Borealis HDF5 file being written.
+    borealis_filetype: str
+        The type of Borealis file. Restructured types include:
+        'bfiq'
+        'antennas_iq'
+        'rawacf'
+    compression: str
+        The type of compression to write the file as. Default zlib.
+    arrays: dict
     """
 
-    def __init__(self, filename: str, 
-                 borealis_records: OrderedDict = OrderedDict()):
+    def __init__(self, filename: str, borealis_arrays: dict, 
+                 borealis_filetype: str, compression: str = 'zlib'):
         """
         Write borealis records to a file.
 
@@ -361,16 +338,22 @@ class BorealisSiteWrite():
         ----------
         filename: str
             Name of the file the user wants to write to
-        borealis_records: OrderedDict{dict}
-            OrderedDict of borealis records, where keys are the 
-            record name
-
+        borealis_arrays: dict
+            borealis data dictionary. Keys are data field names and
+            unshared fields have a first dimension = number of records 
+            in the file.
+        borealis_filetype: str
+            The type of Borealis file. Restructured types include:
+            'bfiq'
+            'antennas_iq'
+            'rawacf'
+        compression: str
+            String representing compression type. Default zlib.
         """
-        self.borealis_records = borealis_records
         self.filename = filename
-        self._group_names = sorted(list(borealis_records.keys()))
-        # list of group keys for partial write
-        self._current_record_name = ''
+        self._arrays = borealis_arrays
+        self.borealis_filetype = borealis_filetype
+        self.compression = compression
 
     def __repr__(self):
         """For representation of the class object"""
@@ -387,39 +370,29 @@ class BorealisSiteWrite():
                "{current_record_name}".format(filename=self.filename,
                     current_record_name=self.current_record_name)
 
-    @property
-    def current_record_name(self):
+    @property 
+    def arrays(self):
         """
-        The current record name, str, represented by ms since epoch.
+        The Borealis data in a dictionary of arrays, according to the 
+        restructured array file format.
         """
-        return self._current_record_name
+        return self._arrays
 
-    def write_file(self, borealis_filetype) -> str:
+    def write_file(self) -> str:
         """
         Write Borealis records to a file given filetype.
-
-        Parameters
-        ----------
-        borealis_filetype
-            filetype to write as. Currently supported:
-                - bfiq
-                - rawacf
-                - antennas_iq
-                - rawrf
 
         Raises
         ------
         BorealisFileTypeError
         """
 
-        if borealis_filetype == 'bfiq':
+        if self.borealis_filetype == 'bfiq':
             self.write_bfiq()
-        elif borealis_filetype == 'rawacf':
+        elif self.borealis_filetype == 'rawacf':
             self.write_rawacf()
-        elif borealis_filetype == 'antennas_iq':
+        elif self.borealis_filetype == 'antennas_iq':
             self.write_antennas_iq()
-        elif borealis_filetype == 'rawrf':
-            self.write_rawrf()
         else:
             raise borealis_exceptions.BorealisFileTypeError(self.filename,
                                                             borealis_filetype)
@@ -437,7 +410,9 @@ class BorealisSiteWrite():
             "Writing Borealis bfiq file: {}".format(self.filename))
         attribute_types = borealis_formats.BorealisBfiq.single_element_types
         dataset_types = borealis_formats.BorealisBfiq.array_dtypes
-        self._write_borealis_records(attribute_types, dataset_types)
+        unshared_fields = borealis_formats.BorealisBfiq.unshared_fields
+        self._write_borealis_arrays(attribute_types, dataset_types, 
+            unshared_fields)
         return self.filename
 
     def write_rawacf(self) -> str:
@@ -453,7 +428,9 @@ class BorealisSiteWrite():
             "Writing Borealis rawacf file: {}".format(self.filename))
         attribute_types = borealis_formats.BorealisRawacf.single_element_types
         dataset_types = borealis_formats.BorealisRawacf.array_dtypes
-        self._write_borealis_records(attribute_types, dataset_types)
+        unshared_fields = borealis_formats.BorealisRawacf.unshared_fields
+        self._write_borealis_arrays(attribute_types, dataset_types, 
+            unshared_fields)
         return self.filename
 
     def write_antennas_iq(self) -> str:
@@ -470,92 +447,62 @@ class BorealisSiteWrite():
         attribute_types = \
             borealis_formats.BorealisAntennasIq.single_element_types
         dataset_types = borealis_formats.BorealisAntennasIq.array_dtypes
-        self._write_borealis_records(attribute_types, dataset_types)
+        unshared_fields = borealis_formats.BorealisAntennasIq.unshared_fields
+        self._write_borealis_arrays(attribute_types, dataset_types, 
+            unshared_fields)
         return self.filename
 
-    def write_rawrf(self) -> str:
+    def _write_borealis_arrays(self, attribute_types: dict,
+                              dataset_types: dict, 
+                              unshared_fields: List[str]):
         """
-        Writes Borealis rawrf file
-
-        Returns
-        -------
-        filename: str
-            Filename of written file.
-        """
-        pydarn_log.debug(
-            "Writing Borealis rawrf file: {}".format(self.filename))
-        attribute_types = borealis_formats.BorealisRawrf.single_element_types
-        dataset_types = borealis_formats.BorealisRawrf.array_dtypes
-        self._write_borealis_records(attribute_types, dataset_types)
-        return self.filename
-
-    def _write_borealis_records(self, attribute_types: dict,
-                                dataset_types: dict):
-        """
-        Write the file record by record checking each record as we go.
+        Write the entire file while checking all data fields.
 
         Parameters
         ----------
-        attributes_type_dict: dict
+        attribute_types: dict
             Dictionary with the required types for the attributes in the file.
-        datasets_type_dict: dict
+        dataset_types: dict
             Dictionary with the require dtypes for the numpy arrays in the 
             file.
+        unshared_fields: List[str]
+            List of fields that are not shared between the records and 
+            therefore should be an array with first dimension = number of 
+            records
+
 
         Raises
         ------
-        OSError: file does not exist
-
-        """
-        for record_name in self._group_names:
-            self._current_record_name = record_name
-            self._write_borealis_record(attribute_types, dataset_types)
-
-    def _write_borealis_record(self, attribute_types: dict,
-                               dataset_types: dict):
-        """
-        Writes a Borealis HDF5 record. 
-
-        Several Borealis field checks are done to insure the integrity of the 
-        file. Appends to the file.
-
-        Parameters
-        ----------
-        attributes_type_dict: dict
-            Dictionary with the required types for the attributes in the file.
-        datasets_type_dict: dict
-            Dictionary with the require dtypes for the numpy arrays in the 
-            file.
-
-        Raises:
-        -------
         BorealisFieldMissingError - when a field is missing from the Borealis
-                                file/stream type
+                                file
         BorealisExtraFieldError - when an extra field is present in the
-                                Borealis file/stream type
+                                Borealis file
         BorealisDataFormatTypeError - when a field has the incorrect
-                                field type for the Borealis file/stream type
+                                field type for the Borealis file
+        BorealisNumberOfRecordsError - when the number of records cannot 
+                                be discerned from the arrays
 
         See Also
         --------
-        missing_field_check(format_fields, record, record_name) - checks
-                        for missing fields. See this method for information
-                        on why we use format_fields.
-        extra_field_check(format_fields, record, record_name) - checks for
-                        extra fields in the record
-        incorrect_types_check(attribute_types_dict, dataset_types_dict,
-                        record, record_name) - checks
-                        for incorrect data types for file fields
+        array_missing_field_check(filename, format_fields, parameters) 
+                        - checks for missing fields. See this 
+                        method for information on why we use format_fields.
+        array_extra_field_check(filename, format_fields, parameters) 
+                        - checks for extra fields in the record
+        array_incorrect_types_check(filename, attribute_types_dict, 
+                        dataset_types_dict, unshared_fields, file_data)
+                         - checks for incorrect data types for file fields
+        array_num_records_check(filename, unshared_fields, file_data) -
+                        checks for correct number of records across arrays.
         """
-
         all_format_fields = [attribute_types, dataset_types]
-        record = self.borealis_records[self._current_record_name]
-        BorealisUtilities.missing_field_check(all_format_fields, record,
-                                              self._current_record_name)
-        BorealisUtilities.extra_field_check(all_format_fields, record,
-                                            self._current_record_name)
-        BorealisUtilities.incorrect_types_check(attribute_types, 
-                                                dataset_types, record,
-                                                self._current_record_name)
-        dd.io.save(self.filename, {self._current_record_name: record},
-                   compression=None)
+
+        BorealisUtilities.array_missing_field_check(self.filename,
+            all_format_fields, self._arrays)
+        BorealisUtilities.array_extra_field_check(self.filename,
+            all_format_fields, self._arrays)
+        BorealisUtilities.array_incorrect_types_check(self.filename,
+            attribute_types, dataset_types, unshared_fields, self._arrays)
+        BorealisUtilities.array_num_records_check(self.filename,
+            unshared_fields, self._arrays)
+        dd.io.save(self.filename, self._arrays, compression=self.compression)
