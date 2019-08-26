@@ -30,6 +30,10 @@ BorealisConvert makes use of DarnWrite to write to SuperDARN file types
 
 See Also
 --------
+BorealisArrayRead
+BorealisArrayWrite
+borealis_site_to_array_file
+borealis_array_to_site_file
 
 For more information on Borealis data files and how they convert to dmap,
 see: https://borealis.readthedocs.io/en/latest/ 
@@ -44,6 +48,7 @@ import os
 
 from collections import OrderedDict
 from datetime import datetime
+from pathlib2 import Path
 from typing import Union, List
 
 from pydarn import borealis_exceptions, DarnWrite, borealis_formats, \
@@ -113,6 +118,7 @@ class BorealisSiteRead():
 
         # Records are private to avoid tampering.
         self._records = OrderedDict()
+        self.read_file()
 
     def __repr__(self):
         """ for representation of the class object"""
@@ -357,8 +363,16 @@ class BorealisSiteWrite():
     ----------
     filename: str
         The filename of the Borealis HDF5 file being read.
+    temp_file: str
+        The temporary filename when writing record by record.
     borealis_records: OrderedDict{dict}
         The dictionary of Borealis records to write to HDF5 file.
+    borealis_filetype
+        Borealis filetype. Currently supported:
+        - bfiq
+        - antennas_iq
+        - rawacf
+        - rawrf
     record_names: list(str)
         The list of record names of the Borealis data. These values 
         are the write time of the record in ms since epoch.
@@ -366,7 +380,8 @@ class BorealisSiteWrite():
     """
 
     def __init__(self, filename: str, 
-                 borealis_records: OrderedDict = OrderedDict()):
+                 borealis_records: OrderedDict = OrderedDict(),
+                 borealis_filetype: str):
         """
         Write borealis records to a file.
 
@@ -377,13 +392,21 @@ class BorealisSiteWrite():
         borealis_records: OrderedDict{dict}
             OrderedDict of borealis records, where keys are the 
             record name
-
+        borealis_filetype
+            filetype to write as. Currently supported:
+                - bfiq
+                - rawacf
+                - antennas_iq
+                - rawrf
         """
         self.borealis_records = borealis_records
+        self.borealis_filetype = borealis_filetype
         self.filename = filename
+        self.temp_file = self.filename + '.tmp'
         self._record_names = sorted(list(borealis_records.keys()))
         # list of group keys for partial write
         self._current_record_name = ''
+        self.write_file()
 
     def __repr__(self):
         """For representation of the class object"""
@@ -407,31 +430,22 @@ class BorealisSiteWrite():
         """
         return self._current_record_name
 
-    def write_file(self, borealis_filetype) -> str:
+    def write_file(self) -> str:
         """
         Write Borealis records to a file given filetype.
-
-        Parameters
-        ----------
-        borealis_filetype
-            filetype to write as. Currently supported:
-                - bfiq
-                - rawacf
-                - antennas_iq
-                - rawrf
 
         Raises
         ------
         BorealisFileTypeError
         """
 
-        if borealis_filetype == 'bfiq':
+        if self.borealis_filetype == 'bfiq':
             self.write_bfiq()
-        elif borealis_filetype == 'rawacf':
+        elif self.borealis_filetype == 'rawacf':
             self.write_rawacf()
-        elif borealis_filetype == 'antennas_iq':
+        elif self.borealis_filetype == 'antennas_iq':
             self.write_antennas_iq()
-        elif borealis_filetype == 'rawrf':
+        elif self.borealis_filetype == 'rawrf':
             self.write_rawrf()
         else:
             raise borealis_exceptions.BorealisFileTypeError(self.filename,
@@ -520,6 +534,7 @@ class BorealisSiteWrite():
         OSError: file does not exist
 
         """
+        Path(self.filename).touch()
         for record_name in self._record_names:
             self._current_record_name = record_name
             self._write_borealis_record(attribute_types, dataset_types)
@@ -573,5 +588,11 @@ class BorealisSiteWrite():
                                                 attribute_types, 
                                                 dataset_types, record,
                                                 self._current_record_name)
-        dd.io.save(self.filename, {self._current_record_name: record},
+        dd.io.save(self.temp_file, {self._current_record_name: record},
                    compression=None)
+        cmd = 'h5copy -i {newfile} -o {fullfile} -s {dtstr} -d {dtstr}'
+        cmd = cmd.format(newfile=self.temp_file, fullfile=self.filename, 
+            dtstr=self._current_record_name)
+
+        sp.call(cmd.split())
+        os.remove(self.temp_file)
