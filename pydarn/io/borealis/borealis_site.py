@@ -564,11 +564,11 @@ class BorealisSiteWrite():
         all_format_fields = [attribute_types, dataset_types]
         record = self.borealis_records[self._current_record_name]
         BorealisUtilities.record_missing_field_check(self.filename,
-                                              all_format_fields, record,
-                                              self._current_record_name)
+                                all_format_fields, record,
+                                record_name=self._current_record_name)
         BorealisUtilities.record_extra_field_check(self.filename,
-                                            all_format_fields, record,
-                                            self._current_record_name)
+                                all_format_fields, record,
+                                record_name=self._current_record_name)
         BorealisUtilities.record_incorrect_types_check(self.filename,
                                                 attribute_types, 
                                                 dataset_types, record,
