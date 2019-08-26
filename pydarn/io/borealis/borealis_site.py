@@ -318,24 +318,26 @@ class BorealisSiteRead():
 
         See Also
         --------
-        missing_field_check(format_fields, record, record_name) - checks
-            for missing fields. See this method for information
-            on why we use format_fields.
-        extra_field_check(format_fields, record, record_name) - checks for
-            extra fields in the record
-        incorrect_types_check(attribute_types_dict, dataset_types_dict, record,
-            record_name) - checks for incorrect data types for file fields
+        record_missing_field_check(filename, format_fields, record, 
+                        record_name) - checks for missing fields. See this 
+                        method for information on why we use format_fields.
+        record_extra_field_check(filename, format_fields, record, record_name) 
+                        - checks for extra fields in the record
+        record_incorrect_types_check(filename, attribute_types_dict, 
+                        dataset_types_dict, record, record_name) - checks
+                        for incorrect data types for file fields
         """
         all_format_fields = [attribute_types, dataset_types]
 
         record = dd.io.load(self.filename, group='/' +
                             self._current_record_name)
-        BorealisUtilities.missing_field_check(
-            all_format_fields, record, self._current_record_name)
-        BorealisUtilities.extra_field_check(
-            all_format_fields, record, self._current_record_name)
-        BorealisUtilities.incorrect_types_check(
-            attribute_types, dataset_types, record, self._current_record_name)
+        BorealisUtilities.record_missing_field_check(self.filename,
+            all_format_fields, record, record_name=self._current_record_name)
+        BorealisUtilities.record_extra_field_check(self.filename,
+            all_format_fields, record, record_name=self._current_record_name)
+        BorealisUtilities.record_incorrect_types_check(self.filename,
+            attribute_types, dataset_types, record, 
+            self._current_record_name)
         self._records[self._current_record_name] = record
 
 
@@ -549,23 +551,26 @@ class BorealisSiteWrite():
 
         See Also
         --------
-        missing_field_check(format_fields, record, record_name) - checks
-                        for missing fields. See this method for information
-                        on why we use format_fields.
-        extra_field_check(format_fields, record, record_name) - checks for
-                        extra fields in the record
-        incorrect_types_check(attribute_types_dict, dataset_types_dict,
-                        record, record_name) - checks
+        record_missing_field_check(filename, format_fields, record, 
+                        record_name) - checks for missing fields. See this 
+                        method for information on why we use format_fields.
+        record_extra_field_check(filename, format_fields, record, record_name) 
+                        - checks for extra fields in the record
+        record_incorrect_types_check(filename, attribute_types_dict, 
+                        dataset_types_dict, record, record_name) - checks
                         for incorrect data types for file fields
         """
 
         all_format_fields = [attribute_types, dataset_types]
         record = self.borealis_records[self._current_record_name]
-        BorealisUtilities.missing_field_check(all_format_fields, record,
+        BorealisUtilities.record_missing_field_check(self.filename,
+                                              all_format_fields, record,
                                               self._current_record_name)
-        BorealisUtilities.extra_field_check(all_format_fields, record,
+        BorealisUtilities.record_extra_field_check(self.filename,
+                                            all_format_fields, record,
                                             self._current_record_name)
-        BorealisUtilities.incorrect_types_check(attribute_types, 
+        BorealisUtilities.record_incorrect_types_check(self.filename,
+                                                attribute_types, 
                                                 dataset_types, record,
                                                 self._current_record_name)
         dd.io.save(self.filename, {self._current_record_name: record},
