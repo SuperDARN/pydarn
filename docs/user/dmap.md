@@ -1,11 +1,14 @@
 # Dmap Classes 
 
-For API documentation on [`DmapRead`]() and [`DmapWrite`](). 
+!!! Warning
+    This module of pyDARN will be removed after the first release and will become its own package.
 
-Data Map (DMap) Self-Describing Format was developed by Robyn Bornes and is primary format used by SuperDARN. 
-For more information on DMap please see [RST Documentation](). 
+Please see for API documentation on [`DmapRead`](code/DmapRead.md) and [`DmapWrite`](code/DmapWrite.md). 
 
-pyDARN provides two methods that read and write Dmap format. 
+Data Map (DMap) Self-Describing Format was developed by Rob Barnes and is primary format used by SuperDARN. 
+For more information on DMap please see [RST Documentation](https://radar-software-toolkit-rst.readthedocs.io/en/latest/). 
+
+pyDARN provides two methods that reads and writes DMap formatted files. 
 
 ## DmapRead 
 
@@ -22,7 +25,7 @@ dmap_read = pydarn.DmapRead(fitacf_file)
 dmap_data = dmap_read.read_records()
 ```
 
-Accessing data from pyDARN dmap structure (for more information on [pyDARN's dmap structure]()):
+Accessing data from pyDARN Dmap structure:
 ```python
 # loop over every record in the dmap structure
 for dmap_rec in dmap_data:
@@ -49,9 +52,9 @@ for dmap_rec in dmap_data:
     print(dmap_rec['channel'])
 ```
 
-### Read from compressed file 
+### Read from a compressed file 
 
-Reading from a `bzip2` compressed file (extension would be *bz2*):
+Reading from a `bzip2` compressed file (extension of the file would be *bz2*):
 ```python
 import pydarn
 import bz2
@@ -66,6 +69,43 @@ with bz2.open(rawacf_stream) as fp:
 dmap = pydarn.DmapRead(dmap_stream, True)
 dmap_data = dmap.read_records()
 
+```
+
+### Reading multiple files
+
+Reading multiple DMap formatted files via list:
+```python
+import pydarn 
+import glob 
+
+# Initialize empty DMap data list 
+dmap_list = []
+
+# list of files 
+dmap_files = [""]
+
+# loop over the list of files and read them in
+for dmap_file in dmap_files:
+  dmap = pydarn.DmapRead(dmap_file)
+  dmap_list.append(dmap.read_records())
+```
+
+
+Reading multiple DMap formatted file via [`glob`](https://docs.python.org/3/library/glob.html):
+```python
+import pydarn 
+import glob 
+
+# Initialize empty DMap data list 
+dmap_list = []
+
+# obtain a list of files with the file extension of fitacf
+dmap_files = glob.glob('*.rawacf')
+
+# loop over the list of files and read them in
+for dmap_file in dmap_files:
+  dmap = pydarn.DmapRead(dmap_file)
+  dmap_list.append(dmap.read_records())
 ```
 
 ## DmapWrite
@@ -83,6 +123,3 @@ dmap_write = pydarn.DmapWrite([{'qflg': array,
 dmap_file = dmap_write.write_dmap("example.dmap")
 
 ```
-
-
-
