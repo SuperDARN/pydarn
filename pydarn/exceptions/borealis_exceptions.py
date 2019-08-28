@@ -306,8 +306,8 @@ class BorealisNumberOfRecordsError(Exception):
     restructure_borealis.py
     """
 
-    def __init__(self, array_types: dict):
-        self.message = "The number of records in the file cannot "\
+    def __init__(self, filename: str, array_types: dict):
+        self.message = "The number of records in file {filename} cannot "\
             "be determined due to varying sizes of arrays: {array_types}"\
-            "".format(array_types=array_types)
+            "".format(filename=filename, array_types=array_types)
         Exception.__init__(self, self.message)
