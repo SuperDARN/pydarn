@@ -345,4 +345,109 @@ class BorealisUtilities():
 
         dimensions = list(num_records.values())
         if not all(x == dimensions[0] for x in dimensions):
-            raise borealis_exceptions.BorealisNumberOfRecordsError(num_records)
+            raise borealis_exceptions.BorealisNumberOfRecordsError(filename, 
+                num_records)
+
+    @staticmethod
+    def check_arrays(filename: str, arrays: dict, attribute_types: dict, 
+                     dataset_types: dict, unshared_fields: List[str]):
+        """
+        Parameters
+        ----------
+        filename: str
+            Name of file to be checked.
+        arrays: dict
+            Dictionary of arrays to be checked.
+        attribute_types: dict
+            Dictionary with the required types for the attributes in the file.
+        dataset_types: dict
+            Dictionary with the require dtypes for the numpy arrays in the 
+            file.
+        unshared_fields: List[str]
+            List of fields that are not shared between the records and 
+            therefore should be an array with first dimension = number of 
+            records
+
+        Raises
+        ------
+        BorealisFieldMissingError - when a field is missing from the Borealis
+                                file
+        BorealisExtraFieldError - when an extra field is present in the
+                                Borealis file
+        BorealisDataFormatTypeError - when a field has the incorrect
+                                field type for the Borealis file
+        BorealisNumberOfRecordsError - when the number of records cannot 
+                                be discerned from the arrays
+
+        See Also
+        --------
+        array_missing_field_check(filename, format_fields, parameters) 
+                        - checks for missing fields. See this 
+                        method for information on why we use format_fields.
+        array_extra_field_check(filename, format_fields, parameters) 
+                        - checks for extra fields in the record
+        array_incorrect_types_check(filename, attribute_types_dict, 
+                        dataset_types_dict, unshared_fields, file_data)
+                         - checks for incorrect data types for file fields
+        array_num_records_check(filename, unshared_fields, file_data)
+        """
+        all_format_fields = [attribute_types, dataset_types]
+        self.array_missing_field_check(filename,
+            all_format_fields, arrays)
+        self.array_extra_field_check(filename,
+            all_format_fields, arrays)
+        self.array_incorrect_types_check(filename,
+            attribute_types, dataset_types, unshared_fields, arrays)
+        self.array_num_records_check(filename,
+            unshared_fields, arrays)
+
+    @staticmethod
+    def check_records(filename: str, records: dict, attribute_types: dict, 
+                      dataset_types: dict):
+        """
+        Do checks on the restructured data the same as would be done as if 
+        the dictionary had just been read from file. 
+
+        Parameters
+        ----------
+        filename: str
+            Name of file to be checked.
+        records: dict
+            Dictionary of records to be checked for errors.
+        attribute_types: dict
+            Dictionary with the required types for the attributes in the file.
+        dataset_types: dict
+            Dictionary with the require dtypes for the numpy arrays in the 
+            file.
+
+        Raises
+        ------
+        OSError: file does not exist
+        BorealisFieldMissingError - when a field is missing from the Borealis
+                                file/stream type
+        BorealisExtraFieldError - when an extra field is present in the
+                                Borealis file/stream type
+        BorealisDataFormatTypeError - when a field has the incorrect
+                                field type for the Borealis file/stream type
+
+        See Also
+        --------
+        record_missing_field_check(filename, format_fields, record, 
+                        record_name) - checks for missing fields. See this 
+                        method for information on why we use format_fields.
+        record_extra_field_check(filename, format_fields, record, record_name) 
+                        - checks for extra fields in the record
+        record_incorrect_types_check(filename, attribute_types_dict, 
+                        dataset_types_dict, record, record_name) - checks
+                        for incorrect data types for file fields
+        """
+        all_format_fields = [attribute_types, dataset_types]
+        
+        for record_name, record in data_dict.items():
+            self.record_missing_field_check(filename,
+                all_format_fields, record, record_name=record_name)
+            self.record_extra_field_check(filename,
+                all_format_fields, record, record_name=record_name)
+            self.record_incorrect_types_check(filename,
+                attribute_types, dataset_types, record, 
+                record_name)      
