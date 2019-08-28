@@ -269,7 +269,7 @@ class ConvertFileOverWriteError(Exception):
     Parameters
     ----------
     filename: str
-        name of the file associated to the wrong SuperDARN Borealis file type
+        name of the file trying to both read and write from/to
 
     Attributes
     ----------
@@ -279,7 +279,7 @@ class ConvertFileOverWriteError(Exception):
 
     def __init__(self, filename: str, file_type: str):
         self.message = "Writing to {filename} not permitted while reading"\
-            " as source to convert".format(filename=filename)
+            " as source.".format(filename=filename)
         Exception.__init__(self, self.message)
 
 
