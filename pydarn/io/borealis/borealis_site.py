@@ -19,14 +19,6 @@ BorealisFileTypeError
 BorealisFieldMissingError
 BorealisExtraFieldError
 BorealisDataFormatTypeError
-BorealisConversionTypesError
-BorealisConvert2IqdatError
-BorealisConvert2RawacfError
-ConvertFileOverWriteError
-
-Notes
------
-BorealisConvert makes use of DarnWrite to write to SuperDARN file types
 
 See Also
 --------
@@ -80,8 +72,6 @@ class BorealisSiteRead():
     record_names: list(str)
     records: dict
     arrays: dict
-    current_record_name: str
-
     """
 
     def __init__(self, filename: str, borealis_filetype: str):
@@ -114,8 +104,6 @@ class BorealisSiteRead():
             self._record_names = sorted(list(f.keys()))
             # list of group names in the HDF5 file, to allow partial read.
 
-        self._current_record_name = ''  # Current HDF5 record group name.
-
         # Records are private to avoid tampering.
         self._records = OrderedDict()
         self.read_file()
@@ -125,27 +113,17 @@ class BorealisSiteRead():
         # __class__.__name__ allows to grab the class name such that
         # when a class inherits this one, the class name will be the child
         # class and not the parent class
-        return "{class_name}({filename}, {current_record_name})"\
+        return "{class_name}({filename})"\
             "".format(class_name=self.__class__.__name__,
-                      filename=self.filename,
-                      current_record_name=self.current_record_name)
+                      filename=self.filename)
 
     def __str__(self):
         """ for printing of the class object"""
 
-        return "Reading from {filename} at current record:"\
-            " {current_record_name} a total number of"\
+        return "Reading from {filename} a total number of"\
             " records: {total_records}"\
             "".format(filename=self.filename,
-                      cursor=self.current_record_name,
                       total_records=len(list(self.records.keys())))
-
-    @property
-    def current_record_name(self):
-        """
-        The name of the current record being read, string.
-        """
-        return self._current_record_name
 
     @property
     def record_names(self):
@@ -283,26 +261,8 @@ class BorealisSiteRead():
         """
         Read the entire file while checking all data fields.
 
-        Parameters
-        ----------
-        attribute_types: dict
-            Dictionary with the required types for the attributes in the file.
-        dataset_types: dict
-            Dictionary with the require dtypes for the numpy arrays in the 
-            file.
-
-        """
-        for record_name in self._record_names:
-            self._current_record_name = record_name
-            self._read_borealis_record(attribute_types, dataset_types)
-
-    def _read_borealis_record(self, attribute_types: dict,
-                              dataset_types: dict):
-        """
-        Read a Borealis HDF5 record. 
-
         Several Borealis field checks are done to insure the integrity of the
-        file. Appends to the records dictionary.
+        file. 
 
         Parameters
         ----------
@@ -321,30 +281,16 @@ class BorealisSiteRead():
                                 Borealis file/stream type
         BorealisDataFormatTypeError - when a field has the incorrect
                                 field type for the Borealis file/stream type
-
+        
         See Also
         --------
-        record_missing_field_check(filename, format_fields, record, 
-                        record_name) - checks for missing fields. See this 
-                        method for information on why we use format_fields.
-        record_extra_field_check(filename, format_fields, record, record_name) 
-                        - checks for extra fields in the record
-        record_incorrect_types_check(filename, attribute_types_dict, 
-                        dataset_types_dict, record, record_name) - checks
-                        for incorrect data types for file fields
+        BorealisUtilities
         """
-        all_format_fields = [attribute_types, dataset_types]
+        records = dd.io.load(self.filename)
+        BorealisUtilities.check_records(self.filename, records, 
+                                        attribute_types, dataset_types)
 
-        record = dd.io.load(self.filename, group='/' +
-                            self._current_record_name)
-        BorealisUtilities.record_missing_field_check(self.filename,
-            all_format_fields, record, record_name=self._current_record_name)
-        BorealisUtilities.record_extra_field_check(self.filename,
-            all_format_fields, record, record_name=self._current_record_name)
-        BorealisUtilities.record_incorrect_types_check(self.filename,
-            attribute_types, dataset_types, record, 
-            self._current_record_name)
-        self._records[self._current_record_name] = record
+        self._records = records
 
 
 class BorealisSiteWrite():
@@ -365,7 +311,7 @@ class BorealisSiteWrite():
         The filename of the Borealis HDF5 file being read.
     temp_file: str
         The temporary filename when writing record by record.
-    borealis_records: OrderedDict{dict}
+    records: OrderedDict{dict}
         The dictionary of Borealis records to write to HDF5 file.
     borealis_filetype
         Borealis filetype. Currently supported:
@@ -376,7 +322,6 @@ class BorealisSiteWrite():
     record_names: list(str)
         The list of record names of the Borealis data. These values 
         are the write time of the record in ms since epoch.
-    current_record_name: str
     """
 
     def __init__(self, filename: str, 
@@ -399,36 +344,25 @@ class BorealisSiteWrite():
                 - antennas_iq
                 - rawrf
         """
-        self.borealis_records = borealis_records
+        self.records = borealis_records
         self.borealis_filetype = borealis_filetype
         self.filename = filename
-        self.temp_file = self.filename + '.tmp'
         self._record_names = sorted(list(borealis_records.keys()))
         # list of group keys for partial write
-        self._current_record_name = ''
         self.write_file()
 
     def __repr__(self):
         """For representation of the class object"""
 
-        return "{class_name}({filename}, {current_record_name})"\
+        return "{class_name}({filename})"\
                "".format(class_name=self.__class__.__name__,
-                         filename=self.filename,
-                         current_record_name=self.current_record_name)
+                         filename=self.filename)
 
     def __str__(self):
         """For printing of the class object"""
 
         return "Writing to filename: {filename} at record name: "\
-               "{current_record_name}".format(filename=self.filename,
-                    current_record_name=self.current_record_name)
-
-    @property
-    def current_record_name(self):
-        """
-        The current record name, str, represented by ms since epoch.
-        """
-        return self._current_record_name
+               "".format(filename=self.filename)
 
     def write_file(self) -> str:
         """
@@ -519,7 +453,10 @@ class BorealisSiteWrite():
     def _write_borealis_records(self, attribute_types: dict,
                                 dataset_types: dict):
         """
-        Write the file record by record checking each record as we go.
+        Write the file in site style after checking records.
+
+        Several Borealis field checks are done to insure the integrity of the 
+        file. 
 
         Parameters
         ----------
@@ -531,68 +468,18 @@ class BorealisSiteWrite():
 
         Raises
         ------
-        OSError: file does not exist
-
-        """
-        Path(self.filename).touch()
-        for record_name in self._record_names:
-            self._current_record_name = record_name
-            self._write_borealis_record(attribute_types, dataset_types)
-
-    def _write_borealis_record(self, attribute_types: dict,
-                               dataset_types: dict):
-        """
-        Writes a Borealis HDF5 record. 
-
-        Several Borealis field checks are done to insure the integrity of the 
-        file. Appends to the file.
-
-        Parameters
-        ----------
-        attributes_type_dict: dict
-            Dictionary with the required types for the attributes in the file.
-        datasets_type_dict: dict
-            Dictionary with the require dtypes for the numpy arrays in the 
-            file.
-
-        Raises:
-        -------
         BorealisFieldMissingError - when a field is missing from the Borealis
                                 file/stream type
         BorealisExtraFieldError - when an extra field is present in the
                                 Borealis file/stream type
         BorealisDataFormatTypeError - when a field has the incorrect
                                 field type for the Borealis file/stream type
-
+        
         See Also
         --------
-        record_missing_field_check(filename, format_fields, record, 
-                        record_name) - checks for missing fields. See this 
-                        method for information on why we use format_fields.
-        record_extra_field_check(filename, format_fields, record, record_name) 
-                        - checks for extra fields in the record
-        record_incorrect_types_check(filename, attribute_types_dict, 
-                        dataset_types_dict, record, record_name) - checks
-                        for incorrect data types for file fields
+        BorealisUtilities
         """
-
-        all_format_fields = [attribute_types, dataset_types]
-        record = self.borealis_records[self._current_record_name]
-        BorealisUtilities.record_missing_field_check(self.filename,
-                                all_format_fields, record,
-                                record_name=self._current_record_name)
-        BorealisUtilities.record_extra_field_check(self.filename,
-                                all_format_fields, record,
-                                record_name=self._current_record_name)
-        BorealisUtilities.record_incorrect_types_check(self.filename,
-                                                attribute_types, 
-                                                dataset_types, record,
-                                                self._current_record_name)
-        dd.io.save(self.temp_file, {self._current_record_name: record},
-                   compression=None)
-        cmd = 'h5copy -i {newfile} -o {fullfile} -s {dtstr} -d {dtstr}'
-        cmd = cmd.format(newfile=self.temp_file, fullfile=self.filename, 
-            dtstr=self._current_record_name)
-
-        sp.call(cmd.split())
-        os.remove(self.temp_file)
+        Path(self.filename).touch()
+        BorealisUtilities.check_records(self.filename, self.records, 
+                                        attribute_types, dataset_types)
+        dd.io.save(self.filename, self.records, compression=None)
