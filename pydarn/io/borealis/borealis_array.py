@@ -17,30 +17,20 @@ BorealisArrayRead: Reads array-style Borealis SuperDARN file types (hdf5).
 BorealisArrayWrite: Writes array-style Borealis SuperDARN file types (hdf5).
     These are the files commonly distributed and available.
 
-Functions
----------
-borealis_array_to_site_file: uses BorealisArrayRead and BorealisSiteWrite
-    to convert an array file and write it to a site file.
-borealis_site_to_array_file: uses BorealisSiteRead and BorealisArrayWrite
-    to convert a site file and write it to an array file.
-
 Exceptions
 ----------
 BorealisFileTypeError
 BorealisFieldMissingError
 BorealisExtraFieldError
 BorealisDataFormatTypeError
-BorealisConversionTypesError
-BorealisConvert2IqdatError
-BorealisConvert2RawacfError
-ConvertFileOverWriteError
 BorealisNumberOfRecordsError
-
-Notes
------
 
 See Also
 --------
+BorealisSiteRead
+BorealisSiteWrite
+borealis_site_to_array_file
+borealis_array_to_site_file
 
 For more information on Borealis data files and how they convert to dmap,
 see: https://borealis.readthedocs.io/en/latest/ 
@@ -288,26 +278,11 @@ class BorealisArrayRead():
 
         See Also
         --------
-        array_missing_field_check(filename, format_fields, parameters) 
-                        - checks for missing fields. See this 
-                        method for information on why we use format_fields.
-        array_extra_field_check(filename, format_fields, parameters) 
-                        - checks for extra fields in the record
-        array_incorrect_types_check(filename, attribute_types_dict, 
-                        dataset_types_dict, unshared_fields, file_data)
-                         - checks for incorrect data types for file fields
-        array_num_records_check(filename, unshared_fields, file_data)
+        BorealisUtilities
         """
-        all_format_fields = [attribute_types, dataset_types]
         arrays = dd.io.load(self.filename)
-        BorealisUtilities.array_missing_field_check(self.filename,
-            all_format_fields, arrays)
-        BorealisUtilities.array_extra_field_check(self.filename,
-            all_format_fields, arrays)
-        BorealisUtilities.array_incorrect_types_check(self.filename,
-            attribute_types, dataset_types, unshared_fields, arrays)
-        BorealisUtilities.array_num_records_check(self.filename,
-            unshared_fields, arrays)
+        BorealisUtilities.check_arrays(self.filename, arrays, attribute_types,
+            dataset_types, unshared_fields)
         self._arrays = arrays
 
 
@@ -336,6 +311,8 @@ class BorealisArrayWrite():
     compression: str
         The type of compression to write the file as. Default zlib.
     arrays: dict
+        The Borealis data in a dictionary of arrays, according to the 
+        restructured array file format.
     """
 
     def __init__(self, filename: str, borealis_arrays: dict, 
@@ -360,7 +337,7 @@ class BorealisArrayWrite():
             String representing compression type. Default zlib.
         """
         self.filename = filename
-        self._arrays = borealis_arrays
+        self.arrays = borealis_arrays
         self.borealis_filetype = borealis_filetype
         self.compression = compression
         self.write_file()
@@ -379,14 +356,6 @@ class BorealisArrayWrite():
         return "Writing to filename: {filename} at record name: "\
                "{current_record_name}".format(filename=self.filename,
                     current_record_name=self.current_record_name)
-
-    @property 
-    def arrays(self):
-        """
-        The Borealis data in a dictionary of arrays, according to the 
-        restructured array file format.
-        """
-        return self._arrays
 
     def write_file(self) -> str:
         """
@@ -480,7 +449,6 @@ class BorealisArrayWrite():
             therefore should be an array with first dimension = number of 
             records
 
-
         Raises
         ------
         BorealisFieldMissingError - when a field is missing from the Borealis
@@ -494,113 +462,8 @@ class BorealisArrayWrite():
 
         See Also
         --------
-        array_missing_field_check(filename, format_fields, parameters) 
-                        - checks for missing fields. See this 
-                        method for information on why we use format_fields.
-        array_extra_field_check(filename, format_fields, parameters) 
-                        - checks for extra fields in the record
-        array_incorrect_types_check(filename, attribute_types_dict, 
-                        dataset_types_dict, unshared_fields, file_data)
-                         - checks for incorrect data types for file fields
-        array_num_records_check(filename, unshared_fields, file_data) -
-                        checks for correct number of records across arrays.
+        BorealisUtilities
         """
-        all_format_fields = [attribute_types, dataset_types]
-
-        BorealisUtilities.array_missing_field_check(self.filename,
-            all_format_fields, self._arrays)
-        BorealisUtilities.array_extra_field_check(self.filename,
-            all_format_fields, self._arrays)
-        BorealisUtilities.array_incorrect_types_check(self.filename,
-            attribute_types, dataset_types, unshared_fields, self._arrays)
-        BorealisUtilities.array_num_records_check(self.filename,
-            unshared_fields, self._arrays)
-        dd.io.save(self.filename, self._arrays, compression=self.compression)
-
-
-def borealis_site_to_array_file(read_data_path, write_data_path):
-    """
-    Restructure the data from site style (record by record) to array style,
-    where unshared fields across records are formed into arrays where the 
-    first dimension = the number of records. 
-
-    Shared fields that do not change between records will be
-    stored as fields in one metadata record within the file. 
-    
-    Parameters
-    ----------
-    read_data_path
-        string containing the path to the data file for restructuring
-    write_data_path
-        string containing the path of where to write the restructured data
-    
-    Raises
-    ------
-    BorealisFileTypeError
-        if cannot determine the borealis filetype
-    """
-
-    if read_data_path == write_data_path:
-        raise ConvertFileOverWriteError(read_data_path)
-
-    if ('output_ptrs_iq' in read_data_path) or \
-            ('antennas_iq' in read_data_path):
-        borealis_filetype = 'antennas_iq'
-    elif 'bfiq' in read_data_path:
-        borealis_filetype = 'bfiq'
-    elif 'rawacf' in read_data_path:
-        borealis_filetype = 'rawacf'
-    else:
-        raise BorealisFileTypeError(read_data_path, read_data_path[-2:])
-
-    print("Reading {} site file: {}".format(borealis_filetype, read_data_path))
-    site_reader = BorealisSiteRead(read_data_path, borealis_filetype)
-    print("Restructuring to array and writing to file: {}"\
-        "".format(write_data_path))
-    array_writer = BorealisArrayWrite(write_data_path, site_reader.arrays, 
-                                      borealis_filetype)
-
-    print("Success!")
-
-
-def borealis_array_to_site_file(read_data_path, write_data_path):
-    """
-    Converts a restructured and compressed hdf5 borealis datafile
-    back to its original, record based format.
-    
-    Parameters
-    ----------
-    read_data_path
-        string containing the path to the array data file
-    write_data_path
-        string containing the path of where to write the record-by-record data
-    
-    Raises
-    ------
-    BorealisFileTypeError
-        if cannot determine the borealis filetype
-    """
-
-    if read_data_path == write_data_path:
-        raise ConvertFileOverWriteError(read_data_path)
-
-    warnings.simplefilter('ignore')
-
-    if ('output_ptrs_iq' in read_data_path) or \
-            ('antennas_iq' in read_data_path):
-        borealis_filetype = 'antennas_iq'
-    elif 'bfiq' in read_data_path:
-        borealis_filetype = 'bfiq'
-    elif 'rawacf' in read_data_path:
-        borealis_filetype = 'rawacf'
-    else:
-        raise BorealisFileTypeError(read_data_path, read_data_path[-2:])
-
-    print("Reading {} array file: {}".format(borealis_filetype, 
-                                             read_data_path))
-    array_reader = BorealisArrayRead(read_data_path, borealis_filetype)
-    print("Restructuring to site and writing to file: {}"\
-        "".format(write_data_path))
-    site_writer = BorealisSiteWrite(write_data_path, array_reader.records, 
-                                    borealis_filetype)
-    print("Success!")
+        BorealisUtilities.check_arrays(self.filename, self.arrays, 
+            attribute_types, dataset_types, unshared_fields)
+        dd.io.save(self.filename, self.arrays, compression=self.compression)
