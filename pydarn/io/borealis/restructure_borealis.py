@@ -1,21 +1,41 @@
 # Copyright 2019 SuperDARN Canada, University of Saskatchewan
-# Author: Liam Graham
+# Authors: Liam Graham, Marci Detwiller
 """
-This file contains TODO
+This file contains a utility class for restructuring Borealis files. 
+The files can be restructured from record-by-record format (as written on
+site in real-time) to an array-based format where the number of records 
+is a dimension of the array. This makes the files much more human-readable
+and also faster to read.
 
+Classes
+-------
+BorealisRestructureUtilities
+
+Functions
+---------
+borealis_site_to_array_dict: uses the BorealisRestructureUtilities
+    methods to convert dictionary of records into a dictionary
+    of arrays 
+borealis_array_to_site_dict: uses the BorealisRestructureUtilities
+    methods to convert dictionary of arrays into a dictionary
+    of records
+
+Exceptions
+----------
+BorealisRestructureError
 """
-
+import datetime
 import deepdish as dd
 import numpy as np
 import sys
 import os
 import subprocess as sp
-import datetime
+
 import warnings
 import tempfile
-from pathlib2 import Path
 
 from functools import reduce
+from pathlib2 import Path
 
 from pydarn import BorealisRawacf, BorealisBfiq, BorealisAntennasIq, \
                    BorealisRestructureError
@@ -23,27 +43,47 @@ from pydarn import BorealisRawacf, BorealisBfiq, BorealisAntennasIq, \
 
 class BorealisRestructureUtilities():
     """
+    Utility class containing static methods for restructuring Borealis files.
 
-    Functions for restructuring Borealis files
-    # for bfiq, antennas iq, and raw acf data into a smaller,
-    # faster, and more usable format
+    Restructured files result in faster reads and a more human-readable
+    format. 
 
-    # The shared fields of the file are written as a single value in the file, and 
-    # unshared fields are written as arrays where number of records is the first 
-    # dimension.
+    The shared fields of the file are written as a single value in the file, 
+    and unshared fields are written as arrays where number of records is the 
+    first dimension.
 
+    Static Methods
+    --------------
+    find_max_sequences(data)
+        Find the max number of sequences between records in a site file, for 
+        restructuring to arrays.
+    iq_site_to_array(data_dict)
+        Convert bfiq and antennas_iq site data to array style dictionary.
+    rawacf_site_to_array(data_dict)
+        Convert rawacf site data to array style dictionary.
+    iq_array_to_site(data_dict)
+        Convert bfiq and antennas_iq array data to site record dictionary.
+    rawacf_array_to_site(data_dict)
+        Convert rawacf array data to site record dictionary. 
     """
 
     @staticmethod
-    def find_max_sequences(data):
+    def find_max_sequences(data: dict) -> int:
         """
-        Finds the maximum number of sequences between records in a Borealis data file
-        Args
-            data:       Site formatted data from a Borealis file, 
-                        organized as one record for each slice
-        Returns:
-            max_seqs:   The largest number of sequences found 
-                        in one record from the file
+        Finds the maximum number of sequences between records in a Borealis
+        site style data file.
+
+        Parameters
+        ----------
+        data
+            Site formatted data from a Borealis file, organized as one 
+            record for each slice
+        
+        Returns
+        -------
+        max_seqs
+            The largest number of sequences found in one record from the 
+            file
         """
         max_seqs = 0
         for k in data:
@@ -52,16 +92,22 @@ class BorealisRestructureUtilities():
         return max_seqs
 
     @staticmethod
-    def iq_site_to_array(data_dict):
+    def iq_site_to_array(data_dict: dict) -> dict:
         """
-        Restructuring method for pre bfiq data
-        args:
-            data_dict     a dict of timestamped records loaded from an
-                            hdf5 Borealis rawacf data file
-             Returns:
-            new_data_dict:  A dictionary containing the data from data_dict
-                            reformatted to be stored entirely as arrays, or as
-                            one entry if the field does not change between records
+        Restructuring method for antennas_iq and bfiq data.
+
+        Parameters
+        ----------
+        data_dict
+            a dict of timestamped records loaded from an hdf5 Borealis bfiq
+            or antennas_iq data file
+        
+        Returns
+        -------
+        new_data_dict
+            A dictionary containing the data from data_dict
+            reformatted to be stored entirely as arrays, or as
+            one entry if the field does not change between records
         """
         
         try:
@@ -160,16 +206,22 @@ class BorealisRestructureUtilities():
         return new_data_dict
 
     @staticmethod
-    def rawacf_site_to_array(data_dict):
+    def rawacf_site_to_array(data_dict: dict) -> dict:
         """
-        Restructuring method for rawacf data
-        Args:
-            data_dict     a dict of timestamped records loaded from an
-                            hdf5 Borealis rawacf data file
-        Returns:
-            new_data_dict:  A dictionary containing the data from data_dict
-                            reformatted to be stored entirely as arrays, or as
-                            one entry if the field does not change between records
+        Restructuring method for rawacf data.
+
+        Parameters
+        ----------
+        data_dict
+            a dict of timestamped records loaded from an hdf5 Borealis rawacf
+            data file
+        
+        Returns
+        -------
+        new_data_dict
+            A dictionary containing the data from data_dict
+            reformatted to be stored entirely as arrays, or as
+            one entry if the field does not change between records
         """
         try:
             new_data_dict = dict()
@@ -243,22 +295,23 @@ class BorealisRestructureUtilities():
                                            '{}'.format(e))
         return new_data_dict
 
-
-    ########################## BACKCONVERSION CODE ############################
-    # Functions for converting restructured and compressed
-    # Borealis files back to their original site format
-
     @staticmethod
-    def iq_array_to_site(data_dict):
+    def iq_array_to_site(data_dict: dict) -> dict:
         """
-        Converts a restructured bfiq or antenna iq file back to its
-        original site format
-        Args:
-            data_dict:    An opened bfiq hdf5 file in array format
-        Returns:
-            ts_dict:        A timestamped dictionary containing the data
-                            from data_dict formatted as the output from
-                            a site file.
+        Converts a restructured array bfiq or antennas_iq file back to the
+        original site format.
+
+        Parameters
+        ----------
+        data_dict
+            An opened bfiq hdf5 file in array format
+        
+        Returns
+        -------
+        ts_dict
+            A timestamped dictionary containing the data from data_dict
+            formatted as the output from a site file (as records, where 
+            keys are timestamp of first sequence in the record)
         """
         try:
             num_records = len(data_dict["int_time"])
@@ -300,16 +353,22 @@ class BorealisRestructureUtilities():
         return ts_dict
 
     @staticmethod
-    def rawacf_array_to_site(data_dict):
+    def rawacf_array_to_site(data_dict: dict) -> dict:
         """
-        Converts a restructured raw acf file back to its
-        original site format
-        Args:
-            data_dict:    An opened rawacf hdf5 file in array format
-        Returns:
-            ts_dict:        A timestamped dictionary containing the data
-                            from data_dict formatted as the output from
-                            a site file.
+        Converts a restructured array rawacf file back to the
+        original site format.
+
+        Parameters
+        ----------
+        data_dict
+            An opened rawacf hdf5 file in array format
+        
+        Returns
+        -------
+        ts_dict
+            A timestamped dictionary containing the data from data_dict
+            formatted as the output from a site file (as records, where 
+            keys are timestamp of first sequence in the record)
         """
         try:
             num_records = len(data_dict["int_time"])
@@ -351,7 +410,7 @@ class BorealisRestructureUtilities():
         return ts_dict
 
 
-def borealis_site_to_array_dict(data_dict, conversion_type):
+def borealis_site_to_array_dict(data_dict, conversion_type) -> dict:
     """
     Converts a file from site style to restructured array style. Determines
     which base function to call based on conversion_type. 
@@ -365,8 +424,8 @@ def borealis_site_to_array_dict(data_dict, conversion_type):
     
     Returns
     -------
-    ts_dict
-        A timestamped dictionary containing the data from data_dict
+    new_dict
+        A dictionary containing the data from data_dict
         formatted to the array format
     """ 
     if conversion_type == 'bfiq' or conversion_type == 'antennas_iq':
@@ -380,43 +439,7 @@ def borealis_site_to_array_dict(data_dict, conversion_type):
     return new_dict
 
 
-def borealis_site_to_array_file(read_data_path, write_data_path):
-    """
-    Restructure the data contained in an hdf5 file to eliminate the record format.
-    Rather, data will be contained in a large array according to data dimensions.
-    Examples: for rawacfs, this array will be of shape (num_records, num_arrays, num_sequences, num_beams, num_ranges, num_lags)
-    Fields from the original record that do not change between records will be stored as fields in one metadata record within
-    the file. Other fields will contain the data arrays and other metadata that does change record to record.
-    Args:
-        read_data_path:  string containing the path to the data file for restructuring
-    Returns:    If valid filetype, returns None and saves the data as a newly
-                formatted hdf5 file.
-    """
-    print("Restructuring", read_data_path, "...")
-
-    data = dd.io.load(read_data_path)
-
-    if ('output_ptrs_iq' in read_data_path) or ('antennas_iq' in read_data_path):
-        print("Loaded an antenna iq file...")
-        ant_iq = borealis_site_to_array_dict(data, 'antennas_iq')
-        print("Compressing and writing...")
-        dd.io.save(write_data_path, ant_iq, compression='zlib')
-    elif 'bfiq' in read_data_path:
-        print("Loaded a bfiq file...")
-        bfiq = borealis_site_to_array_dict(data, 'bfiq')
-        dd.io.save(write_data_path, bfiq, compression='zlib')
-    elif 'rawacf' in read_data_path:
-        print("Loaded a raw acf file")
-        raw_acf = borealis_site_to_array_dict(data, 'rawacf')
-        dd.io.save(write_data_path, raw_acf, compression='zlib')
-    else:
-        print(suffix, 'filetypes are not supported')
-        return
-
-    print("Success!")
-
-
-def borealis_array_to_site_dict(data_dict, conversion_type):
+def borealis_array_to_site_dict(data_dict, conversion_type) -> dict:
     """
     Converts a file back to its original site format. Determines
     which base function to call based on conversion_type. 
@@ -430,7 +453,7 @@ def borealis_array_to_site_dict(data_dict, conversion_type):
     
     Returns
     -------
-    ts_dict
+    new_dict
         A timestamped dictionary containing the data from data_dict
         formatted as the output from a site file.
     """ 
@@ -443,61 +466,3 @@ def borealis_array_to_site_dict(data_dict, conversion_type):
                                        'as restructureable from array to '\
                                        'site style'.format(conversion_type))
     return new_dict
-
-
-def borealis_array_to_site_file(read_data_path, write_data_path):
-    """
-    Converts a restructured and compressed hdf5 borealis datafile
-    back to its original, record based format.
-    Args:
-        read_data_path (str): Path to the data file to be back converted
-        write_data_path (str): Path to write the record-by-record site style 
-            data to
-    """
-
-    def write_site_format_data(ts_dict, write_data_path):
-        """
-        Writes a set of back-converted borealis data to file in the original site
-        file format
-        Args:
-            ts_dict:    The timestamped dictionary to be written to file
-            write_data_path:  Path to write the ts_dict data to
-        """
-        temp_file = tempfile.NamedTemporaryFile().name
-        site_format_file = write_data_path
-        Path(site_format_file).touch()
-        for key in ts_dict:
-            time_stamped_dd = {}
-            time_stamped_dd[key] = ts_dict[key]
-
-            dd.io.save(temp_file, time_stamped_dd, compression=None)
-            cmd = 'h5copy -i {newfile} -o {fullfile} -s {dtstr} -d {dtstr}'
-            cmd = cmd.format(newfile=temp_file, fullfile=site_format_file, dtstr=key)
-
-            sp.call(cmd.split())
-            os.remove(temp_file)
-            print("Done", key)
-
-    print("Restructuring", read_data_path, "...")
-
-    data = dd.io.load(read_data_path)
-
-    warnings.simplefilter('ignore')
-
-    if ('output_ptrs_iq' in read_data_path) or ('antennas_iq' in read_data_path):
-        print("Loaded an antenna iq file...")
-        ant_iq = borealis_array_to_site_dict(data, 'antennas_iq')
-        write_site_format_data(ant_iq, write_data_path)
-    elif 'bfiq' in read_data_path:
-        print("Loaded a bfiq file...")
-        bfiq = borealis_array_to_site_dict(data, 'bfiq')
-        write_site_format_data(bfiq, write_data_path)
-    elif 'rawacf' in read_data_path:
-        print("Loaded a raw acf file")
-        raw_acf = borealis_array_to_site_dict(data, 'rawacf')
-        write_site_format_data(raw_acf, write_data_path)
-    else:
-        print(suffix, 'filetypes are not supported')
-        return
-
-    print("Success!")
