@@ -27,13 +27,13 @@ BorealisRestructureError
 import datetime
 import deepdish as dd
 import numpy as np
-import sys
 import os
 import subprocess as sp
-
-import warnings
+import sys
 import tempfile
+import warnings
 
+from collections import OrderedDict
 from functools import reduce
 from pathlib2 import Path
 
@@ -73,7 +73,7 @@ class BorealisRestructureUtilities():
     """
 
     @staticmethod
-    def find_max_sequences(data: dict) -> int:
+    def find_max_sequences(data: OrderedDict) -> int:
         """
         Finds the maximum number of sequences between records in a Borealis
         site style data file.
@@ -97,7 +97,7 @@ class BorealisRestructureUtilities():
         return max_seqs
 
     @staticmethod
-    def _iq_site_to_array(data_dict: dict) -> dict:
+    def _iq_site_to_array(data_dict: OrderedDict) -> dict:
         """
         Base function for converting both bfiq and antennas_iq data to 
         restructured array format.
@@ -204,7 +204,7 @@ class BorealisRestructureUtilities():
         return new_data_dict
 
     @staticmethod
-    def bfiq_site_to_array(filename: str, data_dict: dict) -> dict:
+    def bfiq_site_to_array(filename: str, data_dict: OrderedDict) -> dict:
         """
         Restructuring method for bfiq data.
 
@@ -240,7 +240,7 @@ class BorealisRestructureUtilities():
         return new_data_dict
 
     @staticmethod
-    def antennas_iq_site_to_array(filename: str, data_dict: dict) -> dict:
+    def antennas_iq_site_to_array(filename: str, data_dict: OrderedDict) -> dict:
         """
         Restructuring method for antennas_iq data.
 
@@ -276,7 +276,7 @@ class BorealisRestructureUtilities():
         return new_data_dict
 
     @staticmethod
-    def rawacf_site_to_array(filename: str, data_dict: dict) -> dict:
+    def rawacf_site_to_array(filename: str, data_dict: OrderedDict) -> dict:
         """
         Restructuring method for rawacf data.
 
@@ -373,7 +373,7 @@ class BorealisRestructureUtilities():
         return new_data_dict
 
     @staticmethod
-    def _iq_array_to_site(data_dict: dict) -> dict:
+    def _iq_array_to_site(data_dict: dict) -> OrderedDict:
         """
         Base function for converting both bfiq and antennas_iq back to 
         original site format. 
@@ -391,7 +391,7 @@ class BorealisRestructureUtilities():
             keys are timestamp of first sequence in the record)
         """
         num_records = len(data_dict["int_time"])
-        ts_dict = dict()
+        ts_dict = OrderedDict()
         # get keys from first sequence timestamps
         for rec, seq_ts in enumerate(data_dict["sqn_timestamps"]):
             # format dictionary key in the same way it is done
@@ -426,7 +426,7 @@ class BorealisRestructureUtilities():
         return ts_dict
 
     @staticmethod
-    def bfiq_array_to_site(filename: str, data_dict: dict) -> dict:
+    def bfiq_array_to_site(filename: str, data_dict: dict) -> OrderedDict:
         """
         Converts a restructured array bfiq file back to the original site 
         format.
@@ -458,7 +458,7 @@ class BorealisRestructureUtilities():
         return ts_dict
 
     @staticmethod
-    def antennas_iq_array_to_site(filename: str, data_dict: dict) -> dict:
+    def antennas_iq_array_to_site(filename: str, data_dict: dict) -> OrderedDict:
         """
         Converts a restructured array antennas_iq file back to the
         original site format.
@@ -490,7 +490,7 @@ class BorealisRestructureUtilities():
         return ts_dict
 
     @staticmethod
-    def rawacf_array_to_site(filename: str, data_dict: dict) -> dict:
+    def rawacf_array_to_site(filename: str, data_dict: dict) -> OrderedDict:
         """
         Converts a restructured array rawacf file back to the
         original site format.
@@ -511,7 +511,7 @@ class BorealisRestructureUtilities():
         """
         try:
             num_records = len(data_dict["int_time"])
-            ts_dict = dict()
+            ts_dict = OrderedDict()
             # get keys from first sequence timestamps
             for rec, seq_ts in enumerate(data_dict["sqn_timestamps"]):
                 # format dictionary key in the same way it is done
@@ -553,16 +553,18 @@ class BorealisRestructureUtilities():
         return ts_dict
 
 
-def borealis_site_to_array_dict(data_dict, conversion_type) -> dict:
+def borealis_site_to_array_dict(data_dict: OrderedDict, 
+                                conversion_type: str) -> dict:
     """
     Converts a file from site style to restructured array style. Determines
     which base function to call based on conversion_type. 
 
     Parameters
     ----------
-    data_dict
+    data_dict: OrderedDict
         An opened rawacf hdf5 file in site record-by-record format
-    conversion_type
+    }
+    conversion_type: str
         'bfiq', 'antennas_iq' or 'rawacf' to determine keys to convert
     
     Returns
@@ -584,16 +586,17 @@ def borealis_site_to_array_dict(data_dict, conversion_type) -> dict:
     return new_dict
 
 
-def borealis_array_to_site_dict(data_dict, conversion_type) -> dict:
+def borealis_array_to_site_dict(data_dict: dict, 
+                                conversion_type: str) -> OrderedDict:
     """
     Converts a file back to its original site format. Determines
     which base function to call based on conversion_type. 
 
     Parameters
     ---------_
-    data_dict
+    data_dict: dict
         An opened rawacf hdf5 file in array format
-    conversion_type
+    conversion_type: str
         'bfiq', 'antennas_iq' or 'rawacf' to determine keys to convert
     
     Returns
