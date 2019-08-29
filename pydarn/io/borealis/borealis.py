@@ -77,8 +77,8 @@ def read_borealis_file(borealis_hdf5_file: str, borealis_filetype: str,
         Borealis filetype. Possible types include antennas_iq, 
         bfiq, rawacf, rawrf.
     site: bool 
-        True if a site file (record by record), False for array file. Default
-        False.
+        True if for reading as a site file (record by record), False for 
+        reading as an array file. Default False.
     records: bool
         True for returning a record dictionary, False for arrays dictionary.
         Default False.
