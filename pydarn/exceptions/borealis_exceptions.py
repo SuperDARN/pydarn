@@ -158,6 +158,36 @@ class BorealisDataFormatTypeError(Exception):
         Exception.__init__(self, self.message)
 
 
+class BorealisNumberOfRecordsError(Exception):
+    """
+    Raised when the file is array structured and does not 
+    have a consistent number of records across the unshared
+    parameters (arrays).
+
+    Parameters
+    ----------
+    array_types: dict
+        dictionary of unshared parameter keys to 
+        the first dimension of their array (indicating the number
+        of records)
+    
+    Attributes
+    ----------
+    message: str
+        The message to display with the error
+
+    See Also
+    --------
+    restructure_borealis.py
+    """
+
+    def __init__(self, filename: str, array_types: dict):
+        self.message = "The number of records in file {filename} cannot "\
+            "be determined due to varying sizes of arrays: {array_types}"\
+            "".format(filename=filename, array_types=array_types)
+        Exception.__init__(self, self.message)
+
+
 class BorealisConversionTypesError(Exception):
     """
     SuperDARN Borealis filetype cannot be converted to desired type.
@@ -276,37 +306,7 @@ class ConvertFileOverWriteError(Exception):
         The message to display with the error
     """
 
-    def __init__(self, filename: str, file_type: str):
+    def __init__(self, filename: str):
         self.message = "Writing to {filename} not permitted while reading"\
             " as source.".format(filename=filename)
-        Exception.__init__(self, self.message)
-
-
-class BorealisNumberOfRecordsError(Exception):
-    """
-    Raised when the file is array structured and does not 
-    have a consistent number of records across the unshared
-    parameters (arrays).
-
-    Parameters
-    ----------
-    array_types: dict
-        dictionary of unshared parameter keys to 
-        the first dimension of their array (indicating the number
-        of records)
-    
-    Attributes
-    ----------
-    message: str
-        The message to display with the error
-
-    See Also
-    --------
-    restructure_borealis.py
-    """
-
-    def __init__(self, filename: str, array_types: dict):
-        self.message = "The number of records in file {filename} cannot "\
-            "be determined due to varying sizes of arrays: {array_types}"\
-            "".format(filename=filename, array_types=array_types)
         Exception.__init__(self, self.message)
