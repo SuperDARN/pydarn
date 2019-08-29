@@ -177,15 +177,16 @@ class BorealisConversionTypesError(Exception):
         The message to display with the error
     """
 
-    def __init__(self, filename: str, origin_filetype: str, 
-                 dmap_filetype: str):
-        self.message = "{filename} cannot be converted from its "\
-                       "origin_filetype {origin_filetype} to  dmap "\
-                       " filetype {dmap_filetype} because the types are not"\
-                       "compatible or are currently not supported."\
-                       "".format(filename=filename,
-                                 origin_filetype=origin_filetype, 
-                                 dmap_filetype=dmap_filetype)
+    def __init__(self, dmap_filename: str, origin_filetype: str, 
+                 allowed_types: dict):
+        self.message = "Records destined to be converted and written to "\
+                       "{dmap_filename} cannot be converted from origin "\
+                       "filetype {origin_filetype} to a dmap "\
+                       "filetype because origin filetype does not map "\
+                       "to any currently available dmap filetypes: "\
+                       "{allowed_types}".format(dmap_filename=dmap_filename,
+                                 origin_filetype=origin_filetype,
+                                 allowed_types=allowed_types)
         Exception.__init__(self, self.message)
 
 
@@ -206,8 +207,7 @@ class BorealisConvert2IqdatError(Exception):
 
     def __init__(self, error_str: str):
         self.message = "The file cannot be converted to DARN iqdat due to "\
-            "the following error which indicates increased complexity not "\
-            "accounted for in DARN iqdat format: {error_str}"\
+            "the following error: {error_str}"\
             "".format(error_str=error_str)
         Exception.__init__(self, self.message)
 
@@ -229,8 +229,7 @@ class BorealisConvert2RawacfError(Exception):
 
     def __init__(self, error_str: str):
         self.message = "The file cannot be converted to DARN rawacf due to "\
-            "the following error which indicates increased complexity not "\
-            "accounted for in DARN rawacf format: {error_str}"\
+            "the following error: {error_str}"\
             "".format(error_str=error_str)
         Exception.__init__(self, self.message)
 
