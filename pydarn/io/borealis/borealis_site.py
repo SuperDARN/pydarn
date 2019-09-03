@@ -199,8 +199,9 @@ class BorealisSiteRead():
         """
         pydarn_log.debug("Reading Borealis bfiq file: {}"
                          "".format(self.filename))
-        attribute_types = borealis_formats.BorealisBfiq.single_element_types
-        dataset_types = borealis_formats.BorealisBfiq.array_dtypes
+        attribute_types = \
+            borealis_formats.BorealisBfiq.site_single_element_types
+        dataset_types = borealis_formats.BorealisBfiq.site_array_dtypes
         self._read_borealis_records(attribute_types, dataset_types)
         return self._records
 
@@ -216,8 +217,10 @@ class BorealisSiteRead():
         """
         pydarn_log.debug(
             "Reading Borealis rawacf file: {}".format(self.filename))
-        attribute_types = borealis_formats.BorealisRawacf.single_element_types
-        dataset_types = borealis_formats.BorealisRawacf.array_dtypes
+
+        attribute_types = \
+            borealis_formats.BorealisRawacf.site_single_element_types
+        dataset_types = borealis_formats.BorealisRawacf.site_array_dtypes
         self._read_borealis_records(attribute_types, dataset_types)
         return self._records
 
@@ -234,8 +237,8 @@ class BorealisSiteRead():
         pydarn_log.debug("Reading Borealis antennas_iq file: {}"
                          "".format(self.filename))
         attribute_types = \
-            borealis_formats.BorealisAntennasIq.single_element_types
-        dataset_types = borealis_formats.BorealisAntennasIq.array_dtypes
+            borealis_formats.BorealisAntennasIq.site_single_element_types
+        dataset_types = borealis_formats.BorealisAntennasIq.site_array_dtypes
         self._read_borealis_records(attribute_types, dataset_types)
         return self._records
 
@@ -396,8 +399,9 @@ class BorealisSiteWrite():
         """
         pydarn_log.debug(
             "Writing Borealis bfiq file: {}".format(self.filename))
-        attribute_types = borealis_formats.BorealisBfiq.single_element_types
-        dataset_types = borealis_formats.BorealisBfiq.array_dtypes
+        attribute_types = \
+            borealis_formats.BorealisBfiq.site_single_element_types
+        dataset_types = borealis_formats.BorealisBfiq.site_array_dtypes
         self._write_borealis_records(attribute_types, dataset_types)
         return self.filename
 
@@ -412,8 +416,9 @@ class BorealisSiteWrite():
         """
         pydarn_log.debug(
             "Writing Borealis rawacf file: {}".format(self.filename))
-        attribute_types = borealis_formats.BorealisRawacf.single_element_types
-        dataset_types = borealis_formats.BorealisRawacf.array_dtypes
+        attribute_types = \
+            borealis_formats.BorealisRawacf.site_single_element_types
+        dataset_types = borealis_formats.BorealisRawacf.site_array_dtypes
         self._write_borealis_records(attribute_types, dataset_types)
         return self.filename
 
@@ -429,8 +434,8 @@ class BorealisSiteWrite():
         pydarn_log.debug(
             "Writing Borealis antennas_iq file: {}".format(self.filename))
         attribute_types = \
-            borealis_formats.BorealisAntennasIq.single_element_types
-        dataset_types = borealis_formats.BorealisAntennasIq.array_dtypes
+            borealis_formats.BorealisAntennasIq.site_single_element_types
+        dataset_types = borealis_formats.BorealisAntennasIq.site_array_dtypes
         self._write_borealis_records(attribute_types, dataset_types)
         return self.filename
 
