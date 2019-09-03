@@ -112,7 +112,7 @@ code_to_stid = {
 
 class BorealisConvert():
     """
-    Class for converting Borealis filetypes.
+    Class for converting Borealis filetypes to DARN filetypes.
 
     See Also
     --------
@@ -308,6 +308,11 @@ class BorealisConvert():
             - the origin filetype is rawacf
             - the blanked_samples array = pulses array for all records
             - the pulse_phase_offset array contains all zeroes for all records
+
+        TODO: should this fail for multiple beams in the same 
+        integration time. IE, is it ok for dmap files to have multiple 
+        records with same origin time and timestamps due to a different 
+        beam azimuth.
 
         Raises
         ------
