@@ -53,7 +53,8 @@ class BorealisRawacf():
         dimension equal to the number of records in the file. These fields are 
         present in both array and site files. 
     array_only_fields: list
-        List of fields that are only present in array files.
+        List of fields that are only present in array files. Implicitly 
+        also unshared between records. 
     site_only_fields: list
         List of fields that are only present in site files.
     site_fields: list
@@ -242,7 +243,8 @@ class BorealisBfiq():
         dimension equal to the number of records in the file. These fields are 
         present in both array and site files. 
     array_only_fields: list
-        List of fields that are only present in array files.
+        List of fields that are only present in array files. Implicitly 
+        also unshared between records. 
     site_only_fields: list
         List of fields that are only present in site files.
     site_fields: list
@@ -377,7 +379,7 @@ class BorealisBfiq():
                        'noise_at_freq', 'data', 'scan_start_marker', 
                        'beam_azms', 'beam_nums', 'num_slices']
 
-    array_only_fields = ['num_beams']
+    array_only_fields = ['num_beams'] 
 
     site_only_fields = ['data_dimensions']
 
@@ -435,7 +437,8 @@ class BorealisAntennasIq():
         dimension equal to the number of records in the file. These fields are 
         present in both array and site files. 
     array_only_fields: list
-        List of fields that are only present in array files.
+        List of fields that are only present in array files. Implicitly 
+        also unshared between records. 
     site_only_fields: list
         List of fields that are only present in site files.
     site_fields: list
