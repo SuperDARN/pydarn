@@ -204,7 +204,8 @@ class BorealisArrayRead():
         attribute_types = \
             borealis_formats.BorealisBfiq.array_single_element_types
         dataset_types = borealis_formats.BorealisBfiq.array_array_dtypes
-        unshared_fields = borealis_formats.BorealisBfiq.unshared_fields
+        unshared_fields = borealis_formats.BorealisBfiq.unshared_fields + \
+            borealis_formats.BorealisBfiq.array_only_fields
         self._read_borealis_arrays(attribute_types, dataset_types, 
             unshared_fields)
         return self._arrays
@@ -224,7 +225,8 @@ class BorealisArrayRead():
         attribute_types = \
             borealis_formats.BorealisRawacf.array_single_element_types
         dataset_types = borealis_formats.BorealisRawacf.array_array_dtypes
-        unshared_fields = borealis_formats.BorealisRawacf.unshared_fields
+        unshared_fields = borealis_formats.BorealisRawacf.unshared_fields + \
+            borealis_formats.BorealisRawacf.array_only_fields
         self._read_borealis_arrays(attribute_types, dataset_types, 
             unshared_fields)
         return self._arrays
@@ -244,7 +246,9 @@ class BorealisArrayRead():
         attribute_types = \
             borealis_formats.BorealisAntennasIq.array_single_element_types
         dataset_types = borealis_formats.BorealisAntennasIq.array_array_dtypes
-        unshared_fields = borealis_formats.BorealisAntennasIq.unshared_fields
+        unshared_fields = \
+            borealis_formats.BorealisAntennasIq.unshared_fields + \
+            borealis_formats.BorealisAntennasIq.array_only_fields
         self._read_borealis_arrays(attribute_types, dataset_types, 
             unshared_fields)
         return self._arrays
@@ -392,7 +396,8 @@ class BorealisArrayWrite():
         attribute_types = \
             borealis_formats.BorealisBfiq.array_single_element_types
         dataset_types = borealis_formats.BorealisBfiq.array_array_dtypes
-        unshared_fields = borealis_formats.BorealisBfiq.unshared_fields
+        unshared_fields = borealis_formats.BorealisBfiq.unshared_fields + \
+            borealis_formats.BorealisBfiq.array_only_fields
         self._write_borealis_arrays(attribute_types, dataset_types, 
             unshared_fields)
         return self.filename
@@ -411,7 +416,8 @@ class BorealisArrayWrite():
         attribute_types = \
             borealis_formats.BorealisRawacf.array_single_element_types
         dataset_types = borealis_formats.BorealisRawacf.array_array_dtypes
-        unshared_fields = borealis_formats.BorealisRawacf.unshared_fields
+        unshared_fields = borealis_formats.BorealisRawacf.unshared_fields + \
+            borealis_formats.BorealisRawacf.array_only_fields
         self._write_borealis_arrays(attribute_types, dataset_types, 
             unshared_fields)
         return self.filename
@@ -430,7 +436,9 @@ class BorealisArrayWrite():
         attribute_types = \
             borealis_formats.BorealisAntennasIq.array_single_element_types
         dataset_types = borealis_formats.BorealisAntennasIq.array_array_dtypes
-        unshared_fields = borealis_formats.BorealisAntennasIq.unshared_fields
+        unshared_fields = \
+            borealis_formats.BorealisAntennasIq.unshared_fields + \
+            borealis_formats.BorealisAntennasIq.array_only_fields
         self._write_borealis_arrays(attribute_types, dataset_types, 
             unshared_fields)
         return self.filename
