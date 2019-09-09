@@ -201,7 +201,7 @@ def bfiq_to_rawacf_postprocessing(bfiq_filepath: str, rawacf_filepath: str,
         return out_main, out_intf, out_cross
 
     
-    def convert_bfiq_records_to_rawacf_records(bfiq: OrderedDict) -> 
+    def convert_bfiq_records_to_rawacf_records(bfiq: OrderedDict) -> \
             OrderedDict:
         """
         Take a data dictionary of bfiq records and return a data 
