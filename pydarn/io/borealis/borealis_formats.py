@@ -207,7 +207,7 @@ class BorealisRawacf():
     # for single element fields in the array filetypes, they must 
     # be a shared field. 
     array_single_element_fields = [k for k in array_fields if k in 
-        list(single_element_types.keys()) and if k in shared_fields]
+        list(single_element_types.keys()) and k in shared_fields]
 
     array_single_element_types = {k: single_element_types[k] for k in 
         array_single_element_fields}
@@ -217,8 +217,8 @@ class BorealisRawacf():
     # it is now an array of num_records length.
     array_array_dtypes_fields = [k for k in array_fields if k in 
         list(array_dtypes.keys())] + [k for k in array_fields if k in \
-        list(single_element_types.keys()) and (if (k in unshared_fields)\
-        or if (k in array_only_fields))]
+        list(single_element_types.keys()) and ((k in unshared_fields)\
+        or (k in array_only_fields))]
 
     array_array_dtypes = {k: array_dtypes[k] for k in 
         array_array_dtypes_fields if k in list(array_dtypes.keys())}
@@ -412,7 +412,7 @@ class BorealisBfiq():
     # for single element fields in the array filetypes, they must 
     # be a shared field. 
     array_single_element_fields = [k for k in array_fields if k in 
-        list(single_element_types.keys()) and if k in shared_fields]
+        list(single_element_types.keys()) and k in shared_fields]
 
     array_single_element_types = {k: single_element_types[k] for k in 
         array_single_element_fields}
@@ -422,8 +422,8 @@ class BorealisBfiq():
     # it is now an array of num_records length.
     array_array_dtypes_fields = [k for k in array_fields if k in 
         list(array_dtypes.keys())] + [k for k in array_fields if k in \
-        list(single_element_types.keys()) and (if (k in unshared_fields)\
-        or if (k in array_only_fields))]
+        list(single_element_types.keys()) and ((k in unshared_fields)\
+        or (k in array_only_fields))]
 
     array_array_dtypes = {k: array_dtypes[k] for k in 
         array_array_dtypes_fields if k in list(array_dtypes.keys())}
@@ -602,7 +602,7 @@ class BorealisAntennasIq():
     # for single element fields in the array filetypes, they must 
     # be a shared field. 
     array_single_element_fields = [k for k in array_fields if k in 
-        list(single_element_types.keys()) and if k in shared_fields]
+        list(single_element_types.keys()) and k in shared_fields]
 
     array_single_element_types = {k: single_element_types[k] for k in 
         array_single_element_fields}
@@ -612,8 +612,8 @@ class BorealisAntennasIq():
     # it is now an array of num_records length.
     array_array_dtypes_fields = [k for k in array_fields if k in 
         list(array_dtypes.keys())] + [k for k in array_fields if k in \
-        list(single_element_types.keys()) and (if (k in unshared_fields)\
-        or if (k in array_only_fields))]
+        list(single_element_types.keys()) and ((k in unshared_fields)\
+        or (k in array_only_fields))]
 
     array_array_dtypes = {k: array_dtypes[k] for k in 
         array_array_dtypes_fields if k in list(array_dtypes.keys())}
