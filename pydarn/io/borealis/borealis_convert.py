@@ -251,7 +251,7 @@ class BorealisConvert():
         -------
         dmap_records, the records converted to DMap format
         """
-        if self.dmap_filetype == 'iqdat'
+        if self.dmap_filetype == 'iqdat':
             if self._is_convertible_to_iqdat():
                 dmap_records = self._convert_bfiq_to_iqdat()
         elif self.dmap_filetype == 'rawacf':
