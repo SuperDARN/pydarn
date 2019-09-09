@@ -240,7 +240,7 @@ class BorealisUtilities():
             Dictionary with the require dtypes for the numpy array types in the 
             file.
         record: dict
-            DMap record
+            Record dictionary
         record_name: str
             Record name for a better error message information
 
@@ -266,7 +266,6 @@ class BorealisUtilities():
     def array_incorrect_types_check(filename: str,
                               attributes_type_dict: dict,
                               datasets_type_dict: dict, 
-                              unshared_parameters: List[str], 
                               file_data: dict):
         """
         Checks if the file's data type formats are correct according 
@@ -284,10 +283,6 @@ class BorealisUtilities():
         datasets_type_dict: dict
             Dictionary with the require dtypes for the numpy
             arrays in the file.
-        unshared_parameters: List[str]
-            List of parameter names that are not shared between all the records
-            in the array restructured file, i.e. will have a dimension = to 
-            number of records.
         file_data: dict
             dictionary containing all file information.
 
@@ -296,24 +291,16 @@ class BorealisUtilities():
         BorealisDataFormatTypeError
         """
 
-        incorrect_types_check = {}
+        incorrect_types_check = {param: str(attributes_type_dict[param])
+                                 for param in attributes_type_dict.keys()
+                                 if type(file_data[param]) !=
+                                 attributes_type_dict[param]}
 
-        for data_field, field_value in file_data:
-            if data_field in attributes_type_dict:
-                if data_field not in unshared_parameters:    
-                    data_type = type(field_value)
-                else:
-                    # should be a numpy array of length = number of records.
-                    data_type = field_value.dtype.type 
-                incorrect_types_check.update({data_field: 
-                                str(attributes_type_dict[data_field]) if
-                                data_type != 
-                                attributes_type_dict[data_field]}) 
-            else: 
-                incorrect_types_check.update({data_field: 'np.ndarray of ' +
-                                str(datasets_type_dict[data_field]) if 
-                                field_value.dtype.type != 
-                                datasets_type_dict[data_field]})                   
+        incorrect_types_check.update({param: 'np.ndarray of ' +
+                                      str(datasets_type_dict[param])
+                                      for param in datasets_type_dict.keys()
+                                      if file_data[param].dtype.type !=
+                                      datasets_type_dict[param]})             
         if len(incorrect_types_check) > 0:
             raise borealis_exceptions.BorealisDataFormatTypeError(
                 filename, incorrect_types_check)
@@ -397,7 +384,7 @@ class BorealisUtilities():
         self.array_extra_field_check(filename,
             all_format_fields, arrays)
         self.array_incorrect_types_check(filename,
-            attribute_types, dataset_types, unshared_fields, arrays)
+            attribute_types, dataset_types, arrays)
         self.array_num_records_check(filename,
             unshared_fields, arrays)
 
