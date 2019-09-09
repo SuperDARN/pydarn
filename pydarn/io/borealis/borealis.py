@@ -63,7 +63,7 @@ from pydarn import BorealisSiteRead, BorealisSiteWrite, BorealisArrayRead, \
 
 
 def read_borealis_file(borealis_hdf5_file: str, borealis_filetype: str, 
-                       site: bool = False, records: bool = False) ->
+                       site: bool = False, records: bool = False) -> \
                        Union[dict, OrderedDict]:
     """
     Read a Borealis file appropriately given site flag. Returns either
@@ -150,8 +150,8 @@ def write_borealis_file(data_dict: Union[dict, OrderedDict],
     return writer.filename
 
 
-def return_reader(borealis_hdf5_file: str, borealis_filetype: str) -> 
-                    Union[BorealisArrayRead, BorealisSiteRead], str:
+def return_reader(borealis_hdf5_file: str, borealis_filetype: str) -> \
+                    (Union[BorealisArrayRead, BorealisSiteRead], str):
     """
     Attempts to read a file as array and then as site. Returns if
     any read is successful.
@@ -187,8 +187,8 @@ def return_reader(borealis_hdf5_file: str, borealis_filetype: str) ->
     try:
         reader = BorealisArrayRead(borealis_hdf5_file, borealis_filetype)
         return reader, 'array'
-    except borealis_exceptions.BorealisExtraFieldError, 
-           borealis_exceptions.BorealisFieldMissingError:
+    except (borealis_exceptions.BorealisExtraFieldError, 
+           borealis_exceptions.BorealisFieldMissingError):
         try:
             pydarn_log.debug('{} is not array restructured. Attempting site'\
                 ' read.'.format(borealis_hdf5_file))

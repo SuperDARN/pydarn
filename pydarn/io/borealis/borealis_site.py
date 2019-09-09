@@ -326,9 +326,8 @@ class BorealisSiteWrite():
         The list of record names of the Borealis data. These values 
         are the write time of the record in ms since epoch.
     """
-
     def __init__(self, filename: str, 
-                 borealis_records: OrderedDict = OrderedDict(),
+                 borealis_records: OrderedDict,
                  borealis_filetype: str):
         """
         Write borealis records to a file.
