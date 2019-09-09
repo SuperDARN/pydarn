@@ -184,7 +184,7 @@ class BorealisRawacf():
                        'scan_start_marker', 'beam_nums', 'beam_azms', 
                        'num_slices']
 
-    array_only_fields = ['num_beams']
+    array_only_fields = ['num_beams'] # also unshared (array)
 
     site_only_fields = ['correlation_dimensions']
 
@@ -204,17 +204,27 @@ class BorealisRawacf():
     site_array_dtypes = {k: array_dtypes[k] for k in 
         site_array_dtypes_fields}
 
+    # for single element fields in the array filetypes, they must 
+    # be a shared field. 
     array_single_element_fields = [k for k in array_fields if k in 
-        list(single_element_types.keys())]
+        list(single_element_types.keys()) and if k in shared_fields]
 
     array_single_element_types = {k: single_element_types[k] for k in 
         array_single_element_fields}
 
+    # for array filetypes, there are more array dtypes for any unshared
+    # fields. If the field was a single_element_type and is unshared,
+    # it is now an array of num_records length.
     array_array_dtypes_fields = [k for k in array_fields if k in 
-        list(array_dtypes.keys())]
+        list(array_dtypes.keys())] + [k for k in array_fields if k in \
+        list(single_element_types.keys()) and (if (k in unshared_fields)\
+        or if (k in array_only_fields))]
 
     array_array_dtypes = {k: array_dtypes[k] for k in 
-        array_array_dtypes_fields}
+        array_array_dtypes_fields if k in list(array_dtypes.keys())}
+
+    array_array_dtypes.update({k: single_element_types[k] for k in \
+        array_array_dtypes_fields if k in list(single_element_types[k])})
 
 
 class BorealisBfiq():
@@ -379,7 +389,7 @@ class BorealisBfiq():
                        'noise_at_freq', 'data', 'scan_start_marker', 
                        'beam_azms', 'beam_nums', 'num_slices']
 
-    array_only_fields = ['num_beams'] 
+    array_only_fields = ['num_beams'] # also unshared
 
     site_only_fields = ['data_dimensions']
 
@@ -399,17 +409,27 @@ class BorealisBfiq():
     site_array_dtypes = {k: array_dtypes[k] for k in 
         site_array_dtypes_fields}
 
+    # for single element fields in the array filetypes, they must 
+    # be a shared field. 
     array_single_element_fields = [k for k in array_fields if k in 
-        list(single_element_types.keys())]
+        list(single_element_types.keys()) and if k in shared_fields]
 
     array_single_element_types = {k: single_element_types[k] for k in 
         array_single_element_fields}
 
+    # for array filetypes, there are more array dtypes for any unshared
+    # fields. If the field was a single_element_type and is unshared,
+    # it is now an array of num_records length.
     array_array_dtypes_fields = [k for k in array_fields if k in 
-        list(array_dtypes.keys())]
+        list(array_dtypes.keys())] + [k for k in array_fields if k in \
+        list(single_element_types.keys()) and (if (k in unshared_fields)\
+        or if (k in array_only_fields))]
 
     array_array_dtypes = {k: array_dtypes[k] for k in 
-        array_array_dtypes_fields}
+        array_array_dtypes_fields if k in list(array_dtypes.keys())}
+
+    array_array_dtypes.update({k: single_element_types[k] for k in \
+        array_array_dtypes_fields if k in list(single_element_types[k])})
 
 
 class BorealisAntennasIq():
@@ -559,7 +579,7 @@ class BorealisAntennasIq():
                        'noise_at_freq', 'data', 'scan_start_marker', 
                        'beam_azms', 'beam_nums', 'num_slices']
 
-    array_only_fields = ['num_beams']
+    array_only_fields = ['num_beams'] # also unshared
 
     site_only_fields = ['data_dimensions']
 
@@ -579,17 +599,27 @@ class BorealisAntennasIq():
     site_array_dtypes = {k: array_dtypes[k] for k in 
         site_array_dtypes_fields}
 
+    # for single element fields in the array filetypes, they must 
+    # be a shared field. 
     array_single_element_fields = [k for k in array_fields if k in 
-        list(single_element_types.keys())]
+        list(single_element_types.keys()) and if k in shared_fields]
 
     array_single_element_types = {k: single_element_types[k] for k in 
         array_single_element_fields}
 
+    # for array filetypes, there are more array dtypes for any unshared
+    # fields. If the field was a single_element_type and is unshared,
+    # it is now an array of num_records length.
     array_array_dtypes_fields = [k for k in array_fields if k in 
-        list(array_dtypes.keys())]
+        list(array_dtypes.keys())] + [k for k in array_fields if k in \
+        list(single_element_types.keys()) and (if (k in unshared_fields)\
+        or if (k in array_only_fields))]
 
     array_array_dtypes = {k: array_dtypes[k] for k in 
-        array_array_dtypes_fields}
+        array_array_dtypes_fields if k in list(array_dtypes.keys())}
+
+    array_array_dtypes.update({k: single_element_types[k] for k in \
+        array_array_dtypes_fields if k in list(single_element_types[k])})
 
 
 class BorealisRawrf():
