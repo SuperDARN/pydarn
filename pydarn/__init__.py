@@ -23,7 +23,7 @@ from .io.datastructures import DmapScalar
 from .io.datastructures import DmapArray
 from .io.datastructures import DmapRecord
 from .io import superdarn_formats
-from .io import borealis_formats
+
 
 # Importing pydarn dmap classes
 from .io.dmap import DmapRead
@@ -35,10 +35,16 @@ from .io.superdarn import DarnWrite
 from .io.superdarn import DarnUtilities
 
 # Importing pydarn borealis classes
-from .io.borealis import BorealisRead
-from .io.borealis import BorealisWrite
-from .io.borealis import BorealisConvert
-from .io.borealis import BorealisUtilities
+from .io.borealis import borealis_formats
+from .io.borealis.borealis_utilities import BorealisUtilities
+from .io.borealis.borealis_site import BorealisSiteRead
+from .io.borealis.borealis_site import BorealisSiteWrite
+from .io.borealis.borealis_array import BorealisArrayRead
+from .io.borealis.borealis_array import BorealisArrayWrite
+from .io.borealis.borealis_convert import BorealisConvert
+from .io.borealis import restructure_borealis
+from .io.borealis import bfiq_to_rawacf
+from .io.borealis import borealis
 
 # importing utils
 from .utils.conversions import dict2dmap
