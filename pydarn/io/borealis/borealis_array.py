@@ -47,9 +47,8 @@ from collections import OrderedDict
 from datetime import datetime
 from typing import Union, List
 
-from pydarn import borealis_exceptions, DarnWrite, borealis_formats, \
-				   BorealisUtilities, code_to_stid, borealis_array_to_site_dict,
-                   BorealisSiteRead, BorealisSiteWrite
+from pydarn import borealis_exceptions, borealis_formats, \
+                   BorealisUtilities
 from pydarn.utils.conversions import dict2dmap
 
 pydarn_log = logging.getLogger('pydarn')

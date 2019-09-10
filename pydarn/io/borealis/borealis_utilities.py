@@ -16,10 +16,6 @@ BorealisExtraFieldError
 BorealisDataFormatTypeError
 BorealisNumberOfRecordsError
 
-Notes
------
-BorealisConvert makes use of DarnWrite to write to SuperDARN file types
-
 See Also
 --------
 
@@ -38,9 +34,8 @@ from collections import OrderedDict
 from datetime import datetime
 from typing import Union, List
 
-from pydarn import borealis_exceptions, DarnWrite, borealis_formats
+from pydarn import borealis_exceptions, borealis_formats
 from pydarn.utils.conversions import dict2dmap
-import restructure_borealis
 
 pydarn_log = logging.getLogger('pydarn')
 
