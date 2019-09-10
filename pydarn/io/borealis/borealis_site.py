@@ -43,10 +43,9 @@ from datetime import datetime
 from pathlib2 import Path
 from typing import Union, List
 
-from pydarn import borealis_exceptions, DarnWrite, borealis_formats, \
-                   BorealisUtilities, borealis_site_to_array_dict
+from pydarn import borealis_exceptions, borealis_formats, \
+                   BorealisUtilities
 from pydarn.utils.conversions import dict2dmap
-import restructure_borealis
 
 pydarn_log = logging.getLogger('pydarn')
 

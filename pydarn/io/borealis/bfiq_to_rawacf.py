@@ -43,9 +43,10 @@ import warnings
 from collections import OrderedDict
 from datetime import datetime as dt
 from pathlib2 import Path
+from typing import Union, List
 
-from pydarn import borealis_exceptions, read_borealis_file, \
-                   write_borealis_file, borealis_site_to_array_dict
+from pydarn import borealis_exceptions, borealis_site_to_array_dict, \
+                   read_borealis_file, write_borealis_file
 
 def bfiq_to_rawacf_postprocessing(bfiq_filepath: str, rawacf_filepath: str, 
                                   site: bool, write_site: bool = False):
