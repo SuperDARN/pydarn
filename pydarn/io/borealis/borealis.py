@@ -31,6 +31,12 @@ write_borealis_file: uses BorealisArrayWrite or BorealisSiteWrite
 return_reader: attempts to read first as BorealisArrayRead and 
     then as BorealisSiteRead and returns the reader class if one is 
     successful
+borealis_site_to_array_dict: uses the BorealisRestructureUtilities
+    methods to convert dictionary of records into a dictionary
+    of arrays 
+borealis_array_to_site_dict: uses the BorealisRestructureUtilities
+    methods to convert dictionary of arrays into a dictionary
+    of records
 borealis_site_to_array_file: uses BorealisSiteRead and BorealisArrayWrite
     to convert a site file and write it to an array file.
 borealis_array_to_site_file: uses BorealisArrayRead and BorealisSiteWrite
@@ -57,9 +63,12 @@ import os
 import sys
 
 from collections import OrderedDict
+from typing import Union, List
 
-from pydarn import BorealisSiteRead, BorealisSiteWrite, BorealisArrayRead, \
-                   BorealisArrayWrite, BorealisConvert
+from pydarn import borealis_exceptions, BorealisSiteRead, \
+                   BorealisSiteWrite, BorealisArrayRead, \
+                   BorealisArrayWrite, BorealisConvert, \
+                   BorealisRestructureUtilities
 
 
 def read_borealis_file(borealis_hdf5_file: str, borealis_filetype: str, 
@@ -198,6 +207,73 @@ def return_reader(borealis_hdf5_file: str, borealis_filetype: str) -> \
             raise 
 
 
+def borealis_site_to_array_dict(data_dict: OrderedDict, 
+                                conversion_type: str) -> dict:
+    """
+    Converts a file from site style to restructured array style. Determines
+    which base function to call based on conversion_type. 
+
+    Parameters
+    ----------
+    data_dict: OrderedDict
+        An opened rawacf hdf5 file in site record-by-record format
+    }
+    conversion_type: str
+        'bfiq', 'antennas_iq' or 'rawacf' to determine keys to convert
+    
+    Returns
+    -------
+    new_dict
+        A dictionary containing the data from data_dict
+        formatted to the array format
+    """ 
+    if conversion_type == 'bfiq':
+        new_dict = BorealisRestructureUtilities.bfiq_site_to_array(data_dict)
+    elif conversion_type == 'rawacf':
+        new_dict = BorealisRestructureUtilities.rawacf_site_to_array(data_dict)
+    elif conversion_type == 'antennas_iq':
+        new_dict = BorealisRestructureUtilities.antennas_iq_site_to_array(data_dict)        
+    else:
+        raise borealis_exceptions.BorealisRestructureError(''\
+                                        'File type {} not recognized '\
+                                        'as restructureable from site to '\
+                                        'array style'.format(conversion_type))
+    return new_dict
+
+
+def borealis_array_to_site_dict(data_dict: dict, 
+                                conversion_type: str) -> OrderedDict:
+    """
+    Converts a file back to its original site format. Determines
+    which base function to call based on conversion_type. 
+
+    Parameters
+    ---------_
+    data_dict: dict
+        An opened rawacf hdf5 file in array format
+    conversion_type: str
+        'bfiq', 'antennas_iq' or 'rawacf' to determine keys to convert
+    
+    Returns
+    -------
+    new_dict
+        A timestamped dictionary containing the data from data_dict
+        formatted as the output from a site file.
+    """ 
+    if conversion_type == 'bfiq':
+        new_dict = BorealisRestructureUtilities.bfiq_array_to_site(data_dict)
+    elif conversion_type == 'rawacf':
+        new_dict = BorealisRestructureUtilities.rawacf_array_to_site(data_dict)
+    elif conversion_type == 'antennas_iq':
+        new_dict = BorealisRestructureUtilities.antennas_iq_array_to_site(data_dict)        
+    else:
+        raise borealis_exceptions.BorealisRestructureError(''\
+                                        'File type {} not recognized '\
+                                        'as restructureable from array to '\
+                                        'site style'.format(conversion_type))
+    return new_dict
+
+
 def borealis_site_to_array_file(read_data_path: str, write_data_path: str):
     """
     Restructure the data from site style (record by record) to array style,
@@ -222,7 +298,7 @@ def borealis_site_to_array_file(read_data_path: str, write_data_path: str):
     """
 
     if read_data_path == write_data_path:
-        raise ConvertFileOverWriteError(read_data_path)
+        raise borealis_exceptions.ConvertFileOverWriteError(read_data_path)
 
     if 'antennas_iq' in read_data_path:
         borealis_filetype = 'antennas_iq'
@@ -231,7 +307,8 @@ def borealis_site_to_array_file(read_data_path: str, write_data_path: str):
     elif 'rawacf' in read_data_path:
         borealis_filetype = 'rawacf'
     else:
-        raise BorealisFileTypeError(read_data_path, read_data_path[-2:])
+        raise borealis_exceptions.BorealisFileTypeError(read_data_path, 
+            read_data_path[-2:])
 
     pydarn_log.debug("Reading {} site file: {}".format(borealis_filetype, read_data_path))
     site_reader = BorealisSiteRead(read_data_path, borealis_filetype)
@@ -264,7 +341,7 @@ def borealis_array_to_site_file(read_data_path: str, write_data_path: str):
     """
 
     if read_data_path == write_data_path:
-        raise ConvertFileOverWriteError(read_data_path)
+        raise borealis_exceptions.ConvertFileOverWriteError(read_data_path)
 
     warnings.simplefilter('ignore')
 
@@ -275,7 +352,8 @@ def borealis_array_to_site_file(read_data_path: str, write_data_path: str):
     elif 'rawacf' in read_data_path:
         borealis_filetype = 'rawacf'
     else:
-        raise BorealisFileTypeError(read_data_path, read_data_path[-2:])
+        raise borealis_exceptions.BorealisFileTypeError(read_data_path, 
+            read_data_path[-2:])
 
     pydarn_log.debug("Reading {} array file: {}".format(borealis_filetype, 
                                              read_data_path))
@@ -331,7 +409,7 @@ def borealis_write_to_dmap(borealis_hdf5_file: str, borealis_filetype: str,
     """
 
     if borealis_hdf5_file == darn_filename:
-        raise ConvertFileOverWriteError(borealis_hdf5_file)
+        raise borealis_exceptions.ConvertFileOverWriteError(borealis_hdf5_file)
 
     records = read_borealis_file(borealis_hdf5_file, borealis_filetype, 
                                  site=site, records=True)

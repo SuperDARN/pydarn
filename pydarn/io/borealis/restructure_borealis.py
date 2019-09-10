@@ -11,15 +11,6 @@ Classes
 -------
 BorealisRestructureUtilities
 
-Functions
----------
-borealis_site_to_array_dict: uses the BorealisRestructureUtilities
-    methods to convert dictionary of records into a dictionary
-    of arrays 
-borealis_array_to_site_dict: uses the BorealisRestructureUtilities
-    methods to convert dictionary of arrays into a dictionary
-    of records
-
 Exceptions
 ----------
 BorealisRestructureError
@@ -36,9 +27,9 @@ import warnings
 from collections import OrderedDict
 from functools import reduce
 from pathlib2 import Path
+from typing import Union, List
 
-from pydarn import BorealisRawacf, BorealisBfiq, BorealisAntennasIq, \
-                   BorealisRestructureError, BorealisUtilities, \
+from pydarn import borealis_exceptions, BorealisUtilities, \
                    borealis_formats
 
 
@@ -155,7 +146,7 @@ class BorealisRestructureUtilities():
 
         if iq_filetype == 'antennas_iq':  
             # dims are num_antennas, num_sequences, num_samps
-            for field in BorealisAntennasIq.shared_fields:
+            for field in borealis_formats.BorealisAntennasIq.shared_fields:
                 new_data_dict[field] = data_dict[first_key][field]
 
             num_antennas = dims[0]
@@ -169,7 +160,7 @@ class BorealisRestructureUtilities():
 
         elif iq_filetype == 'bfiq': 
             # dims are num_antenna_arrays, num_sequences, num_beams, num_samps
-            for field in BorealisBfiq.shared_fields:
+            for field in borealis_formats.BorealisBfiq.shared_fields:
                 new_data_dict[field] = data_dict[first_key][field]
             num_arrays = dims[0]
             num_samps = dims[3]
@@ -181,7 +172,8 @@ class BorealisRestructureUtilities():
             data_shape = (num_records, num_arrays, max_seqs, max_beams, num_samps)
 
         else:  # Unrecognized
-            raise BorealisRestructureError("Unrecognized filetype in _iq_site_to_array")
+            raise borealis_exceptions.BorealisRestructureError(""\
+                "Unrecognized filetype in _iq_site_to_array")
 
         sqn_buffer_offset = max_seqs
         sqn_ts_buffer = np.zeros(num_records * max_seqs)
@@ -280,9 +272,10 @@ class BorealisRestructureUtilities():
                 borealis_formats.BorealisBfiq.unshared_fields)
 
         except Exception as e:
-            raise BorealisRestructureError('Error restructuring bfiq '\
-                                           'from site to array style:'\
-                                           '{}'.format(e))
+            raise borealis_exceptions.BorealisRestructureError('Error '\
+                                            'restructuring bfiq '\
+                                            'from site to array style:'\
+                                            '{}'.format(e))
 
         return new_data_dict
 
@@ -316,9 +309,10 @@ class BorealisRestructureUtilities():
                 borealis_formats.BorealisAntennasIq.unshared_fields)
 
         except Exception as e:
-            raise BorealisRestructureError('Error restructuring antennas_iq '\
-                                           'from site to array style:'\
-                                           '{}'.format(e))
+            raise borealis_exceptions.BorealisRestructureError(''\
+                                            'Error restructuring antennas_iq '\
+                                            'from site to array style:'\
+                                            '{}'.format(e))
 
         return new_data_dict
 
@@ -350,7 +344,7 @@ class BorealisRestructureUtilities():
 
             # write shared fields to dictionary
             first_key = list(data_dict.keys())[0]
-            for field in BorealisRawacf.shared_fields:
+            for field in borealis_formats.BorealisRawacf.shared_fields:
                 new_data_dict[field] = data_dict[first_key][field]
 
             # handle unshared data fields
@@ -437,9 +431,10 @@ class BorealisRestructureUtilities():
                 borealis_formats.BorealisRawacf.unshared_fields)
 
         except Exception as e:
-            raise BorealisRestructureError('Error restructuring rawacf '\
-                                           'from site to array style:'\
-                                           '{}'.format(e))
+            raise borealis_exceptions.BorealisRestructureError(''\
+                                            'Error restructuring rawacf '\
+                                            'from site to array style:'\
+                                            '{}'.format(e))
         return new_data_dict
 
     @staticmethod
@@ -485,8 +480,8 @@ class BorealisRestructureUtilities():
             data_descriptors = np.ndarray(["num_antennas", "num_sequences", 
                 "num_samps"], dtype=np.unicode_)
         else:
-            raise BorealisRestructureError("Unrecognized filetype in \
-                _iq_site_to_array")
+            raise borealis_formats.BorealisRestructureError(""\
+                "Unrecognized filetype in _iq_site_to_array")
         
         # get keys from first sequence timestamps
         for rec, seq_ts in enumerate(data_dict["sqn_timestamps"]):
@@ -561,9 +556,10 @@ class BorealisRestructureUtilities():
                 borealis_formats.BorealisBfiq.array_dtypes)
 
         except Exception as e:
-            raise BorealisRestructureError('Error restructuring bfiq '\
-                                           'from array to site style:'\
-                                           '{}'.format(e))
+            raise borealis_exceptions.BorealisRestructureError(''\
+                                            'Error restructuring bfiq '\
+                                            'from array to site style:'\
+                                            '{}'.format(e))
         return ts_dict
 
     @staticmethod
@@ -593,9 +589,10 @@ class BorealisRestructureUtilities():
                 borealis_formats.BorealisAntennasIq.array_dtypes)
 
         except Exception as e:
-            raise BorealisRestructureError('Error restructuring antennas_iq '\
-                                           'from array to site style:'\
-                                           '{}'.format(e))
+            raise borealis_exceptions.BorealisRestructureError(''\
+                                            'Error restructuring antennas_iq '\
+                                            'from array to site style:'\
+                                            '{}'.format(e))
         return ts_dict
 
     @staticmethod
@@ -675,72 +672,8 @@ class BorealisRestructureUtilities():
                 borealis_formats.BorealisRawrf.array_dtypes)
         
         except Exception as e:
-            raise BorealisRestructureError('Error restructuring rawacf '\
-                                           'from array to site style:'\
-                                           '{}'.format(e))
+            raise borealis_exceptions.BorealisRestructureError(''\
+                                            'Error restructuring rawacf '\
+                                            'from array to site style:'\
+                                            '{}'.format(e))
         return ts_dict
-
-
-def borealis_site_to_array_dict(data_dict: OrderedDict, 
-                                conversion_type: str) -> dict:
-    """
-    Converts a file from site style to restructured array style. Determines
-    which base function to call based on conversion_type. 
-
-    Parameters
-    ----------
-    data_dict: OrderedDict
-        An opened rawacf hdf5 file in site record-by-record format
-    }
-    conversion_type: str
-        'bfiq', 'antennas_iq' or 'rawacf' to determine keys to convert
-    
-    Returns
-    -------
-    new_dict
-        A dictionary containing the data from data_dict
-        formatted to the array format
-    """ 
-    if conversion_type == 'bfiq':
-        new_dict = BorealisRestructureUtilities.bfiq_site_to_array(data_dict)
-    elif conversion_type == 'rawacf':
-        new_dict = BorealisRestructureUtilities.rawacf_site_to_array(data_dict)
-    elif conversion_type == 'antennas_iq':
-        new_dict = BorealisRestructureUtilities.antennas_iq_site_to_array(data_dict)        
-    else:
-        raise BorealisRestructureError('File type {} not recognized '\
-                                       'as restructureable from site to '\
-                                       'array style'.format(conversion_type))
-    return new_dict
-
-
-def borealis_array_to_site_dict(data_dict: dict, 
-                                conversion_type: str) -> OrderedDict:
-    """
-    Converts a file back to its original site format. Determines
-    which base function to call based on conversion_type. 
-
-    Parameters
-    ---------_
-    data_dict: dict
-        An opened rawacf hdf5 file in array format
-    conversion_type: str
-        'bfiq', 'antennas_iq' or 'rawacf' to determine keys to convert
-    
-    Returns
-    -------
-    new_dict
-        A timestamped dictionary containing the data from data_dict
-        formatted as the output from a site file.
-    """ 
-    if conversion_type == 'bfiq':
-        new_dict = BorealisRestructureUtilities.bfiq_array_to_site(data_dict)
-    elif conversion_type == 'rawacf':
-        new_dict = BorealisRestructureUtilities.rawacf_array_to_site(data_dict)
-    elif conversion_type == 'antennas_iq':
-        new_dict = BorealisRestructureUtilities.antennas_iq_array_to_site(data_dict)        
-    else:
-        raise BorealisRestructureError('File type {} not recognized '\
-                                       'as restructureable from array to '\
-                                       'site style'.format(conversion_type))
-    return new_dict
