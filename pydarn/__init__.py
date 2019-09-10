@@ -42,9 +42,18 @@ from .io.borealis.borealis_site import BorealisSiteWrite
 from .io.borealis.borealis_array import BorealisArrayRead
 from .io.borealis.borealis_array import BorealisArrayWrite
 from .io.borealis.borealis_convert import BorealisConvert
-from .io.borealis import restructure_borealis
+from .io.borealis.restructure_borealis import BorealisRestructureUtilities
+from .io.borealis.borealis import read_borealis_file
+from .io.borealis.borealis import write_borealis_file
+from .io.borealis.borealis import return_reader
+from .io.borealis.borealis import borealis_site_to_array_dict
+from .io.borealis.borealis import borealis_array_to_site_dict
+from .io.borealis.borealis import borealis_array_to_site_file
+from .io.borealis.borealis import borealis_site_to_array_file
+from .io.borealis.borealis import borealis_write_to_dmap
+from .io.borealis.borealis import bfiq2darniqdat
+from .io.borealis.borealis import rawacf2darnrawacf
 from .io.borealis import bfiq_to_rawacf
-from .io.borealis import borealis
 
 # importing utils
 from .utils.conversions import dict2dmap
