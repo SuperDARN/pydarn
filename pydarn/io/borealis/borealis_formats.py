@@ -198,45 +198,45 @@ class BorealisRawacf():
 
     @classmethod
     def site_single_element_fields(cls):
-        return [k for k in cls.site_fields if k in 
+        return [k for k in cls.site_fields() if k in 
             list(cls.single_element_types.keys())]
 
     @classmethod
     def site_single_element_types(cls):          
         return {k: cls.single_element_types[k] 
-            for k in cls.site_single_element_fields}
+            for k in cls.site_single_element_fields()}
 
     @classmethod
     def site_array_dtypes_fields(cls):   
-        return [k for k in cls.site_fields if k in 
+        return [k for k in cls.site_fields() if k in 
         list(cls.array_dtypes.keys())]
 
     @classmethod
     def site_array_dtypes(cls):
         return {k: cls.array_dtypes[k] for k in 
-        cls.site_array_dtypes_fields}
+        cls.site_array_dtypes_fields()}
 
     # for single element fields in the array filetypes, they must 
     # be a shared field. 
     @classmethod
     def array_single_element_fields(cls):
-        return [k for k in cls.array_fields if 
+        return [k for k in cls.array_fields() if 
         k in list(cls.single_element_types.keys()) and k in 
         cls.shared_fields]
 
     @classmethod
     def array_single_element_types(cls):
         return {k: cls.single_element_types[k] 
-        for k in cls.array_single_element_fields}
+        for k in cls.array_single_element_fields()}
 
     # for array filetypes, there are more array dtypes for any unshared
     # fields. If the field was a single_element_type and is unshared,
     # it is now an array of num_records length.
     @classmethod
     def array_array_dtypes_fields(cls):
-        return [k for k in cls.array_fields if 
+        return [k for k in cls.array_fields() if 
         k in list(cls.array_dtypes.keys())] + \
-        [k for k in cls.array_fields if k in 
+        [k for k in cls.array_fields() if k in 
         list(cls.single_element_types.keys()) and 
         ((k in cls.unshared_fields) or 
             (k in cls.array_only_fields))]
@@ -244,12 +244,12 @@ class BorealisRawacf():
     @classmethod
     def array_array_dtypes(cls):
         array_array_dtypes = {k: cls.array_dtypes[k] for k in 
-        cls.array_array_dtypes_fields if k in 
+        cls.array_array_dtypes_fields() if k in 
         list(cls.array_dtypes.keys())}
 
         array_array_dtypes.update({k: cls.single_element_types[k] for
-            k in cls.array_array_dtypes_fields if k in 
-            list(cls.single_element_types[k])})
+            k in cls.array_array_dtypes_fields() if k in 
+            list(cls.single_element_types.keys())})
 
         return array_array_dtypes
 
@@ -430,45 +430,45 @@ class BorealisBfiq():
 
     @classmethod
     def site_single_element_fields(cls):
-        return [k for k in cls.site_fields if k in 
+        return [k for k in cls.site_fields() if k in 
             list(cls.single_element_types.keys())]
 
     @classmethod
     def site_single_element_types(cls):          
         return {k: cls.single_element_types[k] 
-            for k in cls.site_single_element_fields}
+            for k in cls.site_single_element_fields()}
 
     @classmethod
     def site_array_dtypes_fields(cls):   
-        return [k for k in cls.site_fields if k in 
+        return [k for k in cls.site_fields() if k in 
         list(cls.array_dtypes.keys())]
 
     @classmethod
     def site_array_dtypes(cls):
         return {k: cls.array_dtypes[k] for k in 
-        cls.site_array_dtypes_fields}
+        cls.site_array_dtypes_fields()}
 
     # for single element fields in the array filetypes, they must 
     # be a shared field. 
     @classmethod
     def array_single_element_fields(cls):
-        return [k for k in cls.array_fields if 
+        return [k for k in cls.array_fields() if 
         k in list(cls.single_element_types.keys()) and k in 
         cls.shared_fields]
 
     @classmethod
     def array_single_element_types(cls):
         return {k: cls.single_element_types[k] 
-        for k in cls.array_single_element_fields}
+        for k in cls.array_single_element_fields()}
 
     # for array filetypes, there are more array dtypes for any unshared
     # fields. If the field was a single_element_type and is unshared,
     # it is now an array of num_records length.
     @classmethod
     def array_array_dtypes_fields(cls):
-        return [k for k in cls.array_fields if 
+        return [k for k in cls.array_fields() if 
         k in list(cls.array_dtypes.keys())] + \
-        [k for k in cls.array_fields if k in 
+        [k for k in cls.array_fields() if k in 
         list(cls.single_element_types.keys()) and 
         ((k in cls.unshared_fields) or 
             (k in cls.array_only_fields))]
@@ -476,12 +476,12 @@ class BorealisBfiq():
     @classmethod
     def array_array_dtypes(cls):
         array_array_dtypes = {k: cls.array_dtypes[k] for k in 
-        cls.array_array_dtypes_fields if k in 
+        cls.array_array_dtypes_fields() if k in 
         list(cls.array_dtypes.keys())}
 
         array_array_dtypes.update({k: cls.single_element_types[k] for
-            k in cls.array_array_dtypes_fields if k in 
-            list(cls.single_element_types[k])})
+            k in cls.array_array_dtypes_fields() if k in 
+            list(cls.single_element_types.keys())})
 
         return array_array_dtypes
 
@@ -647,45 +647,45 @@ class BorealisAntennasIq():
 
     @classmethod
     def site_single_element_fields(cls):
-        return [k for k in cls.site_fields if k in 
+        return [k for k in cls.site_fields() if k in 
             list(cls.single_element_types.keys())]
 
     @classmethod
     def site_single_element_types(cls):          
         return {k: cls.single_element_types[k] 
-            for k in cls.site_single_element_fields}
+            for k in cls.site_single_element_fields()}
 
     @classmethod
     def site_array_dtypes_fields(cls):   
-        return [k for k in cls.site_fields if k in 
+        return [k for k in cls.site_fields() if k in 
         list(cls.array_dtypes.keys())]
 
     @classmethod
     def site_array_dtypes(cls):
         return {k: cls.array_dtypes[k] for k in 
-        cls.site_array_dtypes_fields}
+        cls.site_array_dtypes_fields()}
 
     # for single element fields in the array filetypes, they must 
     # be a shared field. 
     @classmethod
     def array_single_element_fields(cls):
-        return [k for k in cls.array_fields if 
+        return [k for k in cls.array_fields() if 
         k in list(cls.single_element_types.keys()) and k in 
         cls.shared_fields]
 
     @classmethod
     def array_single_element_types(cls):
         return {k: cls.single_element_types[k] 
-        for k in cls.array_single_element_fields}
+        for k in cls.array_single_element_fields()}
 
     # for array filetypes, there are more array dtypes for any unshared
     # fields. If the field was a single_element_type and is unshared,
     # it is now an array of num_records length.
     @classmethod
     def array_array_dtypes_fields(cls):
-        return [k for k in cls.array_fields if 
+        return [k for k in cls.array_fields() if 
         k in list(cls.array_dtypes.keys())] + \
-        [k for k in cls.array_fields if k in 
+        [k for k in cls.array_fields() if k in 
         list(cls.single_element_types.keys()) and 
         ((k in cls.unshared_fields) or 
             (k in cls.array_only_fields))]
@@ -693,12 +693,12 @@ class BorealisAntennasIq():
     @classmethod
     def array_array_dtypes(cls):
         array_array_dtypes = {k: cls.array_dtypes[k] for k in 
-        cls.array_array_dtypes_fields if k in 
+        cls.array_array_dtypes_fields() if k in 
         list(cls.array_dtypes.keys())}
 
         array_array_dtypes.update({k: cls.single_element_types[k] for
-            k in cls.array_array_dtypes_fields if k in 
-            list(cls.single_element_types[k])})
+            k in cls.array_array_dtypes_fields() if k in 
+            list(cls.single_element_types.keys())})
 
         return array_array_dtypes
 
@@ -771,4 +771,26 @@ class BorealisRawrf():
         "data": np.complex64
     }
 
-    site_fields = list(single_element_types.keys()) + list(array_dtypes.keys())
+    @classmethod
+    def site_fields(cls):
+        return list(cls.single_element_types.keys()) + list(cls.array_dtypes.keys())
+
+    @classmethod
+    def site_single_element_fields(cls):
+        return [k for k in cls.site_fields() if k in 
+            list(cls.single_element_types.keys())]
+
+    @classmethod
+    def site_single_element_types(cls):          
+        return {k: cls.single_element_types[k] 
+            for k in cls.site_single_element_fields()}
+
+    @classmethod
+    def site_array_dtypes_fields(cls):   
+        return [k for k in cls.site_fields() if k in 
+        list(cls.array_dtypes.keys())]
+
+    @classmethod
+    def site_array_dtypes(cls):
+        return {k: cls.array_dtypes[k] for k in 
+        cls.site_array_dtypes_fields()}

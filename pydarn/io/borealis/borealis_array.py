@@ -48,7 +48,7 @@ from datetime import datetime
 from typing import Union, List
 
 from pydarn import borealis_exceptions, borealis_formats, \
-                   BorealisUtilities
+                   BorealisUtilities, borealis_array_to_site_dict
 from pydarn.utils.conversions import dict2dmap
 
 pydarn_log = logging.getLogger('pydarn')
@@ -143,7 +143,7 @@ class BorealisArrayRead():
         The Borealis data in a dictionary of records, according to the 
         site file format.
         """
-        return borealis_array_to_site_dict(self.arrays, 
+        return borealis_array_to_site_dict(self.filename, self.arrays, 
                                            self.borealis_filetype)
 
     @property 
@@ -201,8 +201,8 @@ class BorealisArrayRead():
         pydarn_log.debug("Reading Borealis bfiq file: {}"
                          "".format(self.filename))
         attribute_types = \
-            borealis_formats.BorealisBfiq.array_single_element_types
-        dataset_types = borealis_formats.BorealisBfiq.array_array_dtypes
+            borealis_formats.BorealisBfiq.array_single_element_types()
+        dataset_types = borealis_formats.BorealisBfiq.array_array_dtypes()
         unshared_fields = borealis_formats.BorealisBfiq.unshared_fields + \
             borealis_formats.BorealisBfiq.array_only_fields
         self._read_borealis_arrays(attribute_types, dataset_types, 
@@ -222,8 +222,8 @@ class BorealisArrayRead():
         pydarn_log.debug(
             "Reading Borealis rawacf file: {}".format(self.filename))
         attribute_types = \
-            borealis_formats.BorealisRawacf.array_single_element_types
-        dataset_types = borealis_formats.BorealisRawacf.array_array_dtypes
+            borealis_formats.BorealisRawacf.array_single_element_types()
+        dataset_types = borealis_formats.BorealisRawacf.array_array_dtypes()
         unshared_fields = borealis_formats.BorealisRawacf.unshared_fields + \
             borealis_formats.BorealisRawacf.array_only_fields
         self._read_borealis_arrays(attribute_types, dataset_types, 
@@ -243,8 +243,9 @@ class BorealisArrayRead():
         pydarn_log.debug("Reading Borealis antennas_iq file: {}"
                          "".format(self.filename))
         attribute_types = \
-            borealis_formats.BorealisAntennasIq.array_single_element_types
-        dataset_types = borealis_formats.BorealisAntennasIq.array_array_dtypes
+            borealis_formats.BorealisAntennasIq.array_single_element_types()
+        dataset_types = \
+            borealis_formats.BorealisAntennasIq.array_array_dtypes()
         unshared_fields = \
             borealis_formats.BorealisAntennasIq.unshared_fields + \
             borealis_formats.BorealisAntennasIq.array_only_fields
@@ -393,8 +394,8 @@ class BorealisArrayWrite():
         pydarn_log.debug(
             "Writing Borealis bfiq file: {}".format(self.filename))
         attribute_types = \
-            borealis_formats.BorealisBfiq.array_single_element_types
-        dataset_types = borealis_formats.BorealisBfiq.array_array_dtypes
+            borealis_formats.BorealisBfiq.array_single_element_types()
+        dataset_types = borealis_formats.BorealisBfiq.array_array_dtypes()
         unshared_fields = borealis_formats.BorealisBfiq.unshared_fields + \
             borealis_formats.BorealisBfiq.array_only_fields
         self._write_borealis_arrays(attribute_types, dataset_types, 
@@ -413,8 +414,8 @@ class BorealisArrayWrite():
         pydarn_log.debug(
             "Writing Borealis rawacf file: {}".format(self.filename))
         attribute_types = \
-            borealis_formats.BorealisRawacf.array_single_element_types
-        dataset_types = borealis_formats.BorealisRawacf.array_array_dtypes
+            borealis_formats.BorealisRawacf.array_single_element_types()
+        dataset_types = borealis_formats.BorealisRawacf.array_array_dtypes()
         unshared_fields = borealis_formats.BorealisRawacf.unshared_fields + \
             borealis_formats.BorealisRawacf.array_only_fields
         self._write_borealis_arrays(attribute_types, dataset_types, 
@@ -433,8 +434,9 @@ class BorealisArrayWrite():
         pydarn_log.debug(
             "Writing Borealis antennas_iq file: {}".format(self.filename))
         attribute_types = \
-            borealis_formats.BorealisAntennasIq.array_single_element_types
-        dataset_types = borealis_formats.BorealisAntennasIq.array_array_dtypes
+            borealis_formats.BorealisAntennasIq.array_single_element_types()
+        dataset_types = \
+            borealis_formats.BorealisAntennasIq.array_array_dtypes()
         unshared_fields = \
             borealis_formats.BorealisAntennasIq.unshared_fields + \
             borealis_formats.BorealisAntennasIq.array_only_fields
