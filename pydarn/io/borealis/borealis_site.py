@@ -37,6 +37,7 @@ import logging
 import math
 import numpy as np
 import os
+import subprocess as sp
 
 from collections import OrderedDict
 from datetime import datetime
@@ -44,7 +45,7 @@ from pathlib2 import Path
 from typing import Union, List
 
 from pydarn import borealis_exceptions, borealis_formats, \
-                   BorealisUtilities
+                   BorealisUtilities, borealis_site_to_array_dict
 from pydarn.utils.conversions import dict2dmap
 
 pydarn_log = logging.getLogger('pydarn')
@@ -147,7 +148,7 @@ class BorealisSiteRead():
         The Borealis data in a dictionary of arrays, according to the 
         restructured array file format.
         """
-        return borealis_site_to_array_dict(self.records, 
+        return borealis_site_to_array_dict(self.filename, self.records, 
                                            self.borealis_filetype)
 
     def read_file(self) -> dict:
@@ -199,8 +200,8 @@ class BorealisSiteRead():
         pydarn_log.debug("Reading Borealis bfiq file: {}"
                          "".format(self.filename))
         attribute_types = \
-            borealis_formats.BorealisBfiq.site_single_element_types
-        dataset_types = borealis_formats.BorealisBfiq.site_array_dtypes
+            borealis_formats.BorealisBfiq.site_single_element_types()
+        dataset_types = borealis_formats.BorealisBfiq.site_array_dtypes()
         self._read_borealis_records(attribute_types, dataset_types)
         return self._records
 
@@ -218,8 +219,8 @@ class BorealisSiteRead():
             "Reading Borealis rawacf file: {}".format(self.filename))
 
         attribute_types = \
-            borealis_formats.BorealisRawacf.site_single_element_types
-        dataset_types = borealis_formats.BorealisRawacf.site_array_dtypes
+            borealis_formats.BorealisRawacf.site_single_element_types()
+        dataset_types = borealis_formats.BorealisRawacf.site_array_dtypes()
         self._read_borealis_records(attribute_types, dataset_types)
         return self._records
 
@@ -236,8 +237,8 @@ class BorealisSiteRead():
         pydarn_log.debug("Reading Borealis antennas_iq file: {}"
                          "".format(self.filename))
         attribute_types = \
-            borealis_formats.BorealisAntennasIq.site_single_element_types
-        dataset_types = borealis_formats.BorealisAntennasIq.site_array_dtypes
+            borealis_formats.BorealisAntennasIq.site_single_element_types()
+        dataset_types = borealis_formats.BorealisAntennasIq.site_array_dtypes()
         self._read_borealis_records(attribute_types, dataset_types)
         return self._records
 
@@ -253,8 +254,9 @@ class BorealisSiteRead():
         """
         pydarn_log.debug("Reading Borealis rawrf file: {}"
                          "".format(self.filename))
-        attribute_types = borealis_formats.BorealisRawrf.single_element_types
-        dataset_types = borealis_formats.BorealisRawrf.array_dtypes
+        attribute_types = \
+            borealis_formats.BorealisRawrf.site_single_element_types()
+        dataset_types = borealis_formats.BorealisRawrf.site_array_dtypes()
         self._read_borealis_records(attribute_types, dataset_types)
         return self._records
 
@@ -398,8 +400,8 @@ class BorealisSiteWrite():
         pydarn_log.debug(
             "Writing Borealis bfiq file: {}".format(self.filename))
         attribute_types = \
-            borealis_formats.BorealisBfiq.site_single_element_types
-        dataset_types = borealis_formats.BorealisBfiq.site_array_dtypes
+            borealis_formats.BorealisBfiq.site_single_element_types()
+        dataset_types = borealis_formats.BorealisBfiq.site_array_dtypes()
         self._write_borealis_records(attribute_types, dataset_types)
         return self.filename
 
@@ -415,8 +417,8 @@ class BorealisSiteWrite():
         pydarn_log.debug(
             "Writing Borealis rawacf file: {}".format(self.filename))
         attribute_types = \
-            borealis_formats.BorealisRawacf.site_single_element_types
-        dataset_types = borealis_formats.BorealisRawacf.site_array_dtypes
+            borealis_formats.BorealisRawacf.site_single_element_types()
+        dataset_types = borealis_formats.BorealisRawacf.site_array_dtypes()
         self._write_borealis_records(attribute_types, dataset_types)
         return self.filename
 
@@ -432,8 +434,8 @@ class BorealisSiteWrite():
         pydarn_log.debug(
             "Writing Borealis antennas_iq file: {}".format(self.filename))
         attribute_types = \
-            borealis_formats.BorealisAntennasIq.site_single_element_types
-        dataset_types = borealis_formats.BorealisAntennasIq.site_array_dtypes
+            borealis_formats.BorealisAntennasIq.site_single_element_types()
+        dataset_types = borealis_formats.BorealisAntennasIq.site_array_dtypes()
         self._write_borealis_records(attribute_types, dataset_types)
         return self.filename
 
@@ -448,8 +450,9 @@ class BorealisSiteWrite():
         """
         pydarn_log.debug(
             "Writing Borealis rawrf file: {}".format(self.filename))
-        attribute_types = borealis_formats.BorealisRawrf.single_element_types
-        dataset_types = borealis_formats.BorealisRawrf.array_dtypes
+        attribute_types = \
+            borealis_formats.BorealisRawrf.site_single_element_types()
+        dataset_types = borealis_formats.BorealisRawrf.site_array_dtypes()
         self._write_borealis_records(attribute_types, dataset_types)
         return self.filename
 
@@ -485,4 +488,15 @@ class BorealisSiteWrite():
         Path(self.filename).touch()
         BorealisUtilities.check_records(self.filename, self.records, 
                                         attribute_types, dataset_types)
-        dd.io.save(self.filename, self.records, compression=None)
+
+        # use external h5copy utility to move new record into 2hr file.
+        cp_cmd = 'h5copy -i {newfile} -o {full_file} -s {dtstr} -d {dtstr}'
+        
+        tmp_filename = self.filename + '.tmp'
+        for group_name, group_dict in self.records.items():
+            dd.io.save(tmp_filename, {group_name: group_dict}, compression=None)
+            cmd = cp_cmd.format(newfile=tmp_filename, full_file=self.filename, 
+                dtstr=group_name)
+
+            sp.call(cmd.split())
+            os.remove(tmp_filename)
