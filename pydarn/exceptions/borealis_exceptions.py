@@ -183,8 +183,10 @@ class BorealisNumberOfRecordsError(Exception):
 
     def __init__(self, filename: str, array_types: dict):
         self.message = "The number of records in file {filename} cannot "\
-            "be determined due to varying sizes of arrays: {array_types}"\
-            "".format(filename=filename, array_types=array_types)
+            "be determined due to varying shapes of arrays for the unshared "\
+            "parameters. All arrays of the unshared parameters should "\
+            "have the same first dimension size equal to number of records: "\
+            "{array_types}".format(filename=filename, array_types=array_types)
         Exception.__init__(self, self.message)
 
 
@@ -287,6 +289,34 @@ class BorealisRestructureError(Exception):
     def __init__(self, error_str: str):
         self.message = "The file cannot be restructured due to the "\
             " following error: {error_str}"\
+            "".format(error_str=error_str)
+        Exception.__init__(self, self.message)
+
+
+class BorealisStructureError(Exception):
+    """
+    Raised when the file has major structural issues and may not
+    be the correct style type (arrays vs records).
+
+    Parameters
+    ----------
+    error_str: str
+        explanation for why the file cannot be restructured.
+    
+    Attributes
+    ----------
+    message: str
+        The message to display with the error
+
+    See Also
+    --------
+    restructure_borealis.py
+    """
+
+    def __init__(self, error_str: str):
+        self.message = "The file has major structural errors. You may be"\
+            " attempting to use the file as the wrong style (site vs. array style)."\
+            "Please check if you are interested in records or arrays. {error_str}"\
             "".format(error_str=error_str)
         Exception.__init__(self, self.message)
 
