@@ -32,6 +32,7 @@ import os
 
 from collections import OrderedDict
 from datetime import datetime
+from functools import reduce
 from typing import Union, List
 
 from pydarn import borealis_exceptions, borealis_formats
@@ -151,6 +152,7 @@ class BorealisUtilities():
         Raises
         -------
         BorealisFieldMissingError
+        BorealisStructureError
         
         Notes
         -----
@@ -164,11 +166,21 @@ class BorealisUtilities():
             if len(diff_fields) != 0:
                 missing_fields = missing_fields.union(diff_fields)
 
+        if len(missing_fields) == \
+                reduce(lambda a,b : a+b, [len(x) for x in file_struct_list]):
+            # all fields are missing
+            if 'record_name' in kwargs.keys():
+                raise borealis_exceptions.BorealisStructureError("All fields expected are"\
+                    " missing in record {}: {}".format(kwargs['record_name'], missing_fields))
+            else:
+                raise borealis_exceptions.BorealisStructureError("All fields expected are"\
+                    " missing : {}".format(missing_fields))            
+
         if len(missing_fields) > 0:
             if 'record_name' in kwargs.keys():
                 raise borealis_exceptions.BorealisFieldMissingError(filename,
-                                                    missing_fields,
-                                                    record_name=record_name)
+                                            missing_fields,
+                                            record_name=kwargs['record_name'])
             else:
                 raise borealis_exceptions.BorealisFieldMissingError(filename,
                                                         missing_fields)                
@@ -206,8 +218,8 @@ class BorealisUtilities():
         if len(extra_fields) > 0:
             if 'record_name' in kwargs.keys():
                 raise borealis_exceptions.BorealisExtraFieldError(filename,
-                                                    extra_fields,
-                                                    record_name=record_name)
+                                            extra_fields,
+                                            record_name=kwargs['record_name'])
             else:
                 raise borealis_exceptions.BorealisExtraFieldError(filename,
                                                         extra_fields)
@@ -248,7 +260,7 @@ class BorealisUtilities():
                                  if type(record[param]) !=
                                  attributes_type_dict[param]}
 
-        incorrect_types_check.update({param: 'np.ndarray of ' +
+        incorrect_types_check.update({param: 'np.array of ' +
                                       str(datasets_type_dict[param])
                                       for param in datasets_type_dict.keys()
                                       if record[param].dtype.type !=
@@ -291,7 +303,7 @@ class BorealisUtilities():
                                  if type(file_data[param]) !=
                                  attributes_type_dict[param]}
 
-        incorrect_types_check.update({param: 'np.ndarray of ' +
+        incorrect_types_check.update({param: 'np.array of ' +
                                       str(datasets_type_dict[param])
                                       for param in datasets_type_dict.keys()
                                       if file_data[param].dtype.type !=
@@ -322,16 +334,21 @@ class BorealisUtilities():
         ------
         BorealisNumberOfRecordsError
         """
-        num_records = {parameter: file_data[parameter].shape[0] for parameter
+        num_records = {parameter: file_data[parameter].shape for parameter
                        in unshared_parameters}
 
         dimensions = list(num_records.values())
-        if not all(x == dimensions[0] for x in dimensions):
+        try:
+            if not all(x[0] == dimensions[0][0] for x in dimensions):
+                raise borealis_exceptions.BorealisNumberOfRecordsError(filename, 
+                    num_records)
+        except IndexError: # some fields are not arrays!
+            tb = sys.exc_info()[2]
             raise borealis_exceptions.BorealisNumberOfRecordsError(filename, 
-                num_records)
+                    num_records).with_traceback(tb)
 
-    @staticmethod
-    def check_arrays(filename: str, arrays: dict, attribute_types: dict, 
+    @classmethod
+    def check_arrays(cls, filename: str, arrays: dict, attribute_types: dict, 
                      dataset_types: dict, unshared_fields: List[str]):
         """
         Parameters
@@ -374,17 +391,17 @@ class BorealisUtilities():
         array_num_records_check(filename, unshared_fields, file_data)
         """
         all_format_fields = [attribute_types, dataset_types]
-        self.array_missing_field_check(filename,
+        cls.array_missing_field_check(filename,
             all_format_fields, arrays)
-        self.array_extra_field_check(filename,
+        cls.array_extra_field_check(filename,
             all_format_fields, arrays)
-        self.array_incorrect_types_check(filename,
+        cls.array_incorrect_types_check(filename,
             attribute_types, dataset_types, arrays)
-        self.array_num_records_check(filename,
+        cls.array_num_records_check(filename,
             unshared_fields, arrays)
 
-    @staticmethod
-    def check_records(filename: str, records: dict, attribute_types: dict, 
+    @classmethod
+    def check_records(cls, filename: str, records: dict, attribute_types: dict, 
                       dataset_types: dict):
         """
         Do checks on the restructured data the same as would be done as if 
@@ -425,11 +442,11 @@ class BorealisUtilities():
         """
         all_format_fields = [attribute_types, dataset_types]
         
-        for record_name, record in data_dict.items():
-            self.record_missing_field_check(filename,
+        for record_name, record in records.items():
+            cls.record_missing_field_check(filename,
                 all_format_fields, record, record_name=record_name)
-            self.record_extra_field_check(filename,
+            cls.record_extra_field_check(filename,
                 all_format_fields, record, record_name=record_name)
-            self.record_incorrect_types_check(filename,
+            cls.record_incorrect_types_check(filename,
                 attribute_types, dataset_types, record, 
                 record_name)      
