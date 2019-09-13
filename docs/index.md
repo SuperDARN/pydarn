@@ -15,20 +15,24 @@ If you have any questions or concerns please submit an **Issue** on the SuperDAR
     - [Linux](user/install.md)
     - [MaxOSx](user/install_mac.md)
     - [Windows](user/install_windows.md)
-  - HOWTO's 
-    - [Read/Write DMAP](user/dmap.md)
-    - [Read/Write SuperDARN](user/darn.md)
-    - [Range-Time plots](user/range_time.md)
-    - [Time-Series plots](user/time_series.md)
-    - [Summary plots](user/summary.md)
+  - HOWTO's
+    - IO 
+        - [Read/Write DMAP](user/dmap.md)
+        - [Read/Write SuperDARN](user/darn.md)
+    - Plotting
+        - [Range-Time plots](user/range_time.md)
+        - [Time-Series plots](user/time_series.md)
+        - [Summary plots](user/summary.md)
   - Code Documentation
-    - [`ReadDmap`](code/ReadDmap.md)
-    - [`WriteDmap`](code/WriteDmap.md)
-    - [`ReadDarn`](code/ReadDarn.md)
-    - [`WriteDarn`](code/WriteDarn.md)
-    - [`plot_range_time`](code/plot_range_time.md)
-    - [`plot_time_series`](code/plot_time_series.md)
-    - [`plot_summary`](code/plot_summary.md)
+    - Super IO 
+        - [`ReadDmap`](code/ReadDmap.md)
+        - [`WriteDmap`](code/WriteDmap.md)
+        - [`ReadDarn`](code/ReadDarn.md)
+        - [`WriteDarn`](code/WriteDarn.md)
+    - Plotting
+        - [`plot_range_time`](code/plot_range_time.md)
+        - [`plot_time_series`](code/plot_time_series.md)
+        - [`plot_summary`](code/plot_summary.md)
   - Developer Guide
     - [Code Style](developer/code_guide.md)
     - [Structure](developer/structure_guide.md)
