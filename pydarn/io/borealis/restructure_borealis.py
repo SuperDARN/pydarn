@@ -568,7 +568,7 @@ class BorealisRestructureUtilities():
             keys are timestamp of first sequence in the record)
         """
         try:
-            ts_dict = cls._iq_array_to_site(data_dict)
+            ts_dict = cls._iq_array_to_site(data_dict, 'bfiq')
             BorealisUtilities.check_records(filename, ts_dict, 
                 borealis_formats.BorealisBfiq.site_single_element_types(),
                 borealis_formats.BorealisBfiq.site_array_dtypes())
@@ -602,7 +602,7 @@ class BorealisRestructureUtilities():
             keys are timestamp of first sequence in the record)
         """
         try:
-            ts_dict = cls._iq_array_to_site(data_dict)
+            ts_dict = cls._iq_array_to_site(data_dict, 'antennas_iq')
             BorealisUtilities.check_records(filename, ts_dict, 
                 borealis_formats.BorealisAntennasIq.site_single_element_types(),
                 borealis_formats.BorealisAntennasIq.site_array_dtypes())
