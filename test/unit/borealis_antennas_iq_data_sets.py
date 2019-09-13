@@ -6,7 +6,7 @@ from collections import OrderedDict
 from numpy import array, int16, int64, uint32, float32, float64, \
                   zeros, str_, bool_, complex64
 
-borealis_site_bfiq_data = OrderedDict([(1558583991060, {
+borealis_site_antennas_iq_data = OrderedDict([(1558583991060, {
     "borealis_git_hash": str_('v0.2-61-gc13ab34'), 
     "experiment_id": int64(100000000),
     "experiment_name": str_('TestScheme9ACFs'), 
@@ -65,8 +65,8 @@ borealis_site_bfiq_data = OrderedDict([(1558583991060, {
     1.55858399e+09, 1.55858399e+09, 1.55858399e+09]), 
     "beam_nums": array([0]).astype(uint32), 
     "beam_azms": array([0.0]), 
-    "data_descriptors": array(['num_antenna_arrays', 'num_sequences', 
-                                'num_beams', 'num_samps']), 
+    "data_descriptors": array(['num_antennas', 'num_sequences', 
+                                'num_samps']), 
     "data_dimensions": array([2, 29, 1, 297]).astype(uint32), 
     "antenna_arrays_order": array(['main', 'intf']),
     "noise_at_freq": array([0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 
@@ -134,8 +134,8 @@ borealis_site_bfiq_data = OrderedDict([(1558583991060, {
     1.55858399e+09, 1.55858399e+09, 1.55858399e+09]), 
     "beam_nums": array([0]).astype(uint32), 
     "beam_azms": array([0.0]), 
-    "data_descriptors": array(['num_antenna_arrays', 'num_sequences', 
-                                'num_beams', 'num_samps']), 
+    "data_descriptors": array(['num_antennas', 'num_sequences', 
+                                'num_samps']), 
     "data_dimensions": array([2, 29, 1, 297]).astype(uint32), 
     "antenna_arrays_order": array(['main', 'intf']),
     "noise_at_freq": array([0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 
@@ -146,7 +146,7 @@ borealis_site_bfiq_data = OrderedDict([(1558583991060, {
     })])
 
 num_records = 1500
-borealis_array_bfiq_data = {
+borealis_array_antennas_iq_data = {
     "borealis_git_hash": str_('v0.2-61-gc13ab34'), 
     "experiment_id": int64(100000000),
     "experiment_name": str_('TestScheme9ACFs'), 
@@ -196,8 +196,8 @@ borealis_array_bfiq_data = {
     "blanked_samples": array([0, 72, 96, 160, 176, 208, 216]).astype(uint32), 
     "beam_nums": array([0] * num_records).astype(uint32), 
     "beam_azms": array([0.0] * num_records), 
-    "data_descriptors": array(['num_records', 'num_antenna_arrays', 'num_sequences', 
-                                'num_beams', 'num_samps']), 
+    "data_descriptors": array(['num_records', 'num_antennas', 'num_sequences', 
+                                'num_samps']), 
     "data_normalization_factor": float64(9999999.999999996),
     "antenna_arrays_order": array(['main', 'intf']),
     "int_time": array([3.000395] * num_records).astype(float32), 
