@@ -260,7 +260,7 @@ class BorealisUtilities():
                                  if type(record[param]) !=
                                  attributes_type_dict[param]}
 
-        incorrect_types_check.update({param: 'np.array of ' +
+        incorrect_types_check.update({param: 'np.ndarray of ' +
                                       str(datasets_type_dict[param])
                                       for param in datasets_type_dict.keys()
                                       if record[param].dtype.type !=
@@ -303,7 +303,7 @@ class BorealisUtilities():
                                  if type(file_data[param]) !=
                                  attributes_type_dict[param]}
 
-        incorrect_types_check.update({param: 'np.array of ' +
+        incorrect_types_check.update({param: 'np.ndarray of ' +
                                       str(datasets_type_dict[param])
                                       for param in datasets_type_dict.keys()
                                       if file_data[param].dtype.type !=
