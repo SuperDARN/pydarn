@@ -23,10 +23,6 @@ It is encouraged to install a virtual environment then install pyDARN.
 To install with pip3:
 `pip3 install pydarn`
 
-!!! Warning 
-    Make sure your `pip` version is python 3.6. 
-    To check if you are using the correct pip version: `pip3 --version` or `pip --version`
-
 ### Installing via GitHub (Recommended for developers)
 
 1. Clone git repository:   
