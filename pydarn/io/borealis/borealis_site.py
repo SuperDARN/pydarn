@@ -504,9 +504,9 @@ class BorealisSiteWrite():
         tmp_filename = self.filename + '.tmp'
         Path(tmp_filename).touch()
         for group_name, group_dict in self.records.items():
-            dd.io.save(tmp_filename, {group_name: group_dict}, compression=None)
+            dd.io.save(tmp_filename, {str(group_name): group_dict}, compression=None)
             cmd = cp_cmd.format(newfile=tmp_filename, full_file=self.filename, 
-                dtstr=group_name)
+                dtstr='/'+str(group_name))
 
             sp.call(cmd.split())
             os.remove(tmp_filename)
