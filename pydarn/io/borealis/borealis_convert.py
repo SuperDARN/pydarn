@@ -33,6 +33,11 @@ BorealisArrayWrite
 For more information on Borealis data files and how they convert to dmap,
 see: https://borealis.readthedocs.io/en/latest/ 
 
+Future Work
+-----------
+Remove requirement for hdf5 filename by fixing Borealis datawrite so that 
+slice_id is written
+
 """
 import deepdish as dd
 import h5py
@@ -140,7 +145,8 @@ class BorealisConvert():
 
     __allowed_conversions = {'rawacf': 'rawacf', 'bfiq': 'iqdat'}
 
-    def __init__(self, records, origin_filetype, dmap_filename):
+    def __init__(self, records, origin_filetype, dmap_filename, 
+            hdf5_filename):
         """
         Convert HDF5 Borealis records to a given DARN file with DMap format.
 
@@ -153,6 +159,10 @@ class BorealisConvert():
             allowed.
         dmap_filename: str
             The filename of the DARN dmap file to be written.
+        hdf5_filename: str
+            The filename of the source data. For determining slice id and 
+            maintaining a clear record of where the data came from.
+    
 
         Raises
         ------
@@ -160,7 +170,8 @@ class BorealisConvert():
         """
         self.borealis_records = self.records = records
         self._origin_filetype = origin_filetype
-        self.dmap_filename = dmap_filename        
+        self.dmap_filename = dmap_filename      
+        self.hdf5_filename = hdf5_filename  
         self._group_names = sorted(list(self.borealis_records.keys()))
         self._dmap_records = {}
         try:
@@ -232,10 +243,10 @@ class BorealisConvert():
         self._convert_records_to_dmap()
         darn_writer = DarnWrite(self._dmap_records, self.dmap_filename)
         if self.dmap_filetype == 'iqdat':
-            darn_writer.write_iqdat(dmap_filename)
+            darn_writer.write_iqdat(self.dmap_filename)
         elif self.dmap_filetype == 'rawacf':
-            darn_writer.write_rawacf(dmap_filename)
-        return dmap_filename
+            darn_writer.write_rawacf(self.dmap_filename)
+        return self.dmap_filename
 
     def _convert_records_to_dmap(self):
         """
@@ -378,7 +389,8 @@ class BorealisConvert():
                     borealis_major_revision = 255
                     borealis_minor_revision = 255
 
-                slice_id = os.path.basename(self.filename).split('.')[-3]
+                slice_id = os.path.basename(self.hdf5_filename).split('.')[4]
+
                 # base offset for setting the toff field in DARN iqdat file.
                 offset = 2 * v['antenna_arrays_order'].shape[0] * \
                     v['num_samps']
@@ -478,7 +490,7 @@ class BorealisConvert():
                         'iqdata.revision.major': np.int32(1),
                         'iqdata.revision.minor': np.int32(0),
                         'combf': 'Converted from Borealis file: ' + \
-                            self.filename  + ' record ' + k + \
+                            self.hdf5_filename  + ' record ' + k + \
                             ' ; Number of beams in record: ' + \
                             str(len(v['beam_nums'])) + ' ; ' + \
                             v['experiment_comment'] + ' ; ' + \
@@ -518,7 +530,7 @@ class BorealisConvert():
 
             dmap_recs = dict2dmap(recs)
         except Exception as e:
-            raise BorealisConvert2IqdatError(e)
+            raise borealis_exceptions.BorealisConvert2IqdatError(e)
 
         return dmap_recs
 
@@ -574,7 +586,7 @@ class BorealisConvert():
                     borealis_major_revision = 255
                     borealis_minor_revision = 255
 
-                slice_id = os.path.basename(self.filename).split('.')[-3]
+                slice_id = os.path.basename(self.hdf5_filename).split('.')[4]
 
                 for beam_index, beam in enumerate(v['beam_nums']):
                     # this beam, all ranges lag 0
@@ -682,7 +694,7 @@ class BorealisConvert():
                         'rawacf.revision.major': np.int32(1),
                         'rawacf.revision.minor': np.int32(0),
                         'combf': 'Converted from Borealis file: ' + \
-                            self.filename + ' record ' + k + \
+                            self.hdf5_filename + ' record ' + k + \
                             ' ; Number of beams in record: ' + \
                             str(len(v['beam_nums'])) + ' ; ' + \
                             v['experiment_comment'] + ' ; '\
@@ -702,6 +714,6 @@ class BorealisConvert():
 
             dmap_recs = dict2dmap(recs)
         except Exception as e:
-            raise BorealisConvert2RawacfError(e)
+            raise borealis_exceptions.BorealisConvert2RawacfError(e)
 
         return dmap_recs
