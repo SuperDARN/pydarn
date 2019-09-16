@@ -44,7 +44,7 @@ borealis_array_rawacf_file = "../test_files/20190909.2200.02.sas.0.rawacf.hdf5"
 borealis_array_antennas_iq_file = "../test_files/20190909.2200.02.sas.0.antennas_iq.hdf5"
 
 # Problem files
-borealis_site_extra_field_file = '../test_files/20190402.1731.12.sas.0.bfiq.hdf5' # timestamp_of_write
+borealis_site_extra_field_file = ""
 borealis_site_missing_field_file = ""
 borealis_site_incorrect_data_format_file = ""
 
@@ -52,7 +52,7 @@ borealis_array_extra_field_file = ""
 borealis_array_missing_field_file = ""
 borealis_array_incorrect_data_format_file = ""
 borealis_array_num_records_error_file = ""
-borealis_empty_file = '../test_files/empty.rawacf'
+borealis_empty_file = "../test_files/empty.rawacf"
 
 
 class TestBorealisFunctions(unittest.TestCase):
@@ -154,6 +154,7 @@ class TestBorealisFunctions(unittest.TestCase):
         print('Read site file as records.')
 
 
+    # READ FAILURE TESTS
     # add reader failure tests here
     # test reads with wrong filetype given (antennas_iq given bfiq flag especially)
 
@@ -206,71 +207,8 @@ class TestBorealisFunctions(unittest.TestCase):
         print("Wrote an arrays file.")
 
 
-    # add writer failure tests here
-
-
-    def check_dictionaries_are_same(self, dict1, dict2):
-
-        self.assertEqual(list(dict1.keys()), list(dict2.keys()))
-        for key1, value1 in dict1.items():
-            if isinstance(value1, dict) or isinstance(value1, OrderedDict):
-                self.check_dictionaries_are_same(value1, dict2[key1])
-            elif isinstance(value1, np.ndarray):
-                self.assertTrue((value1 == dict2[key1]).all())
-            else:
-                self.assertEqual(value1, dict2[key1])
-
-        return True
-
-
-    def test_restructure_data_integrity_rawacf(self):
-        test_rawacf_array_file = './test_rawacf_array_file.hdf5'
-        test_rawacf_site_file = './test_rawacf_record_file.hdf5.site'
-        pydarn.borealis_site_to_array_file(borealis_site_rawacf_file, test_rawacf_array_file)
-        pydarn.borealis_array_to_site_file(test_rawacf_array_file, test_rawacf_site_file)
-        original_dict = pydarn.read_borealis_file(borealis_site_rawacf_file, 'rawacf', site=True, records=True)
-        processed_dict = pydarn.read_borealis_file(test_rawacf_site_file, 'rawacf', site=True, records=True)
-        dictionaries_are_same = self.check_dictionaries_are_same(original_dict, processed_dict)
-        self.assertTrue(dictionaries_are_same)
-        print('Restructured site file is the same as original site file: {}'.format(dictionaries_are_same))
-        os.remove(test_rawacf_array_file)
-        os.remove(test_rawacf_site_file)
-
-
-    def test_restructure_data_integrity_bfiq(self):
-        test_bfiq_array_file = './test_bfiq_array_file.hdf5'
-        test_bfiq_site_file = './test_bfiq_record_file.hdf5.site'
-        pydarn.borealis_site_to_array_file(borealis_site_bfiq_file, test_bfiq_array_file)
-        pydarn.borealis_array_to_site_file(test_bfiq_array_file, test_bfiq_site_file)
-        original_dict = pydarn.read_borealis_file(borealis_site_bfiq_file, 'bfiq', site=True, records=True)
-        processed_dict = pydarn.read_borealis_file(test_bfiq_site_file, 'bfiq', site=True, records=True)
-        dictionaries_are_same = self.check_dictionaries_are_same(original_dict, processed_dict)
-        self.assertTrue(dictionaries_are_same)
-        print('Restructured site file is the same as original site file: {}'.format(dictionaries_are_same))
-        os.remove(test_bfiq_array_file)
-        os.remove(test_bfiq_site_file)
-
-
-    def test_restructure_data_integrity_antennas_iq(self):
-        test_antennas_iq_array_file = './test_antennas_iq_array_file.hdf5'
-        test_antennas_iq_site_file = './test_antennas_iq_record_file.hdf5.site'
-        pydarn.borealis_site_to_array_file(borealis_site_antennas_iq_file, test_antennas_iq_array_file)
-        pydarn.borealis_array_to_site_file(test_antennas_iq_array_file, test_antennas_iq_site_file)
-        original_dict = pydarn.read_borealis_file(borealis_site_antennas_iq_file, 'antennas_iq', site=True, records=True)
-        processed_dict = pydarn.read_borealis_file(test_antennas_iq_site_file, 'antennas_iq', site=True, records=True)
-        dictionaries_are_same = self.check_dictionaries_are_same(original_dict, processed_dict)
-        self.assertTrue(dictionaries_are_same)
-        print('Restructured site file is the same as original site file: {}'.format(dictionaries_are_same))
-        os.remove(test_antennas_iq_array_file)
-        os.remove(test_antennas_iq_site_file)
-
-
-    # add array file read tests (after restructure)
-
-    # add integrity tests of array -> site -> array
-
-
-
+    # WRITE FAILURE TESTS
+    # add more with wrong filetype to write
     def test_write_records_as_arrays(self):
         record_data = borealis_rawacf_data_sets.borealis_site_rawacf_data
         self.assertRaises(pydarn.borealis_exceptions.BorealisStructureError, pydarn.write_borealis_file,
@@ -286,14 +224,195 @@ class TestBorealisFunctions(unittest.TestCase):
 
 
     def test_return_reader(self):
-        record_data = pydarn.read_borealis_file(borealis_site_bfiq_file, 'bfiq', site=True, records=True)
-        self.assertIsInstance(record_data, dict)
+        (site_reader, file_style) = pydarn.return_reader(borealis_site_bfiq_file, 'bfiq')
+        self.assertIsInstance(site_reader, pydarn.BorealisSiteRead)
+        record_data = site_reader.records
         random_key = random.choice(list(record_data.keys()))
-        print(record_data[random_key])
+        print(record_data[random_key]['pulses'])
 
-        array_data = pydarn.return_reader(borealis_array_bfiq_file, 'bfiq', )
-        self.assertIsInstance(array_data, dict)
+        (array_reader, file_style) = pydarn.return_reader(borealis_array_bfiq_file, 'bfiq')
+        self.assertIsInstance(array_reader, pydarn.BorealisArrayRead)
+        array_data = array_reader.arrays
         print(array_data['pulses'])
+
+
+    # RESTRUCTURING TESTS
+    def check_dictionaries_are_same(self, dict1, dict2):
+
+        self.assertEqual(list(dict1.keys()), list(dict2.keys()))
+        for key1, value1 in dict1.items():
+            if isinstance(value1, dict) or isinstance(value1, OrderedDict):
+                self.check_dictionaries_are_same(value1, dict2[key1])
+            elif isinstance(value1, np.ndarray):
+                self.assertTrue((value1 == dict2[key1]).all())
+            else:
+                self.assertEqual(value1, dict2[key1])
+
+        return True
+
+
+    def test_restructure_rawacf(self):
+        test_rawacf_array_file = './test_rawacf_array_file.hdf5'
+        pydarn.borealis_site_to_array_file(borealis_site_rawacf_file, test_rawacf_array_file)
+        # read the arrays, no errors
+        array_dict = pydarn.read_borealis_file(test_rawacf_array_file, 'rawacf')
+        # read the arrays as records
+        original_dict = pydarn.read_borealis_file(borealis_site_rawacf_file, 'rawacf', site=True, records=True)
+        records_dict = pydarn.read_borealis_file(test_rawacf_array_file, 'rawacf', records=True)
+        dictionaries_are_same = self.check_dictionaries_are_same(original_dict, records_dict)
+        self.assertTrue(dictionaries_are_same)
+        print('Read the restructured file as arrays and as records without errors: {}'.format(dictionaries_are_same))
+        os.remove(test_rawacf_array_file)
+
+
+    def test_restructure_bfiq(self):
+        test_bfiq_array_file = './test_bfiq_array_file.hdf5'
+        pydarn.borealis_site_to_array_file(borealis_site_bfiq_file, test_bfiq_array_file)
+        # read the arrays, no errors
+        array_dict = pydarn.read_borealis_file(test_bfiq_array_file, 'bfiq')
+        # read the arrays as records
+        original_dict = pydarn.read_borealis_file(borealis_site_bfiq_file, 'bfiq', site=True, records=True)
+        records_dict = pydarn.read_borealis_file(test_bfiq_array_file, 'bfiq', records=True)
+        dictionaries_are_same = self.check_dictionaries_are_same(original_dict, records_dict)
+        self.assertTrue(dictionaries_are_same)
+        print('Read the restructured file as arrays and as records without errors: {}'.format(dictionaries_are_same))
+        os.remove(test_bfiq_array_file)
+
+
+    def test_restructure_antennas_iq(self):
+        test_antennas_iq_array_file = './test_antennas_iq_array_file.hdf5'
+        pydarn.borealis_site_to_array_file(borealis_site_antennas_iq_file, test_antennas_iq_array_file)
+        # read the arrays, no errors
+        array_dict = pydarn.read_borealis_file(test_antennas_iq_array_file, 'antennas_iq')
+        # read the arrays as records
+        original_dict = pydarn.read_borealis_file(borealis_site_antennas_iq_file, 'antennas_iq', site=True, records=True)
+        records_dict = pydarn.read_borealis_file(test_antennas_iq_array_file, 'antennas_iq', records=True)
+        dictionaries_are_same = self.check_dictionaries_are_same(original_dict, records_dict)
+        self.assertTrue(dictionaries_are_same)
+        print('Read the restructured file as arrays and as records without errors: {}'.format(dictionaries_are_same))
+        os.remove(test_antennas_iq_array_file)
+
+
+    def test_site_restructure_data_integrity_rawacf(self):
+        test_rawacf_array_file = './test_rawacf_array_file.hdf5'
+        test_rawacf_site_file = './test_rawacf_record_file.hdf5.site'
+        pydarn.borealis_site_to_array_file(borealis_site_rawacf_file, test_rawacf_array_file)
+        pydarn.borealis_array_to_site_file(test_rawacf_array_file, test_rawacf_site_file)
+        original_dict = pydarn.read_borealis_file(borealis_site_rawacf_file, 'rawacf', site=True, records=True)
+        processed_dict = pydarn.read_borealis_file(test_rawacf_site_file, 'rawacf', site=True, records=True)
+        dictionaries_are_same = self.check_dictionaries_are_same(original_dict, processed_dict)
+        self.assertTrue(dictionaries_are_same)
+        print('Restructured site file is the same as original site file: {}'.format(dictionaries_are_same))
+        os.remove(test_rawacf_array_file)
+        os.remove(test_rawacf_site_file)
+
+
+    def test_site_restructure_data_integrity_bfiq(self):
+        test_bfiq_array_file = './test_bfiq_array_file.hdf5'
+        test_bfiq_site_file = './test_bfiq_record_file.hdf5.site'
+        pydarn.borealis_site_to_array_file(borealis_site_bfiq_file, test_bfiq_array_file)
+        pydarn.borealis_array_to_site_file(test_bfiq_array_file, test_bfiq_site_file)
+        original_dict = pydarn.read_borealis_file(borealis_site_bfiq_file, 'bfiq', site=True, records=True)
+        processed_dict = pydarn.read_borealis_file(test_bfiq_site_file, 'bfiq', site=True, records=True)
+        dictionaries_are_same = self.check_dictionaries_are_same(original_dict, processed_dict)
+        self.assertTrue(dictionaries_are_same)
+        print('Restructured site file is the same as original site file: {}'.format(dictionaries_are_same))
+        os.remove(test_bfiq_array_file)
+        os.remove(test_bfiq_site_file)
+
+
+    def test_site_restructure_data_integrity_antennas_iq(self):
+        test_antennas_iq_array_file = './test_antennas_iq_array_file.hdf5'
+        test_antennas_iq_site_file = './test_antennas_iq_record_file.hdf5.site'
+        pydarn.borealis_site_to_array_file(borealis_site_antennas_iq_file, test_antennas_iq_array_file)
+        pydarn.borealis_array_to_site_file(test_antennas_iq_array_file, test_antennas_iq_site_file)
+        original_dict = pydarn.read_borealis_file(borealis_site_antennas_iq_file, 'antennas_iq', site=True, records=True)
+        processed_dict = pydarn.read_borealis_file(test_antennas_iq_site_file, 'antennas_iq', site=True, records=True)
+        dictionaries_are_same = self.check_dictionaries_are_same(original_dict, processed_dict)
+        self.assertTrue(dictionaries_are_same)
+        print('Restructured site file is the same as original site file: {}'.format(dictionaries_are_same))
+        os.remove(test_antennas_iq_array_file)
+        os.remove(test_antennas_iq_site_file)
+
+
+    def test_array_restructure_data_integrity_rawacf(self):
+        test_rawacf_site_file = './test_rawacf_record_file.hdf5.site'
+        test_rawacf_array_file = './test_rawacf_array_file.hdf5'
+        pydarn.borealis_array_to_site_file(borealis_array_rawacf_file, test_rawacf_site_file)
+        pydarn.borealis_site_to_array_file(test_rawacf_site_file, test_rawacf_array_file)
+        original_dict = pydarn.read_borealis_file(borealis_array_rawacf_file, 'rawacf')
+        processed_dict = pydarn.read_borealis_file(test_rawacf_array_file, 'rawacf')
+        dictionaries_are_same = self.check_dictionaries_are_same(original_dict, processed_dict)
+        self.assertTrue(dictionaries_are_same)
+        print('Restructured site file is the same as original site file: {}'.format(dictionaries_are_same))
+        os.remove(test_rawacf_site_file)
+        os.remove(test_rawacf_array_file)
+
+
+    def test_site_restructure_data_integrity_bfiq(self):
+        test_bfiq_site_file = './test_bfiq_record_file.hdf5.site'
+        test_bfiq_array_file = './test_bfiq_array_file.hdf5'
+        pydarn.borealis_array_to_site_file(borealis_array_bfiq_file, test_bfiq_site_file)
+        pydarn.borealis_site_to_array_file(test_bfiq_site_file, test_bfiq_array_file)
+        original_dict = pydarn.read_borealis_file(borealis_array_bfiq_file, 'bfiq')
+        processed_dict = pydarn.read_borealis_file(test_bfiq_array_file, 'bfiq')
+        dictionaries_are_same = self.check_dictionaries_are_same(original_dict, processed_dict)
+        self.assertTrue(dictionaries_are_same)
+        print('Restructured site file is the same as original site file: {}'.format(dictionaries_are_same))
+        os.remove(test_bfiq_site_file)
+        os.remove(test_bfiq_array_file)
+
+
+    def test_site_restructure_data_integrity_antennas_iq(self):
+        test_antennas_iq_site_file = './test_antennas_iq_record_file.hdf5.site'
+        test_antennas_iq_array_file = './test_antennas_iq_array_file.hdf5'
+        pydarn.borealis_array_to_site_file(borealis_array_antennas_iq_file, test_antennas_iq_site_file)
+        pydarn.borealis_site_to_array_file(test_antennas_iq_site_file, test_antennas_iq_array_file)
+        original_dict = pydarn.read_borealis_file(borealis_array_antennas_iq_file, 'antennas_iq')
+        processed_dict = pydarn.read_borealis_file(test_antennas_iq_array_file, 'antennas_iq')
+        dictionaries_are_same = self.check_dictionaries_are_same(original_dict, processed_dict)
+        self.assertTrue(dictionaries_are_same)
+        print('Restructured site file is the same as original site file: {}'.format(dictionaries_are_same))
+        os.remove(test_antennas_iq_site_file)
+        os.remove(test_antennas_iq_array_file)
+
+
+    # CONVERT TESTS
+    def test_site_bfiq2darniqdat(self):
+        test_darn_file = './test_iqdat_file.dmap'
+        pydarn.bfiq2darniqdat(borealis_site_bfiq_file, test_darn_file, site=True)
+        self.assertTrue(os.path.isfile(test_darn_file))
+        darn_reader = pydarn.DarnRead(test_darn_file)
+        iqdat_records = darn_reader.read_iqdat()
+        os.remove(test_darn_file)
+
+
+    def test_array_bfiq2darniqdat(self):
+        test_darn_file = './test_iqdat_file.dmap'
+        pydarn.bfiq2darniqdat(borealis_array_bfiq_file, test_darn_file, site=False)
+        self.assertTrue(os.path.isfile(test_darn_file))
+        darn_reader = pydarn.DarnRead(test_darn_file)
+        iqdat_records = darn_reader.read_iqdat()
+        os.remove(test_darn_file)
+
+
+    def test_site_rawacf2darnrawacf(self):
+        test_darn_file = './test_rawacf_file.dmap'
+        pydarn.rawacf2darnrawacf(borealis_site_rawacf_file, test_darn_file, site=True)
+        self.assertTrue(os.path.isfile(test_darn_file))
+        darn_reader = pydarn.DarnRead(test_darn_file)
+        rawacf_records = darn_reader.read_rawacf()
+        os.remove(test_darn_file)
+
+
+    def test_array_rawacf2darnrawacf(self):
+        test_darn_file = './test_rawacf_file.dmap'
+        pydarn.rawacf2darnrawacf(borealis_array_rawacf_file, test_darn_file, site=False)
+        self.assertTrue(os.path.isfile(test_darn_file))
+        darn_reader = pydarn.DarnRead(test_darn_file)
+        rawacf_records = darn_reader.read_rawacf()
+        os.remove(test_darn_file)
+
 
 class TestBorealisSiteRead(unittest.TestCase):
     """

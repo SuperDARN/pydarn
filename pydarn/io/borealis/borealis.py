@@ -20,6 +20,7 @@ BorealisConversionTypesError
 BorealisConvert2IqdatError
 BorealisConvert2RawacfError
 BorealisRestructureError
+BorealisStructureError
 ConvertFileOverWriteError
 
 Functions
@@ -195,7 +196,8 @@ def return_reader(borealis_hdf5_file: str, borealis_filetype: str) -> \
         reader = BorealisArrayRead(borealis_hdf5_file, borealis_filetype)
         return reader, 'array'
     except (borealis_exceptions.BorealisExtraFieldError, 
-           borealis_exceptions.BorealisFieldMissingError):
+           borealis_exceptions.BorealisFieldMissingError,
+           borealis_exceptions.BorealisStructureError):
         try:
             pydarn_log.debug('{} is not array restructured. Attempting site'\
                 ' read.'.format(borealis_hdf5_file))
@@ -344,7 +346,8 @@ def borealis_write_to_dmap(borealis_hdf5_file: str, borealis_filetype: str,
 
     records = read_borealis_file(borealis_hdf5_file, borealis_filetype, 
                                  site=site, records=True)
-    converter = BorealisConvert(records, borealis_filetype, darn_filename)
+    converter = BorealisConvert(records, borealis_filetype, darn_filename, 
+        borealis_hdf5_file)
 
     pydarn_log.debug("Borealis file {filename} written to {darn_filename} "
           "without errors.".format(filename=borealis_hdf5_file, 
@@ -359,7 +362,7 @@ def bfiq2darniqdat(borealis_hdf5_file: str, darn_filename: str,
     Parameters
     ----------
     borealis_hdf5_file: str
-        A Borealis file to convert to DARN DMap filetype. File may contain
+        A Borealis bfiq file to convert to DARN DMap filetype. File may contain
         site records or the Borealis arrays format, according to the site 
         flag.
     darn_filename
@@ -397,7 +400,7 @@ def rawacf2darnrawacf(borealis_hdf5_file: str, darn_filename: str,
     Parameters
     ----------
     borealis_hdf5_file: str
-        A Borealis file to convert to DARN DMap filetype. File may contain
+        A Borealis rawacf file to convert to DARN DMap filetype. File may contain
         site records or the Borealis arrays format, according to the site 
         flag.
     darn_filename
