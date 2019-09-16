@@ -4,16 +4,16 @@ Test data sets for Borealis Rawacf.
 
 from collections import OrderedDict
 from numpy import array, int16, int64, uint32, float32, float64, \
-                  zeros, str_, bool_, complex64
+                  zeros, unicode_, bool_, complex64
 
 borealis_site_rawacf_data = OrderedDict([(1558583991060, {
-    "borealis_git_hash": str_('v0.2-61-gc13ab34'), 
+    "borealis_git_hash": unicode_('v0.2-61-gc13ab34'), 
     "experiment_id": int64(100000000),
-    "experiment_name": str_('TestScheme9ACFs'), 
-    "experiment_comment": str_(''), 
+    "experiment_name": unicode_('TestScheme9ACFs'), 
+    "experiment_comment": unicode_(''), 
     "num_slices": int64(1), 
-    "slice_comment": str_(''), 
-    "station": str_('sas'),
+    "slice_comment": unicode_(''), 
+    "station": unicode_('sas'),
     "num_sequences": int64(29), 
     "range_sep": float32(44.96887), 
     "first_range_rtt": float32(1200.8307), 
@@ -26,7 +26,7 @@ borealis_site_rawacf_data = OrderedDict([(1558583991060, {
     "main_antenna_count": uint32(16), 
     "intf_antenna_count": uint32(4), 
     "freq": uint32(10500), 
-    "samples_data_type": str_('complex float'), 
+    "samples_data_type": unicode_('complex float'), 
     "pulses": array([0, 9, 12, 20, 22, 26, 27]).astype(uint32), 
     "lags": array([[ 0,  0],
                     [26, 27],
@@ -73,13 +73,13 @@ borealis_site_rawacf_data = OrderedDict([(1558583991060, {
     "data_normalization_factor": float64(9999999.999999996)
     }), 
     (1558583994062, {
-    "borealis_git_hash": str_('v0.2-61-gc13ab34'), 
+    "borealis_git_hash": unicode_('v0.2-61-gc13ab34'), 
     "experiment_id": int64(100000000),
-    "experiment_name": str_('TestScheme9ACFs'), 
-    "experiment_comment": str_(''), 
+    "experiment_name": unicode_('TestScheme9ACFs'), 
+    "experiment_comment": unicode_(''), 
     "num_slices": int64(1), 
-    "slice_comment": str_(''), 
-    "station": str_('sas'),
+    "slice_comment": unicode_(''), 
+    "station": unicode_('sas'),
     "num_sequences": int64(30), 
     "range_sep": float32(44.96887), 
     "first_range_rtt": float32(1200.8307), 
@@ -92,7 +92,7 @@ borealis_site_rawacf_data = OrderedDict([(1558583991060, {
     "main_antenna_count": uint32(16), 
     "intf_antenna_count": uint32(4), 
     "freq": uint32(10500), 
-    "samples_data_type": str_('complex float'), 
+    "samples_data_type": unicode_('complex float'), 
     "pulses": array([0, 9, 12, 20, 22, 26, 27]).astype(uint32), 
     "lags": array([[ 0,  0],
                     [26, 27],
@@ -142,13 +142,13 @@ borealis_site_rawacf_data = OrderedDict([(1558583991060, {
 
 num_records = 1500
 borealis_array_rawacf_data = {
-    "borealis_git_hash": str_('v0.2-61-gc13ab34'), 
+    "borealis_git_hash": unicode_('v0.2-61-gc13ab34'), 
     "experiment_id": int64(100000000),
-    "experiment_name": str_('TestScheme9ACFs'), 
-    "experiment_comment": str_(''), 
+    "experiment_name": unicode_('TestScheme9ACFs'), 
+    "experiment_comment": unicode_(''), 
     "num_slices": array([1] * num_records).astype(int64), 
-    "slice_comment": str_(''), 
-    "station": str_('sas'),
+    "slice_comment": unicode_(''), 
+    "station": unicode_('sas'),
     "range_sep": float32(44.96887), 
     "first_range_rtt": float32(1200.8307), 
     "first_range": float32(180.0), 
@@ -160,7 +160,7 @@ borealis_array_rawacf_data = {
     "intf_antenna_count": uint32(4), 
     "freq": uint32(10500), 
     "num_beams": array([1] * num_records).astype(uint32),
-    "samples_data_type": str_('complex float'), 
+    "samples_data_type": unicode_('complex float'), 
     "pulses": array([0, 9, 12, 20, 22, 26, 27]).astype(uint32), 
     "data_normalization_factor": float64(9999999.999999996),
     "lags": array([[ 0,  0],
