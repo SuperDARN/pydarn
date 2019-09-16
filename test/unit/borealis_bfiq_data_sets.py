@@ -83,7 +83,7 @@ borealis_site_bfiq_data = OrderedDict([(1558583991060, {
     "num_slices": int64(1), 
     "slice_comment": str_(''), 
     "station": str_('sas'),
-    "num_sequences": int64(30), 
+    "num_sequences": int64(29), 
     "pulse_phase_offset": array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]).astype(float32),
     "range_sep": float32(44.96887), 
     "first_range_rtt": float32(1200.8307), 
@@ -142,7 +142,7 @@ borealis_site_bfiq_data = OrderedDict([(1558583991060, {
                              0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 
                              0., 0., 0., 0., 0., 0., 0.]), 
     "data_normalization_factor": float64(9999999.999999996),
-    "data": zeros(17820).astype(complex64)
+    "data": zeros(17226).astype(complex64)
     })])
 
 num_records = 1500
