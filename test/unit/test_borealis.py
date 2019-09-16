@@ -547,6 +547,20 @@ class TestBorealisSiteWrite(unittest.TestCase):
         self.bfiq_site_incorrect_fmt = copy.deepcopy(
             borealis_bfiq_data_sets.borealis_site_bfiq_data)
 
+    # RESTRUCTURING TESTS
+    def check_dictionaries_are_same(self, dict1, dict2):
+
+        self.assertEqual(sorted(list(dict1.keys())), sorted(list(dict2.keys())))
+        for key1, value1 in dict1.items():
+            if isinstance(value1, dict) or isinstance(value1, OrderedDict):
+                self.check_dictionaries_are_same(value1, dict2[key1])
+            elif isinstance(value1, np.ndarray):
+                self.assertTrue((value1 == dict2[key1]).all())
+            else:
+                self.assertEqual(value1, dict2[key1])
+
+        return True
+
     def test_writing_rawacf(self):
         """
         Tests write_rawacf method - writes a rawacf file
@@ -555,15 +569,17 @@ class TestBorealisSiteWrite(unittest.TestCase):
         ------------------
         Rawacf file is produced
         """
-
-        writer = pydarn.BorealisSiteWrite("./test_rawacf.rawacf.hdf5", 
+        test_file = "./test_rawacf.rawacf.hdf5"
+        writer = pydarn.BorealisSiteWrite(test_file, 
                                           self.rawacf_site_data, 'rawacf')
         # only testing the file is created since it should only be created
         # at the last step after all checks have passed
         # Testing the integrity of the insides of the file will be part of
         # integration testing since we need BorealisSiteRead for that.
-        self.assertTrue(os.path.isfile("./test_rawacf.rawacf.hdf5"))
-        os.remove("./test_rawacf.rawacf.hdf5")
+        self.assertTrue(os.path.isfile(test_file))
+        records = pydarn.read_borealis_file(test_file, 'rawacf', site=True, records=True)
+        self.check_dictionaries_are_same(records, self.rawacf_site_data)
+        os.remove(test_file)
 
     def test_missing_field_rawacf(self):
         """
@@ -635,13 +651,17 @@ class TestBorealisSiteWrite(unittest.TestCase):
         ------------------
         bfiq file is produced
         """
-        writer = pydarn.BorealisSiteWrite("test_bfiq.bfiq.hdf5", self.bfiq_site_data, 'bfiq')
+        test_file = "./test_bfiq.bfiq.hdf5"
+        writer = pydarn.BorealisSiteWrite(test_file, 
+                                          self.bfiq_site_data, 'bfiq')
         # only testing the file is created since it should only be created
         # at the last step after all checks have passed
         # Testing the integrity of the insides of the file will be part of
         # integration testing since we need BorealisSiteRead for that.
-        self.assertTrue(os.path.isfile("test_bfiq.bfiq.hdf5"))
-        os.remove("test_bfiq.bfiq.hdf5")
+        self.assertTrue(os.path.isfile(test_file))
+        records = pydarn.read_borealis_file(test_file, 'bfiq', site=True, records=True)
+        self.check_dictionaries_are_same(records, self.bfiq_site_data)
+        os.remove(test_file)
 
     def test_missing_field_bfiq(self):
         """
