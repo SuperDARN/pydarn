@@ -294,7 +294,7 @@ class BorealisSiteRead():
         BorealisUtilities.check_records(self.filename, records, 
                                         attribute_types, dataset_types)
 
-        self._records = records
+        self._records = OrderedDict(sorted(records.items()))
 
 
 class BorealisSiteWrite():
@@ -366,6 +366,15 @@ class BorealisSiteWrite():
 
         return "Writing to filename: {filename} at record name: "\
                "".format(filename=self.filename)
+
+    @property
+    def record_names(self):
+        """
+        A sorted list of the set of record names in the HDF5 file read. 
+        These correspond to Borealis file record write times (in ms), and
+        are equal to the group names in the site file types.
+        """
+        return self._record_names
 
     def write_file(self) -> str:
         """
@@ -493,6 +502,7 @@ class BorealisSiteWrite():
         cp_cmd = 'h5copy -i {newfile} -o {full_file} -s {dtstr} -d {dtstr}'
         
         tmp_filename = self.filename + '.tmp'
+        Path(tmp_filename).touch()
         for group_name, group_dict in self.records.items():
             dd.io.save(tmp_filename, {group_name: group_dict}, compression=None)
             cmd = cp_cmd.format(newfile=tmp_filename, full_file=self.filename, 

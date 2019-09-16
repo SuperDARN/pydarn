@@ -490,7 +490,7 @@ class BorealisConvert():
                         'iqdata.revision.major': np.int32(1),
                         'iqdata.revision.minor': np.int32(0),
                         'combf': 'Converted from Borealis file: ' + \
-                            self.hdf5_filename  + ' record ' + k + \
+                            self.hdf5_filename  + ' record ' + str(k) + \
                             ' ; Number of beams in record: ' + \
                             str(len(v['beam_nums'])) + ' ; ' + \
                             v['experiment_comment'] + ' ; ' + \
@@ -694,7 +694,7 @@ class BorealisConvert():
                         'rawacf.revision.major': np.int32(1),
                         'rawacf.revision.minor': np.int32(0),
                         'combf': 'Converted from Borealis file: ' + \
-                            self.hdf5_filename + ' record ' + k + \
+                            self.hdf5_filename + ' record ' + str(k) + \
                             ' ; Number of beams in record: ' + \
                             str(len(v['beam_nums'])) + ' ; ' + \
                             v['experiment_comment'] + ' ; '\
