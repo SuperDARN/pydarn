@@ -46,10 +46,12 @@ class BorealisFileTypeError(Exception):
     """
 
     def __init__(self, filename: str, file_type: str):
+        self.file_type = file_type
+        self.filename = filename
         self.message = "{file_type} is not a Borealis file format or has"\
             " not been implemented yet. {filename} was not used. Please check"\
-            " the spelling of {file_type}.".format(file_type=file_type,
-                                   filename=filename)
+            " the spelling of {file_type}.".format(file_type=self.file_type,
+                                   filename=self.filename)
         Exception.__init__(self, self.message)
 
 
@@ -76,14 +78,17 @@ class BorealisFieldMissingError(Exception):
 
     def __init__(self, filename: str, fields: set, **kwargs):
         if 'record_name' in kwargs.keys():
+            self.record_name = kwargs['record_name']
             error_source = 'record {} of file {}'.format(kwargs['record_name'],
                                                          filename)
         else:
             error_source = 'file {}'.format(filename)
 
+        self.filename = filename
+        self.fields = fields
         self.message = "The following fields in {source} are missing:"\
             " {fields}".format(source=error_source,
-                               fields=fields)
+                               fields=self.fields)
         Exception.__init__(self, self.message)
 
 
@@ -111,14 +116,16 @@ class BorealisExtraFieldError(Exception):
 
     def __init__(self, filename: str, fields: set, **kwargs):
         if 'record_name' in kwargs.keys():
+            self.record_name = kwargs['record_name']
             error_source = 'record {} of file {}'.format(kwargs['record_name'],
                                                          filename)
         else:
             error_source = 'file {}'.format(filename)
 
+        self.fields = fields
         self.message = "The following fields in {source} are not allowed:"\
             " {fields}".format(source=error_source,
-                               fields=fields)
+                               fields=self.fields)
         Exception.__init__(self, self.message)
 
 
@@ -146,15 +153,17 @@ class BorealisDataFormatTypeError(Exception):
 
     def __init__(self, filename: str, incorrect_types: dict, **kwargs):
         if 'record_name' in kwargs.keys():
+            self.record_name = kwargs['record_name']
             error_source = 'record {} of file {}'.format(kwargs['record_name'],
                                                          filename)
         else:
             error_source = 'file {}'.format(filename)
 
+        self.incorrect_types = incorrect_types
         self.message = "In {source}, the following parameters"\
             " are not of their given correct type:"\
             " {incorrect}".format(source=error_source,
-                                  incorrect=incorrect_types)
+                                  incorrect=self.incorrect_types)
         Exception.__init__(self, self.message)
 
 
@@ -182,11 +191,13 @@ class BorealisNumberOfRecordsError(Exception):
     """
 
     def __init__(self, filename: str, array_types: dict):
+        self.filename = filename
+        self.array_types = array_types
         self.message = "The number of records in file {filename} cannot "\
             "be determined due to varying shapes of arrays for the unshared "\
             "parameters. All arrays of the unshared parameters should "\
             "have the same first dimension size equal to number of records: "\
-            "{array_types}".format(filename=filename, array_types=array_types)
+            "{array_types}".format(filename=self.filename, array_types=self.array_types)
         Exception.__init__(self, self.message)
 
 
