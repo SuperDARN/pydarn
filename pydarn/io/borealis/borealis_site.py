@@ -38,6 +38,7 @@ import math
 import numpy as np
 import os
 import subprocess as sp
+import warnings
 
 from collections import OrderedDict
 from datetime import datetime
@@ -500,7 +501,7 @@ class BorealisSiteWrite():
 
         # use external h5copy utility to move new record into 2hr file.
         cp_cmd = 'h5copy -i {newfile} -o {full_file} -s {dtstr} -d {dtstr}'
-        
+        warnings.filterwarnings("ignore")
         tmp_filename = self.filename + '.tmp'
         Path(tmp_filename).touch()
         for group_name, group_dict in self.records.items():

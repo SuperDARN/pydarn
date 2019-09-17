@@ -296,12 +296,41 @@ class BorealisUtilities():
         Raises
         ------
         BorealisDataFormatTypeError
+        BorealisStructureError
         """
+
+        attributes_type_dict_keys = sorted(list(attributes_type_dict.keys()))
+        np_array_types = [isinstance(file_data[param], np.ndarray) for param \
+                in attributes_type_dict_keys]
+
+        # There is a better way to do this TODO
+        array_keys = [attributes_type_dict_keys[x] for x, y in \
+            enumerate(np_array_types) if y]  # True
+        array_fields = [(field, attribute_types_dict[field]) for field in \
+            array_keys]
+
+        if any(np_array_types):
+            raise borealis_exceptions.BorealisStructureError('Unexpected '\
+                'array in the following fields where single attributes '\
+                'expected:  {}'.format(array_fields))
 
         incorrect_types_check = {param: str(attributes_type_dict[param])
                                  for param in attributes_type_dict.keys()
                                  if type(file_data[param]) !=
                                  attributes_type_dict[param]}
+
+        datasets_type_dict_keys = sorted(list(datasets_type_dict.keys()))
+        np_array_types = [isinstance(file_data[param], np.ndarray) for param \
+                in datasets_type_dict_keys]
+        array_keys = [datasets_type_dict_keys[x] for x, y in \
+            enumerate(np_array_types) if not y]
+        non_array_fields = [(field, datasets_type_dict[field]) for field in \
+            array_keys]
+
+        if not all(np_array_types):
+            raise borealis_exceptions.BorealisStructureError('Unexpected '\
+                'single attribute in the following fields where arrays of '\
+                'given dtype are expected: {}'.format(non_array_fields))
 
         incorrect_types_check.update({param: 'np.ndarray of ' +
                                       str(datasets_type_dict[param])
