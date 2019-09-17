@@ -6,7 +6,7 @@ from collections import OrderedDict
 from numpy import array, int16, int64, uint32, float32, float64, \
                   zeros, unicode_, bool_, complex64
 
-borealis_site_rawacf_data = OrderedDict([(1558583991060, {
+borealis_site_rawacf_data = OrderedDict([(str(1558583991060), {
     "borealis_git_hash": unicode_('v0.2-61-gc13ab34'), 
     "experiment_id": int64(100000000),
     "experiment_name": unicode_('TestScheme9ACFs'), 
@@ -72,7 +72,7 @@ borealis_site_rawacf_data = OrderedDict([(1558583991060, {
                              0., 0., 0., 0., 0., 0., 0.]), 
     "data_normalization_factor": float64(9999999.999999996)
     }), 
-    (1558583994062, {
+    (str(1558583994062), {
     "borealis_git_hash": unicode_('v0.2-61-gc13ab34'), 
     "experiment_id": int64(100000000),
     "experiment_name": unicode_('TestScheme9ACFs'), 

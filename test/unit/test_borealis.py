@@ -22,6 +22,7 @@ import logging
 import numpy as np
 import os
 import random
+import tables
 import unittest
 
 from collections import OrderedDict
@@ -155,7 +156,7 @@ class TestBorealisFunctions(unittest.TestCase):
 
 
     # READ FAILURE TESTS
-    # add reader failure tests here
+    # TODO add reader failure tests here
     # test reads with wrong filetype given (antennas_iq given bfiq flag especially)
 
 
@@ -208,7 +209,7 @@ class TestBorealisFunctions(unittest.TestCase):
 
 
     # WRITE FAILURE TESTS
-    # add more with wrong filetype to write
+    # TODO add more with wrong filetype to write
     def test_write_records_as_arrays(self):
         record_data = borealis_rawacf_data_sets.borealis_site_rawacf_data
         self.assertRaises(pydarn.borealis_exceptions.BorealisStructureError, pydarn.write_borealis_file,
@@ -416,6 +417,8 @@ class TestBorealisFunctions(unittest.TestCase):
         darn_reader = pydarn.DarnRead(test_darn_file)
         rawacf_records = darn_reader.read_rawacf()
         os.remove(test_darn_file)
+
+    # TODO ADD FAILURE TESTS FOR CONVERT (converting to wrong filetype, etc.)
 
 
 class TestBorealisSiteRead(unittest.TestCase):
@@ -640,7 +643,7 @@ class TestBorealisSiteWrite(unittest.TestCase):
                 "test_rawacf.rawacf.hdf5", self.rawacf_site_incorrect_fmt, 'rawacf')
         except pydarn.borealis_exceptions.BorealisDataFormatTypeError as err:
             self.assertEqual(
-                err.incorrect_params['scan_start_marker'], "<class 'numpy.bool_'>")
+                err.incorrect_types['scan_start_marker'], "<class 'numpy.bool_'>")
             self.assertEqual(err.record_name, keys[0])
 
     def test_writing_bfiq(self):
@@ -722,7 +725,7 @@ class TestBorealisSiteWrite(unittest.TestCase):
                 "test_bfiq.bfiq.hdf5", self.bfiq_site_incorrect_fmt, 'bfiq')
         except pydarn.borealis_exceptions.BorealisDataFormatTypeError as err:
             self.assertEqual(
-                err.incorrect_params['first_range_rtt'], "<class 'numpy.float32'>")
+                err.incorrect_types['first_range_rtt'], "<class 'numpy.float32'>")
             self.assertEqual(err.record_name, keys[0])
 
 
@@ -763,7 +766,8 @@ class TestBorealisArrayRead(unittest.TestCase):
 
         Expected behaviour: raise OSError, unable to open (file signature not found)
         """
-        self.assertRaises(OSError,
+        HDF5ExtError = tables.exceptions.HDF5ExtError
+        self.assertRaises((OSError, HDF5ExtError),
                           pydarn.BorealisArrayRead, self.empty_file_path, 'rawacf')
 
     def test_read_bfiq(self):
@@ -777,7 +781,8 @@ class TestBorealisArrayRead(unittest.TestCase):
         dm = pydarn.BorealisArrayRead(self.bfiq_file_path, 'bfiq')
         arrays = dm.arrays
         self.assertIsInstance(arrays, dict)
-        self.assertIsInstance(arrays['num_slices'], np.int64)
+        self.assertIsInstance(arrays['num_slices'], np.ndarray)
+        self.assertIsInstance(arrays['num_slices'][0], np.int64)
 
     def test_read_rawacf(self):
         """
@@ -790,7 +795,8 @@ class TestBorealisArrayRead(unittest.TestCase):
         dm = pydarn.BorealisArrayRead(self.rawacf_file_path, 'rawacf')
         arrays = dm.arrays
         self.assertIsInstance(arrays, dict)
-        self.assertIsInstance(arrays['num_slices'], np.int64)
+        self.assertIsInstance(arrays['num_slices'], np.ndarray)
+        self.assertIsInstance(arrays['num_slices'][0], np.int64)
 
     def test_read_antennas_iq(self):
         """
@@ -803,7 +809,8 @@ class TestBorealisArrayRead(unittest.TestCase):
         dm = pydarn.BorealisArrayRead(self.antennas_file_path, 'antennas_iq')
         arrays = dm.arrays
         self.assertIsInstance(arrays, dict)
-        self.assertIsInstance(arrays['num_slices'], np.int64)
+        self.assertIsInstance(arrays['num_slices'], np.ndarray)
+        self.assertIsInstance(arrays['num_slices'][0], np.int64)
 
 
 class TestBorealisArrayWrite(unittest.TestCase):
@@ -891,14 +898,17 @@ class TestBorealisArrayWrite(unittest.TestCase):
         Raises BorealisDataFormatTypeError because the rawacf data has the
         wrong type for the scan_start_marker field
         """
-        self.rawacf_array_incorrect_fmt['scan_start_marker'] = 1
+        num_records = self.rawacf_array_incorrect_fmt['scan_start_marker'].shape[0]
+        self.rawacf_array_incorrect_fmt['scan_start_marker'] = \
+            np.array([1]  * num_records)
 
         try:
             writer = pydarn.BorealisArrayWrite(
                 "test_rawacf.rawacf.hdf5", self.rawacf_array_incorrect_fmt, 'rawacf')
         except pydarn.borealis_exceptions.BorealisDataFormatTypeError as err:
             self.assertEqual(
-                err.incorrect_params['scan_start_marker'], "<class 'numpy.bool_'>")
+                err.incorrect_types['scan_start_marker'], "np.ndarray of "\
+                "<class 'numpy.bool_'>")
 
     def test_writing_bfiq(self):
         """
@@ -970,7 +980,7 @@ class TestBorealisArrayWrite(unittest.TestCase):
                 "test_bfiq.bfiq.hdf5", self.bfiq_array_incorrect_fmt, 'bfiq')
         except pydarn.borealis_exceptions.BorealisDataFormatTypeError as err:
             self.assertEqual(
-                err.incorrect_params['first_range_rtt'], "<class 'numpy.float32'>")
+                err.incorrect_types['first_range_rtt'], "<class 'numpy.float32'>")
 
 
 class TestBorealisConvert(unittest.TestCase):
