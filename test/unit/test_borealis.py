@@ -2,15 +2,19 @@
 # Author: Marci Detwiller
 """
 This test suite is to test the implementation for the following classes:
-    BorealisSiteRead
     BorealisUtilities
+    BorealisSiteRead
     BorealisSiteWrite
+    BorealisArrayRead
+    BorealisArrayWrite
+    BorealisRestructureUtilities
+    BorealisConvert
 Support for the following Borealis file types:
     rawrf
     antennas_iq
     bfiq
     rawacf
-And supports conversion to the following Borealis types:
+And supports conversion of the following Borealis -> DARN types:
     bfiq -> iqdat
     rawacf -> rawacf
 """
@@ -44,7 +48,7 @@ borealis_array_bfiq_file = "../test_files/20190909.2200.02.sas.0.bfiq.hdf5"
 borealis_array_rawacf_file = "../test_files/20190909.2200.02.sas.0.rawacf.hdf5"
 borealis_array_antennas_iq_file = "../test_files/20190909.2200.02.sas.0.antennas_iq.hdf5"
 
-# Problem files
+# Problem files TODO
 borealis_site_extra_field_file = ""
 borealis_site_missing_field_file = ""
 borealis_site_incorrect_data_format_file = ""
