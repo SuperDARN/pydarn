@@ -314,7 +314,6 @@ class Map():
         'vector.index': 'i',
         'vector.vel.median': 'f',
         'vector.vel.sd': 'f',
-
         }
     # Additional fields if you use map_addhmb
     hmb_fields = {
