@@ -80,7 +80,7 @@ DMAP_DATA_TYPES = {DMAP: ('', 0),
 # the first bit is part of the number and not referring
 # to the sign of the integer
 
-pydarn_logger = logging.getLogger('pydarn')
+# pydarn_logger = logging.getLogger('pydarn')
 
 
 class DmapRead():
@@ -171,7 +171,7 @@ class DmapRead():
             # Read binary
             with open(self.dmap_file, 'rb') as f:
                 self.dmap_bytearr = bytearray(f.read())
-            pydarn_logger.debug("DMAP Read file: {}".format(self.dmap_file))
+            #pydarn_logger.debug("DMAP Read file: {}".format(self.dmap_file))
 
         else:
             if len(dmap_file) == 0:
@@ -179,7 +179,7 @@ class DmapRead():
 
             self.dmap_bytearr = bytearray(self.dmap_file)
             self.dmap_file = "stream"
-            pydarn_logger.debug("DMAP Read file: Stream")
+            #pydarn_logger.debug("DMAP Read file: Stream")
         self.dmap_buffer = memoryview(self.dmap_bytearr)
         self.dmap_end_bytes = len(self.dmap_bytearr)
         if self.dmap_end_bytes == 0:
@@ -311,7 +311,7 @@ class DmapRead():
         zero_check : raises ZeroByteError
         byte_check : raises MistmatchByteError
         """
-        pydarn_logger.debug("Testing the integrity of the /stream")
+        #pydarn_logger.debug("Testing the integrity of the /stream")
         total_block_size = 0  # unit of bytes
         if self.cursor != 0:
             raise dmap_exceptions.CursorError(self.cursor, 0, self.rec_num)
@@ -381,7 +381,7 @@ class DmapRead():
         """
 
         # read bytes until end of byte array
-        pydarn_logger.debug("Reading DMap records")
+        #pydarn_logger.debug("Reading DMap records")
         while self.cursor < self.dmap_end_bytes:
             new_record = self.read_record()
             self._dmap_records.append(new_record)
@@ -424,8 +424,8 @@ class DmapRead():
         self.cursor += 4
         block_size = self.read_data('i', 4)
 
-        pydarn_logger.debug("Reading Record {record}"
-                            .format(record=len(self._dmap_records)))
+        #pydarn_logger.debug("Reading Record {record}"
+        #                    .format(record=len(self._dmap_records)))
 
         # adding 8 bytes because code+size are part of the record.
         # 4 is the number bytes for int format
@@ -444,7 +444,7 @@ class DmapRead():
                          "number of scalars + arrays",
                          block_size, "block size")
 
-        pydarn_logger.debug("Reading record: reading scalars\n")
+        #pydarn_logger.debug("Reading record: reading scalars\n")
         # originally called DmapRecord but then was just returning the ordered
         # dict thus I am constructing it here instead
         # for better speed performance.
@@ -453,7 +453,7 @@ class DmapRead():
             scalar = self.read_scalar()
             record[scalar.name] = scalar
 
-        pydarn_logger.debug("Reading record: reading arrays\n")
+        #pydarn_logger.debug("Reading record: reading arrays\n")
         for i in range(num_arrays):
             array = self.read_array(block_size)
             record[array.name] = array
@@ -878,7 +878,7 @@ class DmapWrite(object):
         self.dmap_bytearr = bytearray()
         self.filename = filename
         self.rec_num = 0
-        pydarn_logger.debug("Initiating DmapWrite")
+        #pydarn_logger.debug("Initiating DmapWrite")
 
     def __repr__(self):
         """ for representation of the class object"""
@@ -915,7 +915,7 @@ class DmapWrite(object):
         correct.
         """
         self._filename_check(filename)
-        pydarn_logger.debug("Writing : {}".format(self.filename))
+        #pydarn_logger.debug("Writing : {}".format(self.filename))
         self.write_dmap_stream()
         with open(self.filename, 'wb') as f:
             f.write(self.dmap_bytearr)
@@ -937,7 +937,7 @@ class DmapWrite(object):
         if self.dmap_records == []:
             self.dmap_records = dmap_records
         self._empty_record_check()
-        pydarn_logger.debug("Writing to dmap stream")
+        #pydarn_logger.debug("Writing to dmap stream")
         self.dmap_records_to_bytes()
         return self.dmap_bytearr
 
@@ -975,7 +975,7 @@ class DmapWrite(object):
         """
         # For performance increase len of the records can be
         # attribute value initialized in the class
-        pydarn_logger.debug("Converting DMap records to bytes")
+        #pydarn_logger.debug("Converting DMap records to bytes")
         for self.rec_num in range(len(self.dmap_records)):
             record = self.dmap_records[self.rec_num]
             self._dmap_record_to_bytes(record)
