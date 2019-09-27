@@ -63,12 +63,14 @@ class RTPZeroError(Exception):
         self.zmin = zmin
         self.zmax = zmax
         self.norm = norm
-        self.message = "Error: ZeroDivisionError is raised due to trying to"\
-            " normalize {min} to {max} using the {norm} method for the"\
-            " parameter {param} at beam {num}. This can be an issue with"\
-            " the data file, fields meaning something different."\
-            " To resole this error, please set the zmin or zmax parameter"\
-            " or try another normalization method."
+        self.message = "Error: ZeroDivisionError or ValueError is raised "\
+            "due to trying to normalize {zmin} to {zmax} using the {norm} "\
+            "method for the parameter {param} at beam {num}. "\
+            "This can be an issue with the data file, fields meaning"\
+            " something different. To resole this error, please set the "\
+            "zmin or zmax parameter or try another normalization"\
+            " method.".format(zmin=zmin, zmax=zmax, norm=norm.__str__,
+                             num=beam_num, parameter=parameter)
         super().__init__(self.message)
         pydarn_log.error(self.message)
 
