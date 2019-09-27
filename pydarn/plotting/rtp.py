@@ -12,7 +12,7 @@ import warnings
 
 from datetime import datetime, timedelta
 from matplotlib import dates, colors, cm, ticker
-from typing import List
+from typing import Union, List
 
 from pydarn import (dmap2dict, DmapArray, DmapScalar,
                     rtp_exceptions, SuperDARNCpids, SuperDARNRadars,
@@ -302,7 +302,6 @@ class RTP():
         z_data = np.ma.masked_where(np.isnan(z.T), z.T)
 
         norm = norm(zmin, zmax)
-
         if isinstance('str', type(cmap)):
             cmap = cm.get_cmap(cmap)
 
@@ -328,11 +327,13 @@ class RTP():
 
         # create color bar if True
         if not colorbar:
-            try:
-                cb = ax.figure.colorbar(im, ax=ax, extend='both')
-            except ZeroDivisionError:
-                raise rtp_exceptions.RTPZeroError(parameter, beam_num, zmin,
-                                                  zmax, norm) from None
+            with warnings.catch_warnings():
+                warnings.filterwarnings('error')
+                try:
+                    cb = ax.figure.colorbar(im, ax=ax, extend='both')
+                except (ZeroDivisionError, Warning):
+                    raise rtp_exceptions.RTPZeroError(parameter, beam_num, zmin,
+                                                      zmax, norm) from None
         if colorbar_label != '':
             cb.set_label(colorbar_label)
 
@@ -520,8 +521,8 @@ class RTP():
                      groundscatter: bool = False, channel: int = 'all',
                      figsize: tuple = (11, 8.5), boundary: dict = {},
                      background_color: str = 'w',
-                     cmaps: dict = {}, plot_elv: bool = True,
-                     title=None):
+                     cmaps: dict = {}, lines: dict = {},
+                     plot_elv: bool = True, title=None):
         """
         Plots the summary of the following SuperDARN parameter plots:
             - noise.search : (time-series)
@@ -630,15 +631,24 @@ class RTP():
         boundary_ranges.update(boundary)
 
         # Default color maps for the summary plot
-        cmap = {'noise.search': 'k',
+        line = {'noise.search': 'k',
                 'noise.sky': 'k',
                 'tfreq': 'k',
-                'nave': 'k',
-                'p_l': 'viridis',
+                'nave': 'k'}
+
+        if isinstance(lines, str):
+            line.update({k: lines for k,v in line.items()})
+        else:
+            line.update(lines)
+
+        cmap = {'p_l': 'viridis',
                 'v': 'viridis',
                 'w_l': 'viridis',
                 'elv': 'viridis'}
-        cmap.update(cmaps)
+        if isinstance(cmaps, str):
+            cmap.update({k: cmaps for k,v in cmap.items()})
+        else:
+            cmap.update(cmaps)
 
         fig = plt.figure(figsize=figsize)
 
@@ -693,7 +703,7 @@ class RTP():
                         cls.plot_time_series(dmap_data, beam_num=beam_num,
                                              parameter=axes_parameters[i][0],
                                              channel=channel, scale=scale,
-                                             color=cmap[axes_parameters[i][0]],
+                                             color=line[axes_parameters[i][0]],
                                              ax=axes[i], linestyle='-',
                                              label=labels[i][0])
                     if len(w) > 0:
@@ -704,7 +714,7 @@ class RTP():
                     axes[i].set_ylabel(labels[i][0], rotation=0, labelpad=30)
                     axes[i].axhline(y=boundary_ranges[axes_parameters[i][0]][0] + 0.8,
                                     xmin=-0.11, xmax=-0.05,
-                                    clip_on=False, color=cmap[axes_parameters[i][0]])
+                                    clip_on=False, color=line[axes_parameters[i][0]])
                     axes[i].set_ylim(boundary_ranges[axes_parameters[i][0]][0],
                                      boundary_ranges[axes_parameters[i][0]][1])
                     axes[i].yaxis.set_label_coords(-0.08, 0.085)
@@ -715,7 +725,7 @@ class RTP():
                     with warnings.catch_warnings(record=True) as w:
                         cls.plot_time_series(dmap_data, beam_num=beam_num,
                                              parameter=axes_parameters[i][1],
-                                             color=cmap[axes_parameters[i][1]],
+                                             color=line[axes_parameters[i][1]],
                                              channel=channel,
                                              scale=scale, ax=second_ax,
                                              linestyle='--')
@@ -729,7 +739,7 @@ class RTP():
                     second_ax.axhline(y=boundary_ranges[axes_parameters[i][1]][0] +
                                       0.8, xmin=1.07, xmax=1.13,
                                       clip_on=False, linestyle='--',
-                                      color=cmap[axes_parameters[i][1]])
+                                      color=line[axes_parameters[i][1]])
                     second_ax.set_ylim(boundary_ranges[axes_parameters[i][1]][0],
                                        boundary_ranges[axes_parameters[i][1]][1])
                     second_ax.yaxis.set_label_coords(1.1, 0.7)
