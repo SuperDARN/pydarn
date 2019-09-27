@@ -4,7 +4,7 @@
 # https://github.com/vtsuperdarn/davitpy/blob/master/davitpy
 
 """
-Range-time Parameter plots (a.k.a Intensity)
+Range-Time Parameter (aka Intensity) plots
 """
 import matplotlib.pyplot as plt
 import numpy as np
@@ -20,9 +20,10 @@ from pydarn import (dmap2dict, DmapArray, DmapScalar,
 
 warnings.formatwarning = standard_warning_format
 
+
 class RTP():
     """
-    Range-time Parameter plots SuperDARN data using the following fields:
+    Range-Time Parameter plots SuperDARN data using the following fields:
 
     Class pattern design: Builder
     This class inherits matplotlib.pyplot to inherit plotting features as well
@@ -327,8 +328,11 @@ class RTP():
 
         # create color bar if True
         if not colorbar:
-            cb = ax.figure.colorbar(im, ax=ax, extend='both')
-
+            try:
+                cb = ax.figure.colorbar(im, ax=ax, extend='both')
+            except ZeroDivisionError:
+                raise rtp_exceptions.RTPZeroError(parameter, beam_num, zmin,
+                                                  zmax, norm) from None
         if colorbar_label != '':
             cb.set_label(colorbar_label)
 
@@ -661,7 +665,7 @@ class RTP():
         labels = [('Search \n Noise', 'Sky\n Noise'),
                   ('Freq\n ($MHz$)', 'Nave'), ('CP ID'), ('SNR ($dB$)'),
                   ('Velocity\n ($m\ s^{-1}$)'),
-                  ('Spectral Width\n ($m\ s-1$)'),
+                  ('Spectral Width\n ($m\ s^{-1}$)'),
                   ('Elevation\n ($\degree$)')]
 
         for i in range(num_plots):
@@ -793,7 +797,7 @@ class RTP():
         #   %b - month abbreviation
         #   %d - day
         #   %H - Hour
-        #   %M - Month
+        #   %M - 2-digit minutes
         if end_time.day == start_time.day:
             end_format = "%H:%M"
         elif end_time.month == start_time.month:
