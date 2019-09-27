@@ -7,7 +7,7 @@ Current documentation on modes:
     http://superdarn.thayer.dartmouth.edu/info/modes.html
 """
 
-#TODO: find/create better radar mode documentation
+#TODO: find/create better radar mode/frequency bands documentation
 
 class SuperDARNCpids():
 
