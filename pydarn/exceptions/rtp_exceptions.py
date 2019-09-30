@@ -67,9 +67,9 @@ class RTPZeroError(Exception):
             "due to trying to normalize {zmin} to {zmax} using the {norm} "\
             "method for the parameter {param} at beam {num}. "\
             "This can be an issue with the data file, fields meaning"\
-            " something different. To resole this error, please set the "\
+            " something different. To resolve this error, please set the "\
             "zmin or zmax parameter or try another normalization"\
-            " method.".format(zmin=zmin, zmax=zmax, norm=norm.__str__,
+            " method.".format(zmin=zmin, zmax=zmax, norm=norm,
                              num=beam_num, param=parameter)
         super().__init__(self.message)
         pydarn_log.error(self.message)
