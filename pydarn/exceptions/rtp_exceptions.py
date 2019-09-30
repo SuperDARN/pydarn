@@ -70,7 +70,7 @@ class RTPZeroError(Exception):
             " something different. To resole this error, please set the "\
             "zmin or zmax parameter or try another normalization"\
             " method.".format(zmin=zmin, zmax=zmax, norm=norm.__str__,
-                             num=beam_num, parameter=parameter)
+                             num=beam_num, param=parameter)
         super().__init__(self.message)
         pydarn_log.error(self.message)
 
