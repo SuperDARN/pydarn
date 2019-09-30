@@ -117,7 +117,7 @@ class DmapRead():
     read_array(record_size)
         Reads an array from the byte array
     read_string_DMAP_array(Shape, array_type)
-        Reads an array of strings/DMAP types into an array
+        Reads an array of strings/DMap types into an array
     read_data()
         Reads the data type from the byte array
     read_numerical_array(data_type, shape, total_number_cells)
@@ -171,7 +171,7 @@ class DmapRead():
             # Read binary
             with open(self.dmap_file, 'rb') as f:
                 self.dmap_bytearr = bytearray(f.read())
-            pydarn_log.debug("DMAP Read file: {}".format(self.dmap_file))
+            pydarn_log.debug("DMap Read file: {}".format(self.dmap_file))
 
         else:
             if len(dmap_file) == 0:
@@ -179,7 +179,7 @@ class DmapRead():
 
             self.dmap_bytearr = bytearray(self.dmap_file)
             self.dmap_file = "stream"
-            pydarn_log.debug("DMAP Read file: Stream")
+            pydarn_log.debug("DMap Read file: Stream")
         self.dmap_buffer = memoryview(self.dmap_bytearr)
         self.dmap_end_bytes = len(self.dmap_bytearr)
         if self.dmap_end_bytes == 0:
@@ -275,7 +275,7 @@ class DmapRead():
 
     def check_data_type(self, data_type: int, data_name: str):
         """
-        Check if the data_type is a DMAP data type.
+        Check if the data_type is a DMap data type.
 
         Parameter
         ----------
@@ -478,7 +478,7 @@ class DmapRead():
         Raises
         ------
         DmapDataError
-            if the data type format is DMAP
+            if the data type format is DMap
             NOTE: In RST, this is allowed, if an example shows up where this is
             allowed s raise as an issue in the GitHub so the code can
             be re-accessed.
@@ -501,7 +501,7 @@ class DmapRead():
         if scalar_type_fmt != DMAP:
             scalar_value = self.read_data(scalar_type_fmt, scalar_fmt_byte)
         else:
-            message = "Error: Trying to read DMAP data type for a scalar."\
+            message = "Error: Trying to read DMap data type for a scalar."\
                     " Failed at record {}".format(self.rec_num)
             # Not sure when this is used in a
             # so better to raise an error if used re-access the code.
@@ -531,7 +531,7 @@ class DmapRead():
         --------
         read_data : reads the data in the byte array
         read_numerical_array : reads in a numerical array from the byte array
-        read_string_array: reads in a string/DMAP array
+        read_string_array: reads in a string/DMap array
         """
         array_name = self.read_data('s', 1)
         array_type = self.read_data('c', 1)
@@ -607,7 +607,7 @@ class DmapRead():
             #                                     array_type_fmt,
             #                                     array_fmt_bytes)
         elif array_type == DMAP:
-            message = "Trying to read DMAP array data type."\
+            message = "Trying to read DMap array data type."\
                     " Failed at record {}".format(self.rec_num)
             # Not sure when this is used in a
             # so better to raise an error if used re-access the code.
@@ -642,14 +642,14 @@ class DmapRead():
         CursorError
             if cursor is not correctly aligned or at the correct position.
         DmapDataError
-            if trying to read a DMAP data type
+            if trying to read a DMap data type
 
         See Also
         --------
         Struct.unpack : converts the bytes array values from a C structure to
         python objects
 
-        See DEVELOPER_README.md for more information on DMAP data types and
+        See DEVELOPER_README.md for more information on DMap data types and
         Struct.unpack.
         """
         if self.cursor >= self.dmap_end_bytes:
@@ -713,7 +713,7 @@ class DmapRead():
     # for array[str], but may not be important. ¯\_(ツ)_/¯
     # The problem is the padding between various string encodings:
     # UTF-8 -> 4 bytes and ASCII -> 1 byte
-    # so either DMAP would have to incorporate that information plus
+    # so either DMap would have to incorporate that information plus
     # string length would be a god send... If not one possible solution
     # you would record the length of the record size and subtract the byte
     # (or start at cursor point and increment to the end of the record size)
@@ -746,7 +746,7 @@ class DmapRead():
         dim = shape
         dimension = dim.pop()
         # FIXME: still need to find a method for testing this... Or a file
-        #        that contains a string/DMAP array
+        #        that contains a string/DMap array
         # for dim_size in shape:
         #    for i in range(dim_size):
         #        result = self.read_data(array_type_fmt, array_fmt_bytes)
@@ -771,7 +771,7 @@ class DmapRead():
         shape : list
             A list of the array's dimension sizes
         data_type : int
-            DMAP data type numeric value
+            DMap data type numeric value
         total_number_cells : int
             The number of cells in the N-D array being read in
 
@@ -815,9 +815,9 @@ class DmapWrite(object):
     Methods
     -------
     write_dmap(filename)
-        Writes DMap records to DMAP format with the given filename
+        Writes DMap records to DMap format with the given filename
     write_dmap_stream(dmap_records)
-        Writes DMap records to DMAP format byte stream
+        Writes DMap records to DMap format byte stream
     dict_key_diff(dict1, dict2)
         Returns a set of the difference between dict1 and dict2 keys
     missing_field_check(file_struct_list, record, rec_num)
@@ -844,7 +844,7 @@ class DmapWrite(object):
     """
     def __init__(self, dmap_records: List[dict] = [], filename: str = ""):
         """
-        Writes DMap records to a given filename of byte array in DMAP format,
+        Writes DMap records to a given filename of byte array in DMap format,
         this includes the following SuperDARN file types:
                                                       - Iqdat
                                                       - Rawacf
@@ -866,7 +866,7 @@ class DmapWrite(object):
                                      - 'fitacf' : SuperDARN file type
                                      - 'grid' : SuperDARN file type
                                      - 'map' : SuperDARN file type
-                                     - 'dmap' : writes a file in DMAP format
+                                     - 'dmap' : writes a file in DMap format
                                      - 'stream' : writing to dmap data stream
 
         Raises
