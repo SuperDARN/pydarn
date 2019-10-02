@@ -27,21 +27,24 @@ class RTPNoDataFoundError(Exception):
     method is called for a given parameter
     """
     def __init__(self, parameter: str, beam_num: int, start_time: int,
-                 end_time: datetime.datetime):
+                 end_time: datetime.datetime, opt_beam_num: int):
         self.parameter = parameter
         self.beam_num = beam_num
         self.start_time = start_time
         self.end_time = end_time
-        self.message = "Error: There is no Data for beam number {beam_num}"\
+        self.message = "There is no Data for beam number {beam_num}"\
             " for the parameter type {parameter} between the"\
             " time range {start_time} to"\
-            " {end_time}".format(parameter=self.parameter,
-                                 beam_num=self.beam_num,
-                                 start_time=self.start_time.strftime("%Y %m"
-                                                                     " %d %H"
-                                                                     ":%M"),
-                                 end_time=self.end_time.strftime("%Y %m"
-                                                                 " %d %H:%M"))
+            " {end_time}. Try another beam, for example: {opt_beam}"\
+            " or another parameter for the given time range."\
+            "".format(parameter=self.parameter,
+                      beam_num=self.beam_num,
+                      opt_beam=opt_beam_num,
+                      start_time=self.start_time.strftime("%Y %m"
+                                                          " %d %H"
+                                                          ":%M"),
+                      end_time=self.end_time.strftime("%Y %m"
+                                                      " %d %H:%M"))
         super().__init__(self.message)
         pydarn_log.error(self.message)
 
@@ -63,7 +66,7 @@ class RTPZeroError(Exception):
         self.zmin = zmin
         self.zmax = zmax
         self.norm = norm
-        self.message = "Error: ZeroDivisionError or ValueError is raised "\
+        self.message = "ZeroDivisionError or ValueError is raised "\
             "due to trying to normalize {zmin} to {zmax} using the {norm} "\
             "method for the parameter {param} at beam {num}. "\
             "This can be an issue with the data file, fields meaning"\
