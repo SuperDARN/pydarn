@@ -63,7 +63,20 @@ for fitacf_rec in fitacf_data:
 
 print(elv_list[100])
 ```
+#### Generating a Summary Plot
+```python
+import pydarn
+import matplotlib.pyplot as plt
 
+fitacf_file = "20160331.2201.00.mcm.a.fitacf"
+darn_read = pydarn.DarnRead(fitacf_file)
+fitacf_data = darn_read.read_fitacf()
+
+pydarn.RTP.plot_summary(fitacf_data, beam_num=7)
+
+plt.show()
+```
+![pyDARN summary plot](./mcm_summary_plot.png)
 #### Generate Range-time Parameter Plot
 
 ##### Using matplotlib pyplot
@@ -78,20 +91,20 @@ fitacf_data = darn_read.read_fitacf()
 
 plt.subplot(4, 1, 1)
 plt.title("Summary style plot")
-pydarn.RTP.plot_range_time(fitacf_data, parameter='elevation',
+pydarn.RTP.plot_range_time(fitacf_data, parameter='elv',
                            beam_num=7, date_fmt='')
 plt.subplot(4, 1, 2)
-pydarn.RTP.plot_range_time(fitacf_data, parameter='power',
+pydarn.RTP.plot_range_time(fitacf_data, parameter='p_l',
                            beam_num=7, date_fmt='')
 
 plt.subplot(4, 1, 3)
-pydarn.RTP.plot_range_time(fitacf_data, parameter='velocity',
-                           beam_num=7, color_map='jet_r',
+pydarn.RTP.plot_range_time(fitacf_data, parameter='v',
+                           beam_num=7, cmap='jet_r',
                            date_fmt='')
 
 plt.subplot(4, 1, 4)
 pydarn.RTP.plot_range_time(fitacf_data,
-                           parameter='spectral width',
+                           parameter='w_l',
                            beam_num=7)
 
 plt.show()
@@ -109,12 +122,12 @@ darn_read = pydarn.DarnRead(fitacf_file)
 fitacf_data = darn_read.read_fitacf()
 
 fig, (ax1, ax2) = plt.subplots(2, 1)
-pydarn.RTP.plot_range_time(fitacf_data, parameter='elevation',
+pydarn.RTP.plot_range_time(fitacf_data, parameter='elv',
                            beam_num=7, ax=ax1, channel=1,
                            date_fmt='')
 ax1.set_ylabel("ch. 1")
 
-pydarn.RTP.plot_range_time(fitacf_data, parameter='elevation',
+pydarn.RTP.plot_range_time(fitacf_data, parameter='elv',
                            beam_num=7, ax=ax2,
                            channel=2)
 ax2.set_xlabel("Date (UTC)")
