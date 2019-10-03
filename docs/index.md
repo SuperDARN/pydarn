@@ -34,12 +34,7 @@ If you have any questions or concerns please submit an **Issue** on the SuperDAR
         - [`plot_time_series`](code/plot_time_series.md)
         - [`plot_summary`](code/plot_summary.md)
   - Developer Guide
-    - [Code Style](developer/code_guide.md)
-    - [Structure](developer/structure_guide.md)
-    - [Documentation Style](developer/documentation_guide.md)
-    - [Testing](developer/testing_guide.md)
-    - [Committing Code](developer/community_guide.md)
-    - [Release](developer/release_guidelines.md)
+      - [General Rules of Road](developer/general.md)
   - History
     - [V 0.0](history/v_0_0.md)
 
