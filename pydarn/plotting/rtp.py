@@ -569,16 +569,9 @@ class RTP():
                      cmaps: dict = {}, lines: dict = {},
                      plot_elv: bool = True, title=None):
         """
-        Plots the summary of the following SuperDARN parameter plots:
-            - noise.search : (time-series)
-            - noise.sky :  (time-series)
-            - tfreq : transmission frequency (time-series)
-            - nave : number of averages  (time-series)
-            - cp : control program ID (time-series)
-            - p_l : Signal to Noise ratio (range-time)
-            - v : velocity (range-time)
-            - w_l : spectral width (range-time)
-            - elv : elevation (optional) (range-time)
+        Plots the summary of several SuperDARN parameters using time-series and
+        range-time plots. Please see Notes for further description
+        on what is plotted.
 
         Future Work
         ------------
@@ -664,6 +657,20 @@ class RTP():
         axes: list
             list of matplotlib.pyplot.axes objects to generate
             the subplots in the summary plot
+
+        Notes
+        -----
+        These are the following parameters in the SuperDARN FitACF file that is
+        plotted in a summary plot:
+            - noise.search : (time-series)
+            - noise.sky :  (time-series)
+            - tfreq : transmission frequency (time-series)
+            - nave : number of averages  (time-series)
+            - cp : control program ID (time-series)
+            - p_l : Signal to Noise ratio (range-time)
+            - v : velocity (range-time)
+            - w_l : spectral width (range-time)
+            - elv : elevation (optional) (range-time)
         """
         message = "WARNING: matplotlib Default dpi may cause distortion"\
                   " in range gates and time period. The figure size can"\
