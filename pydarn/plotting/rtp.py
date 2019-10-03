@@ -224,13 +224,13 @@ class RTP():
 
         for dmap_record in cls.dmap_data:
             # get time difference to test if there is some gap data
-            time = cls.__time2datetime(dmap_record)
+            rec_time = cls.__time2datetime(dmap_record)
             diff_time = 0.0
-            if time > end_time:
+            if rec_time > end_time:
                 break
             if x != []:
                 # 60.0 seconds in a minute
-                delta_diff_time = (time - x[-1])
+                delta_diff_time = (rec_time - x[-1])
                 diff_time = delta_diff_time.seconds/60.0
 
             # separation roughly 2 minutes
@@ -247,11 +247,11 @@ class RTP():
             if (beam_num == 'all' or dmap_record['bmnum'] == beam_num) and\
                (channel == 'all' or
                     dmap_record['channel'] == channel):
-                if start_time <= time:
+                if start_time <= rec_time:
                     # construct the x-axis array
                     # Numpy datetime is used because it properly formats on the
                     # x-axis
-                    x.append(time)
+                    x.append(rec_time)
                     # I do this to avoid having an extra loop to just count how
                     # many records contain the beam number
                     i = len(x) - 1  # offset since we start at 0 not 1
@@ -303,10 +303,10 @@ class RTP():
         z_data = np.ma.masked_where(np.isnan(z.T), z.T)
 
         norm = norm(zmin, zmax)
-        if isinstance('str', type(cmap)):
+        if isinstance(cmap, str):
             cmap = cm.get_cmap(cmap)
 
-        if isinstance('str', type(groundscatter)):
+        if isinstance(groundscatter, str):
             cmap.set_under(groundscatter, 1.0)
         elif groundscatter:
             cmap.set_under('grey', 1.0)
@@ -449,12 +449,12 @@ class RTP():
 
                 if (dmap_record['bmnum'] == beam_num or beam_num == 'all') and\
                    (dmap_record['channel'] == channel or channel == 'all'):
-                    time = cls.__time2datetime(dmap_record)
-                    if start_time <= time and time <= end_time:
+                    rec_time = cls.__time2datetime(dmap_record)
+                    if start_time <= rec_time and rec_time <= end_time:
                         if old_cpid != dmap_record['cp']:
-                            ax.axvline(x=time, color='black')
+                            ax.axvline(x=rec_time, color='black')
                             old_cpid = dmap_record['cp']
-                            ax.text(x=time + timedelta(seconds=600), y=0.5,
+                            ax.text(x=rec_time + timedelta(seconds=600), y=0.5,
                                     s=dmap_record['cp'])
                             if cp_name:
                                 # Keeping this commented code in to show how
@@ -471,7 +471,7 @@ class RTP():
                                 #     cp_name = 'unknown'
                                 # else:
                                 #     cp_name = cpid_command[1]
-                                ax.text(x=time + timedelta(seconds=600),
+                                ax.text(x=rec_time + timedelta(seconds=600),
                                         y=0.2,
                                         s=SuperDARNCpids.cpids.get(dmap_record['cp'],
                                                                    'unknown'))
@@ -487,13 +487,13 @@ class RTP():
         else:
             for dmap_record in cls.dmap_data:
                 # TODO: this check could be a function call
-                time = cls.__time2datetime(dmap_record)
-                if start_time <= time and time <= end_time:
+                rec_time = cls.__time2datetime(dmap_record)
+                if start_time <= rec_time and rec_time <= end_time:
                     if (dmap_record['bmnum'] == beam_num or
                         beam_num == 'all') and \
                        (channel == dmap_record['channel'] or channel == 'all'):
                         # construct the x-axis array
-                        x.append(time)
+                        x.append(rec_time)
                         if parameter == 'tfreq':
                             # Convert kHz to MHz by dividing by 1000
                             y.append(dmap_record[parameter]/1000)
@@ -501,9 +501,9 @@ class RTP():
                             y.append(dmap_record[parameter])
                     # else plot missing data
                     elif len(x) > 0:
-                        diff_time = time - x[-1]
+                        diff_time = rec_time - x[-1]
                         if diff_time.seconds/60 > 2.0:
-                            x.append(time)
+                            x.append(rec_time)
                             y.append(np.nan)  # for masking the data
             # Check if there is any data to plot
             if np.all(np.isnan(y)) or len(x) == 0:
@@ -582,12 +582,18 @@ class RTP():
         figsize : (int,int)
             tuple containing (height, width) figure size
             Default: 11 x 8.5
-        cmaps: dict
+        cmaps: dict or str
             dictionary of matplotlib color maps for the summary
-            plot parameters.
+            range time parameter plots.
             https://matplotlib.org/tutorials/colors/colormaps.html
             Default: viridis
             note: to reverse the color just add _r to the string name
+        lines: dict or str
+            dictionary of time-series line colors.
+            Default: black
+        background_color: str
+            changes the color of the background in the plots.
+            Default: white
         boundary: dict
             dict of the parameter names of a summary plot as key names:
                 - 'search.noise': search noise
@@ -616,6 +622,7 @@ class RTP():
             title of the plot
             Default: auto-generated by the files details
             {radar name} Fitacf {version} {start_date} - {end_date}  Beam {num}
+
         Raises
         ------
         IndexError
@@ -658,19 +665,18 @@ class RTP():
                 'tfreq': 'k',
                 'nave': 'k'}
 
-        if isinstance(lines, str):
-            line.update({k: lines for k,v in line.items()})
-        else:
+        if isinstance(lines, dict):
             line.update(lines)
-
+        else:
+            line.update({k: lines for k,v in line.items()})
         cmap = {'p_l': 'viridis',
                 'v': 'viridis',
                 'w_l': 'viridis',
                 'elv': 'viridis'}
-        if isinstance(cmaps, str):
-            cmap.update({k: cmaps for k,v in cmap.items()})
-        else:
+        if isinstance(cmaps, dict):
             cmap.update(cmaps)
+        else:
+            cmap.update({k: cmaps for k,v in cmap.items()})
 
         fig = plt.figure(figsize=figsize)
 
