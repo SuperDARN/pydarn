@@ -328,7 +328,18 @@ class RTP():
         ax.set_xlim([rounded_down_start_time, x[-1]])
         ax.xaxis.set_major_formatter(dates.DateFormatter(date_fmt))
         ax.yaxis.set_ticks(np.arange(0, y_max+1, (y_max)/5))
-        ax.xaxis.set_minor_locator(dates.MinuteLocator())
+
+        # SuperDARN file typically are in 2hr or 24 hr files
+        # to make the minute ticks sensible, the time length is detected
+        # then a interval is picked. 30 minute ticks for 24 hr plots
+        # and 5 minute ticks for 2 hour plots.
+        data_time_length = end_time - start_time
+        # 3 hours * 60 minutes * 60 seconds
+        if data_time_length.seconds > 3*60*60:
+            tick_interval = 30
+        else:
+            tick_interval = 1
+        ax.xaxis.set_minor_locator(dates.MinuteLocator(interval=tick_interval))
         ax.yaxis.set_minor_locator(ticker.MultipleLocator(5))
         # so the plots gets to the ends
         ax.margins(0)
@@ -534,6 +545,18 @@ class RTP():
 
         ax.xaxis.set_major_formatter(dates.DateFormatter(date_fmt))
         ax.xaxis.set_minor_locator(dates.HourLocator())
+        # SuperDARN file typically are in 2hr or 24 hr files
+        # to make the minute ticks sensible, the time length is detected
+        # then a interval is picked. 30 minute ticks for 24 hr plots
+        # and 5 minute ticks for 2 hour plots.
+        data_time_length = end_time - start_time
+        # 3 hours * 60 minutes * 60 seconds
+        if data_time_length.seconds > 3*60*60:
+            tick_interval = 30
+        else:
+            tick_interval = 1
+        ax.xaxis.set_minor_locator(dates.MinuteLocator(interval=tick_interval))
+
         ax.margins(x=0)
         ax.tick_params(axis='y', which='minor')
         return lines, x, y
