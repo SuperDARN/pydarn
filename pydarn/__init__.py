@@ -15,6 +15,9 @@ import yaml
 # Importing pydarn exception classes
 from .exceptions import dmap_exceptions
 from .exceptions import superdarn_exceptions
+from .exceptions import rtp_exceptions
+from .exceptions.warning_formatting import standard_warning_format
+from .exceptions.warning_formatting import only_message_warning_format
 
 # Importing pydarn pydmap data structure classes
 from .io.datastructures import DmapScalar
@@ -34,6 +37,11 @@ from .io.superdarn import DarnUtilities
 # importing utils
 from .utils.conversions import dict2dmap
 from .utils.conversions import dmap2dict
+
+# import plotting
+from .plotting.superdarn_radars import SuperDARNRadars
+from .plotting.superdarn_cpid import SuperDARNCpids
+from .plotting.rtp import RTP
 
 """
 Pydarn uses yaml for logging configuration because it is the
