@@ -1,0 +1,36 @@
+# Copyright (C) SuperDARN Canada, University of Saskatchewan 
+# Author(s): Marina Schmidt 
+#
+# Travis-CI script for testing builds, unit tests, linter and converage tests 
+language: python 
+python: 
+- 3.7 
+- 3.6
+- 3.5 
+
+matrix: 
+    include:
+    - os: linux
+      name: PEP8 MyPy Testing 
+      python: 3.7 
+      script: 
+      - flake8
+      - mypy . 
+      # - pytest --cov
+      # after_success:
+      # - coveralls
+    - os: osx 
+      langugage: minimal 
+    - os: windows
+      language: minimal 
+      before_install:
+      - choco install python3
+      - export PATH="/c/Python37:/c/Python37/Scripts:$PATH"
+
+install:
+    - pip3 install -U pip
+    - pip3 install .
+    - pip3 install codecov
+# script: pytest 
+# adter_success:
+#   - codecov 
