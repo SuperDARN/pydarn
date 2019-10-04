@@ -314,7 +314,6 @@ class Map():
         'vector.index': 'i',
         'vector.vel.median': 'f',
         'vector.vel.sd': 'f',
-
         }
     # Additional fields if you use map_addhmb
     hmb_fields = {
@@ -352,7 +351,7 @@ class Map():
 
 class Iqdat():
     """
-    Class contain Iqdat fields
+    Class contains Iqdat fields
     """
     #Standard Iqdat fields
     types = {
