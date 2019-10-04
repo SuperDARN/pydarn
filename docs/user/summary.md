@@ -19,6 +19,7 @@ See API of this function to see all possible options [`RTP.plot_summary`](/code/
 ## Standard plot 
 
 ```python
-
+import pydarn
+import matplotlib.pyplot as plt
   
 ```
