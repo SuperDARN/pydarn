@@ -6,8 +6,10 @@ converting of Borealis file types.
 
 Classes
 -------
-BorealisConvert: Writes Borealis SuperDARN files types to
-SuperDARN DARN files with DMap record structure
+BorealisRead: Uses BorealisSiteRead and BorealisArrayRead 
+    to read a Borealis HDF5 file
+BorealisWrite: Uses BorealisSiteWrite and BorealisArrayWrite
+    to write a Borealis HDF5 file
 
 Exceptions
 ----------
@@ -23,25 +25,6 @@ BorealisRestructureError
 BorealisStructureError
 ConvertFileOverWriteError
 
-Functions
----------
-read_borealis_file: uses BorealisArrayRead or BorealisSiteRead
-    and returns records or arrays (as requested)
-write_borealis_file: uses BorealisArrayWrite or BorealisSiteWrite
-    to write a file
-return_reader: attempts to read first as BorealisArrayRead and 
-    then as BorealisSiteRead and returns the reader class if one is 
-    successful
-borealis_site_to_array_file: uses BorealisSiteRead and BorealisArrayWrite
-    to convert a site file and write it to an array file.
-borealis_array_to_site_file: uses BorealisArrayRead and BorealisSiteWrite
-    to convert an array file and write it to a site file.
-borealis_write_to_dmap: uses read_borealis_file to read a file 
-    and BorealisConvert to then write a DARN file. 
-bfiq2darniqdat: reads a Borealis bfiq file and converts to DARN iqdat.
-rawacf2darnrawacf: reads a Borealis rawacf file and converts 
-    to DARN rawacf.
-
 See Also
 --------
 BorealisSiteRead
@@ -50,7 +33,7 @@ BorealisArrayRead
 BorealisArrayWrite
 BorealisConvert
 
-For more information on Borealis data files and how they convert to DARN 
+For more information on Borealis data files and how they convert to SDARN 
 filetypes, see: https://borealis.readthedocs.io/en/latest/ 
 """
 
