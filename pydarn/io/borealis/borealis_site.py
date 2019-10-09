@@ -64,12 +64,15 @@ class BorealisSiteRead():
     BorealisAntennasIq
     BorealisRawrf
 
+    filename: str
+        The filename of the Borealis HDF5 file being read.
     borealis_filetype: str
         The type of Borealis file. Types include:
         'bfiq'
         'antennas_iq'
         'rawacf'
         'rawrf'
+
     record_names: list(str)
     records: dict
     arrays: dict
@@ -130,8 +133,8 @@ class BorealisSiteRead():
     def record_names(self):
         """
         A sorted list of the set of record names in the HDF5 file read. 
-        These correspond to Borealis file record write times (in ms), and
-        are equal to the group names in the site file types.
+        These correspond to Borealis file record write times (in ms since
+        epoch), and are equal to the group names in the site file types.
         """
         return self._record_names
 
@@ -198,7 +201,7 @@ class BorealisSiteRead():
             records of beamformed iq data. Keys are first sequence timestamp
             (in ms since epoch).
         """
-        pydarn_log.debug("Reading Borealis bfiq file: {}"
+        pydarn_log.info("Reading Borealis bfiq file: {}"
                          "".format(self.filename))
         attribute_types = \
             borealis_formats.BorealisBfiq.site_single_element_types()
@@ -216,7 +219,7 @@ class BorealisSiteRead():
             records of borealis rawacf data. Keys are first sequence timestamp 
             (in ms since epoch).
         """
-        pydarn_log.debug(
+        pydarn_log.info(
             "Reading Borealis rawacf file: {}".format(self.filename))
 
         attribute_types = \
@@ -235,7 +238,7 @@ class BorealisSiteRead():
             records of borealis antennas iq data. Keys are first sequence
             timestamp (in ms since epoch).
         """
-        pydarn_log.debug("Reading Borealis antennas_iq file: {}"
+        pydarn_log.info("Reading Borealis antennas_iq file: {}"
                          "".format(self.filename))
         attribute_types = \
             borealis_formats.BorealisAntennasIq.site_single_element_types()
@@ -253,7 +256,7 @@ class BorealisSiteRead():
             records of borealis rawrf data. Keys are first sequence timestamp
             (in ms since epoch).
         """
-        pydarn_log.debug("Reading Borealis rawrf file: {}"
+        pydarn_log.info("Reading Borealis rawrf file: {}"
                          "".format(self.filename))
         attribute_types = \
             borealis_formats.BorealisRawrf.site_single_element_types()
@@ -314,10 +317,6 @@ class BorealisSiteWrite():
     ----------
     filename: str
         The filename of the Borealis HDF5 file being read.
-    temp_file: str
-        The temporary filename when writing record by record.
-    records: OrderedDict{dict}
-        The dictionary of Borealis records to write to HDF5 file.
     borealis_filetype
         Borealis filetype. Currently supported:
         - bfiq
@@ -325,12 +324,15 @@ class BorealisSiteWrite():
         - rawacf
         - rawrf
     record_names: list(str)
-        The list of record names of the Borealis data. These values 
-        are the write time of the record in ms since epoch.
+    records: OrderedDict{dict}
+    arrays: dict
+    compression: str
+        The type of compression to write the file as. Default None.
     """
     def __init__(self, filename: str, 
                  borealis_records: OrderedDict,
-                 borealis_filetype: str):
+                 borealis_filetype: str,
+                 hdf5_compression: Union[str, None] = None):
         """
         Write borealis records to a file.
 
@@ -347,10 +349,13 @@ class BorealisSiteWrite():
                 - rawacf
                 - antennas_iq
                 - rawrf
+        hdf5_compression
+            String representing hdf5 compression type. Default None.
         """
-        self.records = borealis_records
+        self._records = borealis_records
         self.borealis_filetype = borealis_filetype
         self.filename = filename
+        self.compression = hdf5_compression
         self._record_names = sorted(list(borealis_records.keys()))
         # list of group keys for partial write
         self.write_file()
@@ -372,10 +377,27 @@ class BorealisSiteWrite():
     def record_names(self):
         """
         A sorted list of the set of record names in the HDF5 file read. 
-        These correspond to Borealis file record write times (in ms), and
-        are equal to the group names in the site file types.
+        These correspond to Borealis file record write times (in ms since 
+        epoch), and are equal to the group names in the site file types.
         """
         return self._record_names
+
+    @property
+    def records(self):
+        """
+        The Borealis data in a dictionary of records, according to the 
+        site file format.
+        """
+        return self._records
+
+    @property 
+    def arrays(self):
+        """
+        The Borealis data in a dictionary of arrays, according to the 
+        restructured array file format.
+        """
+        return borealis_site_to_array_dict(self.filename, self.records, 
+                                           self.borealis_filetype)
 
     def write_file(self) -> str:
         """
@@ -407,7 +429,7 @@ class BorealisSiteWrite():
         filename: str
             Filename of written file.
         """
-        pydarn_log.debug(
+        pydarn_log.info(
             "Writing Borealis bfiq file: {}".format(self.filename))
         attribute_types = \
             borealis_formats.BorealisBfiq.site_single_element_types()
@@ -424,7 +446,7 @@ class BorealisSiteWrite():
         filename: str
             Filename of written file.
         """
-        pydarn_log.debug(
+        pydarn_log.info(
             "Writing Borealis rawacf file: {}".format(self.filename))
         attribute_types = \
             borealis_formats.BorealisRawacf.site_single_element_types()
@@ -441,7 +463,7 @@ class BorealisSiteWrite():
         filename: str
             Filename of written file.
         """
-        pydarn_log.debug(
+        pydarn_log.info(
             "Writing Borealis antennas_iq file: {}".format(self.filename))
         attribute_types = \
             borealis_formats.BorealisAntennasIq.site_single_element_types()
@@ -458,7 +480,7 @@ class BorealisSiteWrite():
         filename: str
             Filename of written file.
         """
-        pydarn_log.debug(
+        pydarn_log.info(
             "Writing Borealis rawrf file: {}".format(self.filename))
         attribute_types = \
             borealis_formats.BorealisRawrf.site_single_element_types()
@@ -505,7 +527,8 @@ class BorealisSiteWrite():
         tmp_filename = self.filename + '.tmp'
         Path(tmp_filename).touch()
         for group_name, group_dict in self.records.items():
-            dd.io.save(tmp_filename, {str(group_name): group_dict}, compression=None)
+            dd.io.save(tmp_filename, {str(group_name): group_dict},
+                compression=self.compression)
             cmd = cp_cmd.format(newfile=tmp_filename, full_file=self.filename, 
                 dtstr='/'+str(group_name))
 
