@@ -116,7 +116,7 @@ code_to_stid = {
 
 class BorealisConvert():
     """
-    Class for converting Borealis filetypes to SDARN filetypes.
+    Class for converting Borealis filetypes to SDARN DMap filetypes.
 
     See Also
     --------
@@ -137,7 +137,7 @@ class BorealisConvert():
     records: OrderedDict{dict}
         A dictionary of records in the record-by-record format
     dmap_filename: str
-        The filename of the SDARN dmap file to be written.
+        The filename of the SDARN DMap file to be written.
     group_names: list[str]
     dmap_records: list[dict]
     dmap_filetype: str
@@ -158,7 +158,7 @@ class BorealisConvert():
             The origin filetype of the Borealis data. 'rawacf' and 'bfiq' 
             allowed.
         dmap_filename: str
-            The filename of the SDARN dmap file to be written.
+            The filename of the SDARN DMap file to be written.
         hdf5_filename: str
             The filename of the source data. For determining slice id and 
             maintaining a clear record of where the data came from.
@@ -196,7 +196,7 @@ class BorealisConvert():
         """ for printing of the class object"""
 
         return "Converting {total_records} {origin_filetype} records into "\
-               "dmap SDARN records and writing to file {dmap_filename}."\
+               "DMap SDARN records and writing to file {dmap_filename}."\
                "".format(total_records=len(self.borealis_records.keys()),
                          origin_filetype=self.origin_filetype, 
                          dmap_filename=self.dmap_filename)
@@ -391,7 +391,7 @@ class BorealisConvert():
 
                 slice_id = os.path.basename(self.hdf5_filename).split('.')[4]
 
-                # base offset for setting the toff field in SDARN iqdat file.
+                # base offset for setting the toff field in SDARN DMap iqdat file.
                 offset = 2 * v['antenna_arrays_order'].shape[0] * \
                     v['num_samps']
 
