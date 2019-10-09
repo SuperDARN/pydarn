@@ -235,12 +235,12 @@ class BorealisConversionTypesError(Exception):
 
 class BorealisConvert2IqdatError(Exception):
     """
-    Raised when the file cannot be converted to DARN DMap iqdat format.
+    Raised when the file cannot be converted to SDARN DMap iqdat format.
 
     Parameters
     ----------
     error_str: str
-        explanation for why the file cannot be converted to DARN iqdat.
+        explanation for why the file cannot be converted to SDARN iqdat.
 
     Attributes
     ----------
@@ -249,7 +249,7 @@ class BorealisConvert2IqdatError(Exception):
     """
 
     def __init__(self, error_str: str):
-        self.message = "The file cannot be converted to DARN iqdat due to "\
+        self.message = "The file cannot be converted to SDARN iqdat due to "\
             "the following error: {error_str}"\
             "".format(error_str=error_str)
         Exception.__init__(self, self.message)
@@ -257,12 +257,12 @@ class BorealisConvert2IqdatError(Exception):
 
 class BorealisConvert2RawacfError(Exception):
     """
-    Raised when the file cannot be converted to DARN DMap rawacf format.
+    Raised when the file cannot be converted to SDARN DMap rawacf format.
 
     Parameters
     ----------
     error_str: str
-        explanation for why the file cannot be converted to DARN rawacf.
+        explanation for why the file cannot be converted to SDARN rawacf.
     
     Attributes
     ----------
@@ -271,7 +271,7 @@ class BorealisConvert2RawacfError(Exception):
     """
 
     def __init__(self, error_str: str):
-        self.message = "The file cannot be converted to DARN rawacf due to "\
+        self.message = "The file cannot be converted to SDARN rawacf due to "\
             "the following error: {error_str}"\
             "".format(error_str=error_str)
         Exception.__init__(self, self.message)

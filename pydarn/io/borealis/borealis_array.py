@@ -32,9 +32,8 @@ BorealisSiteWrite
 borealis_site_to_array_file
 borealis_array_to_site_file
 
-For more information on Borealis data files and how they convert to dmap,
-see: https://borealis.readthedocs.io/en/latest/ 
-
+For more information on Borealis data files and how they convert to SDARN
+files, see: https://borealis.readthedocs.io/en/latest/ 
 """
 import deepdish as dd
 import h5py
