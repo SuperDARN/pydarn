@@ -62,369 +62,380 @@ import warnings
 from collections import OrderedDict
 from typing import Union, List
 
-from pydarn import borealis_exceptions, BorealisSiteRead, \
-                   BorealisSiteWrite, BorealisArrayRead, \
-                   BorealisArrayWrite, BorealisConvert, \
-                   BorealisRestructureUtilities
+from pydarn import (borealis_exceptions, BorealisConvert, 
+                    BorealisRestructureUtilities)
+from .borealis_site import BorealisSiteRead, BorealisSiteWrite
+from .borealis_array import BorealisArrayRead, BorealisArrayWrite
 
 pydarn_log = logging.getLogger('pydarn')
 
 
-def read_borealis_file(borealis_hdf5_file: str, borealis_filetype: str, 
-                       site: bool = False, records: bool = False) -> \
-                       Union[dict, OrderedDict]:
+class BorealisRead():
     """
-    Read a Borealis file appropriately given site flag. Returns either
-    arrays or records according to records flag.
-
-    Parameters
-    ----------
-    borealis_hdf5_file
-        Borealis file to read. Either array or site style.
-    borealis_filetype
-        Borealis filetype. Possible types include antennas_iq, 
-        bfiq, rawacf, rawrf.
-    site: bool 
-        True if for reading as a site file (record by record), False for 
-        reading as an array file. Default False.
-    records: bool
-        True for returning a record dictionary, False for arrays dictionary.
-        Default False.
-
-    Returns
-    -------
-    data_dict : Union[dict, OrderedDict]
-        The records dictionary or arrays dictionary, as requested.
+    Class for reading Borealis filetypes of both array and site
+    structure. This class abstracts and redirects the file being read to
+    the correct class (BorealisSiteRead or BorealisArrayRead).
 
     See Also
     --------
-    BorealisArrayRead
     BorealisSiteRead
-    BorealisRestructureUtilities
-    """
+    BorealisArrayRead
+    BorealisRawacf
+    BorealisBfiq
+    BorealisAntennasIq
+    BorealisRawrf
 
-    if site:
-        reader = BorealisSiteRead(borealis_hdf5_file, borealis_filetype)
-    else:
-        reader = BorealisArrayRead(borealis_hdf5_file, borealis_filetype)
-
-    if records:
-        data_dict = reader.records
-    else:
-        data_dict = reader.arrays
-
-    return data_dict
-
-
-def write_borealis_file(data_dict: Union[dict, OrderedDict], 
-                        borealis_hdf5_file: str, borealis_filetype: str,
-                        records=False) -> str:
-    """
-    Write a Borealis file appropriately given site flag. 
-
-    Parameters
+    Attributes
     ----------
-    data_dict: Union[dict, OrderedDict]
-        Borealis dictionary to write. Either records or arrays.
-    borealis_hdf5_file
-        Borealis filename to write to. 
-    borealis_filetype
-        Borealis filetype. Possible types include antennas_iq, 
-        bfiq, rawacf, rawrf.
-    records: bool
-        To be passed in True if data_dict is records, False for arrays 
-        dictionary. Default False. If True, will write a site file. If 
-        False, will write arrays file.
-
-    Returns
-    -------
     filename: str
-        The filename that was successfully written to. 
-
-    See Also
-    --------
-    BorealisArrayWrite
-    BorealisSiteWrite
-    BorealisRestructureUtilities
+        The filename of the Borealis HDF5 file being read.
+    borealis_filetype: str
+        The type of Borealis file. Types include:
+        'bfiq'
+        'antennas_iq'
+        'rawacf'
+        'rawrf'
+    reader: Union[BorealisSiteWrite, BorealisArrayWrite]
+        the wrapped BorealisSiteRead or BorealisArrayRead instance
+    borealis_file_structure: Union[str, None]
+    records: dict
+    arrays: dict
     """
 
-    if records:
-        writer = BorealisSiteWrite(borealis_hdf5_file, data_dict,
-                                   borealis_filetype)
-    else:
-        writer = BorealisArrayWrite(borealis_hdf5_file, data_dict,
-                                   borealis_filetype)
+    def __init__(self, filename: str, borealis_filetype: str, 
+            borealis_file_structure: Union[str, None] = None):
+        """
+        Reads Borealis array file types into a dictionary.
 
-    return writer.filename
+        Parameters
+        ----------
+        filename: str
+            file name containing Borealis hdf5 data.
+        borealis_filetype: str
+            The type of Borealis file. Types include:
+            'bfiq'
+            'antennas_iq'
+            'rawacf'
+            'rawrf'
+        borealis_file_structure: Union[str, None]
+            The write structure of the file provided. Possible types are
+            'site', 'array', or None. If None (default), array will be attempted 
+            first followed by site. 
 
+        Raises
+        ------
+        OSError
+            Unable to open file
+        BorealisStructureError
+            Unknown structure type.
+        """
+        self.filename = filename
 
-def return_reader(borealis_hdf5_file: str, borealis_filetype: str) -> \
-                    (Union[BorealisArrayRead, BorealisSiteRead], str):
-    """
-    Attempts to read a file as array and then as site. Returns if
-    any read is successful.
+        if borealis_filetype not in ['bfiq', 'antennas_iq', 'rawacf', 'rawrf']:
+            raise borealis_exceptions.BorealisFileTypeError(
+                self.filename, borealis_filetype)
+        self.borealis_filetype = borealis_filetype
 
-    Parameters
-    ----------
-    borealis_hdf5_file
-        Borealis file to read. Either array or site style.
-    borealis_filetype
-        Borealis filetype. Possible types include antennas_iq, 
-        bfiq, rawacf.
+        if borealis_file_structure == None:
+            self._reader, self._borealis_file_structure = \
+                self.return_reader(self.filename, self.borealis_filetype)
+        elif borealis_file_structure == 'site':
+            self._reader = BorealisSiteRead(self.filename, self.borealis_filetype)
+            self._borealis_file_structure = 'site'
+        elif borealis_file_structure == 'array':
+            self._reader = BorealisArrayRead(self.filename, self.borealis_filetype)
+            self._borealis_file_structure = 'array'
+        else: # unknown structure
+            raise BorealisStructureError('Unknown structure type: {}'\
+                ''.format(borealis_file_structure))
 
-    Returns
-    -------
-    reader
-        instance of BorealisArrayRead or BorealisSiteRead, depending on
-        reader success
-    reader_type
-        'array' or 'site', depending on which read was successful
+    def __repr__(self):
+        """ for representation of the class object"""
+        # __class__.__name__ allows to grab the class name such that
+        # when a class inherits this one, the class name will be the child
+        # class and not the parent class
+        return "{class_name}({filename}, {borealis_filetype})"\
+            "".format(class_name=self.__class__.__name__,
+                      filename=self.filename, 
+                      borealis_filetype=self.borealis_filetype)
 
-    Raises
-    ------
-    BorealisExtraFieldError
-    BorealisMissingFieldError
-    BorealisDataFormatTypeError
+    def __str__(self):
+        """ for printing of the class object"""
 
-    See Also
-    --------
-    BorealisArrayRead
-    BorealisSiteRead
-    BorealisRestructureUtilities
-    """
-    try:
-        reader = BorealisArrayRead(borealis_hdf5_file, borealis_filetype)
-        return reader, 'array'
-    except (borealis_exceptions.BorealisExtraFieldError, 
-           borealis_exceptions.BorealisFieldMissingError,
-           borealis_exceptions.BorealisStructureError):
+        return "Reading from {filename}"\
+            "".format(filename=self.filename)
+
+    @property
+    def borealis_file_structure(self):
+        """
+        The structure of the file read, 'site' or 'array'. Default None.
+        """
+        return self._borealis_file_structure
+
+    @property
+    def record_names(self):
+        """
+        A sorted list of the set of record names in the HDF5 file read. 
+        These correspond to Borealis file record write times (in ms since
+        epoch), and are equal to the group names in the site file types.
+        """
+        return self._reader.record_names
+
+    @property
+    def records(self):
+        """
+        The Borealis data in a dictionary of records, according to the 
+        site file format.
+        """
+        return self._reader.records
+
+    @property 
+    def arrays(self):
+        """
+        The Borealis data in a dictionary of arrays, according to the 
+        restructured array file format.
+        """
+        return self._reader.arrays
+
+    @staticmethod
+    def return_reader(borealis_hdf5_file: str, borealis_filetype: str) -> \
+                        (Union[BorealisArrayRead, BorealisSiteRead], str):
+        """
+        Attempts to read a file as array and then as site. Returns if
+        any read is successful.
+
+        Parameters
+        ----------
+        borealis_hdf5_file
+            Borealis file to read. Either array or site style.
+        borealis_filetype
+            Borealis filetype. Possible types include antennas_iq, 
+            bfiq, rawacf.
+
+        Returns
+        -------
+        reader
+            instance of BorealisArrayRead or BorealisSiteRead, depending on
+            reader success
+        reader_type
+            'array' or 'site', depending on which read was successful
+
+        Raises
+        ------
+        BorealisExtraFieldError
+        BorealisMissingFieldError
+        BorealisDataFormatTypeError
+
+        See Also
+        --------
+        BorealisArrayRead
+        BorealisSiteRead
+        BorealisRestructureUtilities
+        """
         try:
-            pydarn_log.debug('{} is not array restructured. Attempting site'\
+            reader = BorealisArrayRead(borealis_hdf5_file, borealis_filetype)
+            return reader, 'array'
+        except (borealis_exceptions.BorealisExtraFieldError, 
+               borealis_exceptions.BorealisFieldMissingError,
+               borealis_exceptions.BorealisStructureError):
+            pydarn_log.info('{} is not array restructured. Attempting site'\
                 ' read.'.format(borealis_hdf5_file))
-            reader = BorealisSiteRead(borealis_hdf5_file, borealis_filetype)
-            return reader, 'site'
-        except:
-            raise 
+            try:
+                reader = BorealisSiteRead(borealis_hdf5_file, borealis_filetype)
+                return reader, 'site'
+            except:
+                pydarn_log.info('{} is not site structured. Raising reader'\
+                    ' errors.'.format(borealis_hdf5_file))           
+                raise
 
 
-def borealis_site_to_array_file(read_data_path: str, write_data_path: str):
+class BorealisWrite():
     """
-    Restructure the data from site style (record by record) to array style,
-    where unshared fields across records are formed into arrays where the 
-    first dimension = the number of records. 
-
-    Shared fields that do not change between records will be
-    stored as fields in one metadata record within the file. 
-    
-    Parameters
-    ----------
-    read_data_path: str
-        string containing the path to the data file for restructuring
-    write_data_path: str
-        string containing the path of where to write the restructured data
-    
-    Raises
-    ------
-
-    BorealisFileTypeError
-        if cannot determine the borealis filetype
-    """
-
-    if read_data_path == write_data_path:
-        raise borealis_exceptions.ConvertFileOverWriteError(read_data_path)
-
-    if 'antennas_iq' in read_data_path:
-        borealis_filetype = 'antennas_iq'
-    elif 'bfiq' in read_data_path:
-        borealis_filetype = 'bfiq'
-    elif 'rawacf' in read_data_path:
-        borealis_filetype = 'rawacf'
-    else:
-        raise borealis_exceptions.BorealisFileTypeError(read_data_path, 
-            read_data_path[-2:])
-
-    pydarn_log.debug("Reading {} site file: {}".format(borealis_filetype, read_data_path))
-    site_reader = BorealisSiteRead(read_data_path, borealis_filetype)
-    pydarn_log.debug("Restructuring to array and writing to file: {}"\
-        "".format(write_data_path))
-    array_writer = BorealisArrayWrite(write_data_path, site_reader.arrays, 
-                                      borealis_filetype)
-    pydarn_log.debug("Successfully restructured {} to {}"\
-                     "".format(read_data_path, write_data_path))
-
-
-def borealis_array_to_site_file(read_data_path: str, write_data_path: str):
-    """
-    Converts a restructured and compressed hdf5 borealis datafile
-    back to its original, record based format.
-    
-    Parameters
-    ----------
-    read_data_path: str
-        string containing the path to the array data file
-    write_data_path: str
-        string containing the path of where to write the record-by-record data
-    
-    Raises
-    ------
-    ConvertFileOverWriteError
-        if read path = write path
-    BorealisFileTypeError
-        if cannot determine the borealis filetype
-    """
-
-    if read_data_path == write_data_path:
-        raise borealis_exceptions.ConvertFileOverWriteError(read_data_path)
-
-    warnings.simplefilter('ignore')
-
-    if 'antennas_iq' in read_data_path:
-        borealis_filetype = 'antennas_iq'
-    elif 'bfiq' in read_data_path:
-        borealis_filetype = 'bfiq'
-    elif 'rawacf' in read_data_path:
-        borealis_filetype = 'rawacf'
-    else:
-        raise borealis_exceptions.BorealisFileTypeError(read_data_path, 
-            read_data_path[-2:])
-
-    pydarn_log.debug("Reading {} array file: {}".format(borealis_filetype, 
-                                             read_data_path))
-    array_reader = BorealisArrayRead(read_data_path, borealis_filetype)
-    pydarn_log.debug("Restructuring to site and writing to file: {}"\
-        "".format(write_data_path))
-    site_writer = BorealisSiteWrite(write_data_path, array_reader.records, 
-                                    borealis_filetype)
-    pydarn_log.debug("Successfully restructured {} to {}"\
-                     "".format(read_data_path, write_data_path))
-
-
-def borealis_write_to_dmap(borealis_hdf5_file: str, borealis_filetype: str, 
-                           darn_filename: str, site: bool = False):
-    """
-    Convert a Borealis hdf5 file to a DARN filetype.
-
-    Parameters
-    ----------
-    borealis_hdf5_file: str
-        A Borealis file to convert to DARN DMap filetype. File may contain
-        site records or the Borealis arrays format, according to the site 
-        flag.
-    darn_filename
-        The filename to save the converted file to
-    borealis_filetype
-        The Borealis filetype to convert from, if not the default of the
-        second last extension in the filename. This determines the darn
-        filetype to convert to according to the mapping:
-        'rawacf' -> 'rawacf'
-        'bfiq' -> 'iqdat'
-    site: bool 
-        Type of the Borealis file supplied. If True, will read as a site file. 
-        If False, will read as an array file. Default False.
-
-    Raises
-    ------
-    BorealisFileTypeError
-    BorealisFieldMissingError
-    BorealisExtraFieldError
-    BorealisDataFormatTypeError
-    BorealisNumberOfRecordsError
-    BorealisConversionTypesError
-    BorealisConvert2IqdatError
-    BorealisConvert2RawacfError
-    BorealisRestructureError
-    ConvertFileOverWriteError
+    Class for writing Borealis filetypes of both array and site
+    structure. This class abstracts and redirects the file write to
+    the correct class (BorealisSiteWrite or BorealisArrayWrite).
 
     See Also
     --------
-    read_borealis_file
-    BorealisConvert
-    """
+    BorealisSiteWrite
+    BorealisArrayWrite
+    BorealisRawacf
+    BorealisBfiq
+    BorealisAntennasIq
+    BorealisRawrf
 
-    if borealis_hdf5_file == darn_filename:
-        raise borealis_exceptions.ConvertFileOverWriteError(borealis_hdf5_file)
-
-    records = read_borealis_file(borealis_hdf5_file, borealis_filetype, 
-                                 site=site, records=True)
-    converter = BorealisConvert(records, borealis_filetype, darn_filename, 
-        borealis_hdf5_file)
-
-    pydarn_log.debug("Borealis file {filename} written to {darn_filename} "
-          "without errors.".format(filename=borealis_hdf5_file, 
-                          darn_filename=darn_filename))    
-
-
-def bfiq2darniqdat(borealis_hdf5_file: str, darn_filename: str, 
-                   site: bool = False):
-    """
-    Convert a Borealis bfiq file to DARN iqdat.
-
-    Parameters
+    Attributes
     ----------
-    borealis_hdf5_file: str
-        A Borealis bfiq file to convert to DARN DMap filetype. File may contain
-        site records or the Borealis arrays format, according to the site 
-        flag.
-    darn_filename
-        The filename to save the converted file to
-    site: bool 
-        Type of the Borealis file supplied. If True, will read as a site file. 
-        If False, will read as an array file. Default False.
-
-    Raises
-    ------
-    BorealisFileTypeError
-    BorealisFieldMissingError
-    BorealisExtraFieldError
-    BorealisDataFormatTypeError
-    BorealisNumberOfRecordsError
-    BorealisConversionTypesError
-    BorealisConvert2IqdatError
-    BorealisConvert2RawacfError
-    BorealisRestructureError
-    ConvertFileOverWriteError
-
-    See Also
-    --------
-    borealis_write_to_dmap
+    filename: str
+        The filename of the Borealis HDF5 file being written.
+    borealis_filetype: str
+        The type of Borealis file. Types include:
+        'bfiq'
+        'antennas_iq'
+        'rawacf'
+        'rawrf'
+    writer: Union[BorealisSiteWrite, BorealisArrayWrite]
+        the wrapped BorealisSiteWrite or BorealisArrayWrite instance
+    borealis_file_structure: Union[str, None]
+    compression: str
+        The type of compression to write the file as. Default zlib.
+    arrays: dict
+        The Borealis data in a dictionary of arrays, according to the 
+        restructured array file format.
     """
-    borealis_write_to_dmap(borealis_hdf5_file, 'bfiq', darn_filename, 
-                           site=site)
 
+    def __init__(self, filename: str, borealis_data: Union[dict, OrderedDict],
+                 borealis_filetype: str, 
+                 borealis_file_structure: Union[str, None] = None,
+                 **kwargs):
+        """
+        Write borealis records to a file.
 
-def rawacf2darnrawacf(borealis_hdf5_file: str, darn_filename: str, 
-                      site: bool = False):
-    """
-    Convert a Borealis rawacf file to DARN rawacf.
+        Parameters
+        ----------
+        filename: str
+            Name of the file the user wants to write to
+        data: Union[dict, OrderedDict]
+            borealis data dictionary. Can be arrays or records.
+        borealis_filetype: str
+            The type of Borealis file. Restructured types include:
+            'bfiq'
+            'antennas_iq'
+            'rawacf'
+        borealis_file_structure: Union[str, None]
+            The structure of the data provided. Possible types are
+            'site', 'array', or None. If None (default), array write will be 
+            attempted first followed by site. 
+        hdf5_compression: str
+            String representing compression type. Default zlib.
+        """
+        self.filename = filename
+        self.data = borealis_data
+        self.borealis_filetype = borealis_filetype
 
-    Parameters
-    ----------
-    borealis_hdf5_file: str
-        A Borealis rawacf file to convert to DARN DMap filetype. File may contain
-        site records or the Borealis arrays format, according to the site 
-        flag.
-    darn_filename
-        The filename to save the converted file to
-    site: bool 
-        Type of the Borealis file supplied. If True, will read as a site file. 
-        If False, will read as an array file. Default False.
+        if 'hdf5_compression' in kwargs.keys():
+            self.compression = kwargs['hdf5_compression']
 
-    Raises
-    ------
-    BorealisFileTypeError
-    BorealisFieldMissingError
-    BorealisExtraFieldError
-    BorealisDataFormatTypeError
-    BorealisNumberOfRecordsError
-    BorealisConversionTypesError
-    BorealisConvert2IqdatError
-    BorealisConvert2RawacfError
-    BorealisRestructureError
-    ConvertFileOverWriteError
+        if borealis_file_structure == None:
+            self._writer, self._borealis_file_structure = \
+                self.return_writer(self.filename, self.data, 
+                    self.borealis_filetype, **kwargs)
+        elif borealis_file_structure == 'site':
+            self._writer = BorealisSiteWrite(self.filename, self.data,
+                                             self.borealis_filetype, 
+                                             **kwargs)
+            self._borealis_file_structure = 'site'
+        elif borealis_file_structure == 'array':
+            self._writer = BorealisArrayWrite(self.filename, self.data, 
+                                              self.borealis_filetype, **kwargs)
+            self._borealis_file_structure = 'array'
+        else: # unknown structure
+            raise BorealisStructureError('Unknown structure type: {}'\
+                ''.format(borealis_file_structure))
 
-    See Also
-    --------
-    borealis_write_to_dmap
-    """
-    borealis_write_to_dmap(borealis_hdf5_file, 'rawacf', darn_filename, 
-                           site=site)
+    def __repr__(self):
+        """For representation of the class object"""
+
+        return "{class_name}({filename}, {current_record_name})"\
+               "".format(class_name=self.__class__.__name__,
+                         filename=self.filename,
+                         current_record_name=self.current_record_name)
+
+    def __str__(self):
+        """For printing of the class object"""
+
+        return "Writing to filename: {filename} at record name: "\
+               "{current_record_name}".format(filename=self.filename,
+                    current_record_name=self.current_record_name)
+
+    @property
+    def borealis_file_structure(self):
+        """
+        The structure of the file read, 'site' or 'array'. Default None.
+        """
+        return self._borealis_file_structure
+
+    @property
+    def record_names(self):
+        """
+        A sorted list of the set of record names in the HDF5 file read. 
+        These correspond to Borealis file record write times (in ms since
+        epoch), and are equal to the group names in the site file types.
+        """
+        return self._writer.record_names
+
+    @property
+    def records(self):
+        """
+        The Borealis data in a dictionary of records, according to the 
+        site file format.
+        """
+        return self._writer.records
+
+    @property 
+    def arrays(self):
+        """
+        The Borealis data in a dictionary of arrays, according to the 
+        restructured array file format.
+        """
+        return self._writer.arrays
+
+    @staticmethod
+    def return_writer(filename: str, data: Union[dict, OrderedDict],
+                      borealis_filetype: str, **kwargs) -> \
+                        (Union[BorealisArrayRead, BorealisSiteRead], str):
+        """
+        Attempts to write a file as array and then site. Returns if any writer
+        is successful.
+
+        Parameters
+        ----------
+        filename
+            Filename to write to. Either array or site style.
+        data
+            Data to write out. Can be arrays dictionary or OrderedDict of 
+            records. 
+        borealis_filetype
+            Borealis filetype. Possible types include antennas_iq, 
+            bfiq, rawacf, rawrf (site only).
+        kwargs:
+            keyword arguments for writer call. Only supported is 
+            'hdf5_compression'
+
+        Returns
+        -------
+        writer
+            instance of BorealisArrayWrite or BorealisSiteWrite, depending on
+            writer success
+        writer_type
+            'array' or 'site', depending on which write was successful
+
+        Raises
+        ------
+        BorealisExtraFieldError
+        BorealisMissingFieldError
+        BorealisDataFormatTypeError
+
+        See Also
+        --------
+        BorealisArrayWrite
+        BorealisSiteWrite
+        BorealisRestructureUtilities
+        """
+        try:
+            writer = BorealisArrayWrite(filename, data, borealis_filetype, 
+                **kwargs)
+            return writer, 'array'
+        except (borealis_exceptions.BorealisExtraFieldError, 
+               borealis_exceptions.BorealisFieldMissingError,
+               borealis_exceptions.BorealisStructureError):
+            pydarn_log.info('Data provided is not array restructured. '\
+                'Attempting site write to file {}.'.format(filename))
+            try:
+                writer = BorealisSiteWrite(filename, data, borealis_filetype,
+                    **kwargs)
+                return writer, 'site'
+            except:
+                pydarn_log.info('Data provided is not site structured. '\
+                    'Raising writer error.')           
+                raise
