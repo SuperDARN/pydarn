@@ -249,8 +249,8 @@ class BorealisConvert2IqdatError(Exception):
     """
 
     def __init__(self, error_str: str):
-        self.message = "The file cannot be converted to SDARN iqdat due to "\
-            "the following error: {error_str}"\
+        self.message = "The file cannot be converted to SDARN DMap iqdat due"\
+            " to the following error: {error_str}"\
             "".format(error_str=error_str)
         Exception.__init__(self, self.message)
 
@@ -271,8 +271,8 @@ class BorealisConvert2RawacfError(Exception):
     """
 
     def __init__(self, error_str: str):
-        self.message = "The file cannot be converted to SDARN rawacf due to "\
-            "the following error: {error_str}"\
+        self.message = "The file cannot be converted to SDARN DMap rawacf "\
+            "due to the following error: {error_str}"\
             "".format(error_str=error_str)
         Exception.__init__(self, self.message)
 
@@ -334,7 +334,7 @@ class BorealisStructureError(Exception):
 
 class ConvertFileOverWriteError(Exception):
     """
-    Trying to write to a file that also wish to read. 
+    Trying to write to a file that also reading.
 
     Parameters
     ----------
@@ -349,5 +349,5 @@ class ConvertFileOverWriteError(Exception):
 
     def __init__(self, filename: str):
         self.message = "Writing to {filename} not permitted while reading"\
-            " as source.".format(filename=filename)
+            " the file as source.".format(filename=filename)
         Exception.__init__(self, self.message)
