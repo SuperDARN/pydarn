@@ -135,7 +135,7 @@ class BorealisArrayRead():
         These correspond to Borealis file record write times (in ms), and
         are equal to the group names in the site file types.
         """
-        return sorted(list(records.keys()))
+        return sorted(list(self.records.keys()))
 
     @property
     def records(self):
@@ -198,7 +198,7 @@ class BorealisArrayRead():
             The Borealis data in a dictionary of arrays, according to the 
             restructured array file format.
         """
-        pydarn_log.debug("Reading Borealis bfiq file: {}"
+        pydarn_log.info("Reading Borealis bfiq file: {}"
                          "".format(self.filename))
         attribute_types = \
             borealis_formats.BorealisBfiq.array_single_element_types()
@@ -219,7 +219,7 @@ class BorealisArrayRead():
             The Borealis data in a dictionary of arrays, according to the 
             restructured array file format.
         """
-        pydarn_log.debug(
+        pydarn_log.info(
             "Reading Borealis rawacf file: {}".format(self.filename))
         attribute_types = \
             borealis_formats.BorealisRawacf.array_single_element_types()
@@ -240,7 +240,7 @@ class BorealisArrayRead():
             The Borealis data in a dictionary of arrays, according to the 
             restructured array file format.
         """
-        pydarn_log.debug("Reading Borealis antennas_iq file: {}"
+        pydarn_log.info("Reading Borealis antennas_iq file: {}"
                          "".format(self.filename))
         attribute_types = \
             borealis_formats.BorealisAntennasIq.array_single_element_types()
@@ -314,15 +314,15 @@ class BorealisArrayWrite():
         'bfiq'
         'antennas_iq'
         'rawacf'
+    record_names: list(str)
+    records: dict
+    arrays: dict
     compression: str
         The type of compression to write the file as. Default zlib.
-    arrays: dict
-        The Borealis data in a dictionary of arrays, according to the 
-        restructured array file format.
     """
 
     def __init__(self, filename: str, borealis_arrays: dict, 
-                 borealis_filetype: str, compression: str = 'zlib'):
+                 borealis_filetype: str, hdf5_compression: str = 'zlib'):
         """
         Write borealis records to a file.
 
@@ -339,13 +339,13 @@ class BorealisArrayWrite():
             'bfiq'
             'antennas_iq'
             'rawacf'
-        compression: str
-            String representing compression type. Default zlib.
+        hdf5_compression: str
+            String representing hdf5 compression type. Default zlib.
         """
         self.filename = filename
-        self.arrays = borealis_arrays
+        self._arrays = borealis_arrays
         self.borealis_filetype = borealis_filetype
-        self.compression = compression
+        self.compression = hdf5_compression
         self.write_file()
 
     def __repr__(self):
@@ -362,6 +362,32 @@ class BorealisArrayWrite():
         return "Writing to filename: {filename} at record name: "\
                "{current_record_name}".format(filename=self.filename,
                     current_record_name=self.current_record_name)
+
+    @property
+    def record_names(self):
+        """
+        A sorted list of the set of record names in the HDF5 file read. 
+        These correspond to Borealis file record write times (in ms), and
+        are equal to the group names in the site file types.
+        """
+        return sorted(list(self.records.keys()))
+
+    @property
+    def records(self):
+        """
+        The Borealis data in a dictionary of records, according to the 
+        site file format.
+        """
+        return borealis_array_to_site_dict(self.filename, self.arrays, 
+                                           self.borealis_filetype)
+
+    @property 
+    def arrays(self):
+        """
+        The Borealis data in a dictionary of arrays, according to the 
+        restructured array file format.
+        """
+        return self._arrays
 
     def write_file(self) -> str:
         """
@@ -391,7 +417,7 @@ class BorealisArrayWrite():
         filename: str
             Filename of written file.
         """
-        pydarn_log.debug(
+        pydarn_log.info(
             "Writing Borealis bfiq file: {}".format(self.filename))
         attribute_types = \
             borealis_formats.BorealisBfiq.array_single_element_types()
@@ -411,7 +437,7 @@ class BorealisArrayWrite():
         filename: str
             Filename of written file.
         """
-        pydarn_log.debug(
+        pydarn_log.info(
             "Writing Borealis rawacf file: {}".format(self.filename))
         attribute_types = \
             borealis_formats.BorealisRawacf.array_single_element_types()
@@ -431,7 +457,7 @@ class BorealisArrayWrite():
         filename: str
             Filename of written file.
         """
-        pydarn_log.debug(
+        pydarn_log.info(
             "Writing Borealis antennas_iq file: {}".format(self.filename))
         attribute_types = \
             borealis_formats.BorealisAntennasIq.array_single_element_types()
