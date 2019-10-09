@@ -325,10 +325,10 @@ class BorealisStructureError(Exception):
     """
 
     def __init__(self, error_str: str):
-        self.message = "The file has major structural errors. You may be"\
-            " attempting to use the file as the wrong style (site vs. array style)."\
-            "Please check if you are interested in records or arrays. {error_str}"\
-            "".format(error_str=error_str)
+        self.message = "Structural errors found. You may be"\
+            " attempting to use the file as the wrong structure ('site' or 'array'"\
+            " supported). Please check if you are interested in records or arrays."\
+            "{error_str}".format(error_str=error_str)
         Exception.__init__(self, self.message)
 
 
