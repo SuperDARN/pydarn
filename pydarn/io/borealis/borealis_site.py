@@ -10,8 +10,6 @@ Classes
 -------
 BorealisSiteRead: Reads Borealis site SuperDARN file types (hdf5)
 BorealisSiteWrite: Writes Borealis SuperDARN file types (hdf5)
-BorealisConvert: Writes Borealis SuperDARN files types to
-SuperDARN DARN files with DMap record structure
 
 Exceptions
 ----------
@@ -27,8 +25,8 @@ BorealisArrayWrite
 borealis_site_to_array_file
 borealis_array_to_site_file
 
-For more information on Borealis data files and how they convert to dmap,
-see: https://borealis.readthedocs.io/en/latest/ 
+For more information on Borealis data files and how they convert to SDARN
+files, see: https://borealis.readthedocs.io/en/latest/ 
 
 """
 import deepdish as dd

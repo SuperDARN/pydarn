@@ -7,7 +7,7 @@ converting of Borealis file types.
 Classes
 -------
 BorealisConvert: Writes Borealis SuperDARN files types to
-SuperDARN DARN files with DMap record structure
+SuperDARN SDARN files with DMap record structure
 
 Exceptions
 ----------
@@ -55,7 +55,7 @@ from pydarn.utils.conversions import dict2dmap
 
 pydarn_log = logging.getLogger('pydarn')
 
-# 3 letter radar code, mapped to station id for DARN files conversion.
+# 3 letter radar code, mapped to station id for SDARN files conversion.
 # TODO: when merged with plotting, remove this dictionary and call the 
 #    one in the plotting folder... also move Radars.py to a more 
 #    central location.
@@ -116,7 +116,7 @@ code_to_stid = {
 
 class BorealisConvert():
     """
-    Class for converting Borealis filetypes to DARN filetypes.
+    Class for converting Borealis filetypes to SDARN filetypes.
 
     See Also
     --------
@@ -132,12 +132,12 @@ class BorealisConvert():
     ----------
     allowed_conversions: dict
         Mapping of allowed Borealis types to their corresponding 
-        DARN DMap converted types.
+        SDARN DMap converted types.
     origin_filetype: str
     records: OrderedDict{dict}
         A dictionary of records in the record-by-record format
     dmap_filename: str
-        The filename of the DARN dmap file to be written.
+        The filename of the SDARN dmap file to be written.
     group_names: list[str]
     dmap_records: list[dict]
     dmap_filetype: str
@@ -148,7 +148,7 @@ class BorealisConvert():
     def __init__(self, records, origin_filetype, dmap_filename, 
             hdf5_filename):
         """
-        Convert HDF5 Borealis records to a given DARN file with DMap format.
+        Convert HDF5 Borealis records to a given SDARN file with DMap format.
 
         Parameters
         ----------
@@ -158,7 +158,7 @@ class BorealisConvert():
             The origin filetype of the Borealis data. 'rawacf' and 'bfiq' 
             allowed.
         dmap_filename: str
-            The filename of the DARN dmap file to be written.
+            The filename of the SDARN dmap file to be written.
         hdf5_filename: str
             The filename of the source data. For determining slice id and 
             maintaining a clear record of where the data came from.
@@ -196,7 +196,7 @@ class BorealisConvert():
         """ for printing of the class object"""
 
         return "Converting {total_records} {origin_filetype} records into "\
-               "dmap DARN records and writing to file {dmap_filename}."\
+               "dmap SDARN records and writing to file {dmap_filename}."\
                "".format(total_records=len(self.borealis_records.keys()),
                          origin_filetype=self.origin_filetype, 
                          dmap_filename=self.dmap_filename)
@@ -237,7 +237,7 @@ class BorealisConvert():
 
         Returns
         -------
-        dmap_filename, the name of the DARN file written.
+        dmap_filename, the name of the SDARN file written.
         """
 
         self._convert_records_to_dmap()
@@ -391,7 +391,7 @@ class BorealisConvert():
 
                 slice_id = os.path.basename(self.hdf5_filename).split('.')[4]
 
-                # base offset for setting the toff field in DARN iqdat file.
+                # base offset for setting the toff field in SDARN iqdat file.
                 offset = 2 * v['antenna_arrays_order'].shape[0] * \
                     v['num_samps']
 
@@ -536,7 +536,7 @@ class BorealisConvert():
 
     def _convert_rawacf_to_rawacf(self):
         """
-        Conversion for Borealis hdf5 rawacf to DARN DMap rawacf files.
+        Conversion for Borealis hdf5 rawacf to SDARN DMap rawacf files.
 
         See Also
         --------
@@ -623,7 +623,7 @@ class BorealisConvert():
                             v['correlation_dimensions'][2]-1, 2)
                         # NOTE: Flattening happening in 
                         # convert_to_dmap_datastructures
-                        # place the darn-style array in the dict
+                        # place the SDARN-style array in the dict
                         correlation_dict[key] = new_data
 
                     record_dict = {
