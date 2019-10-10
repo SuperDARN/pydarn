@@ -323,7 +323,7 @@ class BorealisArrayWrite():
     def __init__(self, filename: str, borealis_arrays: dict, 
                  borealis_filetype: str, hdf5_compression: str = 'zlib'):
         """
-        Write borealis records to a file.
+        Write borealis arrays to an array restructured file.
 
         Parameters
         ----------

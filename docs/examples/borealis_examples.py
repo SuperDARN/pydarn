@@ -154,7 +154,7 @@ def write_borealis_file(data_dict: Union[dict, OrderedDict],
 
     return writer.filename
 
-def borealis_site_to_array_file(read_data_path: str, write_data_path: str):
+def borealis_site_to_array_file(read_filename: str, write_filename: str):
     """
     Restructure the data from site style (record by record) to array style,
     where unshared fields across records are formed into arrays where the
@@ -165,88 +165,90 @@ def borealis_site_to_array_file(read_data_path: str, write_data_path: str):
 
     Parameters
     ----------
-    read_data_path: str
+    read_filename: str
         string containing the path to the data file for restructuring
-    write_data_path: str
+    write_filename: str
         string containing the path of where to write the restructured data
 
     Raises
     ------
     BorealisFileTypeError
         if cannot determine the borealis filetype
+    ConvertFileOverWriteError
+        if reading and writing to the same file
     """
 
-    if read_data_path == write_data_path:
-        raise borealis_exceptions.ConvertFileOverWriteError(read_data_path)
+    if read_filename == write_filename:
+        raise borealis_exceptions.ConvertFileOverWriteError(read_filename)
 
-    if 'antennas_iq' in read_data_path:
+    if 'antennas_iq' in read_filename:
         borealis_filetype = 'antennas_iq'
-    elif 'bfiq' in read_data_path:
+    elif 'bfiq' in read_filename:
         borealis_filetype = 'bfiq'
-    elif 'rawacf' in read_data_path:
+    elif 'rawacf' in read_filename:
         borealis_filetype = 'rawacf'
     else:
-        raise borealis_exceptions.BorealisFileTypeError(read_data_path,
-            read_data_path[-2:])
+        raise borealis_exceptions.BorealisFileTypeError(read_filename,
+            read_filename[-2:])
 
-    pydarn_log.info("Reading {} site file: {}".format(borealis_filetype, read_data_path))
-    site_reader = BorealisRead(read_data_path, borealis_filetype,
+    pydarn_log.info("Reading {} site file: {}".format(borealis_filetype, read_filename))
+    site_reader = BorealisRead(read_filename, borealis_filetype,
                                borealis_file_structure='site')
     pydarn_log.info("Restructuring to array and writing to file: {}"\
-        "".format(write_data_path))
-    array_writer = BorealisWrite(write_data_path, site_reader.arrays,
+        "".format(write_filename))
+    array_writer = BorealisWrite(write_filename, site_reader.arrays,
                                  borealis_filetype,
                                  borealis_file_structure='array')
     pydarn_log.info("Successfully restructured {} to {}"\
-                     "".format(read_data_path, write_data_path))
+                     "".format(read_filename, write_filename))
 
 
-def borealis_array_to_site_file(read_data_path: str, write_data_path: str):
+def borealis_array_to_site_file(read_filename: str, write_filename: str):
     """
     Converts a restructured and compressed hdf5 borealis datafile
     back to its original, record based format.
 
     Parameters
     ----------
-    read_data_path: str
+    read_filename: str
         string containing the path to the array data file
-    write_data_path: str
+    write_filename: str
         string containing the path of where to write the record-by-record data
 
     Raises
     ------
     ConvertFileOverWriteError
-        if read path = write path
+        if read file = write file
     BorealisFileTypeError
         if cannot determine the borealis filetype
     """
 
-    if read_data_path == write_data_path:
-        raise borealis_exceptions.ConvertFileOverWriteError(read_data_path)
+    if read_filename == write_filename:
+        raise borealis_exceptions.ConvertFileOverWriteError(read_filename)
 
     warnings.simplefilter('ignore')
 
-    if 'antennas_iq' in read_data_path:
+    if 'antennas_iq' in read_filename:
         borealis_filetype = 'antennas_iq'
-    elif 'bfiq' in read_data_path:
+    elif 'bfiq' in read_filename:
         borealis_filetype = 'bfiq'
-    elif 'rawacf' in read_data_path:
+    elif 'rawacf' in read_filename:
         borealis_filetype = 'rawacf'
     else:
-        raise borealis_exceptions.BorealisFileTypeError(read_data_path,
-            read_data_path[-2:])
+        raise borealis_exceptions.BorealisFileTypeError(read_filename,
+            read_filename[-2:])
 
     pydarn_log.info("Reading {} array file: {}".format(borealis_filetype,
-                                             read_data_path))
-    array_reader = BorealisRead(read_data_path, borealis_filetype,
+                                             read_filename))
+    array_reader = BorealisRead(read_filename, borealis_filetype,
                                 borealis_file_structure='array')
     pydarn_log.info("Restructuring to site and writing to file: {}"\
-        "".format(write_data_path))
-    site_writer = BorealisWrite(write_data_path, array_reader.records,
+        "".format(write_filename))
+    site_writer = BorealisWrite(write_filename, array_reader.records,
                                 borealis_filetype,
                                 borealis_file_structure='site')
     pydarn_log.info("Successfully restructured {} to {}"\
-                     "".format(read_data_path, write_data_path))
+                     "".format(read_filename, write_filename))
 
 
 def borealis_write_to_dmap(borealis_hdf5_file: str, borealis_filetype: str,

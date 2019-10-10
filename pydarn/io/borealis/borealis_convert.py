@@ -7,7 +7,7 @@ converting of Borealis file types.
 Classes
 -------
 BorealisConvert: Writes Borealis SuperDARN files types to
-SuperDARN SDARN files with DMap record structure
+    SuperDARN SDARN files with DMap record structure
 
 Exceptions
 ----------
@@ -25,6 +25,8 @@ BorealisConvert makes use of DarnWrite to write to SuperDARN file types
 
 See Also
 --------
+BorealisRead
+BorealisWrite
 BorealisSiteRead
 BorealisSiteWrite
 BorealisArrayRead
@@ -36,7 +38,8 @@ see: https://borealis.readthedocs.io/en/latest/
 Future Work
 -----------
 Remove requirement for hdf5 filename by fixing Borealis datawrite so that 
-slice_id is written
+    slice_id is written. This must be fixed in the Borealis code.
+Update noise values in SDarn fields when these can be calculated.
 
 """
 import deepdish as dd
@@ -135,17 +138,21 @@ class BorealisConvert():
         SDARN DMap converted types.
     origin_filetype: str
     records: OrderedDict{dict}
-        A dictionary of records in the record-by-record format
-    dmap_filename: str
+        A dictionary of records in the record-by-record site 
+        structure of Borealis files. The other structure that 
+        exists is array restructured files. This function uses 
+        record format only as that is what is used by SDARN DMap 
+        files.
+    sdarn_filename: str
         The filename of the SDARN DMap file to be written.
     group_names: list[str]
-    dmap_records: list[dict]
-    dmap_filetype: str
+    sdarn_records: list[dict]
+    sdarn_filetype: str
     """
 
     __allowed_conversions = {'rawacf': 'rawacf', 'bfiq': 'iqdat'}
 
-    def __init__(self, records, origin_filetype, dmap_filename, 
+    def __init__(self, records, origin_filetype, sdarn_filename, 
             hdf5_filename):
         """
         Convert HDF5 Borealis records to a given SDARN file with DMap format.
@@ -153,11 +160,11 @@ class BorealisConvert():
         Parameters
         ----------
         records: OrderedDict{dict}
-            A dictionary of records in the record-by-record format
+            A dictionary of records in Borealis site structure.
         origin_filetype: str
             The origin filetype of the Borealis data. 'rawacf' and 'bfiq' 
             allowed.
-        dmap_filename: str
+        sdarn_filename: str
             The filename of the SDARN DMap file to be written.
         hdf5_filename: str
             The filename of the source data. For determining slice id and 
@@ -170,36 +177,36 @@ class BorealisConvert():
         """
         self.borealis_records = self.records = records
         self._origin_filetype = origin_filetype
-        self.dmap_filename = dmap_filename      
+        self.sdarn_filename = sdarn_filename      
         self.hdf5_filename = hdf5_filename  
         self._group_names = sorted(list(self.borealis_records.keys()))
-        self._dmap_records = {}
+        self._sdarn_records = {}
         try:
-            self._dmap_filetype = self.__allowed_conversions[
+            self._sdarn_filetype = self.__allowed_conversions[
                     self.origin_filetype]
         except KeyError:
             raise borealis_exceptions.BorealisConversionTypesError(
-                self.dmap_filename, self.origin_filetype, 
+                self.sdarn_filename, self.origin_filetype, 
                 self.__allowed_conversions)
-        self._write_to_dmap()
+        self._write_to_sdarn()
 
     def __repr__(self):
         """ for representation of the class object"""
 
-        return "{class_name}({records}{origin_filetype}{dmap_filename})"\
+        return "{class_name}({records}{origin_filetype}{sdarn_filename})"\
                "".format(class_name=self.__class__.__name__,
                          records=self.records, 
                          origin_filetype=self.origin_filetype,
-                         dmap_filename=self.dmap_filename)
+                         sdarn_filename=self.sdarn_filename)
 
     def __str__(self):
         """ for printing of the class object"""
 
         return "Converting {total_records} {origin_filetype} records into "\
-               "DMap SDARN records and writing to file {dmap_filename}."\
+               "DMap SDARN records and writing to file {sdarn_filename}."\
                "".format(total_records=len(self.borealis_records.keys()),
                          origin_filetype=self.origin_filetype, 
-                         dmap_filename=self.dmap_filename)
+                         sdarn_filename=self.sdarn_filename)
 
     @property
     def group_names(self):
@@ -210,18 +217,18 @@ class BorealisConvert():
         return self._group_names
 
     @property
-    def dmap_records(self):
+    def sdarn_records(self):
         """
         The converted DMap records to write to file.
         """
-        return self._dmap_records
+        return self._sdarn_records
 
     @property
-    def dmap_filetype(self):
+    def sdarn_filetype(self):
         """
         The dmap filetype converted to. 'rawacf' and 'iqdat' are allowed.
         """
-        return self._dmap_filetype
+        return self._sdarn_filetype
 
     @property
     def origin_filetype(self):
@@ -230,23 +237,23 @@ class BorealisConvert():
         """
         return self._origin_filetype
 
-    def _write_to_dmap(self) -> str:
+    def _write_to_sdarn(self) -> str:
         """
         Write the Borealis records as dmap records to a dmap file using PyDARN
         IO.
 
         Returns
         -------
-        dmap_filename, the name of the SDARN file written.
+        sdarn_filename, the name of the SDARN file written.
         """
 
         self._convert_records_to_dmap()
-        darn_writer = DarnWrite(self._dmap_records, self.dmap_filename)
-        if self.dmap_filetype == 'iqdat':
-            darn_writer.write_iqdat(self.dmap_filename)
-        elif self.dmap_filetype == 'rawacf':
-            darn_writer.write_rawacf(self.dmap_filename)
-        return self.dmap_filename
+        darn_writer = DarnWrite(self._sdarn_records, self.sdarn_filename)
+        if self.sdarn_filetype == 'iqdat':
+            darn_writer.write_iqdat(self.sdarn_filename)
+        elif self.sdarn_filetype == 'rawacf':
+            darn_writer.write_rawacf(self.sdarn_filename)
+        return self.sdarn_filename
 
     def _convert_records_to_dmap(self):
         """
@@ -259,19 +266,19 @@ class BorealisConvert():
 
         Returns
         -------
-        dmap_records, the records converted to DMap format
+        sdarn_records, the records converted to DMap format
         """
-        if self.dmap_filetype == 'iqdat':
+        if self.sdarn_filetype == 'iqdat':
             if self._is_convertible_to_iqdat():
-                dmap_records = self._convert_bfiq_to_iqdat()
-        elif self.dmap_filetype == 'rawacf':
+                sdarn_records = self._convert_bfiq_to_iqdat()
+        elif self.sdarn_filetype == 'rawacf':
             if self._is_convertible_to_rawacf():
-                dmap_records = self._convert_rawacf_to_rawacf()
+                sdarn_records = self._convert_rawacf_to_rawacf()
         else:  # nothing else is currently supported
             raise borealis_exceptions.BorealisConversionTypesError(
-                self.dmap_filename, self.origin_filetype, 
+                self.sdarn_filename, self.origin_filetype, 
                 self.__allowed_conversions)
-        self._dmap_records = dmap_records
+        self._sdarn_records = sdarn_records
 
     def _is_convertible_to_iqdat(self) -> bool:
         """
@@ -293,7 +300,7 @@ class BorealisConvert():
         """
         if self.origin_filetype != 'bfiq':
             raise borealis_exceptions.BorealisConversionTypesError(
-                self.dmap_filename, self.origin_filetype, 
+                self.sdarn_filename, self.origin_filetype, 
                 self.__allowed_conversions)
         else:  # There are some specific things to check
             for k, v in self.borealis_records.items():
@@ -335,7 +342,7 @@ class BorealisConvert():
         """
         if self.origin_filetype != 'rawacf':
             raise borealis_exceptions.BorealisConversionTypesError(
-                self.dmap_filename, self.origin_filetype, 
+                self.sdarn_filename, self.origin_filetype, 
                 self.__allowed_conversions)
         else:  # There are some specific things to check
             for k, v in self.borealis_records.items():
@@ -654,6 +661,7 @@ class BorealisConvert():
                         'time.us': np.int32(datetime.utcfromtimestamp(
                             v['sqn_timestamps'][0]).microsecond),
                         'txpow': np.int16(-1),
+                        # see Borealis documentation
                         'nave': np.int16(v['num_sequences']),
                         'atten': np.int16(0),
                         'lagfr': np.int16(v['first_range_rtt']),
@@ -686,7 +694,7 @@ class BorealisConvert():
                         'nrang': np.int16(v['correlation_dimensions'][1]),
                         'frang': np.int16(round(v['first_range'])),
                         'rsep': np.int16(round(v['range_sep'])),
-                        # False is list is empty.
+                        # False if list is empty.
                         'xcf': np.int16(bool('xcfs' in v.keys())),
                         'tfreq': np.int16(v['freq']),
                         'mxpwr': np.int32(-1),
