@@ -37,8 +37,8 @@ from collections import OrderedDict
 from pathlib2 import Path
 from typing import Union, List
 
-from pydarn import borealis_exceptions, BorealisUtilities, \
-                   borealis_formats
+from pydarn import borealis_exceptions, borealis_formats
+from .borealis_utilities import BorealisUtilities
 
 
 class BorealisRestructureUtilities():
