@@ -377,13 +377,13 @@ class BorealisUtilities():
                     num_records).with_traceback(tb)
 
     @classmethod
-    def check_arrays(cls, filename: str, arrays: dict, attribute_types: dict, 
+    def check_arrays(cls, origin_string: str, arrays: dict, attribute_types: dict, 
                      dataset_types: dict, unshared_fields: List[str]):
         """
         Parameters
         ----------
-        filename: str
-            Name of file to be checked.
+        origin_string: str
+            Name of file to be checked or other origin descriptor.
         arrays: dict
             Dictionary of arrays to be checked.
         attribute_types: dict
@@ -420,17 +420,17 @@ class BorealisUtilities():
         array_num_records_check(filename, unshared_fields, file_data)
         """
         all_format_fields = [attribute_types, dataset_types]
-        cls.array_missing_field_check(filename,
+        cls.array_missing_field_check(origin_string,
             all_format_fields, arrays)
-        cls.array_extra_field_check(filename,
+        cls.array_extra_field_check(origin_string,
             all_format_fields, arrays)
-        cls.array_incorrect_types_check(filename,
+        cls.array_incorrect_types_check(origin_string,
             attribute_types, dataset_types, arrays)
-        cls.array_num_records_check(filename,
+        cls.array_num_records_check(origin_string,
             unshared_fields, arrays)
 
     @classmethod
-    def check_records(cls, filename: str, records: dict, attribute_types: dict, 
+    def check_records(cls, origin_string: str, records: dict, attribute_types: dict, 
                       dataset_types: dict):
         """
         Do checks on the restructured data the same as would be done as if 
@@ -438,8 +438,8 @@ class BorealisUtilities():
 
         Parameters
         ----------
-        filename: str
-            Name of file to be checked.
+        origin_string: str
+            Name of file to be checked or other origin descriptor.
         records: dict
             Dictionary of records to be checked for errors.
         attribute_types: dict
@@ -472,10 +472,10 @@ class BorealisUtilities():
         all_format_fields = [attribute_types, dataset_types]
         
         for record_name, record in records.items():
-            cls.record_missing_field_check(filename,
+            cls.record_missing_field_check(origin_string,
                 all_format_fields, record, record_name=record_name)
-            cls.record_extra_field_check(filename,
+            cls.record_extra_field_check(origin_string,
                 all_format_fields, record, record_name=record_name)
-            cls.record_incorrect_types_check(filename,
+            cls.record_incorrect_types_check(origin_string,
                 attribute_types, dataset_types, record, 
                 record_name)      
