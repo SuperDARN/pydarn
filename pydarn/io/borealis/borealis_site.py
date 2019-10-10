@@ -70,7 +70,6 @@ class BorealisSiteRead():
         'antennas_iq'
         'rawacf'
         'rawrf'
-
     record_names: list(str)
     records: dict
     arrays: dict
@@ -78,7 +77,7 @@ class BorealisSiteRead():
 
     def __init__(self, filename: str, borealis_filetype: str):
         """
-        Reads Borealis array file types into a dictionary.
+        Reads Borealis site file types into a dictionary.
 
         Parameters
         ----------
@@ -522,6 +521,8 @@ class BorealisSiteWrite():
         # use external h5copy utility to move new record into 2hr file.
         cp_cmd = 'h5copy -i {newfile} -o {full_file} -s {dtstr} -d {dtstr}'
         warnings.filterwarnings("ignore")
+        # Must use temporary file to append to a file; writing entire
+        # dictionary at once also doesn't work so this is required.
         tmp_filename = self.filename + '.tmp'
         Path(tmp_filename).touch()
         for group_name, group_dict in self.records.items():

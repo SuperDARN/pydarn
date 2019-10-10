@@ -214,7 +214,7 @@ class BorealisBfiqToRawacfPostProcessor():
         xcfs = np.zeros((num_sequences, num_beams, num_ranges, num_lags),
                              dtype=np.complex64)
 
-        # Perform autocorrelations of each array, and cross correlation 
+        # Perform autocorrelations of each array, and cross-correlation 
         # between arrays
         for seq in range(num_sequences):
             for beam in range(num_beams):
