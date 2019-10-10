@@ -44,8 +44,8 @@ from datetime import datetime as dt
 from pathlib2 import Path
 from typing import Union, List
 
-from pydarn import (borealis_exceptions, borealis_site_to_array_dict, 
-                    BorealisRead, BorealisWrite)
+from pydarn import borealis_exceptions, BorealisRead, BorealisWrite
+from .restructure_borealis import borealis_site_to_array_dict
 
 
 class BorealisBfiqToRawacfPostProcessor():
