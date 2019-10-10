@@ -34,7 +34,6 @@ import tempfile
 import warnings
 
 from collections import OrderedDict
-from functools import reduce
 from pathlib2 import Path
 from typing import Union, List
 
@@ -253,7 +252,6 @@ class BorealisRestructureUtilities():
         new_data_dict["noise_at_freq"] = noise_buffer.reshape(noise_shape)
 
         new_data_dict["data_descriptors"] = data_descriptors
-        # new_data_dict["data_dimensions"] = data_dims_array
 
         return new_data_dict
 
@@ -502,12 +500,12 @@ class BorealisRestructureUtilities():
                 "Unrecognized filetype in _iq_site_to_array")
         
         # get keys from first sequence timestamps
-        for rec, seq_ts in enumerate(data_dict["sqn_timestamps"]):
+        for rec, seq_timestamp in enumerate(data_dict["sqn_timestamps"]):
             # format dictionary key in the same way it is done
             # in datawrite on site
-            sqn_dt_ts = datetime.datetime.utcfromtimestamp(seq_ts[0])
+            seq_datetime = datetime.datetime.utcfromtimestamp(seq_timestamp[0])
             epoch = datetime.datetime.utcfromtimestamp(0)
-            key = str(int((sqn_dt_ts - epoch).total_seconds() * 1000))
+            key = str(int((seq_datetime - epoch).total_seconds() * 1000))
             
             ts_dict[key] = dict()
             # copy shared_fields
@@ -533,7 +531,7 @@ class BorealisRestructureUtilities():
                 ts_dict[key]["noise_at_freq"] = data_dict["noise_at_freq"][rec,:num_sequences]
 
             # have to take correct dimensions to remove appended zeros if num_sequences or
-            # num_beams are less than max. 
+            # num_beams are less than their max. 
             if iq_filetype == 'bfiq':
                 dims = np.array([num_antenna_arrays, num_sequences, num_beams, num_samps],
                         dtype=np.uint32)
@@ -649,12 +647,12 @@ class BorealisRestructureUtilities():
 
             ts_dict = OrderedDict()
             # get keys from first sequence timestamps
-            for rec, seq_ts in enumerate(data_dict["sqn_timestamps"]):
+            for rec, seq_timestamp in enumerate(data_dict["sqn_timestamps"]):
                 # format dictionary key in the same way it is done
                 # in datawrite on site
-                sqn_dt_ts = datetime.datetime.utcfromtimestamp(seq_ts[0])
+                seq_datetime = datetime.datetime.utcfromtimestamp(seq_timestamp[0])
                 epoch = datetime.datetime.utcfromtimestamp(0)
-                key = str(int((sqn_dt_ts - epoch).total_seconds() * 1000))
+                key = str(int((seq_datetime - epoch).total_seconds() * 1000))
                 
                 ts_dict[key] = dict()
                 for field in shared_fields:
@@ -715,7 +713,6 @@ def borealis_site_to_array_dict(filename: str, data_dict: OrderedDict,
         Filename for better error messages.
     data_dict: OrderedDict
         An opened rawacf hdf5 file in site record-by-record format
-    }
     conversion_type: str
         'bfiq', 'antennas_iq' or 'rawacf' to determine keys to convert
     
