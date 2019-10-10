@@ -63,17 +63,17 @@ class BorealisRestructureUtilities():
 
     Class Methods
     -------------
-    bfiq_site_to_array(filename, data_dict)
+    bfiq_site_to_array(data_dict, origin_string)
         Convert bfiq site data to array style dictionary.
-    antennas_iq_site_to_array(filename, data_dict)
+    antennas_iq_site_to_array(data_dict, origin_string)
         Convert antennas_iq site data to array style dictionary.
-    rawacf_site_to_array(filename, data_dict)
+    rawacf_site_to_array(data_dict, origin_string)
         Convert rawacf site data to array style dictionary.
-    bfiq_array_to_site(filename, data_dict)
+    bfiq_array_to_site(data_dict, origin_string)
         Convert bfiq array data to site record dictionary.
-    antennas_iq_array_to_site(filename, data_dict)
+    antennas_iq_array_to_site(data_dict, origin_string)
         Convert antennas_iq array data to site record dictionary.
-    rawacf_array_to_site(data_dict)
+    rawacf_array_to_site(data_dict, origin_string)
         Convert rawacf array data to site record dictionary. 
     """
 
@@ -256,13 +256,13 @@ class BorealisRestructureUtilities():
         return new_data_dict
 
     @classmethod
-    def bfiq_site_to_array(cls, filename: str, data_dict: OrderedDict) -> dict:
+    def bfiq_site_to_array(cls, data_dict: OrderedDict, origin_string: str = '') -> dict:
         """
         Restructuring method for bfiq data.
 
         Parameters
         ----------
-        filename
+        origin_string
             String of where file originated from for better error messages.
         data_dict
             a dict of timestamped records loaded from an hdf5 Borealis bfiq
@@ -279,7 +279,7 @@ class BorealisRestructureUtilities():
         try:
             new_data_dict = cls._iq_site_to_array(data_dict, 'bfiq')
 
-            BorealisUtilities.check_arrays(filename, new_data_dict, 
+            BorealisUtilities.check_arrays(origin_string, new_data_dict, 
                 borealis_formats.BorealisBfiq.array_single_element_types(),
                 borealis_formats.BorealisBfiq.array_array_dtypes(),
                 borealis_formats.BorealisBfiq.unshared_fields)
@@ -294,13 +294,13 @@ class BorealisRestructureUtilities():
         return new_data_dict
 
     @classmethod
-    def antennas_iq_site_to_array(cls, filename: str, data_dict: OrderedDict) -> dict:
+    def antennas_iq_site_to_array(cls, data_dict: OrderedDict, origin_string: str = '') -> dict:
         """
         Restructuring method for antennas_iq data.
 
         Parameters
         ----------
-        filename
+        origin_string
             String of where file originated from for better error messages.
         data_dict
             a dict of timestamped records loaded from an hdf5 Borealis 
@@ -317,7 +317,7 @@ class BorealisRestructureUtilities():
         try:
             new_data_dict = cls._iq_site_to_array(data_dict, 'antennas_iq')
 
-            BorealisUtilities.check_arrays(filename, new_data_dict, 
+            BorealisUtilities.check_arrays(origin_string, new_data_dict, 
                 borealis_formats.BorealisAntennasIq.array_single_element_types(),
                 borealis_formats.BorealisAntennasIq.array_array_dtypes(),
                 borealis_formats.BorealisAntennasIq.unshared_fields)
@@ -332,18 +332,18 @@ class BorealisRestructureUtilities():
         return new_data_dict
 
     @classmethod
-    def rawacf_site_to_array(cls, filename: str, data_dict: OrderedDict) -> dict:
+    def rawacf_site_to_array(cls, data_dict: OrderedDict, origin_string: str = '') -> dict:
         """
         Restructuring method for rawacf data.
 
         Parameters
         ----------
-        filename
-            String of where file originated from for better error messages.
         data_dict
             a dict of timestamped records loaded from an hdf5 Borealis rawacf
             data file
-        
+        origin_string
+            String of where file originated from for better error messages.        
+
         Returns
         -------
         new_data_dict
@@ -440,7 +440,7 @@ class BorealisRestructureUtilities():
             new_data_dict["intf_acfs"] = intf_array
             new_data_dict["xcfs"] = xcfs_array
 
-            BorealisUtilities.check_arrays(filename, new_data_dict, 
+            BorealisUtilities.check_arrays(origin_string, new_data_dict, 
                 borealis_formats.BorealisRawacf.array_single_element_types(),
                 borealis_formats.BorealisRawacf.array_array_dtypes(),
                 borealis_formats.BorealisRawacf.unshared_fields)
@@ -464,17 +464,17 @@ class BorealisRestructureUtilities():
         data_dict: dict
             An opened bfiq hdf5 file in array format
         iq_filetype: str
-            'bfiq' or 'antennas_iq' for more information on how to process.
+            'bfiq' or 'antennas_iq' to determine how to process
 
         Returns
         -------
-        ts_dict
+        timestamp_dict
             A timestamped dictionary containing the data from data_dict
             formatted as the output from a site file (as records, where 
             keys are timestamp of first sequence in the record)
         """
 
-        ts_dict = OrderedDict()
+        timestamp_dict = OrderedDict()
 
         if iq_filetype == 'bfiq':
             # dims are num_antenna_arrays, num_sequences, num_beams, num_samps
@@ -507,28 +507,28 @@ class BorealisRestructureUtilities():
             epoch = datetime.datetime.utcfromtimestamp(0)
             key = str(int((seq_datetime - epoch).total_seconds() * 1000))
             
-            ts_dict[key] = dict()
+            timestamp_dict[key] = dict()
             # copy shared_fields
             for field in shared_fields:
-                ts_dict[key][field] = data_dict[field]
+                timestamp_dict[key][field] = data_dict[field]
 
             # data_descriptors needs to be overwritten
-            ts_dict[key]["data_descriptors"] = data_descriptors
+            timestamp_dict[key]["data_descriptors"] = data_descriptors
 
             # Handle per record fields
             for field in unshared_fields:
-                ts_dict[key][field] = data_dict[field][rec]
+                timestamp_dict[key][field] = data_dict[field][rec]
             
             # Handle special cases - where dimensions may be larger than necessary.
             num_beams = data_dict["num_beams"][rec] # array only field
             if num_beams != max_num_beams:
-                ts_dict[key]["beam_nums"] = ts_dict[key]["beam_nums"][rec,:num_beams]
-                ts_dict[key]["beam_azms"] = ts_dict[key]["beam_azms"][rec,:num_beams]
+                timestamp_dict[key]["beam_nums"] = timestamp_dict[key]["beam_nums"][rec,:num_beams]
+                timestamp_dict[key]["beam_azms"] = timestamp_dict[key]["beam_azms"][rec,:num_beams]
 
-            num_sequences = ts_dict[key]["num_sequences"]
+            num_sequences = timestamp_dict[key]["num_sequences"]
             if num_sequences != max_num_sequences:
-                ts_dict[key]["sqn_timestamps"] = data_dict["sqn_timestamps"][rec,:num_sequences]
-                ts_dict[key]["noise_at_freq"] = data_dict["noise_at_freq"][rec,:num_sequences]
+                timestamp_dict[key]["sqn_timestamps"] = data_dict["sqn_timestamps"][rec,:num_sequences]
+                timestamp_dict[key]["noise_at_freq"] = data_dict["noise_at_freq"][rec,:num_sequences]
 
             # have to take correct dimensions to remove appended zeros if num_sequences or
             # num_beams are less than their max. 
@@ -540,34 +540,34 @@ class BorealisRestructureUtilities():
                 dims = np.array([num_antennas, num_sequences, num_samps], dtype=np.uint32)
                 new_data = data_dict["data"][rec,:dims[0],:dims[1],:dims[2]]
             
-            ts_dict[key]["data_dimensions"] = dims # site only field
-            ts_dict[key]["data"] = new_data.flatten()
+            timestamp_dict[key]["data_dimensions"] = dims # site only field
+            timestamp_dict[key]["data"] = new_data.flatten()
 
-        return ts_dict
+        return timestamp_dict
 
     @classmethod
-    def bfiq_array_to_site(cls, filename: str, data_dict: dict) -> OrderedDict:
+    def bfiq_array_to_site(cls, data_dict: dict, origin_string: str = '') -> OrderedDict:
         """
         Converts a restructured array bfiq file back to the original site 
         format.
 
         Parameters
         ----------
-        filename
+        origin_string
             String of where file originated from for better error messages.
         data_dict
             An opened bfiq hdf5 file in array format
         
         Returns
         -------
-        ts_dict
+        timestamp_dict
             A timestamped dictionary containing the data from data_dict
             formatted as the output from a site file (as records, where 
             keys are timestamp of first sequence in the record)
         """
         try:
-            ts_dict = cls._iq_array_to_site(data_dict, 'bfiq')
-            BorealisUtilities.check_records(filename, ts_dict, 
+            timestamp_dict = cls._iq_array_to_site(data_dict, 'bfiq')
+            BorealisUtilities.check_records(origin_string, timestamp_dict, 
                 borealis_formats.BorealisBfiq.site_single_element_types(),
                 borealis_formats.BorealisBfiq.site_array_dtypes())
 
@@ -577,31 +577,31 @@ class BorealisRestructureUtilities():
                                             'Error restructuring bfiq '\
                                             'from array to site style:'\
                                             '{}'.format(e)).with_traceback(tb)
-        return ts_dict
+        return timestamp_dict
 
     @classmethod
-    def antennas_iq_array_to_site(cls, filename: str, data_dict: dict) -> OrderedDict:
+    def antennas_iq_array_to_site(cls, data_dict: dict, origin_string: str = '') -> OrderedDict:
         """
         Converts a restructured array antennas_iq file back to the
         original site format.
 
         Parameters
         ----------
-        filename
+        origin_string
             String of where file originated from for better error messages.
         data_dict
             An opened antennas_iq hdf5 file in array format
         
         Returns
         -------
-        ts_dict
+        timestamp_dict
             A timestamped dictionary containing the data from data_dict
             formatted as the output from a site file (as records, where 
             keys are timestamp of first sequence in the record)
         """
         try:
-            ts_dict = cls._iq_array_to_site(data_dict, 'antennas_iq')
-            BorealisUtilities.check_records(filename, ts_dict, 
+            timestamp_dict = cls._iq_array_to_site(data_dict, 'antennas_iq')
+            BorealisUtilities.check_records(origin_string, timestamp_dict, 
                 borealis_formats.BorealisAntennasIq.site_single_element_types(),
                 borealis_formats.BorealisAntennasIq.site_array_dtypes())
 
@@ -611,24 +611,24 @@ class BorealisRestructureUtilities():
                                             'Error restructuring antennas_iq '\
                                             'from array to site style:'\
                                             '{}'.format(e)).with_traceback(tb)
-        return ts_dict
+        return timestamp_dict
 
     @staticmethod
-    def rawacf_array_to_site(filename: str, data_dict: dict) -> OrderedDict:
+    def rawacf_array_to_site(data_dict: dict, origin_string: str = '') -> OrderedDict:
         """
         Converts a restructured array rawacf file back to the
         original site format.
 
         Parameters
         ----------
-        filename
-            String of where file originated from for better error messages.
         data_dict
             An opened rawacf hdf5 file in array format
-        
+        origin_string
+            String of where file originated from for better error messages.
+
         Returns
         -------
-        ts_dict
+        timestamp_dict
             A timestamped dictionary containing the data from data_dict
             formatted as the output from a site file (as records, where 
             keys are timestamp of first sequence in the record)
@@ -645,7 +645,7 @@ class BorealisRestructureUtilities():
 
             max_num_sequences = max(data_dict["num_sequences"]) # array only field
 
-            ts_dict = OrderedDict()
+            timestamp_dict = OrderedDict()
             # get keys from first sequence timestamps
             for rec, seq_timestamp in enumerate(data_dict["sqn_timestamps"]):
                 # format dictionary key in the same way it is done
@@ -654,27 +654,27 @@ class BorealisRestructureUtilities():
                 epoch = datetime.datetime.utcfromtimestamp(0)
                 key = str(int((seq_datetime - epoch).total_seconds() * 1000))
                 
-                ts_dict[key] = dict()
+                timestamp_dict[key] = dict()
                 for field in shared_fields:
-                    ts_dict[key][field] = data_dict[field]
+                    timestamp_dict[key][field] = data_dict[field]
                 # overwrite the correlation descriptors
-                ts_dict[key]["correlation_descriptors"] = correlation_descriptors
+                timestamp_dict[key]["correlation_descriptors"] = correlation_descriptors
 
                 # Handle per record fields, copy all and deal with dimensions issues 
                 # after
                 for field in unshared_fields:
-                    ts_dict[key][field] = data_dict[field][rec]
+                    timestamp_dict[key][field] = data_dict[field][rec]
 
                 # Handle special cases - where dimensions may be larger than necessary.
                 num_beams = data_dict["num_beams"][rec] # array only field
                 if num_beams != max_num_beams:
-                    ts_dict[key]["beam_nums"] = ts_dict[key]["beam_nums"][rec,:num_beams]
-                    ts_dict[key]["beam_azms"] = ts_dict[key]["beam_azms"][rec,:num_beams]
+                    timestamp_dict[key]["beam_nums"] = timestamp_dict[key]["beam_nums"][rec,:num_beams]
+                    timestamp_dict[key]["beam_azms"] = timestamp_dict[key]["beam_azms"][rec,:num_beams]
 
-                num_sequences = ts_dict[key]["num_sequences"]
+                num_sequences = timestamp_dict[key]["num_sequences"]
                 if num_sequences != max_num_sequences:
-                    ts_dict[key]["sqn_timestamps"] = data_dict["sqn_timestamps"][rec,:num_sequences]
-                    ts_dict[key]["noise_at_freq"] = data_dict["noise_at_freq"][rec,:num_sequences]
+                    timestamp_dict[key]["sqn_timestamps"] = data_dict["sqn_timestamps"][rec,:num_sequences]
+                    timestamp_dict[key]["noise_at_freq"] = data_dict["noise_at_freq"][rec,:num_sequences]
 
                 dims = np.array([num_beams, num_ranges, num_lags],
                         dtype=np.uint32)
@@ -682,13 +682,13 @@ class BorealisRestructureUtilities():
                 intf_acfs = np.copy(data_dict["intf_acfs"][rec,:dims[0],:dims[1],:dims[2]])
                 xcfs = np.copy(data_dict["xcfs"][rec,:dims[0],:dims[1],:dims[2]])
 
-                ts_dict[key]["main_acfs"] = main_acfs.flatten()
-                ts_dict[key]["intf_acfs"] = intf_acfs.flatten()
-                ts_dict[key]["xcfs"] = xcfs.flatten()
+                timestamp_dict[key]["main_acfs"] = main_acfs.flatten()
+                timestamp_dict[key]["intf_acfs"] = intf_acfs.flatten()
+                timestamp_dict[key]["xcfs"] = xcfs.flatten()
 
-                ts_dict[key]["correlation_dimensions"] = dims # site only field
+                timestamp_dict[key]["correlation_dimensions"] = dims # site only field
 
-            BorealisUtilities.check_records(filename, ts_dict, 
+            BorealisUtilities.check_records(origin_string, timestamp_dict, 
                 borealis_formats.BorealisRawacf.site_single_element_types(),
                 borealis_formats.BorealisRawacf.site_array_dtypes())
         
@@ -698,10 +698,10 @@ class BorealisRestructureUtilities():
                                             'Error restructuring rawacf '\
                                             'from array to site style:'\
                                             '{}'.format(e)).with_traceback(tb)
-        return ts_dict
+        return timestamp_dict
 
 
-def borealis_site_to_array_dict(filename: str, data_dict: OrderedDict, 
+def borealis_site_to_array_dict(origin_string: str, data_dict: OrderedDict, 
                                 conversion_type: str) -> dict:
     """
     Converts a file from site style to restructured array style. Determines
@@ -709,8 +709,8 @@ def borealis_site_to_array_dict(filename: str, data_dict: OrderedDict,
 
     Parameters
     ----------
-    filename: str
-        Filename for better error messages.
+    origin_string: str
+        Filename or origin string for better error messages.
     data_dict: OrderedDict
         An opened rawacf hdf5 file in site record-by-record format
     conversion_type: str
@@ -723,11 +723,11 @@ def borealis_site_to_array_dict(filename: str, data_dict: OrderedDict,
         formatted to the array format
     """ 
     if conversion_type == 'bfiq':
-        new_dict = BorealisRestructureUtilities.bfiq_site_to_array(filename, data_dict)
+        new_dict = BorealisRestructureUtilities.bfiq_site_to_array(data_dict, origin_string)
     elif conversion_type == 'rawacf':
-        new_dict = BorealisRestructureUtilities.rawacf_site_to_array(filename, data_dict)
+        new_dict = BorealisRestructureUtilities.rawacf_site_to_array(data_dict, origin_string)
     elif conversion_type == 'antennas_iq':
-        new_dict = BorealisRestructureUtilities.antennas_iq_site_to_array(filename, data_dict)        
+        new_dict = BorealisRestructureUtilities.antennas_iq_site_to_array(data_dict, origin_string)
     else:
         raise borealis_exceptions.BorealisRestructureError(''\
                                         'File type {} not recognized '\
@@ -736,7 +736,7 @@ def borealis_site_to_array_dict(filename: str, data_dict: OrderedDict,
     return new_dict
 
 
-def borealis_array_to_site_dict(filename: str, data_dict: dict, 
+def borealis_array_to_site_dict(origin_string: str, data_dict: dict, 
                                 conversion_type: str) -> OrderedDict:
     """
     Converts a file back to its original site format. Determines
@@ -744,8 +744,8 @@ def borealis_array_to_site_dict(filename: str, data_dict: dict,
 
     Parameters
     ----------
-    filename: str
-        Filename for better error messages.
+    origin_string: str
+        Filename or origin string for better error messages.
     data_dict: dict
         An opened rawacf hdf5 file in array format
     conversion_type: str
@@ -758,11 +758,11 @@ def borealis_array_to_site_dict(filename: str, data_dict: dict,
         formatted as the output from a site file.
     """ 
     if conversion_type == 'bfiq':
-        new_dict = BorealisRestructureUtilities.bfiq_array_to_site(filename, data_dict)
+        new_dict = BorealisRestructureUtilities.bfiq_array_to_site(data_dict, origin_string)
     elif conversion_type == 'rawacf':
-        new_dict = BorealisRestructureUtilities.rawacf_array_to_site(filename, data_dict)
+        new_dict = BorealisRestructureUtilities.rawacf_array_to_site(data_dict, origin_string)
     elif conversion_type == 'antennas_iq':
-        new_dict = BorealisRestructureUtilities.antennas_iq_array_to_site(filename, data_dict)        
+        new_dict = BorealisRestructureUtilities.antennas_iq_array_to_site(data_dict, origin_string)        
     else:
         raise borealis_exceptions.BorealisRestructureError(''\
                                         'File type {} not recognized '\
