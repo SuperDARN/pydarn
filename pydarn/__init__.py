@@ -24,7 +24,6 @@ from .io.datastructures import DmapArray
 from .io.datastructures import DmapRecord
 from .io import superdarn_formats
 
-
 # Importing pydarn dmap classes
 from .io.dmap import DmapRead
 from .io.dmap import DmapWrite
