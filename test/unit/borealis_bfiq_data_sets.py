@@ -143,7 +143,7 @@ borealis_site_bfiq_data = OrderedDict([(str(1558583991060), {
                              0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 
                              0., 0., 0., 0., 0., 0., 0.]), 
     "data_normalization_factor": np.float64(9999999.999999996),
-    "data": np.zeros(17226).astype(np.complex64)
+    "data": np.zeros((17226)).astype(np.complex64)
     })])
 
 num_records = 1500
@@ -195,8 +195,8 @@ borealis_array_bfiq_data = {
                     [0, 27],
                     [27, 27]]).astype(np.uint32),
     "blanked_samples": np.array([0, 72, 96, 160, 176, 208, 216]).astype(np.uint32), 
-    "beam_nums": np.array([0] * num_records).astype(np.uint32), 
-    "beam_azms": np.array([0.0] * num_records), 
+    "beam_nums": np.array([[0]] * num_records).astype(np.uint32), 
+    "beam_azms": np.array([[0.0]] * num_records), 
     "data_descriptors": np.array(['num_records', 'num_antenna_arrays', 'num_sequences', 
                                 'num_beams', 'num_samps']), 
     "data_normalization_factor": np.float64(9999999.999999996),
@@ -214,5 +214,5 @@ borealis_array_bfiq_data = {
     "noise_at_freq": np.array([[0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 
                              0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 
                              0., 0., 0., 0., 0., 0., 0.]] * num_records), 
-    "data": np.zeros((num_records, 17226)).astype(np.complex64)
+    "data": np.zeros((num_records, 2, 29, 1, 297)).astype(np.complex64)
     }
