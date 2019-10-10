@@ -45,7 +45,7 @@ import warnings
 from collections import OrderedDict
 from typing import Union, List
 
-from pydarn import borealis_exceptions, BorealisConvert
+from pydarn import borealis_exceptions
 from .borealis_site import BorealisSiteRead, BorealisSiteWrite
 from .borealis_array import BorealisArrayRead, BorealisArrayWrite
 from .restructure_borealis import BorealisRestructureUtilities
@@ -83,6 +83,7 @@ class BorealisRead():
     borealis_file_structure: Union[str, None]
     records: dict
     arrays: dict
+    record_names: list[str]
     """
 
     def __init__(self, filename: str, borealis_filetype: str, 
