@@ -36,10 +36,6 @@ from .io.superdarn import DarnUtilities
 
 # Importing pydarn borealis classes
 from .io.borealis import borealis_formats
-from .io.borealis.borealis_utilities import BorealisUtilities
-from .io.borealis.restructure_borealis import BorealisRestructureUtilities
-from .io.borealis.restructure_borealis import borealis_site_to_array_dict
-from .io.borealis.restructure_borealis import borealis_array_to_site_dict
 from .io.borealis.borealis_convert import BorealisConvert
 from .io.borealis.borealis import BorealisRead
 from .io.borealis.borealis import BorealisWrite
