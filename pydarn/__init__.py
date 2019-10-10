@@ -35,9 +35,9 @@ from .io.superdarn import DarnUtilities
 
 # Importing pydarn borealis classes
 from .io.borealis import borealis_formats
-from .io.borealis.borealis_convert import BorealisConvert
 from .io.borealis.borealis import BorealisRead
 from .io.borealis.borealis import BorealisWrite
+from .io.borealis.borealis_convert import BorealisConvert
 from .io.borealis import bfiq_to_rawacf
 
 # importing utils
