@@ -53,7 +53,8 @@ from collections import OrderedDict
 from datetime import datetime
 from typing import Union, List
 
-from pydarn import borealis_exceptions, DarnWrite, borealis_formats
+from pydarn import (borealis_exceptions, borealis_formats,
+                    BorealisRead, DarnWrite)
 from pydarn.utils.conversions import dict2dmap
 
 pydarn_log = logging.getLogger('pydarn')
@@ -165,12 +166,15 @@ class BorealisConvert(BorealisRead):
         The converted DMap records to write to file.
     sdarn_filetype: str
         The dmap filetype converted to. 'rawacf' and 'iqdat' are allowed.
+    borealis_slice_id: int
+        The slice id of the file being converted. Used as channel identifier
+        in SDARN DMap records.
     """
 
     __allowed_conversions = {'rawacf': 'rawacf', 'bfiq': 'iqdat'}
 
     def __init__(self, borealis_filename: str, borealis_filetype: str, 
-                 sdarn_filename: str, 
+                 sdarn_filename: str, borealis_slice_id: int,
                  borealis_file_structure: Union[str, None] = None):
         """
         Convert HDF5 Borealis records to a given SDARN file with DMap format.
@@ -184,13 +188,15 @@ class BorealisConvert(BorealisRead):
             The type of Borealis file. Types allowed to convert:
             'bfiq' -> 'iqdat'
             'rawacf' -> 'rawacf'
+        sdarn_filename: str
+            The filename of the SDARN DMap file to be written.
+        borealis_slice_id: int
+            The slice id of the file being converted.
         borealis_file_structure: Union[str, None]
             The write structure of the file provided. Possible types are
             'site', 'array', or None. If None (default), array read will be 
             attempted first followed by site. 
-        sdarn_filename: str
-            The filename of the SDARN DMap file to be written.
-            
+
         Raises
         ------
         BorealisConversionTypesError
@@ -212,6 +218,7 @@ class BorealisConvert(BorealisRead):
         self.borealis_records = self.records 
         self.sdarn_filename = sdarn_filename      
         self.borealis_filename = self.filename
+        self._borealis_slice_id = borealis_slice_id
         self._sdarn_records = {}
         try:
             self._sdarn_filetype = self.__allowed_conversions[
@@ -247,7 +254,7 @@ class BorealisConvert(BorealisRead):
     @property
     def sdarn_records(self):
         """
-        The converted DMap records to write to file.
+        The converted SDARN DMap records to write to file.
         """
         return self._sdarn_records
 
@@ -257,6 +264,14 @@ class BorealisConvert(BorealisRead):
         The dmap filetype converted to. 'rawacf' and 'iqdat' are allowed.
         """
         return self._sdarn_filetype
+
+    @property
+    def borealis_slice_id(self):
+        """
+        The slice id of the file being converted. Used as channel identifier
+        in SDARN DMap records.
+        """
+        return self._borealis_slice_id
 
     def _write_to_sdarn(self) -> str:
         """
@@ -397,11 +412,12 @@ class BorealisConvert(BorealisRead):
         """
         try:
             recs = []
-            slice_id = int(os.path.basename(self.borealis_filename).split('.')[4])
             for record in self.borealis_records.items():
-                    record_dict = self.__convert_bfiq_record(slice_id, record, 
-                                                             self.borealis_filename)
-                    recs.append(record_dict)
+                record_dict = self.__convert_bfiq_record(
+                                    self.borealis_slice_id,
+                                    record, 
+                                    self.borealis_filename)
+                recs.append(record_dict)
             dmap_recs = dict2dmap(recs)
         except Exception as e:
             raise borealis_exceptions.BorealisConvert2IqdatError(e)
@@ -410,9 +426,9 @@ class BorealisConvert(BorealisRead):
 
 
     @staticmethod
-    def __convert_bfiq_record(borealis_slice_id : int, 
-                              borealis_bfiq_record : tuple(str, dict),
-                              origin_string : str) -> dict:
+    def __convert_bfiq_record(borealis_slice_id: int, 
+                              borealis_bfiq_record: tuple,
+                              origin_string: str) -> dict:
         """
         Converts a single record dict of Borealis bfiq data to a SDARN DMap 
         record dict.
@@ -523,7 +539,7 @@ class BorealisConvert(BorealisRead):
                 'noise.search': np.float32(v['noise_at_freq'][0]),
                 # TODO: currently not implemented
                 'noise.mean': np.float32(0),
-                'channel': np.int16(slice_id),
+                'channel': np.int16(borealis_slice_id),
                 'bmnum': np.int16(beam),
                 'bmazm': np.float32(v['beam_azms'][beam_index]),
                 'scan': np.int16(v['scan_start_marker']),
@@ -611,10 +627,11 @@ class BorealisConvert(BorealisRead):
         """
         try:
             recs = []
-            slice_id = int(os.path.basename(self.borealis_filename).split('.')[4])
             for record in self.borealis_records.items():
-                record_dict = self.__convert_rawacf_record(slice_id, record,
-                                                           self.borealis_filename)
+                record_dict = self.__convert_rawacf_record(
+                                    self.borealis_slice_id,
+                                    record, 
+                                    self.borealis_filename)
                 recs.append(record_dict)
             dmap_recs = dict2dmap(recs)
         except Exception as e:
@@ -623,9 +640,9 @@ class BorealisConvert(BorealisRead):
         return dmap_recs
 
     @staticmethod
-    def __convert_rawacf_record(borealis_slice_id : int, 
-                                borealis_rawacf_record : tuple(str, dict),
-                                origin_string : str) -> dict:
+    def __convert_rawacf_record(borealis_slice_id: int, 
+                                borealis_rawacf_record: tuple,
+                                origin_string: str) -> dict:
         """
         Converts a single record dict of Borealis rawacf data to a SDARN DMap 
         record dict.
