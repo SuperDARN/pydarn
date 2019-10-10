@@ -45,10 +45,10 @@ import warnings
 from collections import OrderedDict
 from typing import Union, List
 
-from pydarn import (borealis_exceptions, BorealisConvert, 
-                    BorealisRestructureUtilities)
+from pydarn import borealis_exceptions, BorealisConvert
 from .borealis_site import BorealisSiteRead, BorealisSiteWrite
 from .borealis_array import BorealisArrayRead, BorealisArrayWrite
+from .restructure_borealis import BorealisRestructureUtilities
 
 pydarn_log = logging.getLogger('pydarn')
 
