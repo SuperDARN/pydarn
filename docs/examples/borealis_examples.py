@@ -287,17 +287,16 @@ def borealis_write_to_dmap(borealis_hdf5_file: str, borealis_filetype: str,
 
     See Also
     --------
-    read_borealis_file
     BorealisConvert
     """
 
-    if borealis_hdf5_file == darn_filename:
-        raise borealis_exceptions.ConvertFileOverWriteError(borealis_hdf5_file)
+    if site_flag:
+        structure = 'site'
+    else:
+        structure = 'array'
 
-    records = read_borealis_file(borealis_hdf5_file, borealis_filetype,
-                                 site_flag=site_flag, records=True)
-    converter = BorealisConvert(records, borealis_filetype, darn_filename,
-        borealis_hdf5_file)
+    converter = BorealisConvert(borealis_hdf5_file, borealis_filetype, 
+                                darn_filename, borealis_file_structure=structure)
 
     pydarn_log.info("Borealis file {filename} written to {darn_filename} "
           "without errors.".format(filename=borealis_hdf5_file,
