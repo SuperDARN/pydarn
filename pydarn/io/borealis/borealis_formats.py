@@ -190,29 +190,35 @@ class BorealisRawacf():
 
     @classmethod
     def site_fields(cls):
+        """ All site fields """
         return cls.shared_fields + cls.unshared_fields + cls.site_only_fields
 
     @classmethod
     def array_fields(cls):
+        """ All array fields """
         return cls.shared_fields + cls.unshared_fields + cls.array_only_fields
 
     @classmethod
     def site_single_element_fields(cls):
+        """ All site fields that are single element in a list """
         return [k for k in cls.site_fields() if k in 
             list(cls.single_element_types.keys())]
 
     @classmethod
-    def site_single_element_types(cls):          
+    def site_single_element_types(cls):    
+        """ Dict of site single element field: type"""      
         return {k: cls.single_element_types[k] 
             for k in cls.site_single_element_fields()}
 
     @classmethod
     def site_array_dtypes_fields(cls):   
+        """ All site fields that are arrays in a list """
         return [k for k in cls.site_fields() if k in 
         list(cls.array_dtypes.keys())]
 
     @classmethod
     def site_array_dtypes(cls):
+        """ Dict of site array field : dtype """
         return {k: cls.array_dtypes[k] for k in 
         cls.site_array_dtypes_fields()}
 
@@ -220,12 +226,14 @@ class BorealisRawacf():
     # be a shared field. 
     @classmethod
     def array_single_element_fields(cls):
+        """ List of array restructured single element fields """
         return [k for k in cls.array_fields() if 
         k in list(cls.single_element_types.keys()) and k in 
         cls.shared_fields]
 
     @classmethod
     def array_single_element_types(cls):
+        """ Dict of array restructured single element field : type """
         return {k: cls.single_element_types[k] 
         for k in cls.array_single_element_fields()}
 
@@ -234,6 +242,7 @@ class BorealisRawacf():
     # it is now an array of num_records length.
     @classmethod
     def array_array_dtypes_fields(cls):
+        """ List of array restructured array fields """
         return [k for k in cls.array_fields() if 
         k in list(cls.array_dtypes.keys())] + \
         [k for k in cls.array_fields() if k in 
@@ -243,6 +252,7 @@ class BorealisRawacf():
 
     @classmethod
     def array_array_dtypes(cls):
+        """ Dict of array restructured array field : dtype """
         array_array_dtypes = {k: cls.array_dtypes[k] for k in 
         cls.array_array_dtypes_fields() if k in 
         list(cls.array_dtypes.keys())}
@@ -422,29 +432,35 @@ class BorealisBfiq():
 
     @classmethod
     def site_fields(cls):
+        """ All site fields """
         return cls.shared_fields + cls.unshared_fields + cls.site_only_fields
 
     @classmethod
     def array_fields(cls):
+        """ All array fields """
         return cls.shared_fields + cls.unshared_fields + cls.array_only_fields
 
     @classmethod
     def site_single_element_fields(cls):
+        """ All site fields that are single element in a list """
         return [k for k in cls.site_fields() if k in 
             list(cls.single_element_types.keys())]
 
     @classmethod
-    def site_single_element_types(cls):          
+    def site_single_element_types(cls):    
+        """ Dict of site single element field: type"""      
         return {k: cls.single_element_types[k] 
             for k in cls.site_single_element_fields()}
 
     @classmethod
     def site_array_dtypes_fields(cls):   
+        """ All site fields that are arrays in a list """
         return [k for k in cls.site_fields() if k in 
         list(cls.array_dtypes.keys())]
 
     @classmethod
     def site_array_dtypes(cls):
+        """ Dict of site array field : dtype """
         return {k: cls.array_dtypes[k] for k in 
         cls.site_array_dtypes_fields()}
 
@@ -452,12 +468,14 @@ class BorealisBfiq():
     # be a shared field. 
     @classmethod
     def array_single_element_fields(cls):
+        """ List of array restructured single element fields """
         return [k for k in cls.array_fields() if 
         k in list(cls.single_element_types.keys()) and k in 
         cls.shared_fields]
 
     @classmethod
     def array_single_element_types(cls):
+        """ Dict of array restructured single element field : type """
         return {k: cls.single_element_types[k] 
         for k in cls.array_single_element_fields()}
 
@@ -466,6 +484,7 @@ class BorealisBfiq():
     # it is now an array of num_records length.
     @classmethod
     def array_array_dtypes_fields(cls):
+        """ List of array restructured array fields """
         return [k for k in cls.array_fields() if 
         k in list(cls.array_dtypes.keys())] + \
         [k for k in cls.array_fields() if k in 
@@ -475,6 +494,7 @@ class BorealisBfiq():
 
     @classmethod
     def array_array_dtypes(cls):
+        """ Dict of array restructured array field : dtype """
         array_array_dtypes = {k: cls.array_dtypes[k] for k in 
         cls.array_array_dtypes_fields() if k in 
         list(cls.array_dtypes.keys())}
@@ -639,29 +659,35 @@ class BorealisAntennasIq():
 
     @classmethod
     def site_fields(cls):
+        """ All site fields """
         return cls.shared_fields + cls.unshared_fields + cls.site_only_fields
 
     @classmethod
     def array_fields(cls):
+        """ All array fields """
         return cls.shared_fields + cls.unshared_fields + cls.array_only_fields
 
     @classmethod
     def site_single_element_fields(cls):
+        """ All site fields that are single element in a list """
         return [k for k in cls.site_fields() if k in 
             list(cls.single_element_types.keys())]
 
     @classmethod
-    def site_single_element_types(cls):          
+    def site_single_element_types(cls):
+        """ Dict of site single element field: type"""      
         return {k: cls.single_element_types[k] 
             for k in cls.site_single_element_fields()}
 
     @classmethod
     def site_array_dtypes_fields(cls):   
+        """ All site fields that are arrays in a list """
         return [k for k in cls.site_fields() if k in 
         list(cls.array_dtypes.keys())]
 
     @classmethod
     def site_array_dtypes(cls):
+        """ Dict of site array field : dtype """
         return {k: cls.array_dtypes[k] for k in 
         cls.site_array_dtypes_fields()}
 
@@ -669,12 +695,14 @@ class BorealisAntennasIq():
     # be a shared field. 
     @classmethod
     def array_single_element_fields(cls):
+        """ List of array restructured single element fields """
         return [k for k in cls.array_fields() if 
         k in list(cls.single_element_types.keys()) and k in 
         cls.shared_fields]
 
     @classmethod
     def array_single_element_types(cls):
+        """ Dict of array restructured single element field : type """
         return {k: cls.single_element_types[k] 
         for k in cls.array_single_element_fields()}
 
@@ -683,6 +711,7 @@ class BorealisAntennasIq():
     # it is now an array of num_records length.
     @classmethod
     def array_array_dtypes_fields(cls):
+        """ List of array restructured array fields """
         return [k for k in cls.array_fields() if 
         k in list(cls.array_dtypes.keys())] + \
         [k for k in cls.array_fields() if k in 
@@ -692,6 +721,7 @@ class BorealisAntennasIq():
 
     @classmethod
     def array_array_dtypes(cls):
+        """ Dict of array restructured array field : dtype """
         array_array_dtypes = {k: cls.array_dtypes[k] for k in 
         cls.array_array_dtypes_fields() if k in 
         list(cls.array_dtypes.keys())}
@@ -773,24 +803,29 @@ class BorealisRawrf():
 
     @classmethod
     def site_fields(cls):
-        return list(cls.single_element_types.keys()) + list(cls.array_dtypes.keys())
+        """ All site fields """
+        return cls.shared_fields + cls.unshared_fields + cls.site_only_fields
 
     @classmethod
     def site_single_element_fields(cls):
+        """ All site fields that are single element in a list """
         return [k for k in cls.site_fields() if k in 
             list(cls.single_element_types.keys())]
 
     @classmethod
-    def site_single_element_types(cls):          
+    def site_single_element_types(cls):
+        """ Dict of site single element field: type"""      
         return {k: cls.single_element_types[k] 
             for k in cls.site_single_element_fields()}
 
     @classmethod
     def site_array_dtypes_fields(cls):   
+        """ All site fields that are arrays in a list """
         return [k for k in cls.site_fields() if k in 
         list(cls.array_dtypes.keys())]
 
     @classmethod
     def site_array_dtypes(cls):
+        """ Dict of site array field : dtype """
         return {k: cls.array_dtypes[k] for k in 
         cls.site_array_dtypes_fields()}
