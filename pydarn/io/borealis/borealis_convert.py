@@ -194,6 +194,7 @@ class BorealisConvert(BorealisRead):
         Raises
         ------
         BorealisConversionTypesError
+        ConvertFileOverWriteError
         """
 
         super(BorealisConvert, self).__init__(borealis_filename, 
@@ -219,6 +220,10 @@ class BorealisConvert(BorealisRead):
             raise borealis_exceptions.BorealisConversionTypesError(
                 self.sdarn_filename, self.borealis_filetype, 
                 self.__allowed_conversions)
+
+        if self.borealis_filename == self.sdarn_filename:
+            raise borealis_exceptions.ConvertFileOverWriteError(
+                    self.borealis_filename)
         self._write_to_sdarn()
 
     def __repr__(self):
@@ -407,10 +412,10 @@ class BorealisConvert(BorealisRead):
     @staticmethod
     def __convert_bfiq_record(borealis_slice_id : int, 
                               borealis_bfiq_record : tuple(str, dict),
-                              origin_string : str):
+                              origin_string : str) -> dict:
         """
-        Converts a single record of Borealis bfiq data to a SDARN DMap 
-        record.
+        Converts a single record dict of Borealis bfiq data to a SDARN DMap 
+        record dict.
 
         Parameters
         ----------
@@ -620,10 +625,10 @@ class BorealisConvert(BorealisRead):
     @staticmethod
     def __convert_rawacf_record(borealis_slice_id : int, 
                                 borealis_rawacf_record : tuple(str, dict),
-                                origin_string : str):
+                                origin_string : str) -> dict:
         """
-        Converts a single record of Borealis rawacf data to a SDARN DMap 
-        record.
+        Converts a single record dict of Borealis rawacf data to a SDARN DMap 
+        record dict.
 
         Parameters
         ----------
