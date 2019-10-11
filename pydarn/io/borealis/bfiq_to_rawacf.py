@@ -28,7 +28,7 @@ ConvertFileOverWriteError
 See Also
 --------
 
-borealis_site_to_array_dict
+BorealisRestructureUtilities
 """
 
 import deepdish as dd
@@ -45,7 +45,7 @@ from pathlib2 import Path
 from typing import Union, List
 
 from pydarn import borealis_exceptions, BorealisRead, BorealisWrite
-from .restructure_borealis import borealis_site_to_array_dict
+from .restructure_borealis import BorealisRestructureUtilities
 
 
 class BorealisBfiqToRawacfPostProcessor():
@@ -149,8 +149,10 @@ class BorealisBfiqToRawacfPostProcessor():
             rawacf_data = self.rawacf_records
         else:
             write_borealis_structure = 'array'
-            rawacf_data = borealis_site_to_array_dict(self.rawacf_records, 
-                                                      'rawacf')
+            rawacf_data = BorealisRestructureUtilities.borealis_site_to_array_dict(
+                                                        self.rawacf_filename,
+                                                        self.rawacf_records, 
+                                                        'rawacf')
 
         rawacf_writer = BorealisWrite(self.rawacf_filename, rawacf_data, 
                             'rawacf',

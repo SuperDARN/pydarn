@@ -11,15 +11,6 @@ Classes
 -------
 BorealisRestructureUtilities
 
-Functions
----------
-borealis_site_to_array_dict: uses the BorealisRestructureUtilities
-    methods to convert dictionary of records into a dictionary
-    of arrays 
-borealis_array_to_site_dict: uses the BorealisRestructureUtilities
-    methods to convert dictionary of arrays into a dictionary
-    of records
-
 Exceptions
 ----------
 BorealisRestructureError
@@ -63,6 +54,14 @@ class BorealisRestructureUtilities():
 
     Class Methods
     -------------
+    borealis_site_to_array_dict(origin_string, data_dict, conversion_type)
+        uses the other BorealisRestructureUtilities
+        methods to convert dictionary of records into a dictionary
+        of arrays 
+    borealis_array_to_site_dict(origin_string, data_dict, conversion_type)
+        uses the other BorealisRestructureUtilities
+        methods to convert dictionary of arrays into a dictionary
+        of records
     bfiq_site_to_array(data_dict, origin_string)
         Convert bfiq site data to array style dictionary.
     antennas_iq_site_to_array(data_dict, origin_string)
@@ -700,72 +699,72 @@ class BorealisRestructureUtilities():
                                             '{}'.format(e)).with_traceback(tb)
         return timestamp_dict
 
+    @classmethod
+    def borealis_site_to_array_dict(cls, origin_string: str, data_dict: OrderedDict, 
+                                    conversion_type: str) -> dict:
+        """
+        Converts a file from site style to restructured array style. Determines
+        which base function to call based on conversion_type. 
 
-def borealis_site_to_array_dict(origin_string: str, data_dict: OrderedDict, 
-                                conversion_type: str) -> dict:
-    """
-    Converts a file from site style to restructured array style. Determines
-    which base function to call based on conversion_type. 
+        Parameters
+        ----------
+        origin_string: str
+            Filename or origin string for better error messages.
+        data_dict: OrderedDict
+            An opened rawacf hdf5 file in site record-by-record format
+        conversion_type: str
+            'bfiq', 'antennas_iq' or 'rawacf' to determine keys to convert
+        
+        Returns
+        -------
+        new_dict
+            A dictionary containing the data from data_dict
+            formatted to the array format
+        """ 
+        if conversion_type == 'bfiq':
+            new_dict = cls.bfiq_site_to_array(data_dict, origin_string)
+        elif conversion_type == 'rawacf':
+            new_dict = cls.rawacf_site_to_array(data_dict, origin_string)
+        elif conversion_type == 'antennas_iq':
+            new_dict = cls.antennas_iq_site_to_array(data_dict, origin_string)
+        else:
+            raise borealis_exceptions.BorealisRestructureError(''\
+                                            'File type {} not recognized '\
+                                            'as restructureable from site to '\
+                                            'array style'.format(conversion_type))
+        return new_dict
 
-    Parameters
-    ----------
-    origin_string: str
-        Filename or origin string for better error messages.
-    data_dict: OrderedDict
-        An opened rawacf hdf5 file in site record-by-record format
-    conversion_type: str
-        'bfiq', 'antennas_iq' or 'rawacf' to determine keys to convert
-    
-    Returns
-    -------
-    new_dict
-        A dictionary containing the data from data_dict
-        formatted to the array format
-    """ 
-    if conversion_type == 'bfiq':
-        new_dict = BorealisRestructureUtilities.bfiq_site_to_array(data_dict, origin_string)
-    elif conversion_type == 'rawacf':
-        new_dict = BorealisRestructureUtilities.rawacf_site_to_array(data_dict, origin_string)
-    elif conversion_type == 'antennas_iq':
-        new_dict = BorealisRestructureUtilities.antennas_iq_site_to_array(data_dict, origin_string)
-    else:
-        raise borealis_exceptions.BorealisRestructureError(''\
-                                        'File type {} not recognized '\
-                                        'as restructureable from site to '\
-                                        'array style'.format(conversion_type))
-    return new_dict
+    @classmethod
+    def borealis_array_to_site_dict(cls, origin_string: str, data_dict: dict, 
+                                    conversion_type: str) -> OrderedDict:
+        """
+        Converts a file back to its original site format. Determines
+        which base function to call based on conversion_type. 
 
-
-def borealis_array_to_site_dict(origin_string: str, data_dict: dict, 
-                                conversion_type: str) -> OrderedDict:
-    """
-    Converts a file back to its original site format. Determines
-    which base function to call based on conversion_type. 
-
-    Parameters
-    ----------
-    origin_string: str
-        Filename or origin string for better error messages.
-    data_dict: dict
-        An opened rawacf hdf5 file in array format
-    conversion_type: str
-        'bfiq', 'antennas_iq' or 'rawacf' to determine keys to convert
-    
-    Returns
-    -------
-    new_dict
-        A timestamped dictionary containing the data from data_dict
-        formatted as the output from a site file.
-    """ 
-    if conversion_type == 'bfiq':
-        new_dict = BorealisRestructureUtilities.bfiq_array_to_site(data_dict, origin_string)
-    elif conversion_type == 'rawacf':
-        new_dict = BorealisRestructureUtilities.rawacf_array_to_site(data_dict, origin_string)
-    elif conversion_type == 'antennas_iq':
-        new_dict = BorealisRestructureUtilities.antennas_iq_array_to_site(data_dict, origin_string)        
-    else:
-        raise borealis_exceptions.BorealisRestructureError(''\
-                                        'File type {} not recognized '\
-                                        'as restructureable from array to '\
-                                        'site style'.format(conversion_type))
-    return new_dict
+        Parameters
+        ----------
+        origin_string: str
+            Filename or origin string for better error messages.
+        data_dict: dict
+            An opened rawacf hdf5 file in array format
+        conversion_type: str
+            'bfiq', 'antennas_iq' or 'rawacf' to determine keys to convert
+        
+        Returns
+        -------
+        new_dict
+            A timestamped dictionary containing the data from data_dict
+            formatted as the output from a site file.
+        """ 
+        if conversion_type == 'bfiq':
+            new_dict = cls.bfiq_array_to_site(data_dict, origin_string)
+        elif conversion_type == 'rawacf':
+            new_dict = cls.rawacf_array_to_site(data_dict, origin_string)
+        elif conversion_type == 'antennas_iq':
+            new_dict = cls.antennas_iq_array_to_site(data_dict, origin_string)        
+        else:
+            raise borealis_exceptions.BorealisRestructureError(''\
+                                            'File type {} not recognized '\
+                                            'as restructureable from array to '\
+                                            'site style'.format(conversion_type))
+        return new_dict
