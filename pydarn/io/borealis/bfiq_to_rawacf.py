@@ -5,9 +5,10 @@ This file contains a function for processing beam-formed IQ data into rawacf
 data product matching the real-time product produced by datawrite module in 
 Borealis.
 
-Functions
----------
-bfiq_to_rawacf_postprocessing: reads a bfiq file, processes the data within 
+Classes
+-------
+BorealisBfiqToRawacfPostProcessor
+    reads a bfiq file, processes the data within 
     to a rawacf format, and writes a rawacf file. The data is the same as if
     the write had happened on site. Read/write can be done as arrays or 
     as records. 
@@ -27,8 +28,11 @@ ConvertFileOverWriteError
 
 See Also
 --------
-
 BorealisRestructureUtilities
+
+Future Work
+-----------
+Parallelize the correlations
 """
 
 import deepdish as dd
@@ -43,6 +47,8 @@ from collections import OrderedDict
 from datetime import datetime as dt
 from pathlib2 import Path
 from typing import Union, List
+
+from multiprocessing import Manager, Process
 
 from pydarn import borealis_exceptions, BorealisRead, BorealisWrite
 from .restructure_borealis import BorealisRestructureUtilities
@@ -65,26 +71,36 @@ class BorealisBfiqToRawacfPostProcessor():
 
     Attributes
     ----------
-    filename: str
-        The filename of the Borealis HDF5 file being written.
-    borealis_filetype: str
-        The type of Borealis file. Types include:
-        'bfiq'
-        'antennas_iq'
-        'rawacf'
-        'rawrf'
-    writer: Union[BorealisSiteWrite, BorealisArrayWrite]
-        the wrapped BorealisSiteWrite or BorealisArrayWrite instance
-    borealis_file_structure: Union[str, None]
+    bfiq_filename: str
+        The filename of the Borealis HDF5 bfiq file being read.
+    rawacf_filename: str
+        The filename of the Borealis HDF5 rawacf file being written.    
+    num_processes: int
+        The number of processes to use to convert the records in the dictionary.
+        Default 4.
+    read_file_structure: Union[str, None]
+        How to read the bfiq data. If 'site', will read as record stored data 
+        (site files). If 'array', will read as array stored. None lets 
+        BorealisRead determine, which tries array first and then site.
+    write_file_structure: str
+        How to write the rawacf data. If 'site', will write in record by record
+        site format. If 'array', will write in array format. Default 'array'.
+    bfiq_reader: BorealisRead
+        BorealisRead instance containing read information.
+    bfiq_records: OrderedDict{dict}
+        Bfiq records read from the bfiq_filename
+    rawacf_records: OrderedDict{dict}
+        Rawacf records read from the rawacf_filename
+    rawacf_writer: BorealisWrite
+        BorealisWrite instance containing write information.
     compression: str
-        The type of compression to write the file as. Default zlib.
-    arrays: dict
-        The Borealis data in a dictionary of arrays, according to the 
-        restructured array file format.
+        The type of compression to write the file as.
     """
 
     def __init__(self, bfiq_filename: str, rawacf_filename: str, 
-                 site: bool, write_site: bool = False):
+                 read_file_structure: Union[str, None] = None, 
+                 write_file_structure: str = 'array', num_processes: int = 4,
+                 **kwargs):
         """
         Processes the data from a bfiq.hdf5 file and creates auto and cross-
         correlations from the samples.
@@ -96,16 +112,22 @@ class BorealisBfiqToRawacfPostProcessor():
         ----------
         bfiq_filename: str
             The file where the bfiq hdf5 data is located. Can be record or array 
-            stored as per site flag.
+            stored.
         rawacf_filename: str
             The filename of where you want to place the rawacf hdf5 data. Rawacf 
-            data will be stored as per the write_site flag. 
-        site: bool
-            How to read the bfiq data. If True, will read as record stored data 
-            (site files). If False, will read as array stored. 
-        write_site: bool
-            How to write the rawacf data. If True, will write in record by record
-            site format. If False, will write in array format. Default False.
+            data will be stored as per the write_file_structure.
+        read_file_structure: Union[str, None]
+            How to read the bfiq data. If 'site', will read as record stored data 
+            (site files). If 'array', will read as array stored. None lets 
+            BorealisRead determine, which tries array first and then site.
+        write_file_structure: str
+            How to write the rawacf data. If 'site', will write in record by record
+            site format. If 'array', will write in array format. Default 'array'.
+        num_processes: int
+            The number of processes to use to convert the records in the dictionary.
+            Default 4.
+        kwargs
+            args to pass into the write. Only possible argument is hdf5_compression.
 
         Raises
         ------
@@ -124,6 +146,13 @@ class BorealisBfiqToRawacfPostProcessor():
         self.bfiq_filename = bfiq_filename
         self.rawacf_filename = rawacf_filename
 
+        self.write_file_structure = write_file_structure
+
+        self.__num_processes = num_processes
+
+        if 'hdf5_compression' in kwargs.keys():
+            self.compression = kwargs['hdf5_compression']
+
         if self.bfiq_filename == self.rawacf_filename:
             raise borealis_exceptions.ConvertFileOverWriteError(
                     self.bfiq_filename)
@@ -132,33 +161,35 @@ class BorealisBfiqToRawacfPostProcessor():
         warnings.simplefilter('ignore', tables.NaturalNameWarning)
 
         # get the records from the bfiq file
-        if site:
-            read_file_structure = 'site'
-        else:
-            read_file_structure = 'array'
-
-        bfiq_reader = BorealisRead(self.bfiq_filename, 'bfiq', 
+        self.bfiq_reader = BorealisRead(self.bfiq_filename, 'bfiq', 
                                    borealis_file_structure=read_file_structure)
-        self.bfiq_records = bfiq_reader.records
+
+        self.read_file_structure = self.bfiq_reader.borealis_file_structure
+        self.bfiq_records = self.bfiq_reader.records
 
         self.rawacf_records = \
-            self.__convert_bfiq_records_to_rawacf_records(self.bfiq_records)
+            self.__convert_bfiq_records_to_rawacf_records()
 
-        if write_site == True:
-            write_borealis_structure = 'site'
+        if self.write_file_structure == 'site':
             rawacf_data = self.rawacf_records
-        else:
-            write_borealis_structure = 'array'
+        elif self.write_borealis_structure == 'array':
             rawacf_data = BorealisRestructureUtilities.borealis_site_to_array_dict(
                                                         self.rawacf_filename,
                                                         self.rawacf_records, 
                                                         'rawacf')
+        else: # unknown structure
+            raise BorealisStructureError('Unknown write structure type: {}'\
+                ''.format(borealis_file_structure))
 
-        rawacf_writer = BorealisWrite(self.rawacf_filename, rawacf_data, 
+        self.rawacf_writer = BorealisWrite(self.rawacf_filename, rawacf_data, 
                             'rawacf',
-                            borealis_file_structure=write_borealis_structure)
+                            borealis_file_structure=self.write_borealis_structure,
+                            **kwargs)
 
-
+    @property
+    def num_processes(self):
+        return self.__num_processes
+    
     @staticmethod
     def __correlate_samples(time_stamped_dict: dict) -> (np.ndarray, 
             np.ndarray, np.ndarray):
@@ -282,25 +313,20 @@ class BorealisBfiqToRawacfPostProcessor():
         # END def correlate_samples(time_stamped_dict)
         return main_acfs, interferometer_acfs, xcfs
 
-    
-    def __convert_bfiq_records_to_rawacf_records(self) -> \
-            OrderedDict:
+    def __convert_record(self, record_key, rawacf):
         """
-        Take a data dictionary of bfiq records and return a data 
-        dictionary of rawacf records.
+        Convert a bfiq_record record.
 
         Parameters
         ----------
-        bfiq
-            Data OrderedDict of bfiq records.
-
-        Returns
-        -------
+        record_key
+            The key of the bfiq record being converted.
         rawacf
-            OrderedDict of rawacf records generated by bfiq records.
-
+            The rawacf record dictionary to assign to. This is
+            assigning the full record to the larger dictionary
+            of all records.
         """
-        rawacf = OrderedDict()
+        # write common dictionary fields first
 
         bfiq_rawacf_shared_fields = ['beam_azms', 'beam_nums', 
             'blanked_samples', 'lags', 'noise_at_freq', 'pulses', 
@@ -312,33 +338,81 @@ class BorealisBfiqToRawacfPostProcessor():
             'scan_start_marker', 'slice_comment', 'station', 'tau_spacing', 
             'tx_pulse_len']
 
-        for k in self.bfiq_records:
-            rawacf[k] = dict()
-            # write common dictionary fields first
-            for f in bfiq_rawacf_shared_fields:
-                rawacf[k][f] = self.bfiq_records[k][f]
+        rawacf_record = {}
 
-            # Perform correlations and write to dictionary
-            # Main array autocorrelations, interferometer autocorrelations,
-            # and cross-correlations between arrays.
-            main_acfs, interferometer_acfs, xcfs = self.__correlate_samples(
-                                            self.bfiq_records[k])
+        for f in bfiq_rawacf_shared_fields:
+            rawacf_record[f] = self.bfiq_records[record_key][f]
 
-            rawacf[k]["correlation_dimensions"] = \
-                np.array(main_acfs.shape, dtype=np.uint32)
-            rawacf[k]["correlation_descriptors"] = \
-                np.array(['num_beams', 'num_ranges', 'num_lags'])
+        # Perform correlations and write to dictionary
+        # Main array autocorrelations, interferometer autocorrelations,
+        # and cross-correlations between arrays.
+        main_acfs, interferometer_acfs, xcfs = self.__correlate_samples(
+                                        self.bfiq_records[record_key])
 
-            rawacf[k]["main_acfs"] = main_acfs.flatten()
-            rawacf[k]["intf_acfs"] = interferometer_acfs.flatten()
-            rawacf[k]["xcfs"] = xcfs.flatten()
-            
-            # Log information about how this file was generated
-            now = dt.now()
-            date_str = now.strftime("%Y-%m-%d")
-            time_str = now.strftime("%H:%M")
-            rawacf[k]["experiment_comment"] += "File generated on " + \
-                date_str + " at " + time_str + " from " + self.bfiq_filename + \
-                " via pydarn bfiq_to_rawacf_postprocessing"
+        rawacf_record["correlation_dimensions"] = \
+            np.array(main_acfs.shape, dtype=np.uint32)
+        rawacf_record["correlation_descriptors"] = \
+            np.array(['num_beams', 'num_ranges', 'num_lags'])
 
-        return rawacf
+        rawacf_record["main_acfs"] = main_acfs.flatten()
+        rawacf_record["intf_acfs"] = interferometer_acfs.flatten()
+        rawacf_record["xcfs"] = xcfs.flatten()
+        
+        # Log information about how this file was generated
+        now = dt.now()
+        date_str = now.strftime("%Y-%m-%d")
+        time_str = now.strftime("%H:%M")
+        rawacf_record["experiment_comment"] += "File generated on " + \
+            date_str + " at " + time_str + " from " + self.bfiq_filename + \
+            " via pydarn BorealisBfiqToRawacfPostProcessor"
+
+        # reassign to this managed dict to notify the proxy
+        rawacf = rawacf_record
+
+    def __convert_bfiq_records_to_rawacf_records(self) -> \
+            OrderedDict:
+        """
+        Take a data dictionary of bfiq records and return a data 
+        dictionary of rawacf records. Uses parallelization.
+
+        Parameters
+        ----------
+        bfiq
+            Data OrderedDict of bfiq records.
+
+        Returns
+        -------
+        rawacf
+            OrderedDict of rawacf records generated by bfiq records.
+        """
+        # parallelization
+        manager = Manager()
+        rawacf_dict = manager.dict()
+        jobs = []
+        
+        record_names = sorted(list(self.bfiq_records.keys()))
+
+        for record_key in record_names:
+            rawacf_dict[record_key] = dict()
+
+        records_left = True
+        record_index = 0
+        while records_left:
+            for procnum in range(self.num_processes):
+                try:
+                    record_key = record_names[record_index]
+                except IndexError:
+                    records_left = False
+                    break
+                p = Process(target=self.__convert_record, args=(record_key, rawacf_dict[record_key]))
+                jobs.append(p)
+                p.start()
+
+            for proc in jobs:
+                proc.join()
+
+            record_index += self.num_processes
+
+        rawacf_records = OrderedDict(sorted(rawacf_dict.items()))
+
+        return rawacf_records
