@@ -25,11 +25,14 @@ import random
 import tables
 import unittest
 
+import pydarn
+
 from collections import OrderedDict
 
-import borealis_rawacf_data_sets
-import borealis_bfiq_data_sets
-import pydarn
+from borealis_rawacf_data_sets import (borealis_array_rawacf_data, 
+                                       borealis_site_rawacf_data)
+from borealis_bfiq_data_sets import (borealis_array_bfiq_data, 
+                                     borealis_site_bfiq_data)
 
 pydarn_logger = logging.getLogger('pydarn')
 
@@ -317,38 +320,38 @@ class TestBorealisWrite(unittest.TestCase):
 
     def setUp(self):
         self.rawacf_site_data = copy.deepcopy(
-            borealis_rawacf_data_sets.borealis_site_rawacf_data)
+            borealis_site_rawacf_data)
         self.rawacf_site_missing_field = copy.deepcopy(
-            borealis_rawacf_data_sets.borealis_site_rawacf_data)
+            borealis_site_rawacf_data)
         self.rawacf_site_extra_field = copy.deepcopy(
-            borealis_rawacf_data_sets.borealis_site_rawacf_data)
+            borealis_site_rawacf_data)
         self.rawacf_site_incorrect_fmt = copy.deepcopy(
-            borealis_rawacf_data_sets.borealis_site_rawacf_data)
+            borealis_site_rawacf_data)
         self.bfiq_site_data = copy.deepcopy(
-            borealis_bfiq_data_sets.borealis_site_bfiq_data)
+            borealis_site_bfiq_data)
         self.bfiq_site_missing_field = copy.deepcopy(
-            borealis_bfiq_data_sets.borealis_site_bfiq_data)
+            borealis_site_bfiq_data)
         self.bfiq_site_extra_field = copy.deepcopy(
-            borealis_bfiq_data_sets.borealis_site_bfiq_data)
+            borealis_site_bfiq_data)
         self.bfiq_site_incorrect_fmt = copy.deepcopy(
-            borealis_bfiq_data_sets.borealis_site_bfiq_data)
+            borealis_site_bfiq_data)
 
         self.rawacf_array_data = copy.deepcopy(
-            borealis_rawacf_data_sets.borealis_array_rawacf_data)
+            borealis_array_rawacf_data)
         self.rawacf_array_missing_field = copy.deepcopy(
-            borealis_rawacf_data_sets.borealis_array_rawacf_data)
+            borealis_array_rawacf_data)
         self.rawacf_array_extra_field = copy.deepcopy(
-            borealis_rawacf_data_sets.borealis_array_rawacf_data)
+            borealis_array_rawacf_data)
         self.rawacf_array_incorrect_fmt = copy.deepcopy(
-            borealis_rawacf_data_sets.borealis_array_rawacf_data)
+            borealis_array_rawacf_data)
         self.bfiq_array_data = copy.deepcopy(
-            borealis_bfiq_data_sets.borealis_array_bfiq_data)
+            borealis_array_bfiq_data)
         self.bfiq_array_missing_field = copy.deepcopy(
-            borealis_bfiq_data_sets.borealis_array_bfiq_data)
+            borealis_array_bfiq_data)
         self.bfiq_array_extra_field = copy.deepcopy(
-            borealis_bfiq_data_sets.borealis_array_bfiq_data)
+            borealis_array_bfiq_data)
         self.bfiq_array_incorrect_fmt = copy.deepcopy(
-            borealis_bfiq_data_sets.borealis_array_bfiq_data)
+            borealis_array_bfiq_data)
 
     # Read/write tests to check input vs output
     def check_dictionaries_are_same(self, dict1, dict2):
@@ -710,9 +713,9 @@ class TestBorealisConvert(unittest.TestCase):
 
     def setUp(self):
         self.rawacf_array_data = copy.deepcopy(
-            borealis_rawacf_data_sets.borealis_array_rawacf_data)
+            borealis_array_rawacf_data)
         self.bfiq_array_data = copy.deepcopy(
-            borealis_bfiq_data_sets.borealis_array_bfiq_data)
+            borealis_array_bfiq_data)
 
         self.bfiq_test_file = "test_bfiq.bfiq.hdf5"
         writer = pydarn.BorealisWrite(self.bfiq_test_file, 
