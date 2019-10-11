@@ -27,10 +27,10 @@ BorealisNumberOfRecordsError
 
 See Also
 --------
+BorealisUtilities
 BorealisSiteRead
 BorealisSiteWrite
-borealis_site_to_array_file
-borealis_array_to_site_file
+BorealisRestructureUtilities
 
 For more information on Borealis data files and how they convert to SDARN
 files, see: https://borealis.readthedocs.io/en/latest/ 
@@ -50,7 +50,7 @@ from pydarn import borealis_exceptions, borealis_formats
 from pydarn.utils.conversions import dict2dmap
 
 from .borealis_utilities import BorealisUtilities
-from .restructure_borealis import borealis_array_to_site_dict
+from .restructure_borealis import BorealisRestructureUtilities
 
 pydarn_log = logging.getLogger('pydarn')
 
@@ -144,8 +144,9 @@ class BorealisArrayRead():
         The Borealis data in a dictionary of records, according to the 
         site file format.
         """
-        return borealis_array_to_site_dict(self.filename, self.arrays, 
-                                           self.borealis_filetype)
+        return BorealisRestructureUtilities.borealis_array_to_site_dict(
+                                            self.filename, self.arrays, 
+                                            self.borealis_filetype)
 
     @property 
     def arrays(self):
@@ -379,8 +380,9 @@ class BorealisArrayWrite():
         The Borealis data in a dictionary of records, according to the 
         site file format.
         """
-        return borealis_array_to_site_dict(self.filename, self.arrays, 
-                                           self.borealis_filetype)
+        return BorealisRestructureUtilities.borealis_array_to_site_dict(
+                                            self.filename, self.arrays, 
+                                            self.borealis_filetype)
 
     @property 
     def arrays(self):
