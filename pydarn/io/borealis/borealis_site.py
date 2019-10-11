@@ -20,10 +20,10 @@ BorealisDataFormatTypeError
 
 See Also
 --------
+BorealisUtilities
 BorealisArrayRead
 BorealisArrayWrite
-borealis_site_to_array_file
-borealis_array_to_site_file
+BorealisRestructureUtilities
 
 For more information on Borealis data files and how they convert to SDARN
 files, see: https://borealis.readthedocs.io/en/latest/ 
@@ -47,7 +47,7 @@ from pydarn import borealis_exceptions, borealis_formats
 from pydarn.utils.conversions import dict2dmap
 
 from .borealis_utilities import BorealisUtilities
-from .restructure_borealis import borealis_site_to_array_dict
+from .restructure_borealis import BorealisRestructureUtilities
 
 pydarn_log = logging.getLogger('pydarn')
 
@@ -151,8 +151,9 @@ class BorealisSiteRead():
         The Borealis data in a dictionary of arrays, according to the 
         restructured array file format.
         """
-        return borealis_site_to_array_dict(self.filename, self.records, 
-                                           self.borealis_filetype)
+        return BorealisRestructureUtilities.borealis_site_to_array_dict(
+                                            self.filename, self.records, 
+                                            self.borealis_filetype)
 
     def read_file(self) -> dict:
         """
@@ -395,8 +396,9 @@ class BorealisSiteWrite():
         The Borealis data in a dictionary of arrays, according to the 
         restructured array file format.
         """
-        return borealis_site_to_array_dict(self.filename, self.records, 
-                                           self.borealis_filetype)
+        return BorealisRestructureUtilities.borealis_site_to_array_dict(
+                                            self.filename, self.records, 
+                                            self.borealis_filetype)
 
     def write_file(self) -> str:
         """

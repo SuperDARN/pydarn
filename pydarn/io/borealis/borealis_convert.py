@@ -162,8 +162,10 @@ class BorealisConvert(BorealisRead):
         epoch), and are equal to the group names in the site file types.
     sdarn_filename: str
         The filename of the SDARN DMap file to be written.
-    sdarn_records: list[dict]
+    sdarn_dmap_records: list[dict]
         The converted DMap records to write to file.
+    sdarn_dict: dict
+        The dictionary of SDARN records before the conversion to DMap format.
     sdarn_filetype: str
         The dmap filetype converted to. 'rawacf' and 'iqdat' are allowed.
     borealis_slice_id: int
@@ -219,7 +221,8 @@ class BorealisConvert(BorealisRead):
         self.sdarn_filename = sdarn_filename      
         self.borealis_filename = self.filename
         self._borealis_slice_id = borealis_slice_id
-        self._sdarn_records = {}
+        self._sdarn_dmap_records = {}
+        self._sdarn_dict = {}
         try:
             self._sdarn_filetype = self.__allowed_conversions[
                     self.borealis_filetype]
@@ -252,11 +255,19 @@ class BorealisConvert(BorealisRead):
                          sdarn_filename=self.sdarn_filename)
 
     @property
-    def sdarn_records(self):
+    def sdarn_dmap_records(self):
         """
         The converted SDARN DMap records to write to file.
         """
-        return self._sdarn_records
+        return self._sdarn_dmap_records
+
+    @property
+    def sdarn_dict(self):
+        """
+        The converted SDARN records as a dictionary, before being converted
+        to DMap.
+        """
+        return self._sdarn_dict
 
     @property
     def sdarn_filetype(self):
@@ -284,7 +295,7 @@ class BorealisConvert(BorealisRead):
         """
 
         self._convert_records_to_dmap()
-        darn_writer = DarnWrite(self._sdarn_records, self.sdarn_filename)
+        darn_writer = DarnWrite(self._sdarn_dmap_records, self.sdarn_filename)
         if self.sdarn_filetype == 'iqdat':
             darn_writer.write_iqdat(self.sdarn_filename)
         elif self.sdarn_filetype == 'rawacf':
@@ -299,22 +310,17 @@ class BorealisConvert(BorealisRead):
         Raises
         ------
         BorealisConversionTypesError
-
-        Returns
-        -------
-        sdarn_records, the records converted to DMap format
         """
         if self.sdarn_filetype == 'iqdat':
             if self._is_convertible_to_iqdat():
-                sdarn_records = self._convert_bfiq_to_iqdat()
+                self._convert_bfiq_to_iqdat()
         elif self.sdarn_filetype == 'rawacf':
             if self._is_convertible_to_rawacf():
-                sdarn_records = self._convert_rawacf_to_rawacf()
+                self._convert_rawacf_to_rawacf()
         else:  # nothing else is currently supported
             raise borealis_exceptions.BorealisConversionTypesError(
                 self.sdarn_filename, self.borealis_filetype, 
                 self.__allowed_conversions)
-        self._sdarn_records = sdarn_records
 
     def _is_convertible_to_iqdat(self) -> bool:
         """
@@ -418,11 +424,10 @@ class BorealisConvert(BorealisRead):
                                     record, 
                                     self.borealis_filename)
                 recs.append(record_dict)
-            dmap_recs = dict2dmap(recs)
+            self._sdarn_dict = recs
+            self._sdarn_dmap_records = dict2dmap(recs)
         except Exception as e:
             raise borealis_exceptions.BorealisConvert2IqdatError(e)
-
-        return dmap_recs
 
 
     @staticmethod
@@ -633,11 +638,10 @@ class BorealisConvert(BorealisRead):
                                     record, 
                                     self.borealis_filename)
                 recs.append(record_dict)
-            dmap_recs = dict2dmap(recs)
+            self._sdarn_dict = recs
+            self._sdarn_dmap_records = dict2dmap(recs)
         except Exception as e:
             raise borealis_exceptions.BorealisConvert2RawacfError(e)
-
-        return dmap_recs
 
     @staticmethod
     def __convert_rawacf_record(borealis_slice_id: int, 
