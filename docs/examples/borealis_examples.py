@@ -250,7 +250,7 @@ def borealis_array_to_site_file(read_filename: str, write_filename: str):
 
 
 def borealis_write_to_dmap(borealis_hdf5_file: str, borealis_filetype: str,
-                           slice_id: int, darn_filename: str, 
+                           slice_id: int, sdarn_filename: str, 
                            site_flag: bool = False):
     """
     Convert a Borealis hdf5 file to a DARN filetype.
@@ -269,7 +269,7 @@ def borealis_write_to_dmap(borealis_hdf5_file: str, borealis_filetype: str,
         'bfiq' -> 'iqdat'
     slice_id: int
         The borealis slice identifier code for this data.
-    darn_filename: str
+    sdarn_filename: str
         The filename to save the converted file to
     site_flag: bool
         Type of the Borealis file supplied. If True, will read as a site file.
@@ -299,15 +299,15 @@ def borealis_write_to_dmap(borealis_hdf5_file: str, borealis_filetype: str,
         structure = 'array'
 
     converter = BorealisConvert(borealis_hdf5_file, borealis_filetype, 
-                                darn_filename, slice_id, 
+                                sdarn_filename, slice_id, 
                                 borealis_file_structure=structure)
 
-    pydarn_log.info("Borealis file {filename} written to {darn_filename} "
+    pydarn_log.info("Borealis file {filename} written to {sdarn_filename} "
           "without errors.".format(filename=borealis_hdf5_file,
-                          darn_filename=darn_filename))
+                          sdarn_filename=sdarn_filename))
 
 
-def bfiq2darniqdat(borealis_hdf5_file: str, darn_filename: str,
+def bfiq2darniqdat(borealis_hdf5_file: str, sdarn_filename: str,
                    slice_id: int, site_flag: bool = False):
     """
     Convert a Borealis bfiq file to DARN iqdat.
@@ -318,7 +318,7 @@ def bfiq2darniqdat(borealis_hdf5_file: str, darn_filename: str,
         A Borealis bfiq file to convert to DARN DMap filetype. File may contain
         site records or the Borealis arrays format, according to the site
         flag.
-    darn_filename
+    sdarn_filename
         The filename to save the converted file to
     slice_id: int
         The borealis slice identifier code for this data.
@@ -344,10 +344,10 @@ def bfiq2darniqdat(borealis_hdf5_file: str, darn_filename: str,
     borealis_write_to_dmap
     """
     borealis_write_to_dmap(borealis_hdf5_file, 'bfiq', slice_id, 
-                           darn_filename, site_flag=site_flag)
+                           sdarn_filename, site_flag=site_flag)
 
 
-def rawacf2darnrawacf(borealis_hdf5_file: str, darn_filename: str,
+def rawacf2darnrawacf(borealis_hdf5_file: str, sdarn_filename: str,
                       slice_id: int, site_flag: bool = False):
     """
     Convert a Borealis rawacf file to DARN rawacf.
@@ -358,7 +358,7 @@ def rawacf2darnrawacf(borealis_hdf5_file: str, darn_filename: str,
         A Borealis rawacf file to convert to DARN DMap filetype. File may contain
         site records or the Borealis arrays format, according to the site
         flag.
-    darn_filename
+    sdarn_filename
         The filename to save the converted file to
     slice_id: int
         The borealis slice identifier code for this data.
@@ -384,4 +384,4 @@ def rawacf2darnrawacf(borealis_hdf5_file: str, darn_filename: str,
     borealis_write_to_dmap
     """
     borealis_write_to_dmap(borealis_hdf5_file, 'rawacf', slice_id, 
-                           darn_filename, site_flag=site_flag)
+                           sdarn_filename, site_flag=site_flag)
