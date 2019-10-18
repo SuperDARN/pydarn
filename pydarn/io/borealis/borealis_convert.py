@@ -102,18 +102,6 @@ code_to_stid = {
     "cve": 207,
     "adw": 208,
     "ade": 209,
-    "azw": 210,
-    "aze": 211,
-    "sve": 501,
-    "svw": 502,
-    "ire": 504,
-    "irw": 505,
-    "kae": 506,
-    "kaw": 507,
-    "eje": 508,
-    "ejw": 509,
-    "she": 510,
-    "shw": 511,
     "ekb": 512,
 }
 
@@ -427,7 +415,7 @@ class BorealisConvert(BorealisRead):
             self._sdarn_dict = recs
             self._sdarn_dmap_records = dict2dmap(recs)
         except Exception as e:
-            raise borealis_exceptions.BorealisConvert2IqdatError(e)
+            raise borealis_exceptions.BorealisConvert2IqdatError(e) from e
 
 
     @staticmethod
@@ -641,7 +629,7 @@ class BorealisConvert(BorealisRead):
             self._sdarn_dict = recs
             self._sdarn_dmap_records = dict2dmap(recs)
         except Exception as e:
-            raise borealis_exceptions.BorealisConvert2RawacfError(e)
+            raise borealis_exceptions.BorealisConvert2RawacfError(e) from e
 
     @staticmethod
     def __convert_rawacf_record(borealis_slice_id: int, 
