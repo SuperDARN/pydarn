@@ -319,9 +319,6 @@ class BorealisWrite():
         self.data = borealis_data
         self.borealis_filetype = borealis_filetype
 
-        if 'hdf5_compression' in kwargs.keys():
-            self.compression = kwargs['hdf5_compression']
-
         if borealis_file_structure == None:
             self._writer, self._borealis_file_structure = \
                 self.return_writer(self.filename, self.data, 
@@ -361,6 +358,19 @@ class BorealisWrite():
         """
         return self._borealis_file_structure
 
+    @property
+    def compression(self):
+        """
+        The type of compression the file is written with. Default is
+        None for site structure, and 'zlib' for array structure.
+        Site structured files will have no compression to match
+        files actually written on-site, where records are constantly
+        appended so there is no compression. Array structured files
+        will have 'zlib' compression to enable a faster read time
+        for downstream users.
+        """
+        return self._writer.compression
+    
     @property
     def record_names(self):
         """
