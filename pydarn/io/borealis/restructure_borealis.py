@@ -284,11 +284,10 @@ class BorealisRestructureUtilities():
                 borealis_formats.BorealisBfiq.unshared_fields)
 
         except Exception as e:
-            tb = sys.exc_info()[2]
             raise borealis_exceptions.BorealisRestructureError('Error '\
                                             'restructuring bfiq '\
                                             'from site to array style:'\
-                                            '{}'.format(e)).with_traceback(tb)
+                                            '{}'.format(e)) from e
 
         return new_data_dict
 
@@ -322,11 +321,10 @@ class BorealisRestructureUtilities():
                 borealis_formats.BorealisAntennasIq.unshared_fields)
 
         except Exception as e:
-            tb = sys.exc_info()[2]
             raise borealis_exceptions.BorealisRestructureError(''\
                                             'Error restructuring antennas_iq '\
                                             'from site to array style:'\
-                                            '{}'.format(e)).with_traceback(tb)
+                                            '{}'.format(e)) from e
 
         return new_data_dict
 
@@ -445,11 +443,10 @@ class BorealisRestructureUtilities():
                 borealis_formats.BorealisRawacf.unshared_fields)
 
         except Exception as e:
-            tb = sys.exc_info()[2]
             raise borealis_exceptions.BorealisRestructureError(''\
                                             'Error restructuring rawacf '\
                                             'from site to array style:'\
-                                            '{}'.format(e)).with_traceback(tb)
+                                            '{}'.format(e)) from e
         return new_data_dict
 
     @staticmethod
@@ -571,11 +568,10 @@ class BorealisRestructureUtilities():
                 borealis_formats.BorealisBfiq.site_array_dtypes())
 
         except Exception as e:
-            tb = sys.exc_info()[2]
             raise borealis_exceptions.BorealisRestructureError(''\
                                             'Error restructuring bfiq '\
                                             'from array to site style:'\
-                                            '{}'.format(e)).with_traceback(tb)
+                                            '{}'.format(e)) from e
         return timestamp_dict
 
     @classmethod
@@ -605,11 +601,10 @@ class BorealisRestructureUtilities():
                 borealis_formats.BorealisAntennasIq.site_array_dtypes())
 
         except Exception as e:
-            tb = sys.exc_info()[2]
             raise borealis_exceptions.BorealisRestructureError(''\
                                             'Error restructuring antennas_iq '\
                                             'from array to site style:'\
-                                            '{}'.format(e)).with_traceback(tb)
+                                            '{}'.format(e)) from e
         return timestamp_dict
 
     @staticmethod
@@ -692,11 +687,10 @@ class BorealisRestructureUtilities():
                 borealis_formats.BorealisRawacf.site_array_dtypes())
         
         except Exception as e:
-            tb = sys.exc_info()[2]
             raise borealis_exceptions.BorealisRestructureError(''\
                                             'Error restructuring rawacf '\
                                             'from array to site style:'\
-                                            '{}'.format(e)).with_traceback(tb)
+                                            '{}'.format(e)) from e
         return timestamp_dict
 
     @classmethod
