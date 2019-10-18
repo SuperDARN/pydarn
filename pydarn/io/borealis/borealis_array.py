@@ -321,6 +321,9 @@ class BorealisArrayWrite():
     arrays: dict
     compression: str
         The type of compression to write the file as. Default zlib.
+        zlib is hdf5 default compression for fast reading. We want
+        the fastest read possible for downstream users with this
+        structure style.
     """
 
     def __init__(self, filename: str, borealis_arrays: dict, 

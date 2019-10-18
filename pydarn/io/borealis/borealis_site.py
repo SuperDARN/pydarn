@@ -28,6 +28,10 @@ BorealisRestructureUtilities
 For more information on Borealis data files and how they convert to SDARN
 files, see: https://borealis.readthedocs.io/en/latest/ 
 
+Future Work
+-----------
+Add compression to bzip2
+
 """
 import deepdish as dd
 import h5py
@@ -328,6 +332,9 @@ class BorealisSiteWrite():
     arrays: dict
     compression: str
         The type of compression to write the file as. Default None.
+        Default is no compression to match site-structure files
+        created on site by the Borealis radar. They are not compressed
+        as they are appended to record by record.
     """
     def __init__(self, filename: str, 
                  borealis_records: OrderedDict,
