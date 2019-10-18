@@ -81,6 +81,14 @@ class BorealisRead():
     reader: Union[BorealisSiteWrite, BorealisArrayWrite]
         the wrapped BorealisSiteRead or BorealisArrayRead instance
     borealis_file_structure: Union[str, None]
+        The structure of the data. 'site' structure means record-by-record
+        style, as is written by the Borealis radar on-site. 'array'
+        structure means a restructured file where parameters
+        that are consistent throughout the whole file are provided
+        once and data is restructured into arrays where the
+        first dimension is num_records. 'array' structure is
+        intended for downstream users to more easily read and use
+        the data.
     records: dict
     arrays: dict
     record_names: list[str]
@@ -103,8 +111,8 @@ class BorealisRead():
             'rawrf'
         borealis_file_structure: Union[str, None]
             The write structure of the file provided. Possible types are
-            'site', 'array', or None. If None (default), array will be attempted 
-            first followed by site. 
+            'site', 'array', or None. If None (default), array will be
+            attempted first followed by site.
 
         Raises
         ------
@@ -261,8 +269,22 @@ class BorealisWrite():
     writer: Union[BorealisSiteWrite, BorealisArrayWrite]
         the wrapped BorealisSiteWrite or BorealisArrayWrite instance
     borealis_file_structure: Union[str, None]
-    compression: str
-        The type of compression to write the file as. Default zlib.
+        The structure of the data. 'site' structure means record-by-record
+        style, as is written by the Borealis radar on-site. 'array'
+        structure means a restructured file where parameters
+        that are consistent throughout the whole file are provided
+        once and data is restructured into arrays where the
+        first dimension is num_records. 'array' structure is
+        intended for downstream users to more easily read and use
+        the data.
+    compression: Union[str, None]
+        The type of compression the file is written with. Default is
+        None for site structure, and 'zlib' for array structure.
+        Site structured files will have no compression to match
+        files actually written on-site, where records are constantly
+        appended so there is no compression. Array structured files
+        will have 'zlib' compression to enable a faster read time
+        for downstream users.
     arrays: dict
         The Borealis data in a dictionary of arrays, according to the 
         restructured array file format.
