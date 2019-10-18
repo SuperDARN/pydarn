@@ -18,9 +18,13 @@ BorealisNumberOfRecordsError
 
 See Also
 --------
-
 For more information on Borealis data files and how they convert to dmap,
 see: https://borealis.readthedocs.io/en/latest/ 
+
+Future Work
+-----------
+Look into combining DARNUtilties and BorealisUtilities into a single util
+class
 
 """
 import deepdish as dd
