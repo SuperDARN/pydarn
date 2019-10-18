@@ -313,7 +313,7 @@ class BorealisWrite():
             'site', 'array', or None. If None (default), array write will be 
             attempted first followed by site. 
         hdf5_compression: str
-            String representing compression type. 
+            A kwarg key name, giving a string representing compression type. 
         """
         self.filename = filename
         self.data = borealis_data
