@@ -40,6 +40,10 @@ Future Work
 -----------
 Add compression to bzip2
 
+Future Work
+-----------
+Add compression to bzip2
+
 """
 import deepdish as dd
 import h5py
