@@ -38,7 +38,6 @@ from .io.borealis import borealis_formats
 from .io.borealis.borealis import BorealisRead
 from .io.borealis.borealis import BorealisWrite
 from .io.borealis.borealis_convert import BorealisConvert
-from .io.borealis.bfiq_to_rawacf import BorealisBfiqToRawacfPostProcessor
 
 # importing utils
 from .utils.conversions import dict2dmap
