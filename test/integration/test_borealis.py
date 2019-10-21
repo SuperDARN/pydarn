@@ -74,7 +74,7 @@ class IntegrationBorealis(unittest.TestCase):
                 self.check_dictionaries_are_same(value1, dict2[key1])
             elif isinstance(value1, np.ndarray):
                 self.assertTrue((value1 == dict2[key1]).all())
-            elif key1 == 'combf':
+            elif key1 == 'experiment_comment':
                 continue # combf has filename inside, can differ
             else:
                 self.assertEqual(value1, dict2[key1])

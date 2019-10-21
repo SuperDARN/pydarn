@@ -385,7 +385,9 @@ class TestBorealisWrite(unittest.TestCase):
         self.assertTrue(os.path.isfile(test_file))
         reader = pydarn.BorealisRead(test_file, 'rawacf', 'site')
         records = reader.records
-        self.check_dictionaries_are_same(records, self.rawacf_site_data)
+        dictionaries_are_same = self.check_dictionaries_are_same(records, 
+                                    self.rawacf_site_data)
+        self.assertTrue(dictionaries_are_same)
         os.remove(test_file)
 
     def test_missing_field_site_rawacf(self):
@@ -467,7 +469,9 @@ class TestBorealisWrite(unittest.TestCase):
         self.assertTrue(os.path.isfile(test_file))
         reader = pydarn.BorealisRead(test_file, 'bfiq', 'site')
         records = reader.records
-        self.check_dictionaries_are_same(records, self.bfiq_site_data)
+        dictionaries_are_same = self.check_dictionaries_are_same(records, 
+                                     self.bfiq_site_data)
+        self.assertTrue(dictionaries_are_same)
         os.remove(test_file)
 
     def test_missing_field_site_bfiq(self):
@@ -547,7 +551,9 @@ class TestBorealisWrite(unittest.TestCase):
         self.assertTrue(os.path.isfile(test_file))
         reader = pydarn.BorealisRead(test_file, 'rawacf', 'array')
         data = reader.arrays
-        self.check_dictionaries_are_same(data, self.rawacf_array_data)
+        dictionaries_are_same = self.check_dictionaries_are_same(data, 
+                                        self.rawacf_array_data)
+        self.assertTrue(dictionaries_are_same)
         os.remove(test_file)
 
     def test_missing_field_array_rawacf(self):
@@ -622,7 +628,9 @@ class TestBorealisWrite(unittest.TestCase):
         self.assertTrue(os.path.isfile(test_file))
         reader = pydarn.BorealisRead(test_file, 'bfiq', 'array')
         data = reader.arrays
-        self.check_dictionaries_are_same(data, self.bfiq_array_data)
+        dictionaries_are_same = self.check_dictionaries_are_same(data, 
+                                        self.bfiq_array_data)
+        self.assertTrue(dictionaries_are_same)
         os.remove(test_file)
 
     def test_missing_field_array_bfiq(self):
