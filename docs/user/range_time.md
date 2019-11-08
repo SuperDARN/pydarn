@@ -21,12 +21,14 @@ fitacf_data = darn_read.read_fitacf()
 </code></pre>
 
 You can choose one of four data products to plot:
+
 | Data product                | String name |
 |-----------------------------|-------------|
 | Line of sight velocity (m/s)| 'v'         |
 | Spectral width (m/s)        | 'w_l'       |
 | Elevation angle (degrees)   | 'elv'       |
 | Power (dB)                  | 'p_l'       |
+
 which is chosen by adding: 
 'parameter=String name' 
 as an option. The default if left blank is 'p_l'.
@@ -48,6 +50,7 @@ which produces:
 
 ### Additional options
 To see all the customisation options, check out all the parameters listed in 'rtp.py'. A few useful ones:
+
 | Parameter                    | Action                                                      |
 |------------------------------|-------------------------------------------------------------|
 | start_time=(datetime object) | Control the start time of the plot                          |
