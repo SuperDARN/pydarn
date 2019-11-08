@@ -335,7 +335,7 @@ class RTP():
         # and 5 minute ticks for 2 hour plots.
         data_time_length = end_time - start_time
         # 3 hours * 60 minutes * 60 seconds
-        if data_time_length.seconds > 3*60*60:
+        if data_time_length.total_seconds() > 3*60*60:
             tick_interval = 30
         else:
             tick_interval = 1
@@ -513,7 +513,10 @@ class RTP():
                     # else plot missing data
                     elif len(x) > 0:
                         diff_time = rec_time - x[-1]
-                        if diff_time.seconds/60 > 2.0:
+                        # if the time difference is greater than 2 minutes
+                        # meaning no data was collected for that time period
+                        # then plot nothing.
+                        if diff_time.total_seconds() > 2.0 * 60.0:
                             x.append(rec_time)
                             y.append(np.nan)  # for masking the data
             # Check if there is any data to plot
@@ -551,7 +554,7 @@ class RTP():
         # and 5 minute ticks for 2 hour plots.
         data_time_length = end_time - start_time
         # 3 hours * 60 minutes * 60 seconds
-        if data_time_length.seconds > 3*60*60:
+        if data_time_length.total_seconds() > 3*60*60:
             tick_interval = 30
         else:
             tick_interval = 1
