@@ -25,18 +25,18 @@ from .io.datastructures import DmapArray
 from .io.datastructures import DmapRecord
 from .io import superdarn_formats
 
+# importing utils
+from .utils.conversions import dict2dmap
+from .utils.conversions import dmap2dict
+
 # Importing pydarn dmap classes
 from .io.dmap import DmapRead
 from .io.dmap import DmapWrite
 
 # Importing pydarn superdarn classes
-from .io.superdarn import DarnRead
-from .io.superdarn import DarnWrite
-from .io.superdarn import DarnUtilities
-
-# importing utils
-from .utils.conversions import dict2dmap
-from .utils.conversions import dmap2dict
+from .io.superdarn import SDarnRead
+from .io.superdarn import SDarnWrite
+from .io.superdarn import SDarnUtilities
 
 # import plotting
 from .plotting.superdarn_radars import SuperDARNRadars
