@@ -47,7 +47,7 @@ plt.show()
 </code></pre>
 which produces:
 
-![](imgs/mcmbeam7.png)
+![](../imgs/mcmbeam7.png)
 
 ### Additional options
 To see all the customisation options, check out all the parameters listed in 'rtp.py'. A few useful ones:
@@ -66,7 +66,7 @@ For instance, code for a velocity RTP showing beam 10 of the Saskatoon radar wit
 </code></pre>
 which outputs:
 
-![](imgs/sasbeam10.png) 
+![](../imgs/sasbeam10.png) 
 
 #### Plotting with a custom color map
 To change the color map, use the 'cmap' parameter with the string name of a matplot lib color map ([found here](https://matplotlib.org/tutorials/colors/colormaps.html)). The default is set to 'viridis'.
@@ -75,7 +75,7 @@ pydarn.RTP.plot_range_time(fitacf_data, beam_num=10, parameter='v', groundscatte
 </code></pre>
 produces:
 
-![](imgs/sasbeam10_colourswitch.png)
+![](../imgs/sasbeam10_colourswitch.png)
 
 Feel free to choose a color map which is palatable for your needs.
 
