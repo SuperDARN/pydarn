@@ -3,8 +3,11 @@
 
 """
 This module contains SuperDARN radar modes classified by cpid number
+Current documentation on modes:
+    http://superdarn.thayer.dartmouth.edu/info/modes.html
 """
 
+#TODO: find/create better radar mode/frequency bands documentation
 
 class SuperDARNCpids():
 
