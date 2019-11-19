@@ -1,4 +1,4 @@
-# Copyright (C) 2018  SuperDARN
+# Copyright (C) 2019 SuperDARN
 # Author: Marina Schmidt
 """
 This test suite is to test the implementation for the following classes:
@@ -13,20 +13,21 @@ Support for the following SuperDARN file types:
     map
 """
 
-import unittest
-import numpy as np
-import logging
-import collections
 import bz2
-import os
 import copy
+import collections
+import logging
+import numpy as np
+import os
+import unittest
 
 import pydarn
-import rawacf_data_sets
-import fitacf_data_sets
-import iqdat_data_sets
+
 import map_data_sets
 import grid_data_sets
+import fitacf_data_sets
+import iqdat_data_sets
+import rawacf_data_sets
 
 pydarn_logger = logging.getLogger('pydarn')
 

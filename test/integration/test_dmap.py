@@ -1,15 +1,18 @@
-import pydarn
-from pydarn import DmapScalar, DmapArray
-import unittest
-import numpy as np
-import logging
+# Copyright (C) 2019 SuperDARN
+# Authors: Marina Schmidt
 import bz2
+import copy
+import logging
+import numpy as np
 import os
+import unittest
+
+from collections import OrderedDict
+
+import pydarn
 
 import rawacf_data_sets
 import dmap_data_sets
-import copy
-from collections import OrderedDict
 
 # Test files
 rawacf_stream = "../testfiles/20170410.1801.00.sas.stream.rawacf.bz2"
