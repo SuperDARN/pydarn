@@ -215,10 +215,10 @@ class RTP():
         # These flags indicate if zmin and zmax should change
         set_zmin = True
         set_zmax = True
-        if not zmin:
+        if zmin is None:
             zmin = cls.dmap_data[index_first_match][parameter][0]
             set_zmin = False
-        if not zmax:
+        if zmax is None:
             zmax = cls.dmap_data[index_first_match][parameter][0]
             set_zmax = False
 
@@ -301,7 +301,6 @@ class RTP():
                                                      cls.dmap_data[0]['bmnum'])
         time_axis, y_axis = np.meshgrid(x, y)
         z_data = np.ma.masked_where(np.isnan(z.T), z.T)
-
         norm = norm(zmin, zmax)
         if isinstance(cmap, str):
             cmap = cm.get_cmap(cmap)
@@ -686,10 +685,10 @@ class RTP():
                            'noise.sky': (1e0, 1e5),
                            'tfreq': (8, 22),
                            'nave': (0, 60),
-                           'p_l': (0, 30),
+                           'p_l': (0, 45),
                            'v': (-200, 200),
-                           'w_l': (0, 150),
-                           'elv': (0, 50)}
+                           'w_l': (0, 250),
+                           'elv': (0, 45)}
         boundary_ranges.update(boundary)
 
         # Default color maps for the summary plot
@@ -702,7 +701,7 @@ class RTP():
             line.update(lines)
         else:
             line.update({k: lines for k,v in line.items()})
-        cmap = {'p_l': 'viridis',
+        cmap = {'p_l': 'plasma',
                 'v': 'viridis',
                 'w_l': 'viridis',
                 'elv': 'viridis'}
