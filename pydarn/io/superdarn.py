@@ -35,10 +35,11 @@ Notes
 -----
 DmapRead and DmapWrite are inherited by DarnRead and DarnWrite
 """
-from typing import Union, List
 import logging
 
-from pydarn import superdarn_exceptions, DmapRead, DmapWrite, superdarn_formats
+from typing import Union, List
+
+from pydarn import DmapRead, DmapWrite, superdarn_exceptions, superdarn_formats
 
 pydarn_log = logging.getLogger('pydarn')
 
@@ -143,6 +144,8 @@ class DarnUtilities():
         -------
         SuperDARNFieldMissing
         """
+
+        missing_fields = set()
         """
         We have to check each possible subset to see if there is a missing
         field in the subset or if the whole subset is missing. If there
@@ -150,11 +153,11 @@ class DarnUtilities():
         If a full subset is missing then this is technically okay because
         RST will add fields, or do not included fields based on the commands,
         and options the user uses to process the data.
-        Some fields are not included if the data is not "good" quality,
+        Some fields are not included if the data is not good quality,
         this occurs in the fitting FITACF files types due to the fitting
         procedure in fitacf 2.5 and 3.0.
         """
-        missing_fields = set()
+
         for file_struct in file_struct_list:
             diff_fields = \
                 DarnUtilities.dict_key_diff(file_struct,
@@ -408,7 +411,8 @@ class DarnRead(DmapRead):
         # DarnUtilities for more information.
         file_struct_list = [superdarn_formats.Fitacf.types,
                             superdarn_formats.Fitacf.extra_fields,
-                            superdarn_formats.Fitacf.fitted_fields]
+                            superdarn_formats.Fitacf.fitted_fields,
+                            superdarn_formats.Fitacf.elevation_fields]
         self._read_darn_records(file_struct_list)
         return self._dmap_records
 
@@ -621,7 +625,8 @@ class DarnWrite(DmapWrite):
         # DarnUtilities for more information.
         file_struct_list = [superdarn_formats.Fitacf.types,
                             superdarn_formats.Fitacf.extra_fields,
-                            superdarn_formats.Fitacf.fitted_fields]
+                            superdarn_formats.Fitacf.fitted_fields,
+                            superdarn_formats.Fitacf.elevation_fields]
         self.superDARN_file_structure_to_bytes(file_struct_list)
         with open(self.filename, 'wb') as f:
             f.write(self.dmap_bytearr)
@@ -730,13 +735,15 @@ class DarnWrite(DmapWrite):
 
         See Also
         --------
-        missing_field_check(format_fields, record, self.rec_num) - checks
-                        for missing fields. See this method for information
-                        on why we use format_fields.
-        extra_field_check(format_fields, record, self.rec_num) - checks for
-                        extra fields in the record
-        incorrect_types_check(format_fields, record, self.rec_num) - checks
-                        for incorrect data types for SuperDARN file fields
+        Within superdarn.py module:
+        DarnUtilities.missing_field_check(format_fields, record, self.rec_num)
+                - checks for missing fields. See this method for information
+                  on why we use format_fields.
+        DarnUtilties.extra_field_check(format_fields, record, self.rec_num)
+                - checks for extra fields in the record
+        DarnUtilities.incorrect_types_check(format_fields, record,
+                                            self.rec_num)
+                - checks for incorrect data types for SuperDARN file fields
 
         """
         self.rec_num = 0
