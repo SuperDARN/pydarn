@@ -16,7 +16,7 @@ from typing import Union, List
 
 from pydarn import (dmap2dict, DmapArray, DmapScalar,
                     rtp_exceptions, SuperDARNCpids, SuperDARNRadars,
-                    standard_warning_format)
+                    standard_warning_format, PyDARNColormaps)
 
 warnings.formatwarning = standard_warning_format
 
@@ -702,9 +702,9 @@ class RTP():
         else:
             line.update({k: lines for k,v in line.items()})
         cmap = {'p_l': 'plasma',
-                'v': 'viridis',
-                'w_l': 'viridis',
-                'elv': 'viridis'}
+                'v': PyDARNColormaps.PYDARN_VELOCITY,
+                'w_l': PyDARNColormaps.PYDARN_VIRIDIS,
+                'elv': PyDARNColormaps.PYDARN}
         if isinstance(cmaps, dict):
             cmap.update(cmaps)
         else:
