@@ -99,6 +99,7 @@ class TestDmapRead(unittest.TestCase):
         file_path = fitacf_file
         dm = pydarn.DmapRead(file_path)
         dmap_records = dm.read_records()
+        dmap_records = dm.get_dmap_records
         self.assertIsInstance(dmap_records, collections.deque)
         self.assertIsInstance(dmap_records[0], collections.OrderedDict)
         self.assertIsInstance(dmap_records[4]['bmnum'], pydarn.DmapScalar)
@@ -165,6 +166,7 @@ class TestDmapRead(unittest.TestCase):
             dmap_stream = fp.read()
         dmap = pydarn.DmapRead(dmap_stream, True)
         dmap_data = dmap.read_records()
+        dmap_data = dmap.get_dmap_records
         self.assertIsInstance(dmap_data, collections.deque)
         self.assertIsInstance(dmap_data[0], collections.OrderedDict)
         self.assertIsInstance(dmap_data[4]['channel'], pydarn.DmapScalar)
@@ -222,8 +224,8 @@ class TestDmapWrite(unittest.TestCase):
         Raise DmapDataError - no data is given to write
         ¯\_(ツ)_/¯
         """
-        dmap_write = pydarn.DmapWrite(filename="test.test")
         with self.assertRaises(pydarn.dmap_exceptions.DmapDataError):
+            dmap_write = pydarn.DmapWrite(filename="test.test")
             dmap_write.write_dmap()
 
     def test_writing_dmap(self):
@@ -253,7 +255,7 @@ class TestDmapWrite(unittest.TestCase):
         int8 - RST standard for char types.
         """
         scalar = pydarn.DmapScalar('channel', 'c', 1, 'c')
-        dmap_write = pydarn.DmapWrite()
+        dmap_write = pydarn.DmapWrite([{'channel': scalar}])
         with self.assertRaises(pydarn.dmap_exceptions.DmapCharError):
             dmap_write.dmap_scalar_to_bytes(scalar)
 
@@ -267,7 +269,7 @@ class TestDmapWrite(unittest.TestCase):
         """
         array = pydarn.DmapArray('xcf', np.array(['dog', 'cat', 'mouse']),
                                  9, 's', 1, [3])
-        dmap_write = pydarn.DmapWrite()
+        dmap_write = pydarn.DmapWrite([{'xcf': array}])
         with self.assertRaises(pydarn.dmap_exceptions.DmapDataError):
                 dmap_write.dmap_array_to_bytes(array)
 
@@ -279,7 +281,7 @@ class TestDmapWrite(unittest.TestCase):
         """
         array = pydarn.DmapArray('channel', np.array(['d', 'c', 'm']),
                                  1, 'c', 1, [3])
-        dmap_write = pydarn.DmapWrite()
+        dmap_write = pydarn.DmapWrite([{'channel': array}])
         with self.assertRaises(pydarn.dmap_exceptions.DmapCharError):
             dmap_write.dmap_array_to_bytes(array)
 

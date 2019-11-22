@@ -39,6 +39,7 @@ from .io.superdarn import SDarnWrite
 from .io.superdarn import SDarnUtilities
 
 # import plotting
+from .plotting.color_maps import PyDARNColormaps
 from .plotting.superdarn_radars import SuperDARNRadars
 from .plotting.superdarn_cpid import SuperDARNCpids
 from .plotting.rtp import RTP
