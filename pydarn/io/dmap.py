@@ -889,19 +889,12 @@ class DmapWrite(object):
         DmapTypeError
         FilenameRequiredError
         """
-        try:
-            first_value = list(dmap_records[0].values())[0]
-            if isinstance(first_value, DmapScalar):
-                self.dmap_records = dict2dmap(dmap_records)
-            else:
-                self.dmap_records = dmap_records
-        except IndexError:
-            self.dmap_records = dmap_records
-            self._empty_record_check()
-
-        self.dmap_bytearr = bytearray()
         self.filename = filename
         self.rec_num = 0
+
+        self.dmap_records = self.__check_dmap_dict(dmap_records)
+
+        self.dmap_bytearr = bytearray()
         pydarn_log.debug("Initiating DmapWrite")
 
     def __repr__(self):
@@ -922,6 +915,28 @@ class DmapWrite(object):
         return "Writing to filename: {filename} at record number: {rec_num}"\
                "".format(filename=self.filename,
                          rec_num=self.rec_num)
+
+    def __check_dmap_dict(self, dmap_records):
+        """
+        Checks if the dmap data is a dict, if so, converts to a dmap_structure
+
+        Parameter:
+            dmap_data : List[dict]
+                dmap_data structure to test if it is a dict of value or dmap
+                structure
+        Returns:
+            dmap_structure : List[dict]
+                returns the dmap structure of dmap_data
+        """
+        try:
+            first_value = list(dmap_records[0].values())[0]
+            if isinstance(first_value, DmapScalar) or isinstance(first_value,
+                                                                 DmapArray):
+                return dmap_records
+            else:
+                return dict2dmap(dmap_records)
+        except IndexError:
+            return dmap_records
 
     # HONEY BADGER method: Because dmap just don't care -
     # will write anything into DMap format with out any file
@@ -962,7 +977,7 @@ class DmapWrite(object):
         correct.
         """
         if self.dmap_records == []:
-            self.dmap_records = dmap_records
+            self.dmap_records = self.__check_dmap_dict(dmap_records)
         self._empty_record_check()
         pydarn_log.debug("Writing to dmap stream")
         self.dmap_records_to_bytes()
