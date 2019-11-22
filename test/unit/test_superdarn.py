@@ -162,8 +162,8 @@ class TestSDarnRead(unittest.TestCase):
         file_path = iqdat_file
         dm = pydarn.SDarnRead(file_path)
         dm_data = dm.read_iqdat()
-        dm_records = dm.get_dmap_records()
-        self.assertIsInstance(dm_records, list)
+        dm_records = dm.get_dmap_records
+        self.assertIsInstance(dm_records, collections.deque)
         self.assertIsInstance(dm_records[0], collections.OrderedDict)
         self.assertIsInstance(dm_records[0]['rxrise'], pydarn.DmapScalar)
         self.assertIsInstance(dm_records[3]['tsc'], pydarn.DmapArray)
@@ -183,8 +183,8 @@ class TestSDarnRead(unittest.TestCase):
         file_path = rawacf_file
         dm = pydarn.SDarnRead(file_path)
         dm_records = dm.read_rawacf()
-        dm_records = dm.get_dmap_records()
-        self.assertIsInstance(dm_records, list)
+        dm_records = dm.get_dmap_records
+        self.assertIsInstance(dm_records, collections.deque)
         self.assertIsInstance(dm_records[0], collections.OrderedDict)
         self.assertIsInstance(dm_records[4]['channel'], pydarn.DmapScalar)
         self.assertIsInstance(dm_records[1]['ptab'], pydarn.DmapArray)
@@ -203,8 +203,8 @@ class TestSDarnRead(unittest.TestCase):
         file_path = fitacf_file
         dm = pydarn.SDarnRead(file_path)
         dm_records = dm.read_fitacf()
-        dm_records = dm.get_dmap_records()
-        self.assertIsInstance(dm_records, list)
+        dm_records = dm.get_dmap_records
+        self.assertIsInstance(dm_records, collections.deque)
         self.assertIsInstance(dm_records[0], collections.OrderedDict)
         self.assertIsInstance(dm_records[4]['bmnum'], pydarn.DmapScalar)
         self.assertIsInstance(dm_records[1]['ptab'], pydarn.DmapArray)
@@ -223,8 +223,8 @@ class TestSDarnRead(unittest.TestCase):
         file_path = grid_file
         dm = pydarn.SDarnRead(file_path)
         data = dm.read_grid()
-        dm_records = dm.get_dmap_records()
-        self.assertIsInstance(dm_records, list)
+        dm_records = dm.get_dmap_records
+        self.assertIsInstance(dm_records, collections.deque)
         self.assertIsInstance(dm_records[0], collections.OrderedDict)
         self.assertIsInstance(dm_records[4]['start.year'], pydarn.DmapScalar)
         self.assertIsInstance(dm_records[1]['v.max'], pydarn.DmapArray)
@@ -243,8 +243,8 @@ class TestSDarnRead(unittest.TestCase):
         file_path = map_file
         dm = pydarn.SDarnRead(file_path)
         data = dm.read_map()
-        dm_records = dm.get_dmap_records()
-        self.assertIsInstance(dm_records, list)
+        dm_records = dm.get_dmap_records
+        self.assertIsInstance(dm_records, collections.deque)
         self.assertIsInstance(dm_records[0], collections.OrderedDict)
         self.assertIsInstance(dm_records[2]['IMF.flag'],
                               pydarn.io.datastructures.DmapScalar)
@@ -290,8 +290,8 @@ class TestSDarnRead(unittest.TestCase):
             dmap_stream = fp.read()
         dmap = pydarn.SDarnRead(dmap_stream, True)
         dmap_data = dmap.read_rawacf()
-        dmap_data = dmap.get_dmap_records()
-        self.assertIsInstance(dmap_data, list)
+        dmap_data = dmap.get_dmap_records
+        self.assertIsInstance(dmap_data, collections.deque)
         self.assertIsInstance(dmap_data[0], collections.OrderedDict)
         self.assertIsInstance(dmap_data[4]['channel'], pydarn.DmapScalar)
         self.assertIsInstance(dmap_data[1]['ptab'], pydarn.DmapArray)
@@ -343,9 +343,9 @@ class TestDarnUtilities(unittest.TestCase):
         b = {'1': 'a', 'c': 'd', 'd': 4, 'z': 'dog'}
         solution_a_b = {'a'}
         solution_b_a = {'1', 'z'}
-        diff_set = pydarn.DarnUtilities.dict_key_diff(a, b)
+        diff_set = pydarn.SDarnUtilities.dict_key_diff(a, b)
         self.assertEqual(diff_set, solution_a_b)
-        diff_set = pydarn.DarnUtilities.dict_key_diff(b, a)
+        diff_set = pydarn.SDarnUtilities.dict_key_diff(b, a)
         self.assertEqual(diff_set, solution_b_a)
 
     def test_dict_list2set(self):
@@ -365,7 +365,7 @@ class TestDarnUtilities(unittest.TestCase):
         complete_set = {'a', 'b', 'c',
                         'rst', 'stid', 'vel',
                         'fitacf', 'rawacf', 'map'}
-        dict_set = pydarn.DarnUtilities.dict_list2set([dict1, dict2, dict3])
+        dict_set = pydarn.SDarnUtilities.dict_list2set([dict1, dict2, dict3])
         self.assertEqual(dict_set, complete_set)
 
     def test_extra_field_check_pass(self):
@@ -384,7 +384,7 @@ class TestDarnUtilities(unittest.TestCase):
         dict2 = {'rst': '4.1', 'stid': 3, 'vel': [2.3, 4.5]}
         dict3 = {'fitacf': 'f', 'rawacf': 's', 'map': 'm'}
         test_dict = {'a': 3, 'b': 3, 'c': 3, 'rst': 1, 'vel': 'd'}
-        pydarn.DarnUtilities.extra_field_check([dict1, dict2, dict3],
+        pydarn.SDarnUtilities.extra_field_check([dict1, dict2, dict3],
                                                test_dict, 1)
 
     def test_extra_field_check_fail(self):
@@ -405,7 +405,7 @@ class TestDarnUtilities(unittest.TestCase):
 
         test_dict = {'a': 3, 'b': 3, 'c': 2, 'd': 3, 'rst': 1, 'vel': 'd'}
         try:
-            pydarn.DarnUtilities.extra_field_check([dict1, dict2, dict3],
+            pydarn.SDarnUtilities.extra_field_check([dict1, dict2, dict3],
                                                    test_dict, 1)
         except pydarn.superdarn_exceptions.SuperDARNExtraFieldError as err:
             self.assertEqual(err.fields, {'d'})
@@ -426,7 +426,7 @@ class TestDarnUtilities(unittest.TestCase):
         test_dict = {}
         test_dict.update(dict1)
         test_dict.update(dict3)
-        pydarn.DarnUtilities.missing_field_check([dict1, dict2,
+        pydarn.SDarnUtilities.missing_field_check([dict1, dict2,
                                                   dict3],
                                                  test_dict, 1)
 
@@ -452,12 +452,12 @@ class TestDarnUtilities(unittest.TestCase):
         test_dict = {'a': 3, 'b': 3, 'c': 2, 'd': 2,
                      'stid': 's', 'rst': 1, 'vel': 'd'}
 
-        pydarn.DarnUtilities.missing_field_check([dict1, dict2, dict3],
+        pydarn.SDarnUtilities.missing_field_check([dict1, dict2, dict3],
                                                  test_dict, 1)
         test_dict = {}
         test_dict.update(dict1)
         test_dict.update(dict3)
-        pydarn.DarnUtilities.missing_field_check([dict1, dict2, dict3],
+        pydarn.SDarnUtilities.missing_field_check([dict1, dict2, dict3],
                                                  test_dict, 1)
 
     def test_missing_field_check_fail2(self):
@@ -481,7 +481,7 @@ class TestDarnUtilities(unittest.TestCase):
                      'fitacf': 3, 'map': 4}
 
         try:
-            pydarn.DarnUtilities.missing_field_check([dict1, dict2, dict3],
+            pydarn.SDarnUtilities.missing_field_check([dict1, dict2, dict3],
                                                      test_dict, 1)
         except pydarn.superdarn_exceptions.SuperDARNFieldMissingError as err:
             self.assertEqual(err.fields, {'c', 'rst', 'rawacf'})
@@ -508,7 +508,7 @@ class TestDarnUtilities(unittest.TestCase):
                      'fitacf': 3, 'map': 4}
 
         try:
-            pydarn.DarnUtilities.missing_field_check([dict1, dict2, dict3],
+            pydarn.SDarnUtilities.missing_field_check([dict1, dict2, dict3],
                                                      test_dict, 1)
         except pydarn.superdarn_exceptions.SuperDARNFieldMissingError as err:
             self.assertEqual(err.fields, {'c', 'rawacf'})
@@ -538,7 +538,7 @@ class TestDarnUtilities(unittest.TestCase):
                      'rawacf': pydarn.DmapScalar('a', 1, 1, 's'),
                      'map': pydarn.DmapScalar('a', 1, 1, 'm')}
 
-        pydarn.DarnUtilities.incorrect_types_check([dict1, dict3],
+        pydarn.SDarnUtilities.incorrect_types_check([dict1, dict3],
                                                    test_dict, 1)
 
     def test_incorrect_types_check_fail(self):
@@ -567,7 +567,7 @@ class TestDarnUtilities(unittest.TestCase):
                      'rawacf': pydarn.DmapScalar('a', 1, 1, 's'),
                      'map': pydarn.DmapScalar('a', 1, 1, 'm')}
         try:
-            pydarn.DarnUtilities.incorrect_types_check([dict1, dict3],
+            pydarn.SDarnUtilities.incorrect_types_check([dict1, dict3],
                                                        test_dict, 1)
         except pydarn.superdarn_exceptions.SuperDARNDataFormatTypeError as err:
             self.assertEqual(err.incorrect_params, {'fitacf': 'f'})
