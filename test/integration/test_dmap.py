@@ -80,6 +80,9 @@ class IntegrationDmap(unittest.TestCase):
         self.assertEqual(dmaparr1.data_type_fmt, dmaparr2.data_type_fmt)
         self.assertEqual(dmaparr1.dimension, dmaparr2.dimension)
         if np.array_equal(dmaparr1.value, dmaparr2.value):
+            print(dmaparr1.name)
+            print(dmaparr1.shape)
+            print(dmaparr2.shape)
             self.assertTrue(np.array_equal(dmaparr1.value, dmaparr2.value))
         else:
             # This is hack to going back to the files and fixing their
@@ -96,11 +99,11 @@ class IntegrationDmap(unittest.TestCase):
         Behaviour: No change to the scalar being written then read in.
         """
         scalar = pydarn.DmapScalar('stid', 5, 3, 'i')
-        dmap_write = pydarn.DmapWrite()
+        dmap_write = pydarn.DmapWrite([{'stid': scalar}])
         dmap_scalar_bytes = dmap_write.dmap_scalar_to_bytes(scalar)
         dmap = pydarn.DmapRead(dmap_scalar_bytes, True)
-        dmap_scalar = dmap.read_scalar()
-        self.assertEqual(scalar, dmap_scalar)
+        dmap = dmap.read_scalar()
+        self.assertEqual(scalar, dmap)
 
     def test_DmapWrite_DmapRead_array(self):
         """
@@ -112,7 +115,7 @@ class IntegrationDmap(unittest.TestCase):
         array = pydarn.DmapArray('xcf',
                                  np.array([4.3, 3.5, 2.3], dtype=np.float32),
                                  4, 'f', 1, [3])
-        dmap_write = pydarn.DmapWrite()
+        dmap_write = pydarn.DmapWrite([{'xcf': array}])
         dmap_array_bytes = dmap_write.dmap_array_to_bytes(array)
         dmap = pydarn.DmapRead(dmap_array_bytes, True)
         dmap_array = dmap.read_array(len(dmap_array_bytes))
@@ -125,7 +128,7 @@ class IntegrationDmap(unittest.TestCase):
         """
         array = pydarn.DmapArray('channel', np.array([1, 0, 1], dtype=np.int8),
                                  1, 'c', 1, [3])
-        dmap_write = pydarn.DmapWrite()
+        dmap_write = pydarn.DmapWrite([{'channel': array}])
         dmap_array_bytes = dmap_write.dmap_array_to_bytes(array)
         dmap = pydarn.DmapRead(dmap_array_bytes, True)
         dmap_array = dmap.read_array(len(dmap_array_bytes))
@@ -136,7 +139,7 @@ class IntegrationDmap(unittest.TestCase):
         Test integration DmapWrite and DmapRead to write char array.
         """
         scalar = pydarn.DmapScalar('channel', 4, 1, 'c')
-        dmap_write = pydarn.DmapWrite()
+        dmap_write = pydarn.DmapWrite([{'channel': scalar}])
         dmap_scalar_bytes = dmap_write.dmap_scalar_to_bytes(scalar)
         dmap = pydarn.DmapRead(dmap_scalar_bytes, True)
         dmap_scalar = dmap.read_scalar()
@@ -150,6 +153,7 @@ class IntegrationDmap(unittest.TestCase):
         """
         dmap = pydarn.DmapRead(rawacf_file)
         dmap_data = dmap.read_records()
+        dmap_data = dmap.get_dmap_records
         pydarn.DmapWrite(dmap_data, "test_rawacf.rawacf")
         self.assertTrue(os.path.isfile("test_rawacf.rawacf"))
         os.remove("test_rawacf.rawacf")
@@ -159,7 +163,8 @@ class IntegrationDmap(unittest.TestCase):
 
         dmap_read = pydarn.DmapRead("test_rawacf.rawacf")
         data = dmap_read.read_records()
-        self.dmap_compare(dmap_data, data)
+        dmap_read_data = dmap_read.get_dmap_records
+        self.dmap_compare(dmap_read_data, dmap_data)
         os.remove("test_rawacf.rawacf")
 
     def test_DmapWrite_DmapRead_dmap_file(self):
@@ -172,7 +177,8 @@ class IntegrationDmap(unittest.TestCase):
         rawacf_write.write_dmap()
         rawacf_read = pydarn.DmapRead("test_rawacf.rawacf")
         rawacf_read_data = rawacf_read.read_records()
-        self.dmap_compare(rawacf_read_data, rawacf_data)
+        rawacf_read_dmap = rawacf_read.get_dmap_records
+        self.dmap_compare(rawacf_read_dmap, rawacf_data)
 
     def test_DmapRead_DmapWrite_stream_dmap(self):
         """
@@ -183,10 +189,12 @@ class IntegrationDmap(unittest.TestCase):
             dmap_stream = fp.read()
         dmap = pydarn.DmapRead(dmap_stream, True)
         dmap_stream_data = dmap.read_records()
+        dmap_stream_data = dmap.get_dmap_records
         dmap_write = pydarn.DmapWrite()
         dmap_write_stream = dmap_write.write_dmap_stream(dmap_stream_data)
         dmap_read = pydarn.DmapRead(dmap_write_stream, True)
         dmap_read_data = dmap_read.read_records()
+        dmap_read_data = dmap.get_dmap_records
         self.dmap_compare(dmap_stream_data, dmap_read_data)
 
     def test_DmapRead_stream_DmapWrite_file(self):
@@ -198,13 +206,15 @@ class IntegrationDmap(unittest.TestCase):
             dmap_stream = fp.read()
         dmap = pydarn.DmapRead(dmap_stream, True)
         dmap_stream_data = dmap.read_records()
+        dmap_stream_data = dmap.get_dmap_records
         dmap_write = pydarn.DmapWrite(dmap_stream_data)
         dmap_write.write_dmap("test_rawacf.rawacf")
         self.assertTrue(os.path.isfile("test_rawacf.rawacf"))
 
         dmap = pydarn.DmapRead("test_rawacf.rawacf")
         dmap_data = dmap.read_records()
-        self.dmap_compare(dmap_stream_data, dmap_data)
+        dmap_read_data = dmap.get_dmap_records
+        self.dmap_compare(dmap_stream_data, dmap_read_data)
 
     def test_DmapWrite_stream_DmapRead_dmap(self):
         """
@@ -213,10 +223,10 @@ class IntegrationDmap(unittest.TestCase):
         rawacf_data = copy.deepcopy(rawacf_data_sets.rawacf_data)
         rawacf_write = pydarn.DmapWrite()
         rawacf_stream = rawacf_write.write_dmap_stream(rawacf_data)
-
         rawacf_read = pydarn.DmapRead(rawacf_stream, True)
         rawacf_read_data = rawacf_read.read_records()
-        self.dmap_compare(rawacf_read_data, rawacf_data)
+        rawacf_dmap_data = rawacf_read.get_dmap_records
+        self.dmap_compare(rawacf_dmap_data, rawacf_data)
 
     def test_DmapRead_dmap2dict_dict2dmap(self):
         """
@@ -224,8 +234,12 @@ class IntegrationDmap(unittest.TestCase):
         """
         dmap_read = pydarn.DmapRead(rawacf_file)
         records = dmap_read.read_records()
+        records = dmap_read.get_dmap_records
+        print(records[0]['ptab'].shape)
         dict_records = pydarn.dmap2dict(records)
+        print(np.shape(records[0]['ptab']))
         records_2 = pydarn.dict2dmap(dict_records)
+        print(records[0]['ptab'].shape)
         self.dmap_compare(records, records_2)
 
     def test_DmapWrite_DmapRead_dict2dmap_dict2dmap(self):
@@ -245,6 +259,7 @@ class IntegrationDmap(unittest.TestCase):
         dmap_write.write_dmap()
         dmap_read = pydarn.DmapRead("test_dmap.dmap")
         records = dmap_read.read_records()
+        records = dmap_read.get_dmap_records
         self.dmap_compare(dmap_records, records)
         dmap_dict2 = pydarn.dmap2dict(records)
         self.dict_compare(dmap_dict, dmap_dict2)
@@ -266,6 +281,7 @@ class IntegrationDmap(unittest.TestCase):
         dmap_stream = dmap_write.write_dmap_stream()
         dmap_read = pydarn.DmapRead(dmap_stream, True)
         records = dmap_read.read_records()
+        records = dmap_read.get_dmap_records
         self.dmap_compare(dmap_records, records)
         dmap_dict2 = pydarn.dmap2dict(records)
         self.dict_compare(dmap_dict, dmap_dict2)
@@ -290,6 +306,7 @@ class IntegrationDmap(unittest.TestCase):
         dmap_stream = dmap_write.write_dmap_stream()
         dmap_read = pydarn.DmapRead(dmap_stream, True)
         dmap_records = dmap_read.read_records()
+        dmap_records = dmap_read.get_dmap_records
         self.dmap_compare(dmap_records, dmap_data)
         dmap_dict2 = pydarn.dmap2dict(dmap_records)
         self.dict_compare(dmap_dict, dmap_dict2)
