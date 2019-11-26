@@ -185,7 +185,7 @@ class DmapDataError(Exception):
             "{msg}".format(filename=self.filename,
                            msg=message)
         super().__init__(self.message)
-        pydarn_logger.error("DmapDataError: {}".format(message))
+        pydarn_logger.error("DmapDataError: {}".format(self.message))
 
 
 class DmapTypeError(Exception):
@@ -212,8 +212,8 @@ class DmapTypeError(Exception):
             "{rec}".format(data_type=self.data_type,
                            filename=self.filename,
                            rec=self.rec_num)
-        Exception.__init__(self, message)
-        pydarn_logger.error("DataTypeError: {}".format(message))
+        Exception.__init__(self, self.message)
+        pydarn_logger.error("DataTypeError: {}".format(self.message))
 
 
 class FilenameRequiredError(Exception):
@@ -221,5 +221,5 @@ class FilenameRequiredError(Exception):
     Raised if a filename is not provided when needed for the procedure
     """
     def __init__(self):
-        message = "Error: Filename is required"
-        Exception.__init__(self, message)
+        self.message = "Error: Filename is required"
+        Exception.__init__(self, self.message)
