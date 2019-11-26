@@ -729,10 +729,14 @@ class RTP():
         axes = []
         # List of parameters plotted in the summary plot, tuples are used
         # for shared plot parameters like noise.search and noise.sky
-        axes_parameters = [('noise.search', 'noise.sky'), ('tfreq', 'nave'),
+        # Removing search noise from the summary plot due to too much
+        # overlapping, however, if confirmed as undesired parameter to
+        # plot, will remove it from the code.
+        # TODO: remove search noise completely if not wanted in summary plot
+        axes_parameters = [('noise.sky', 'noise.search'), ('tfreq', 'nave'),
                            ('cp'), ('p_l'), ('v'), ('w_l'), ('elv')]
         # labels to show on the summary plot for each parameter
-        labels = [('Search \n Noise', 'Sky\n Noise'),
+        labels = [('Sky \n Noise', 'Search\n Noise'),
                   ('Freq\n ($MHz$)', 'Nave'), ('CP ID'), ('SNR ($dB$)'),
                   ('Velocity\n ($m\ s^{-1}$)'),
                   ('Spectral Width\n ($m\ s^{-1}$)'),
@@ -779,35 +783,36 @@ class RTP():
                                      boundary_ranges[axes_parameters[i][0]][1])
                     axes[i].yaxis.set_label_coords(-0.08, 0.085)
 
-                    # plot the shared parameter
-                    second_ax = axes[i].twinx()
-                    # warnings are not caught with try/except
-                    with warnings.catch_warnings(record=True) as w:
-                        cls.plot_time_series(dmap_data, beam_num=beam_num,
-                                             parameter=axes_parameters[i][1],
-                                             color=line[axes_parameters[i][1]],
-                                             channel=channel,
-                                             scale=scale, ax=second_ax,
-                                             linestyle='--')
-                    if len(w) > 0:
-                        warnings.warn("Warning: {parameter} raised the"
-                                      " following warning: {message}"
-                                      "".format(parameter=axes_parameters[i][1],
-                                                message=str(w[0].message)))
-                    second_ax.set_xticklabels([])
-                    second_ax.set_ylabel(labels[i][1], rotation=0, labelpad=25)
-                    second_ax.axhline(y=boundary_ranges[axes_parameters[i][1]][0] +
-                                      0.8, xmin=1.07, xmax=1.13,
-                                      clip_on=False, linestyle='--',
-                                      color=line[axes_parameters[i][1]])
-                    second_ax.set_ylim(boundary_ranges[axes_parameters[i][1]][0],
-                                       boundary_ranges[axes_parameters[i][1]][1])
-                    second_ax.yaxis.set_label_coords(1.1, 0.7)
-                    if scale == 'linear':
-                        second_ax.set_yticks(boundary_ranges[axes_parameters[i][1]])
-                        axes[i].set_yticks(boundary_ranges[axes_parameters[i][0]])
-                        axes[i].yaxis.set_minor_locator(ticker.LinearLocator())
-                        second_ax.yaxis.set_minor_locator(ticker.LinearLocator())
+                    if i == 1:
+                        # plot the shared parameter
+                        second_ax = axes[i].twinx()
+                        # warnings are not caught with try/except
+                        with warnings.catch_warnings(record=True) as w:
+                            cls.plot_time_series(dmap_data, beam_num=beam_num,
+                                                 parameter=axes_parameters[i][1],
+                                                 color=line[axes_parameters[i][1]],
+                                                 channel=channel,
+                                                 scale=scale, ax=second_ax,
+                                                 linestyle='--')
+                        if len(w) > 0:
+                            warnings.warn("Warning: {parameter} raised the"
+                                          " following warning: {message}"
+                                          "".format(parameter=axes_parameters[i][1],
+                                                    message=str(w[0].message)))
+                        second_ax.set_xticklabels([])
+                        second_ax.set_ylabel(labels[i][1], rotation=0, labelpad=25)
+                        second_ax.axhline(y=boundary_ranges[axes_parameters[i][1]][0] +
+                                          0.8, xmin=1.07, xmax=1.13,
+                                          clip_on=False, linestyle='--',
+                                          color=line[axes_parameters[i][1]])
+                        second_ax.set_ylim(boundary_ranges[axes_parameters[i][1]][0],
+                                           boundary_ranges[axes_parameters[i][1]][1])
+                        second_ax.yaxis.set_label_coords(1.1, 0.7)
+                        if scale == 'linear':
+                            second_ax.set_yticks(boundary_ranges[axes_parameters[i][1]])
+                            axes[i].set_yticks(boundary_ranges[axes_parameters[i][0]])
+                            axes[i].yaxis.set_minor_locator(ticker.LinearLocator())
+                            second_ax.yaxis.set_minor_locator(ticker.LinearLocator())
 
                 axes[i].set_facecolor(background_color)
             # plot cp id
