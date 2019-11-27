@@ -16,6 +16,7 @@ import yaml
 from .exceptions import dmap_exceptions
 from .exceptions import superdarn_exceptions
 from .exceptions import rtp_exceptions
+from .exceptions import borealis_exceptions
 from .exceptions.warning_formatting import standard_warning_format
 from .exceptions.warning_formatting import only_message_warning_format
 
@@ -37,6 +38,12 @@ from .io.dmap import DmapWrite
 from .io.superdarn import SDarnRead
 from .io.superdarn import SDarnWrite
 from .io.superdarn import SDarnUtilities
+
+# Importing pydarn borealis classes
+from .io.borealis import borealis_formats
+from .io.borealis.borealis import BorealisRead
+from .io.borealis.borealis import BorealisWrite
+from .io.borealis.borealis_convert import BorealisConvert
 
 # import plotting
 from .plotting.color_maps import PyDARNColormaps
