@@ -11,7 +11,7 @@ The general syntax for plot_range_time is:
 'plot_range_time(fitacf_data, options)'
 where 'fitacf_data' is the read in data, and the options are several python parameters used to control how the plot looks.
 
-First, make sure Pydarn and matplotlib is imported, then read in the .fitacf file with the data you wish to plot:
+First, make sure Pydarn and matplotlib are imported, then read in the .fitacf file with the data you wish to plot:
 <pre><code>import pydarn
 import matplotlib.pyplot as plt'
 
@@ -36,7 +36,7 @@ as an option. The default if left blank is 'p_l'.
 To specify which beam to look at, add the option:
 'beam=beam_number"
 
-As an example, taking a look at some'p_l' data from the McMurdo radar, beam 7:
+As an example, taking a look at some 'p_l' data from the McMurdo radar, beam 7:
 <pre><code>fitacf_file = "20180208.0400.00.mcm.a.fitacf"
 darn_read = pydarn.DarnRead(fitacf_file)
 fitacf_data = darn_read.read_fitacf()
