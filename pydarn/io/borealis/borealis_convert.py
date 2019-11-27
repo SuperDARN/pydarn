@@ -21,7 +21,7 @@ BorealisConvert2RawacfError
 
 Notes
 -----
-BorealisConvert makes use of DarnWrite to write to SuperDARN file types
+BorealisConvert makes use of SDARNWrite to write to SuperDARN file types
 
 See Also
 --------
@@ -54,12 +54,11 @@ from datetime import datetime
 from typing import Union, List
 
 from pydarn import (borealis_exceptions, borealis_formats,
-                    BorealisRead, DarnWrite)
-from pydarn.utils.conversions import dict2dmap
+                    BorealisRead, SDarnWrite, dict2dmap)
 
 pydarn_log = logging.getLogger('pydarn')
 
-# 3 letter radar code, mapped to station id for SDARN files conversion.
+# 3 letter radar code, mapped to station id for SDarn files conversion.
 # TODO: when merged with plotting, remove this dictionary and call the 
 #    one in the plotting folder... also move Radars.py to a more 
 #    central location.
@@ -119,7 +118,7 @@ class BorealisConvert(BorealisRead):
     BorealisRead
     BorealisSiteRead
     BorealisArrayRead
-    DarnWrite
+    SDarnWrite
 
     Attributes
     ----------
@@ -283,11 +282,11 @@ class BorealisConvert(BorealisRead):
         """
 
         self._convert_records_to_dmap()
-        darn_writer = DarnWrite(self._sdarn_dmap_records, self.sdarn_filename)
+        sdarn_writer = SDarnWrite(self._sdarn_dmap_records, self.sdarn_filename)
         if self.sdarn_filetype == 'iqdat':
-            darn_writer.write_iqdat(self.sdarn_filename)
+            sdarn_writer.write_iqdat(self.sdarn_filename)
         elif self.sdarn_filetype == 'rawacf':
-            darn_writer.write_rawacf(self.sdarn_filename)
+            sdarn_writer.write_rawacf(self.sdarn_filename)
         return self.sdarn_filename
 
     def _convert_records_to_dmap(self):
