@@ -32,7 +32,7 @@ BorealisSiteRead
 BorealisSiteWrite
 BorealisRestructureUtilities
 
-For more information on Borealis data files and how they convert to SDARN
+For more information on Borealis data files and how they convert to SDarn
 files, see: https://borealis.readthedocs.io/en/latest/ 
 """
 import deepdish as dd
@@ -46,8 +46,7 @@ from collections import OrderedDict
 from datetime import datetime
 from typing import Union, List
 
-from pydarn import borealis_exceptions, borealis_formats
-from pydarn.utils.conversions import dict2dmap
+from pydarn import borealis_exceptions, borealis_formats, dict2dmap
 
 from .borealis_utilities import BorealisUtilities
 from .restructure_borealis import BorealisRestructureUtilities
