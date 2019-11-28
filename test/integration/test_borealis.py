@@ -472,7 +472,7 @@ class IntegrationBorealisSDARN(unittest.TestCase):
         array_converter = pydarn.BorealisConvert(self.bfiq_file, "bfiq", 
             self.iqdat_array_darn_file, 0, borealis_file_structure='array')
         self.assertTrue(os.path.isfile(self.iqdat_array_darn_file))
-        darn_reader = pydarn.DarnRead(self.iqdat_array_darn_file)
+        darn_reader = pydarn.SDarnRead(self.iqdat_array_darn_file)
         iqdat_array_records = darn_reader.read_iqdat()
         os.remove(self.iqdat_array_darn_file)
         os.remove(self.bfiq_file)
@@ -482,7 +482,7 @@ class IntegrationBorealisSDARN(unittest.TestCase):
         site_converter = pydarn.BorealisConvert(self.bfiq_file, "bfiq", 
             self.iqdat_site_darn_file, 0, borealis_file_structure='site')
         self.assertTrue(os.path.isfile(self.iqdat_site_darn_file))
-        darn_reader = pydarn.DarnRead(self.iqdat_site_darn_file)
+        darn_reader = pydarn.SDarnRead(self.iqdat_site_darn_file)
         iqdat_site_records = darn_reader.read_iqdat()
         os.remove(self.iqdat_site_darn_file)
         os.remove(self.bfiq_file)
@@ -507,7 +507,7 @@ class IntegrationBorealisSDARN(unittest.TestCase):
         array_converter = pydarn.BorealisConvert(self.rawacf_file, "rawacf", 
             self.rawacf_array_darn_file, 0, borealis_file_structure='array')
         self.assertTrue(os.path.isfile(self.rawacf_array_darn_file))
-        darn_reader = pydarn.DarnRead(self.rawacf_array_darn_file)
+        darn_reader = pydarn.SDarnRead(self.rawacf_array_darn_file)
         rawacf_array_records = darn_reader.read_rawacf()
         os.remove(self.rawacf_array_darn_file)
         os.remove(self.rawacf_file)
@@ -517,7 +517,7 @@ class IntegrationBorealisSDARN(unittest.TestCase):
         site_converter = pydarn.BorealisConvert(self.rawacf_file, "rawacf", 
             self.rawacf_site_darn_file, 0, borealis_file_structure='site')
         self.assertTrue(os.path.isfile(self.rawacf_site_darn_file))
-        darn_reader = pydarn.DarnRead(self.rawacf_site_darn_file)
+        darn_reader = pydarn.SDarnRead(self.rawacf_site_darn_file)
         rawacf_site_records = darn_reader.read_rawacf()
         os.remove(self.rawacf_site_darn_file)
         os.remove(self.rawacf_file)
