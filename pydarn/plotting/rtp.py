@@ -53,7 +53,7 @@ class RTP():
                         background: str = 'w', groundscatter: bool = False,
                         zmin: int = None, zmax: int = None,
                         start_time: datetime = None, end_time: datetime = None,
-                        colorbar: plt.colorbar = None,
+                        colorbar: plt.colorbar = None, ymax: int = None,
                         colorbar_label: str = '', norm=colors.Normalize,
                         cmap: str = 'viridis', filter_settings: dict = {},
                         date_fmt: str = '%y/%m/%d\n %H:%M', **kwargs):
@@ -117,6 +117,9 @@ class RTP():
         zmax: int
             Maximum normalized value
             Default: maximum parameter value in the data set
+        ymax: int
+            Sets the maximum y value
+            Default: None, uses 'nrang' from data
         plot_filter: dict
             dictionary of the following keys for filtering data out:
             max_array_filter : dict
@@ -326,7 +329,10 @@ class RTP():
                                   microseconds=x[0].microsecond)
         ax.set_xlim([rounded_down_start_time, x[-1]])
         ax.xaxis.set_major_formatter(dates.DateFormatter(date_fmt))
-        ax.yaxis.set_ticks(np.arange(0, y_max+1, (y_max)/5))
+        if ymax is None:
+            ymax = y_max
+        ax.set_ylim(0, ymax)
+        ax.yaxis.set_ticks(np.arange(0, ymax+1, (ymax)/5))
 
         # SuperDARN file typically are in 2hr or 24 hr files
         # to make the minute ticks sensible, the time length is detected
@@ -348,7 +354,11 @@ class RTP():
             with warnings.catch_warnings():
                 warnings.filterwarnings('error')
                 try:
-                    cb = ax.figure.colorbar(im, ax=ax, extend='both')
+                    locator = ticker.MaxNLocator(symmetric=True, min_n_ticks=3,
+                                                 integer=True, nbins='auto')
+                    ticks = locator.tick_values(vmin=zmin, vmax=zmax)
+                    cb = ax.figure.colorbar(im, ax=ax, extend='both', ticks=ticks)
+
                 except (ZeroDivisionError, Warning):
                     raise rtp_exceptions.RTPZeroError(parameter, beam_num, zmin,
                                                       zmax, norm) from None
@@ -536,6 +546,7 @@ class RTP():
                                       microseconds=x[0].microsecond)
             ax.set_xlim([rounded_down_start_time, x[-1]])
             ax.set_yscale(scale)
+
         # set date format and minor hourly locators
         # Rounded the time down to show origin label upon
         # Daniel Billet and others request.
@@ -565,9 +576,9 @@ class RTP():
 
     @classmethod
     def plot_summary(cls, dmap_data: List[dict], beam_num: int = 0,
-                     groundscatter: bool = False, channel: int = 'all',
-                     figsize: tuple = (11, 8.5), boundary: dict = {},
-                     background_color: str = 'w',
+                     groundscatter: bool = True, channel: int = 'all',
+                     figsize: tuple = (11, 8.5), watermark: bool = True,
+                     boundary: dict = {}, background_color: str = 'w',
                      cmaps: dict = {}, lines: dict = {},
                      plot_elv: bool = True, title=None):
         """
@@ -781,6 +792,11 @@ class RTP():
                                     clip_on=False, color=line[axes_parameters[i][0]])
                     axes[i].set_ylim(boundary_ranges[axes_parameters[i][0]][0],
                                      boundary_ranges[axes_parameters[i][0]][1])
+                    # For better y-axis ticks
+                    if scale == 'log':
+                        axes[i].yaxis.set_major_locator(ticker.LogLocator(numticks=3))
+                    else:
+                        axes[i].yaxis.set_major_locator(ticker.MaxNLocator(integer=True, nbins=3))
                     axes[i].yaxis.set_label_coords(-0.08, 0.085)
 
                     if i == 1:
@@ -808,11 +824,17 @@ class RTP():
                         second_ax.set_ylim(boundary_ranges[axes_parameters[i][1]][0],
                                            boundary_ranges[axes_parameters[i][1]][1])
                         second_ax.yaxis.set_label_coords(1.1, 0.7)
-                        if scale == 'linear':
-                            second_ax.set_yticks(boundary_ranges[axes_parameters[i][1]])
-                            axes[i].set_yticks(boundary_ranges[axes_parameters[i][0]])
-                            axes[i].yaxis.set_minor_locator(ticker.LinearLocator())
-                            second_ax.yaxis.set_minor_locator(ticker.LinearLocator())
+                        if scale == 'log':
+                            second_ax.yaxis.set_major_locator(ticker.LogLocator(numticks=4))
+                            #axes[i].yaxis.set_minor_locator(ticker.LogLocator())
+                            #second_ax.yaxis.set_minor_locator(ticker.LogLocator())
+
+                        else:
+                            second_ax.yaxis.set_major_locator(ticker.MaxNLocator(integer=True, nbins=3))
+                            #second_ax.set_yticks(boundary_ranges[axes_parameters[i][1]])
+                            #axes[i].set_yticks(boundary_ranges[axes_parameters[i][0]])
+                            #axes[i].yaxis.set_minor_locator(ticker.LinearLocator())
+                            #second_ax.yaxis.set_minor_locator(ticker.LinearLocator())
 
                 axes[i].set_facecolor(background_color)
             # plot cp id
@@ -832,17 +854,30 @@ class RTP():
                     grndflg = True
                 else:
                     grndflg = False
-                _, _, _, x, _, _ =  cls.plot_range_time(dmap_data,
-                                                        beam_num=beam_num,
-                                                        colorbar_label=labels[i],
-                                                        parameter=axes_parameters[i],
-                                                        ax=axes[i],
-                                                        groundscatter=grndflg,
-                                                        channel=channel,
-                                                        cmap=cmap[axes_parameters[i]],
-                                                        zmin=boundary_ranges[axes_parameters[i]][0],
-                                                        zmax=boundary_ranges[axes_parameters[i]][1],
-                                                        background=background_color)
+                _, cbar, _, x, _, _ =  cls.plot_range_time(dmap_data,
+                                                           beam_num=beam_num,
+                                                           colorbar_label=labels[i],
+                                                           parameter=axes_parameters[i],
+                                                           ax=axes[i],
+                                                           groundscatter=grndflg,
+                                                           channel=channel,
+                                                           cmap=cmap[axes_parameters[i]],
+                                                           zmin=boundary_ranges[axes_parameters[i]][0],
+                                                           zmax=boundary_ranges[axes_parameters[i]][1],
+                                                           ymax=75,
+                                                           background=background_color)
+                # Overwriting velocity ticks to get a better pleasing look on the colorbar
+                # Preference by Marina Schmidt
+                if axes_parameters[i] == 'v':
+                    locator = ticker.LinearLocator(numticks=5)
+                    ticks = locator.tick_values(vmin=boundary_ranges[axes_parameters[i]][0],
+                                                vmax=boundary_ranges[axes_parameters[i]][1])
+                    if ticks[0] < boundary_ranges[axes_parameters[i]][0]:
+                        ticks[0] = boundary_ranges[axes_parameters[i]][0]
+
+                    if ticks[-1] > boundary_ranges[axes_parameters[i]][1]:
+                        ticks[-1] = boundary_ranges[axes_parameters[i]][1]
+                    cbar.set_ticks(ticks)
                 axes[i].set_ylabel('Range Gates')
             if i < num_plots-1:
                 axes[i].set_xticklabels([])
@@ -856,6 +891,10 @@ class RTP():
         else:
             plt.title(title, y=2.4)
         plt.subplots_adjust(wspace=0, hspace=0)
+        if watermark:
+            fig.text(0.90, 0.99, "Not for Publication Use", fontsize=75,
+                     color='gray', ha='right', va='top', rotation=-38, alpha=0.5)
+
         return fig, axes
 
     @classmethod
