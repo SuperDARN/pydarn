@@ -4,7 +4,7 @@
 # https://github.com/vtsuperdarn/davitpy/blob/master/davitpy
 
 """
-Range-time Parameter plots (a.k.a Intensity)
+Range-Time Parameter (aka Intensity) plots
 """
 import matplotlib.pyplot as plt
 import numpy as np
@@ -12,7 +12,7 @@ import warnings
 
 from datetime import datetime, timedelta
 from matplotlib import dates, colors, cm, ticker
-from typing import List
+from typing import Union, List
 
 from pydarn import (dmap2dict, DmapArray, DmapScalar,
                     rtp_exceptions, SuperDARNCpids, SuperDARNRadars,
@@ -20,9 +20,10 @@ from pydarn import (dmap2dict, DmapArray, DmapScalar,
 
 warnings.formatwarning = standard_warning_format
 
+
 class RTP():
     """
-    Range-time Parameter plots SuperDARN data using the following fields:
+    Range-Time Parameter plots SuperDARN data using the following fields:
 
     Class pattern design: Builder
     This class inherits matplotlib.pyplot to inherit plotting features as well
@@ -223,13 +224,13 @@ class RTP():
 
         for dmap_record in cls.dmap_data:
             # get time difference to test if there is some gap data
-            time = cls.__time2datetime(dmap_record)
+            rec_time = cls.__time2datetime(dmap_record)
             diff_time = 0.0
-            if time > end_time:
+            if rec_time > end_time:
                 break
             if x != []:
                 # 60.0 seconds in a minute
-                delta_diff_time = (time - x[-1])
+                delta_diff_time = (rec_time - x[-1])
                 diff_time = delta_diff_time.seconds/60.0
 
             # separation roughly 2 minutes
@@ -246,11 +247,11 @@ class RTP():
             if (beam_num == 'all' or dmap_record['bmnum'] == beam_num) and\
                (channel == 'all' or
                     dmap_record['channel'] == channel):
-                if start_time <= time:
+                if start_time <= rec_time:
                     # construct the x-axis array
                     # Numpy datetime is used because it properly formats on the
                     # x-axis
-                    x.append(time)
+                    x.append(rec_time)
                     # I do this to avoid having an extra loop to just count how
                     # many records contain the beam number
                     i = len(x) - 1  # offset since we start at 0 not 1
@@ -296,16 +297,16 @@ class RTP():
         # Check if there is any data to plot
         if np.all(np.isnan(z)):
             raise rtp_exceptions.RTPNoDataFoundError(parameter, beam_num,
-                                                     start_time, end_time)
+                                                     start_time, end_time,
+                                                     cls.dmap_data[0]['bmnum'])
         time_axis, y_axis = np.meshgrid(x, y)
         z_data = np.ma.masked_where(np.isnan(z.T), z.T)
 
         norm = norm(zmin, zmax)
-
-        if isinstance('str', type(cmap)):
+        if isinstance(cmap, str):
             cmap = cm.get_cmap(cmap)
 
-        if isinstance('str', type(groundscatter)):
+        if isinstance(groundscatter, str):
             cmap.set_under(groundscatter, 1.0)
         elif groundscatter:
             cmap.set_under('grey', 1.0)
@@ -317,18 +318,41 @@ class RTP():
         im = ax.pcolormesh(time_axis, y_axis, z_data, lw=0.01,
                            cmap=cmap, norm=norm, **kwargs)
         # setup some standard axis information
-        ax.set_xlim([start_time, end_time])
+        # Upon request of Daniel Billet and others, I am rounding
+        # the time down so the plotting x-axis will show the origin
+        # time label
+        # TODO: may need to be its own function
+        rounded_down_start_time = x[0] - timedelta(minutes=x[0].minute % 15,
+                                  seconds=x[0].second,
+                                  microseconds=x[0].microsecond)
+        ax.set_xlim([rounded_down_start_time, x[-1]])
         ax.xaxis.set_major_formatter(dates.DateFormatter(date_fmt))
-        ax.yaxis.set_ticks(np.arange(0, y_max+1, 15))
-        ax.xaxis.set_minor_locator(dates.HourLocator())
+        ax.yaxis.set_ticks(np.arange(0, y_max+1, (y_max)/5))
+
+        # SuperDARN file typically are in 2hr or 24 hr files
+        # to make the minute ticks sensible, the time length is detected
+        # then a interval is picked. 30 minute ticks for 24 hr plots
+        # and 5 minute ticks for 2 hour plots.
+        data_time_length = end_time - start_time
+        # 3 hours * 60 minutes * 60 seconds
+        if data_time_length.seconds > 3*60*60:
+            tick_interval = 30
+        else:
+            tick_interval = 1
+        ax.xaxis.set_minor_locator(dates.MinuteLocator(interval=tick_interval))
         ax.yaxis.set_minor_locator(ticker.MultipleLocator(5))
         # so the plots gets to the ends
         ax.margins(0)
 
         # create color bar if True
         if not colorbar:
-            cb = ax.figure.colorbar(im, ax=ax, extend='both')
-
+            with warnings.catch_warnings():
+                warnings.filterwarnings('error')
+                try:
+                    cb = ax.figure.colorbar(im, ax=ax, extend='both')
+                except (ZeroDivisionError, Warning):
+                    raise rtp_exceptions.RTPZeroError(parameter, beam_num, zmin,
+                                                      zmax, norm) from None
         if colorbar_label != '':
             cb.set_label(colorbar_label)
 
@@ -429,18 +453,19 @@ class RTP():
         x = []
         # plot CPID
         if parameter == 'cp':
-            ax.set_xlim(start_time, end_time)
             old_cpid = 0
             for dmap_record in cls.dmap_data:
                 # TODO: this check could be a function call
+                x.append(cls.__time2datetime(dmap_record))
+
                 if (dmap_record['bmnum'] == beam_num or beam_num == 'all') and\
                    (dmap_record['channel'] == channel or channel == 'all'):
-                    time = cls.__time2datetime(dmap_record)
-                    if start_time <= time and time <= end_time:
+                    rec_time = cls.__time2datetime(dmap_record)
+                    if start_time <= rec_time and rec_time <= end_time:
                         if old_cpid != dmap_record['cp']:
-                            ax.axvline(x=time, color='black')
+                            ax.axvline(x=rec_time, color='black')
                             old_cpid = dmap_record['cp']
-                            ax.text(x=time + timedelta(seconds=600), y=0.5,
+                            ax.text(x=rec_time + timedelta(seconds=600), y=0.5,
                                     s=dmap_record['cp'])
                             if cp_name:
                                 # Keeping this commented code in to show how
@@ -457,7 +482,7 @@ class RTP():
                                 #     cp_name = 'unknown'
                                 # else:
                                 #     cp_name = cpid_command[1]
-                                ax.text(x=time + timedelta(seconds=600),
+                                ax.text(x=rec_time + timedelta(seconds=600),
                                         y=0.2,
                                         s=SuperDARNCpids.cpids.get(dmap_record['cp'],
                                                                    'unknown'))
@@ -465,20 +490,21 @@ class RTP():
             # Check if the old cp ID change, if not then there was no data
             if old_cpid == 0:
                 raise rtp_exceptions.RTPNoDataFoundError(parameter, beam_num,
-                                                         start_time, end_time)
+                                                         start_time, end_time,
+                                                         cls.dmap_data[0]['bmnum'])
 
             # to get rid of y-axis numbers
             ax.set_yticks([])
         else:
             for dmap_record in cls.dmap_data:
                 # TODO: this check could be a function call
-                time = cls.__time2datetime(dmap_record)
-                if start_time <= time and time <= end_time:
+                rec_time = cls.__time2datetime(dmap_record)
+                if start_time <= rec_time and rec_time <= end_time:
                     if (dmap_record['bmnum'] == beam_num or
                         beam_num == 'all') and \
                        (channel == dmap_record['channel'] or channel == 'all'):
                         # construct the x-axis array
-                        x.append(time)
+                        x.append(rec_time)
                         if parameter == 'tfreq':
                             # Convert kHz to MHz by dividing by 1000
                             y.append(dmap_record[parameter]/1000)
@@ -486,14 +512,15 @@ class RTP():
                             y.append(dmap_record[parameter])
                     # else plot missing data
                     elif len(x) > 0:
-                        diff_time = time - x[-1]
+                        diff_time = rec_time - x[-1]
                         if diff_time.seconds/60 > 2.0:
-                            x.append(time)
+                            x.append(rec_time)
                             y.append(np.nan)  # for masking the data
             # Check if there is any data to plot
             if np.all(np.isnan(y)) or len(x) == 0:
                 raise rtp_exceptions.RTPNoDataFoundError(parameter, beam_num,
-                                                         start_time, end_time)
+                                                         start_time, end_time,
+                                                         cls.dmap_data[0]['bmnum'])
 
             # using masked arrays to create gaps in the plot
             # otherwise the lines will connect in gapped data
@@ -502,11 +529,34 @@ class RTP():
             lines = ax.plot_date(x, my, fmt='k', tz=None, xdate=True,
                                  ydate=False,
                                  **kwargs)
-            ax.set_xlim(start_time, end_time)
+            rounded_down_start_time = x[0] - timedelta(minutes=x[0].minute % 15,
+                                      seconds=x[0].second,
+                                      microseconds=x[0].microsecond)
+            ax.set_xlim([rounded_down_start_time, x[-1]])
             ax.set_yscale(scale)
         # set date format and minor hourly locators
+        # Rounded the time down to show origin label upon
+        # Daniel Billet and others request.
+        # TODO: may move this to its own function
+        rounded_down_start_time = x[0] - timedelta(minutes=x[0].minute % 15,
+                                  seconds=x[0].second,
+                                  microseconds=x[0].microsecond)
+        ax.set_xlim([rounded_down_start_time, x[-1]])
+
         ax.xaxis.set_major_formatter(dates.DateFormatter(date_fmt))
         ax.xaxis.set_minor_locator(dates.HourLocator())
+        # SuperDARN file typically are in 2hr or 24 hr files
+        # to make the minute ticks sensible, the time length is detected
+        # then a interval is picked. 30 minute ticks for 24 hr plots
+        # and 5 minute ticks for 2 hour plots.
+        data_time_length = end_time - start_time
+        # 3 hours * 60 minutes * 60 seconds
+        if data_time_length.seconds > 3*60*60:
+            tick_interval = 30
+        else:
+            tick_interval = 1
+        ax.xaxis.set_minor_locator(dates.MinuteLocator(interval=tick_interval))
+
         ax.margins(x=0)
         ax.tick_params(axis='y', which='minor')
         return lines, x, y
@@ -516,19 +566,12 @@ class RTP():
                      groundscatter: bool = False, channel: int = 'all',
                      figsize: tuple = (11, 8.5), boundary: dict = {},
                      background_color: str = 'w',
-                     cmaps: dict = {}, plot_elv: bool = True,
-                     title=None):
+                     cmaps: dict = {}, lines: dict = {},
+                     plot_elv: bool = True, title=None):
         """
-        Plots the summary of the following SuperDARN parameter plots:
-            - noise.search : (time-series)
-            - noise.sky :  (time-series)
-            - tfreq : transmission frequency (time-series)
-            - nave : number of averages  (time-series)
-            - cp : control program ID (time-series)
-            - p_l : Signal to Noise ratio (range-time)
-            - v : velocity (range-time)
-            - w_l : spectral width (range-time)
-            - elv : elevation (optional) (range-time)
+        Plots the summary of several SuperDARN parameters using time-series and
+        range-time plots. Please see Notes for further description
+        on what is plotted.
 
         Future Work
         ------------
@@ -555,12 +598,18 @@ class RTP():
         figsize : (int,int)
             tuple containing (height, width) figure size
             Default: 11 x 8.5
-        cmaps: dict
+        cmaps: dict or str
             dictionary of matplotlib color maps for the summary
-            plot parameters.
+            range time parameter plots.
             https://matplotlib.org/tutorials/colors/colormaps.html
             Default: viridis
             note: to reverse the color just add _r to the string name
+        lines: dict or str
+            dictionary of time-series line colors.
+            Default: black
+        background_color: str
+            changes the color of the background in the plots.
+            Default: white
         boundary: dict
             dict of the parameter names of a summary plot as key names:
                 - 'search.noise': search noise
@@ -589,6 +638,7 @@ class RTP():
             title of the plot
             Default: auto-generated by the files details
             {radar name} Fitacf {version} {start_date} - {end_date}  Beam {num}
+
         Raises
         ------
         IndexError
@@ -607,6 +657,20 @@ class RTP():
         axes: list
             list of matplotlib.pyplot.axes objects to generate
             the subplots in the summary plot
+
+        Notes
+        -----
+        These are the following parameters in the SuperDARN FitACF file that is
+        plotted in a summary plot:
+            - noise.search : (time-series)
+            - noise.sky :  (time-series)
+            - tfreq : transmission frequency (time-series)
+            - nave : number of averages  (time-series)
+            - cp : control program ID (time-series)
+            - p_l : Signal to Noise ratio (range-time)
+            - v : velocity (range-time)
+            - w_l : spectral width (range-time)
+            - elv : elevation (optional) (range-time)
         """
         message = "WARNING: matplotlib Default dpi may cause distortion"\
                   " in range gates and time period. The figure size can"\
@@ -626,15 +690,23 @@ class RTP():
         boundary_ranges.update(boundary)
 
         # Default color maps for the summary plot
-        cmap = {'noise.search': 'k',
+        line = {'noise.search': 'k',
                 'noise.sky': 'k',
                 'tfreq': 'k',
-                'nave': 'k',
-                'p_l': 'viridis',
+                'nave': 'k'}
+
+        if isinstance(lines, dict):
+            line.update(lines)
+        else:
+            line.update({k: lines for k,v in line.items()})
+        cmap = {'p_l': 'viridis',
                 'v': 'viridis',
                 'w_l': 'viridis',
                 'elv': 'viridis'}
-        cmap.update(cmaps)
+        if isinstance(cmaps, dict):
+            cmap.update(cmaps)
+        else:
+            cmap.update({k: cmaps for k,v in cmap.items()})
 
         fig = plt.figure(figsize=figsize)
 
@@ -661,7 +733,7 @@ class RTP():
         labels = [('Search \n Noise', 'Sky\n Noise'),
                   ('Freq\n ($MHz$)', 'Nave'), ('CP ID'), ('SNR ($dB$)'),
                   ('Velocity\n ($m\ s^{-1}$)'),
-                  ('Spectral Width\n ($m\ s-1$)'),
+                  ('Spectral Width\n ($m\ s^{-1}$)'),
                   ('Elevation\n ($\degree$)')]
 
         for i in range(num_plots):
@@ -689,7 +761,7 @@ class RTP():
                         cls.plot_time_series(dmap_data, beam_num=beam_num,
                                              parameter=axes_parameters[i][0],
                                              channel=channel, scale=scale,
-                                             color=cmap[axes_parameters[i][0]],
+                                             color=line[axes_parameters[i][0]],
                                              ax=axes[i], linestyle='-',
                                              label=labels[i][0])
                     if len(w) > 0:
@@ -700,7 +772,7 @@ class RTP():
                     axes[i].set_ylabel(labels[i][0], rotation=0, labelpad=30)
                     axes[i].axhline(y=boundary_ranges[axes_parameters[i][0]][0] + 0.8,
                                     xmin=-0.11, xmax=-0.05,
-                                    clip_on=False, color=cmap[axes_parameters[i][0]])
+                                    clip_on=False, color=line[axes_parameters[i][0]])
                     axes[i].set_ylim(boundary_ranges[axes_parameters[i][0]][0],
                                      boundary_ranges[axes_parameters[i][0]][1])
                     axes[i].yaxis.set_label_coords(-0.08, 0.085)
@@ -711,7 +783,7 @@ class RTP():
                     with warnings.catch_warnings(record=True) as w:
                         cls.plot_time_series(dmap_data, beam_num=beam_num,
                                              parameter=axes_parameters[i][1],
-                                             color=cmap[axes_parameters[i][1]],
+                                             color=line[axes_parameters[i][1]],
                                              channel=channel,
                                              scale=scale, ax=second_ax,
                                              linestyle='--')
@@ -725,7 +797,7 @@ class RTP():
                     second_ax.axhline(y=boundary_ranges[axes_parameters[i][1]][0] +
                                       0.8, xmin=1.07, xmax=1.13,
                                       clip_on=False, linestyle='--',
-                                      color=cmap[axes_parameters[i][1]])
+                                      color=line[axes_parameters[i][1]])
                     second_ax.set_ylim(boundary_ranges[axes_parameters[i][1]][0],
                                        boundary_ranges[axes_parameters[i][1]][1])
                     second_ax.yaxis.set_label_coords(1.1, 0.7)
@@ -753,15 +825,17 @@ class RTP():
                     grndflg = True
                 else:
                     grndflg = False
-                cls.plot_range_time(dmap_data, beam_num=beam_num,
-                                    colorbar_label=labels[i],
-                                    parameter=axes_parameters[i], ax=axes[i],
-                                    groundscatter=grndflg,
-                                    channel=channel,
-                                    cmap=cmap[axes_parameters[i]],
-                                    zmin=boundary_ranges[axes_parameters[i]][0],
-                                    zmax=boundary_ranges[axes_parameters[i]][1],
-                                    background=background_color)
+                _, _, _, x, _, _ =  cls.plot_range_time(dmap_data,
+                                                        beam_num=beam_num,
+                                                        colorbar_label=labels[i],
+                                                        parameter=axes_parameters[i],
+                                                        ax=axes[i],
+                                                        groundscatter=grndflg,
+                                                        channel=channel,
+                                                        cmap=cmap[axes_parameters[i]],
+                                                        zmin=boundary_ranges[axes_parameters[i]][0],
+                                                        zmax=boundary_ranges[axes_parameters[i]][1],
+                                                        background=background_color)
                 axes[i].set_ylabel('Range Gates')
             if i < num_plots-1:
                 axes[i].set_xticklabels([])
@@ -770,30 +844,36 @@ class RTP():
                 axes[i].set_xlabel('Date (UTC)')
 
         if title is None:
-            plt.title(cls.__generate_title(beam_num, channel), y=2.4)
+            plt.title(cls.__generate_title(x[0], x[-1], beam_num,
+                                           channel), y=2.4)
         else:
             plt.title(title, y=2.4)
         plt.subplots_adjust(wspace=0, hspace=0)
         return fig, axes
 
     @classmethod
-    def __generate_title(cls, beam_num: int, channel: int):
-        start_time = cls.__time2datetime(cls.dmap_data[0])
-        end_time = cls.__time2datetime(cls.dmap_data[-1])
+    def __generate_title(cls, start_time: datetime, end_time: datetime,
+                         beam_num: int, channel: int) -> str:
         if cls.dmap_data[0]['fitacf.revision.major'] == 5:
             version = "2.5"
         else:
             version = "{major}.{minor}"\
                     "".format(major=cls.dmap_data[0]['fitacf.revision.major'],
                               minor=cls.dmap_data[0]['fitacf.revision.minor'])
-
+        if cls.dmap_data[0]['origin.code'] == 100:
+            radar_system = " (Borealis)"
+        else:
+            # I would put ROS but Alaska and AGILE DARN might have their own
+            # systems and not sure how to decipher between them. If something
+            # changes in the file structure, then I can add it here.
+            radar_system = ""
         radar_name = SuperDARNRadars.radars[cls.dmap_data[0]['stid']].name
         # Date time formats:
         #   %Y - year
         #   %b - month abbreviation
         #   %d - day
         #   %H - Hour
-        #   %M - Month
+        #   %M - 2-digit minutes
         if end_time.day == start_time.day:
             end_format = "%H:%M"
         elif end_time.month == start_time.month:
@@ -802,9 +882,10 @@ class RTP():
             end_format = "%b %d %H:%M"
         else:
             end_format = "%Y %b %d %H:%M"
-        title_format = "{name} Fitacf {version}"\
-                       "  {start_date} - {end_date}  Beam {num}"\
+        title_format = "{name}{system} Fitacf {version}"\
+                       "{system} {start_date} - {end_date}  Beam {num}"\
                        "".format(name=radar_name, version=version,
+                                 system=radar_system,
                                  start_date=start_time.strftime("%Y %b %d %H:%M"),
                                  end_date=end_time.strftime(end_format),
                                  num=beam_num)
@@ -919,7 +1000,8 @@ class RTP():
     # TODO: if used in other plotting methods then this should moved to
     #       utils
     @classmethod
-    def __determine_start_end_time(cls, start_time, end_time):
+    def __determine_start_end_time(cls, start_time: datetime,
+                                   end_time: datetime) -> tuple:
         """
         Sets the start and end time based on import of dmap_data
 
