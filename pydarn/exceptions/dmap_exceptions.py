@@ -92,7 +92,7 @@ class DmapDataTypeError(Exception):
         self.filename = filename
         self.message = "Error: Dmap data type {data_type} for {name}"\
             " at record {rec} does not exist in dmap data types."\
-            "filename: {filename}".format(name=data_name,
+            " Filename: {filename}".format(name=data_name,
                                           data_type=data_type,
                                           filename=filename,
                                           rec=rec_num)
