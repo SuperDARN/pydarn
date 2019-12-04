@@ -12,13 +12,15 @@ The general syntax for plot_range_time is:
 where 'fitacf_data' is the read in data, and the options are several python parameters used to control how the plot looks.
 
 First, make sure Pydarn and matplotlib are imported, then read in the .fitacf file with the data you wish to plot:
-<pre><code>import pydarn
+```python
+import pydarn
 import matplotlib.pyplot as plt'
 
 fitacf_file = "path/to/fitacf/file"
-darn_read = pydarn.DarnRead(fitacf_file)
-fitacf_data = darn_read.read_fitacf()
-</code></pre>
+sdarn_read = pydarn.SDarnRead(fitacf_file)
+fitacf_data = sdarn_read.read_fitacf()
+
+```
 
 You can choose one of four data products to plot:
 
@@ -37,14 +39,15 @@ To specify which beam to look at, add the option:
 'beam=beam_number"
 
 As an example, taking a look at some 'p_l' data from the McMurdo radar, beam 7:
-<pre><code>fitacf_file = "20180208.0400.00.mcm.a.fitacf"
-darn_read = pydarn.DarnRead(fitacf_file)
-fitacf_data = darn_read.read_fitacf()
+```python
+fitacf_file = "20180208.0400.00.mcm.a.fitacf"
+sdarn_read = pydarn.SDarnRead(fitacf_file)
+fitacf_data = sdarn_read.read_fitacf()
 
 plt.title("Beam 7, MCM")
 pydarn.RTP.plot_range_time(fitacf_data, beam_num=7, parameter='p_l')              
 plt.show()
-</code></pre>
+```
 which produces:
 
 ![](../imgs/mcmbeam7.png)
@@ -62,17 +65,18 @@ To see all the customisation options, check out all the parameters listed in 'rt
 | zmax=(int)                   | Maximum data value to be plotted                            |
 
 For instance, code for a velocity RTP showing beam 10 of the Saskatoon radar with ground scatter, date format as 'hh:mm', custom min and max values and a colour bar label could look something like:
-<pre><code>'pydarn.RTP.plot_range_time(fitacf_data, beam_num=10, parameter='v', groundscatter=1, zmax=500, zmin=-500, date_fmt='%H%M', colorbar_label='Line-of-sight velocity (m/s)')
-</code></pre>
+```python
+pydarn.RTP.plot_range_time(fitacf_data, beam_num=10, parameter='v', groundscatter=1, zmax=500, zmin=-500, date_fmt='%H%M', colorbar_label='Line-of-sight velocity (m/s)')
+```
 which outputs:
 
 ![](../imgs/sasbeam10.png) 
 
 #### Plotting with a custom color map
 To change the color map, use the 'cmap' parameter with the string name of a matplot lib color map ([found here](https://matplotlib.org/tutorials/colors/colormaps.html)). The default is set to 'viridis'.
-<pre><code>
+```python
 pydarn.RTP.plot_range_time(fitacf_data, beam_num=10, parameter='v', groundscatter=1, zmax=500, zmin=-500, date_fmt='%H%M', colorbar_label='Line-of-sight velocity (m/s)', cmap='plasma')
-</code></pre>
+```
 produces:
 
 ![](../imgs/sasbeam10_colourswitch.png)
