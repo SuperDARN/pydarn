@@ -55,7 +55,7 @@ class RTP():
                         start_time: datetime = None, end_time: datetime = None,
                         colorbar: plt.colorbar = None, ymax: int = None,
                         colorbar_label: str = '', norm=colors.Normalize,
-                        cmap: str = 'viridis', filter_settings: dict = {},
+                        cmap: str = PyDARNColormaps.PYDARN, filter_settings: dict = {},
                         date_fmt: str = '%y/%m/%d\n %H:%M', **kwargs):
         """
         Plots a range-time parameter plot of the given
@@ -72,45 +72,24 @@ class RTP():
         -----------
         dmap_data: List[dict]
         parameter: str
-            string/key name indicating which parameter to plot.
-            Default: p_l
+            key name indicating which parameter to plot.
+            Default: p_l (Signal to Noise)
         beam_num : int
             The beam number of data to plot
             Default: 0
-        ax: matplotlib.axes
-            axes object for another way of plotting
-            Default: None
-        norm: matplotlib.colors.Normalization object
-            This object use dependency injection to use any normalization
-            method with the zmin and zmax.
-            Default: colors.Normalization()
-        start_time: datetime
-            Start time of the plot x-axis as a datetime object
-            Default: first record date
-        end_time: datetime
-            End time of the plot x-axis as a datetime object
-            Default: last record date
         channel : int or str
             The channel 0, 1, 2, 'all'
             Default : 'all'
+        ax: matplotlib.axes
+            axes object for another way of plotting
+            Default: None
         groundscatter : boolean or str
-            Flag to indicate if groundscatter should be plotted and a string
-            representing the color groundscatter should be plotted as.
-            Default : False, if True default color is grey
-        date_fmt : str
-            format of x-axis date ticks, follow datetime format
-            Default: '%y/%m/%d\n %H:%M'
-        colorbar: matplotlib.pyplot.colorbar
-            boolean to indicate if a color bar should be included
-            Default: True
-        colorbar_label: str
-            the label that appears next to the color bar
-            Default: ''
-        cmap: str or matplotlib.cm
-            matplotlib colour map
-            https://matplotlib.org/tutorials/colors/colormaps.html
-            Default: viridis
-            note: to reverse the color just add _r to the string name
+            Flag to indicate if groundscatter should be plotted. If string
+            groundscatter will be represented by that color else grey.
+            Default : False
+        background : str
+            color of the background in the plot
+            default: white
         zmin: int
             Minimum normalized value
             Default: minimum parameter value in the data set
@@ -120,6 +99,32 @@ class RTP():
         ymax: int
             Sets the maximum y value
             Default: None, uses 'nrang' from data
+        norm: matplotlib.colors.Normalization object
+            This object use dependency injection to use any normalization
+            method with the zmin and zmax.
+            Default: colors.Normalization()
+        start_time: datetime
+            Start time of the plot x-axis as a datetime object
+            Default: rounded to nearest hour-30 minutes from the first
+                     record containing the chosen parameters data
+        end_time: datetime
+            End time of the plot x-axis as a datetime object
+            Default: last record of the chosen parameters data
+        date_fmt : str
+            format of x-axis date ticks, follow datetime format
+            Default: '%y/%m/%d\n %H:%M' (Year/Month/Day Hour:Minute)
+        colorbar: matplotlib.pyplot.colorbar
+            Setting a predefined colorbar for the range-time plot
+            If None, then a colorbar will be created for the plot
+            Default: None
+        colorbar_label: str
+            the label that appears next to the color bar
+            Default: ''
+        cmap: str or matplotlib.cm
+            matplotlib colour map
+            https://matplotlib.org/tutorials/colors/colormaps.html
+            Default: PyDARNColormaps.PYDARN
+            note: to reverse the color just add _r to the string name
         plot_filter: dict
             dictionary of the following keys for filtering data out:
             max_array_filter : dict
@@ -167,6 +172,15 @@ class RTP():
             list representing the y-axis range gates
         z_data: 2D numpy array
             2D array of the parameters values at the given time and range gate
+
+        See Also
+        ---------
+        colors: https://matplotlib.org/2.0.2/api/colors_api.html
+        color maps: PyDARNColormaps or https://matplotlib.org/tutorials/colors/colormaps.html
+        normalize: https://matplotlib.org/3.1.1/api/_as_gen/matplotlib.colors.Normalize.html
+        colorbar: https://matplotlib.org/3.1.1/api/_as_gen/matplotlib.pyplot.colorbar.html
+        pcolormesh: https://matplotlib.org/3.1.1/api/_as_gen/matplotlib.pyplot.pcolormesh.html
+
         """
         # Settings
         plot_filter = {'min_array_filter': dict(),
@@ -413,7 +427,15 @@ class RTP():
             just be printed. This is only used for the parameter cp
             Default: True
         kwargs
-            kwargs passed into lint_plot
+            kwargs passed into plot_date
+
+        Raises
+        ------
+        RTPUnknownParameterError
+        RTPIncorrectPlotMethodError
+        RTPNoDataFoundError
+        IndexError
+
         Returns
         -------
         lines: list
@@ -424,13 +446,11 @@ class RTP():
         y: list
             list of scalar values for each datetime object
 
-        Raises
-        ------
-        RTPUnknownParameterError
-        RTPIncorrectPlotMethodError
-        RTPNoDataFoundError
-        IndexError
-
+        See Also
+        --------
+        yscale: https://matplotlib.org/3.1.1/api/_as_gen/matplotlib.pyplot.yscale.html
+        plot_date: https://matplotlib.org/3.1.1/api/_as_gen/matplotlib.axes.Axes.plot_date.html
+        colors: https://matplotlib.org/2.0.2/api/colors_api.html
         """
         # check if axes object is passed in, if not
         # Default to plt.gca()
@@ -597,13 +617,15 @@ class RTP():
             List of dictionaries of the data to be plotted containing the
             parameter fields used in the summary plot.
         beam_num : int
+            beam number to plot
+            default: 0
         ax: matplotlib.axes
             axes object for another way of plotting
             Default: None
         groundscatter : boolean
             Flag to indicate if groundscatter should be plotted.
             Placed only on the velocity plot.
-            Default : False
+            Default : True
         channel : int
             channel number that will be plotted
             in the summary plot.
@@ -611,11 +633,17 @@ class RTP():
         figsize : (int,int)
             tuple containing (height, width) figure size
             Default: 11 x 8.5
+        watermark : boolean
+            text that runs across the plot stating "Not for Publication Use"
+            default: True
         cmaps: dict or str
             dictionary of matplotlib color maps for the summary
             range time parameter plots.
             https://matplotlib.org/tutorials/colors/colormaps.html
-            Default: viridis
+            Default: {'p_l': 'plasma',
+                      'v': PyDARNColormaps.PYDARN_VELOCITY,
+                      'w_l': PyDARNColormaps.PYDARN_VIRIDIS,
+                      'elv': PyDARNColormaps.PYDARN}
             note: to reverse the color just add _r to the string name
         lines: dict or str
             dictionary of time-series line colors.
@@ -624,24 +652,14 @@ class RTP():
             changes the color of the background in the plots.
             Default: white
         boundary: dict
-            dict of the parameter names of a summary plot as key names:
-                - 'search.noise': search noise
-                - 'sky.noise': sky noise
-                - 'nave': number of averages
-                - 'tfreq': transmission frequency
-                - 'p_l': Signal to Noise
-                - 'v': velocity
-                - 'w_l': spectral width
-                - 'elv': elevation
-            with a tuple as the value (zmin, zmax) for the plots
-            Default: {'noise.search': (1e0, 1e5),
-                      'noise.sky': (1e0, 1e5),
+            tuple as the value (zmin, zmax) for the plots
+            Default: {'noise.sky': (1e0, 1e5),
                       'tfreq': (8, 22),
                       'nave': (0, 60),
-                      'p_l': (0, 30),
+                      'p_l': (0, 45),
                       'v': (-200, 200),
-                      'w_l': (0, 150),
-                      'elv': (0, 50)}
+                      'w_l': (0, 250),
+                      'elv': (0, 45)}
         plot_elv: boolean
             boolean determines if elevation should be plotted or not.
             If there is no data for elevation data field then elevation is not
@@ -650,7 +668,8 @@ class RTP():
         title: str
             title of the plot
             Default: auto-generated by the files details
-            {radar name} Fitacf {version} {start_date} - {end_date}  Beam {num}
+            {radar name} {Radar system (if applicable)} Fitacf {version}
+            {start hour/date} - {end hour/date}  Beam {number}
 
         Raises
         ------
@@ -675,7 +694,6 @@ class RTP():
         -----
         These are the following parameters in the SuperDARN FitACF file that is
         plotted in a summary plot:
-            - noise.search : (time-series)
             - noise.sky :  (time-series)
             - tfreq : transmission frequency (time-series)
             - nave : number of averages  (time-series)
@@ -893,7 +911,7 @@ class RTP():
         plt.subplots_adjust(wspace=0, hspace=0)
         if watermark:
             fig.text(0.90, 0.99, "Not for Publication Use", fontsize=75,
-                     color='gray', ha='right', va='top', rotation=-38, alpha=0.5)
+                     color='gray', ha='right', va='top', rotation=-38, alpha=0.3)
 
         return fig, axes
 
