@@ -30,7 +30,7 @@ matrix:
 install:
     - pip3 install -U pip
     - pip3 install .
-    - pip3 install codecov
-# script: pytest 
+#    - pip3 install codecov
+script: pytest 
 # adter_success:
 #   - codecov 
