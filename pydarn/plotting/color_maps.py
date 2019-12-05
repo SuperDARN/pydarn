@@ -3,7 +3,7 @@ import matplotlib.colors as mcol
 class PyDARNColormaps():
     PYDARN_VELOCITY = mcol.LinearSegmentedColormap.from_list("pydarn_velocity",["darkred", "r",'pink',"b", "darkblue"])
 
-    PYDARN_VIRIDIS = mcol.LinearSegmentedColormap.from_list("pydarn_virdis",["indigo", "midnightblue","navy", "mediumblue",
+    PYDARN_VIRIDIS = mcol.LinearSegmentedColormap.from_list("pydarn_viridis",["indigo", "midnightblue","navy", "mediumblue",
                                                                              "teal",
                                                                              "mediumseagreen","limegreen","yellowgreen",
                                                                              "yellow", "gold"])
