@@ -491,7 +491,7 @@ class RTP():
                    (dmap_record['channel'] == channel or channel == 'all'):
                     rec_time = cls.__time2datetime(dmap_record)
                     if start_time <= rec_time and rec_time <= end_time:
-                        if old_cpid != dmap_record['cp']:
+                        if old_cpid != dmap_record['cp'] or old_cpid is None:
                             ax.axvline(x=rec_time, color='black')
                             old_cpid = dmap_record['cp']
                             ax.text(x=rec_time + timedelta(seconds=600), y=0.5,
