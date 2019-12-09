@@ -482,7 +482,7 @@ class RTP():
         x = []
         # plot CPID
         if parameter == 'cp':
-            old_cpid = 0
+            old_cpid = None
             for dmap_record in cls.dmap_data:
                 # TODO: this check could be a function call
                 x.append(cls.__time2datetime(dmap_record))
@@ -517,7 +517,7 @@ class RTP():
                                                                    'unknown'))
 
             # Check if the old cp ID change, if not then there was no data
-            if old_cpid == 0:
+            if old_cpid is None:
                 raise rtp_exceptions.RTPNoDataFoundError(parameter, beam_num,
                                                          start_time, end_time,
                                                          cls.dmap_data[0]['bmnum'])
