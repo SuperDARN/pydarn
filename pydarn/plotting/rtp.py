@@ -494,7 +494,7 @@ class RTP():
                         if old_cpid != dmap_record['cp'] or old_cpid is None:
                             ax.axvline(x=rec_time, color='black')
                             old_cpid = dmap_record['cp']
-                            ax.text(x=rec_time + timedelta(seconds=600), y=0.5,
+                            ax.text(x=rec_time + timedelta(seconds=600), y=0.7,
                                     s=dmap_record['cp'])
                             if cp_name:
                                 # Keeping this commented code in to show how
@@ -511,10 +511,15 @@ class RTP():
                                 #     cp_name = 'unknown'
                                 # else:
                                 #     cp_name = cpid_command[1]
-                                ax.text(x=rec_time + timedelta(seconds=600),
-                                        y=0.2,
-                                        s=SuperDARNCpids.cpids.get(dmap_record['cp'],
+                                if dmap_record['cp'] < 0:
+                                    cpID_name = 'discretionary \n'\
+                                            '{}'.format(SuperDARNCpids.cpids.get(abs(dmap_record['cp']),
                                                                    'unknown'))
+                                else:
+                                    cpID_name = SuperDARNCpids.cpids.get(abs(dmap_record['cp']),
+                                                                   'unknown')
+                                ax.text(x=rec_time + timedelta(seconds=600),
+                                        y=0.1, s=cpID_name)
 
             # Check if the old cp ID change, if not then there was no data
             if old_cpid is None:
