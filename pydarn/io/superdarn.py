@@ -410,7 +410,8 @@ class SDarnRead(DmapRead):
         pydarn_log.debug("Reading Rawacf file: {}".format(self.dmap_file))
 
         file_struct_list = [superdarn_formats.Rawacf.types,
-                            superdarn_formats.Rawacf.extra_fields]
+                            superdarn_formats.Rawacf.extra_fields,
+                            superdarn_formats.Rawacf.cross_correlation_field]
         self._read_darn_records(file_struct_list)
         self.records = dmap2dict(self._dmap_records)
         return self.records
@@ -610,7 +611,8 @@ class SDarnWrite(DmapWrite):
         self._filename_check(filename)
         self._empty_record_check()
         file_struct_list = [superdarn_formats.Rawacf.types,
-                            superdarn_formats.Rawacf.extra_fields]
+                            superdarn_formats.Rawacf.extra_fields, 
+                            superdarn_formats.Rawacf.cross_correlation_field]
         self.superDARN_file_structure_to_bytes(file_struct_list)
         with open(self.filename, 'wb') as f:
             f.write(self.dmap_bytearr)
