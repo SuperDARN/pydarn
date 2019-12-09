@@ -74,7 +74,9 @@ class Rawacf():
             'ifmode': 'h',
             'mplgexs': 'h',
             }
-
+    cross_correlation_field = {
+            'xcfd': 'f'
+            }
 
 class Fitacf():
     """
