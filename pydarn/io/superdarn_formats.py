@@ -68,7 +68,6 @@ class Rawacf():
         'slist': 'h',
         'pwr0': 'f',
         'acfd': 'f',
-        'xcfd': 'f',
         }
     extra_fields = {
             'ifmode': 'h',
