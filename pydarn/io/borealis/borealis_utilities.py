@@ -23,7 +23,7 @@ see: https://borealis.readthedocs.io/en/latest/
 
 Future Work
 -----------
-Look into combining DARNUtilties and BorealisUtilities into a single util
+Look into combining SDARNUtilties and BorealisUtilities into a single util
 class
 
 """
@@ -39,8 +39,7 @@ from datetime import datetime
 from functools import reduce
 from typing import Union, List
 
-from pydarn import borealis_exceptions, borealis_formats
-from pydarn.utils.conversions import dict2dmap
+from pydarn import borealis_exceptions, borealis_formats, dict2dmap
 
 pydarn_log = logging.getLogger('pydarn')
 
