@@ -39,7 +39,7 @@ which will tell you all the variablies in the first [0th] record.
 
 Let's say you loaded in a MAP file, and wanted to grab the cross polar-cap potentials for each record:
 ```python
-file = "20150120.1601.00.cve.fitacf"
+file = "20150302.n.map"
 SDarn_read = pydarn.SDarnRead(file)
 map_data = SDarn_read.read_map()
 
