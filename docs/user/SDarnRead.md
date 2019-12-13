@@ -45,6 +45,6 @@ map_data = SDarn_read.read_map()
 
 cpcps=[i['pot.drop'] for i in map_data]
 ```
-where `cpcps` will be a 1D list of all the cross polar-cap potentials in the file.
+
 
 
