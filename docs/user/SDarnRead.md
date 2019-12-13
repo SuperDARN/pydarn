@@ -45,6 +45,9 @@ map_data = SDarn_read.read_map()
 
 cpcps=[i['pot.drop'] for i in map_data]
 ```
+## DMapRead
+
+In Pydarn, there also exists a class called `DMapRead`, which you can use in place of SDarnRead to read in any generic DMap structured file. However, Pydarn won't test its integrety as it doesn't know what file it's supposed to be. If you're reading a SuperDARN file from one of the official data mirrors, then it is best to use SDarnRead in general.
 
 
 
