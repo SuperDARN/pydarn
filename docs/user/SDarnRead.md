@@ -36,3 +36,15 @@ To see what you've loaded in, try:
 print(fitacf_data[0].keys())
 ```
 which will tell you all the variablies in the first [0th] record.
+
+Let's say you loaded in a MAP file, and wanted to grab the cross polar-cap potentials for each record:
+```python
+file = "20150120.1601.00.cve.fitacf"
+SDarn_read = pydarn.SDarnRead(file)
+map_data = SDarn_read.read_map()
+
+cpcps=[i['pot.drop'] for i in map_data]
+```
+where `cpcps` will be a 1D list of all the cross polar-cap potentials in the file.
+
+
