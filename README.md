@@ -11,9 +11,9 @@ The following instructions will allow you to install and give some examples on h
 
 **python 3.6+**
 
-| Ubuntu      | OpenSuse       | Fedora        |
-| ----------- | -------------- | ------------- |
-| libyaml-dev | python3-PyYAML | libyaml-devel |
+| Ubuntu      | OpenSuse       | Fedora        | OSX           |
+| ----------- | -------------- | ------------- | ------------- |
+| libyaml-dev | python3-PyYAML | libyaml-devel | Xcode/pip     |
 
 You can check your python version with  
 `$ python --version` or 
