@@ -17,6 +17,7 @@ plt.show()
 If no scalar parameter is specified (using `parameter=string`), or beam (using `beam_num=int`), then the default is a `tfreq` time series from beam 0. 
 
 In a similar way to RTP plots, you also have access to numerous plotting options:
+
 | Parameter                    | Action                                                      |
 |------------------------------|-------------------------------------------------------------|
 | start_time=(datetime object) | Control the start time of the plot                          |
