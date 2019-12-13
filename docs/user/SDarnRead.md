@@ -31,7 +31,7 @@ fitacf_data = SDarn_read.read_fitacf()
 where the named variable `fitacf_data` is a python dictionary list containing all the data in the file. If you were reading a different kind of file, you would need to use the methods `read_iqdat`, `read_rawacf`, `read_grid` or `read_map` for their respective filetypes.
 
 ## Accessing data fields
-To see what you've loaded in, try:
+To see the names of the variables you've loaded in and now have access to, try using the `keys()` method:
 ```python
 print(fitacf_data[0].keys())
 ```
