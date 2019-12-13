@@ -5,34 +5,31 @@ SuperDARN data visualization library.
 
 ## Getting Started 
 
-!!! Warning 
-    Requires python 3.6. 
-    To check if you are using the correct python version: `python --version`
+### Prerequisites
 
-### Virtual Environment
+**python 3.6+**
 
-It is encouraged to install a virtual environment then install pyDARN. 
+| Ubuntu      | OpenSuse       | Fedora        | OSX           |
+| ----------- | -------------- | ------------- | ------------- |
+| libyaml-dev | python3-PyYAML | libyaml-devel | Xcode/pip     |
+
+You can check your python version with  
+`$ python --version` or 
+`$ python3 --version`
+
+### Installing 
+
+1. Clone git repository:   
+   `git clone https://github.com/SuperDARN/pydarn.git`
+
+2. Installing pydarn  
     1. **Recommended**: Installing a [virtual environment](https://packaging.python.org/guides/installing-using-pip-and-virtualenv/), this option allows the library to install needed version of libraries without affecting system libraries.  
         * First install the environment:  
       `$ python3 -m pip install --user virtualenv`  
       `$ python3 -m virtualenv <environment name>`  
 		  `$ source <environment name>/bin/activate`
-
-### pip3
-
-To install with pip3:
-`pip3 install pydarn`
-
-### Installing via GitHub (Recommended for developers)
-
-1. Clone git repository:   
-   `git clone https://github.com/SuperDARN/pydarn`
-
-2. Change directories to pydarn 
-2. Install pydarn   
-    1. Install in a virtual environment 
+        * Navigate to where you cloned pydarn:  
 		  `$ python3 setup.py install`
-
     2. Install in the system (root privileges required):  
 		   `$ sudo python3 setup.py install`
 
