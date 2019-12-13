@@ -28,11 +28,11 @@ In a similar way to RTP plots, you also have access to numerous plotting options
 
 For example, checking out the cp ID's for a 24hour Clyde FITACF file:
 ```python
-file = "20150120.1601.00.cve.fitacf"
+file = "20180101.C0.cly.fitacf"
 SDarn_read = pydarn.SDarnRead(file)
 fitacf_data = SDarn_read.read_fitacf()
 
-plt.title("Beam 7, CVE")
+plt.title("20180101, Beam 7, CLY")
 pydarn.RTP.plot_time_series(fitacf_data, parameter='cp', date_fmt=('%H:%M'), beam_no=7)
 plt.show()
 ```    
