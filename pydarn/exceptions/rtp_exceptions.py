@@ -78,13 +78,13 @@ class RTPZeroError(Exception):
         pydarn_log.error(self.message)
 
 
-class RTPUnknownParameter(Exception):
+class RTPUnknownParameterError(Exception):
     """
     Error raised when the parameter is not found in the data passed in
     """
     def __init__(self, parameter: str):
         self.parameter = parameter
-        self.message = "Error: The following parameter {parameter}"\
+        self.message = "The following parameter {parameter}"\
             " was not found in the"\
             " data set. Please make sure it is typed correctly or"\
             " you are using the correct data.".format(parameter=self.parameter)
