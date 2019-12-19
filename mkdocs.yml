@@ -9,14 +9,14 @@ markdown_extensions:
 nav:
     - Home: index.md
     - About: about.md
-    - Installation: 
-        - Linux: user/install.md 
-        - MacOsX: user/install_mac.md 
-        - Windows: user/install_windoes.md 
+    - Installation: user/install.md  
     - Tutorials:
         - IO:
-            - Read/Write Dmap: user/dmap.md 
-            - Read/Write SuperDARN: user/darn.md 
+            - Read SuperDARN files: user/SDarnRead.md 
+            - Write SuperDARN files: user/SDarnWrite.md 
+            - Read/Write Borealis files: user/BorealisIO.md 
+        - Convert: 
+            - Borealis to SuperDARN: user/Borealis2SuperDARN.md 
         - Plotting:
             - Range-Time plots: user/range_time.md 
             - Time-Series plots: user/time_series.md 

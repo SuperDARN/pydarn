@@ -1,11 +1,9 @@
-# pydarn
+# Installing pyDARN 
+---
+
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) [![Python 3.6](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/downloads/release/python-360/) [![GitHub version](https://badge.fury.io/gh/boennemann%2Fbadges.svg)](http://badge.fury.io/gh/boennemann%2Fbadges)
 
-SuperDARN data visualization library. 
-
-## Getting Started 
-
-### Prerequisites
+## Prerequisites
 
 **python 3.6+**
 
@@ -14,23 +12,61 @@ SuperDARN data visualization library.
 | libyaml-dev | python3-PyYAML | libyaml-devel | Xcode/pip     |
 
 You can check your python version with  
+
 `$ python --version` or 
 `$ python3 --version`
 
-### Installing 
+## Virtual Environments
+It is recommended to install pyDARN in a virtual environment to ensure the installation process does not affect the system libraries.
 
-1. Clone git repository:   
-   `git clone https://github.com/SuperDARN/pydarn.git`
+### pip Virtual Environment
+Instructions can be found here [virtual environment](https://packaging.python.org/guides/installing-using-pip-and-virtualenv/)
 
-2. Installing pydarn  
-    1. **Recommended**: Installing a [virtual environment](https://packaging.python.org/guides/installing-using-pip-and-virtualenv/), this option allows the library to install needed version of libraries without affecting system libraries.  
-        * First install the environment:  
-      `$ python3 -m pip install --user virtualenv`  
-      `$ python3 -m virtualenv <environment name>`  
-		  `$ source <environment name>/bin/activate`
-        * Navigate to where you cloned pydarn:  
-		  `$ python3 setup.py install`
-    2. Install in the system (root privileges required):  
-		   `$ sudo python3 setup.py install`
+1. `$ python3 -m pip install --user virtualenv`  
+2. `$ python3 -m virtualenv <environment name>`  
+* `$ source <environment name>/bin/activate`
+* `$ pip install git+https://github.com/superdarn/pydarn@develop`
 
+### Anaconda Virtual Environment
+Instructions can be found here [conda environment](https://uoa-eresearch.github.io/eresearch-cookbook/recipe/2014/11/20/conda/) and installing [anaconda](https://docs.anaconda.com/anaconda/install/)
 
+1. `$ conda create -n yourenvname python=3.7 anaconda`
+2. `$ conda activate yourenvname`
+* `$ pip install git+https://github.com/superdarn/pydarn@develop
+
+#### Adding the environment to PyCharm
+
+To set the project interpreter to the anaconda environment:
+
+1. File -> Settings -> Project Folder -> Project Interpreter
+2. Click the project Interpreter drop down list and click on show all.
+* If you don't see the environment you wish to use click the plus sign on the right side bar named "Add"
+* Select "Conda Environment" on the left side menu.
+* Click "Existing Environment" and give the interpreter field the path to your environment's python.exe and apply.
+
+## Local Install
+**pip3 install**
+
+`pip3 install --user git+https://github.com/superdarn/pydarn@develop`
+
+## System Install 
+`sudo pip3 install git+https://github.com/supdarn/pydarn@develop`
+
+## Installing for Development 
+`$ git clone https://github.com/superdarn/pydarn`
+
+Change directories to pydarn 
+
+`$ git checkout develop`
+
+To install: 
+
+`$ python setup.py --user install`
+
+or 
+
+`pip install --user .`
+
+## Troubleshooting
+
+> If you find any problems/solutions, please make a [github issue](https://github.com/superdarn/pydarn/issues/new) so the community can help you or add it to the documentation
