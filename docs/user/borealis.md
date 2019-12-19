@@ -9,63 +9,195 @@ HDF5, see the website of the [HDF Group](www.hdfgroup.org).
 
 The Borealis software writes data files in HDF5 format. The files written on
 site are written record-by-record, in a similar style to the SuperDARN standard
-dmap format. These files are named with a .site extension. The types of files
-that can be produced are:
-- RAWRF
+dmap format. These files are named with a .site extension and are said to be
+'site' structured.
+
+After recording, the files are array restructured using pyDARN, for distribution.
+The restructuring is done to make the files more human-readable, and it also
+reduces the file size. After restructuring the files are said to be 'array'
+structured.
+
+Restructuring reduces repetition by writing file-wide parameters only once,
+and writing integration-specific parameters in arrays where the first
+dimension is the record index.
+
+The restructuring process is fully built into the IO so that if you would like to see
+the record-by-record data, you can simply return the records attribute of the
+IO class for any Borealis file. Similarly, if you would like to see the data in
+the arrays format, return the arrays attribute. This works regardless of how
+the original file was structured.
+
+In addition to file structure, there are various types of datasets (filetypes)
+that can be produced by Borealis. The filetypes that can be produced are:
+- 'rawrf'
     This is the raw samples at the receive bandwidth rate. This is rarely
     produced and only would be done by request.
-- ANTENNAS_IQ
+- 'antennas_iq'
     Decimated and filtered data from individual antennas, i and q samples.
-- BFIQ
+- 'bfiq'
     Beamformed i and q samples. Typically two array datasets are included,
     for main array and interferometer array.
-- RAWACF
+- 'rawacf'
     The correlated data given as lags x ranges, for the two arrays.
 
-
-After recording, the files are array restructured using pyDARN for distribution.
-The restructuring process is built into the IO so that if you would like to see
-the record-by-record data, you can simply return the records attribute of the
-IO class. Similarly, if you would like to see the data in the arrays format,
-return the arrays attribute.
-
 Borealis files can also be converted to the standard SuperDARN DMap formats
-using pyDARN. Examples of this will be shown below.
+using pyDARN.
 
 ## Reading with BorealisRead
 
-## Restructuring with BorealisRead, BorealisWrite
+BorealisRead class takes 3 parameters:
+- `filename`,
+- `borealis_filetype`, and
+- `borealis_file_structure` (optional but recommended).
 
-## Converting to DMap SuperDARN Standard
+The BorealisRead class can return either array or site structured data,
+regardless of the file's structure. Note that if you are returning the structure
+that the file was not stored in, it will require some processing time.
 
-The basic code to read in a Borealis HDF5 structured file is as follows:
+Here's an example:
 
 ```python
 import pydarn
 
-file = "path/to/file"
-Borealis_read = pydarn.BorealisRead(file)
+bfiq_site_filename = "path/to/bfiq_site_file"
+borealis_reader = pydarn.BorealisRead(bfiq_site_filename, 'bfiq', 'site')
+
+# We can return the original data from the site file. This will be a dictionary
+# of dictionaries.
+record_data = borealis_reader.records
+
+# For site structured data, it is often helpful to have the record names alone
+# in order to retrieve the data from the fields within the record.
+record_names = borealis_reader.record_names
+
+# We can also get the data in array structured format. Beware that this
+# will require some processing. This will be a dictionary.
+array_data = borealis_reader.arrays
 ```
-which puts the file contents into a Python class called `SDarn_read`.
 
-Now you need to tell it what kind of file it is. For instance, if the file you were reading in is a FITACF file, you would write something like:
+If you don't supply the borealis_file_structure parameter, the reader will
+attempt to read the file as array structured first (as this should be the most
+common structure available to the user), and following failure will attempt to
+read as site structured.
+
 ```python
-fitacf_data = SDarn_read.read_fitacf()
+import pydarn
+
+rawacf_array_filename = "path/to/rawacf_array_file"
+borealis_reader = pydarn.BorealisRead(rawacf_array_filename, 'rawacf')
+
+print(borealis_reader.borealis_file_structure) # confirm it was array structured
+
+# We can return the original data from the array file
+array_data = borealis_reader.arrays
+
+# We can also get the data in the site structured format. Again, beware that
+# this will require some processing.
+record_data = borealis_reader.records
 ```
-where the named variable `fitacf_data` is a python dictionary list containing all the data in the file. If you were reading a different kind of file, you would need to use the methods `read_iqdat`, `read_rawacf`, `read_grid` or `read_map` for their respective filetypes.
 
-## Accessing data fields
-To see the names of the variables you've loaded in and now have access to, try using the `keys()` method:
+## Accessing Data Fields in a Borealis Dataset
+
+The method of accessing data fields will vary depending on if you have loaded
+site data or array data. In both cases, you can use the `keys()` method.
+
+For site files, to see all the data fields in the first record:
 ```python
-print(fitacf_data[0].keys())
+record_names = borealis_reader.record_names
+first_record_name = record_names[0]
+print(record_data[first_record_name].keys())
 ```
-which will tell you all the variablies in the first [0th] record.
 
-Let's say you loaded in a MAP file, and wanted to grab the cross polar-cap potentials for each record:
+For array files, to see all the data fields available for all the records:
 ```python
-file = "20150302.n.map"
-SDarn_read = pydarn.SDarnRead(file)
-map_data = SDarn_read.read_map()
+print(array_data.keys())
+```
 
-cpcps=[i['pot.drop'] for i in map_data]
+For more information on the data fields available in both array structured
+and site structured files (they vary slightly), see the Borealis documentation
+[here](https://borealis.readthedocs.io/en/latest/borealis_data.html).
+
+## Writing with BorealisWrite
+
+The BorealisWrite class takes 4 parameters:
+- `filename`,
+- `borealis_data`,
+- `borealis_filetype`, and
+- `borealis_file_structure` (optional but recommended).
+
+Here's an example that will write `my_rawacf_data` to `my_file`:
+
+```python
+import pydarn
+
+my_rawacf_data = borealis_reader.arrays
+
+my_file = "path/to/file"
+writer = pydarn.BorealisWrite(my_file, my_rawacf_data, 'rawacf', 'array')
+```
+
+Similar to reading files, if you don't supply the borealis_file_structure
+parameter, the writer will attempt to write the file as array structured first,
+and following failure will attempt to write as site structured.
+
+```python
+import pydarn
+
+my_rawacf_data = borealis_reader.arrays
+
+my_file = "path/to/file"
+writer = pydarn.BorealisWrite(my_file, my_rawacf_data, 'rawacf')
+
+print(writer.borealis_file_structure)  # to check the file structure written
+```
+
+## Converting to DMap SuperDARN Standard
+
+The conversions available from Borealis HDF5 to SuperDARN DMap (SDARN) standards
+are currently:
+
+| Borealis  | SDarn      |
+|-----------|------------|
+| rawacf    | rawacf     |
+| bfiq      | iqdat      |
+
+If the Borealis file is not provided as one of the required Borealis filetypes,
+the conversion will fail with `BorealisConversionTypesError`.
+
+Note that the complexity of the data stored in the Borealis-created file may
+mean that conversion is not possible. If this is the case, the code will
+throw an error such as `BorealisConvert2IqdatError` or
+`BorealisConvert2RawacfError`.
+
+The BorealisConvert class is built off of BorealisRead. It takes the following
+parameters:
+- `borealis_filename` (to read from),
+- `borealis_filetype`,
+- `sdarn_filename` (to write to),
+- `borealis_slice_id`, and
+- `borealis_file_structure` (optional but recommended).
+
+The following will convert a Borealis file (`my_borealis_array_file`) and write
+to an SDarn filename (`sdarn_file`):
+
+```python
+import pydarn
+my_borealis_array_file = "path/to/file"
+sdarn_file = "path/to/write/to"
+
+converter = pydarn.BorealisConvert(my_borealis_file, "rawacf",
+    sdarn_file, 0, borealis_file_structure='array')
+```
+
+Similarly to read and write functions, if the structure is not provided, array
+structure is attempted first.
+
+Other information can be gathered from the converter if desired, for examples:
+
+```python
+borealis_array_data = converter.arrays
+
+sdarn_dictionary = converter.sdarn_dict # python dictionary of the SDarn standard fields.
+
+dmap_records = converter.sdarn_dmap_records
 ```
