@@ -46,6 +46,7 @@ using pyDARN.
 ## Reading with BorealisRead
 
 BorealisRead class takes 3 parameters:
+
 - `filename`,
 - `borealis_filetype`, and
 - `borealis_file_structure` (optional but recommended).
@@ -120,6 +121,7 @@ and site structured files (they vary slightly), see the Borealis documentation
 ## Writing with BorealisWrite
 
 The BorealisWrite class takes 4 parameters:
+
 - `filename`,
 - `borealis_data`,
 - `borealis_filetype`, and
