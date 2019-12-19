@@ -217,8 +217,11 @@ class RTP():
         # TODO: implement variant other coordinate systems for the y-axis
         # y shape needs to be +1 longer as requirement of how pcolormesh
         # draws the pixels on the grid
-        y = np.arange(0, cls.dmap_data[0]['nrang']+1, 1)
-        y_max = cls.dmap_data[0]['nrang']
+
+        # because nrang can change based on mode we need to look
+        # for the largest value
+        y_max = max(record['nrang'] for record in cls.dmap_data)
+        y = np.arange(0, y_max+1, 1)
 
         # z: parameter data mapped into the color mesh
         z = np.zeros((1, y_max)) * np.nan
