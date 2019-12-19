@@ -207,7 +207,7 @@ class RTP():
                isinstance(dmap_data[index_first_match][parameter], DmapScalar):
                 dmap_data = dmap2dict(dmap_data)
         except StopIteration:
-            raise rtp_exceptions.RTPUnknownParameter(parameter)
+            raise rtp_exceptions.RTPUnknownParameterError(parameter)
         cls.dmap_data = dmap_data
         cls.__check_data_type(parameter, 'array', index_first_match)
         start_time, end_time = cls.__determine_start_end_time(start_time,
@@ -467,7 +467,7 @@ class RTP():
                isinstance(dmap_data[index_first_match][parameter], DmapScalar):
                 dmap_data = dmap2dict(dmap_data)
         except StopIteration:
-            raise rtp_exceptions.RTPUnknownParameter(parameter)
+            raise rtp_exceptions.RTPUnknownParameterError(parameter)
 
         cls.dmap_data = dmap_data
         cls.__check_data_type(parameter, 'scalar', index_first_match)
