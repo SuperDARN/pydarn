@@ -18,6 +18,7 @@ throw an error such as `BorealisConvert2IqdatError` or
 
 The BorealisConvert class is built off of BorealisRead. It takes the following
 parameters:
+
 - `borealis_filename` (to read from),
 - `borealis_filetype`,
 - `sdarn_filename` (to write to),
