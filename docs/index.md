@@ -11,28 +11,18 @@ The library source code can be found on [pyDARN GitHub](https://github.com/Super
 If you have any questions or concerns please submit an **Issue** on the SuperDARN pyDARN repository. 
 
 ## Table of Contents 
-  - Installation
-    - [Linux](user/install.md)
-    - [MaxOSx](user/install_mac.md)
-    - [Windows](user/install_windows.md)
-  - HOWTO's
+  - [Installation](user/install.md)
+  - Tutorials 
     - IO 
-        - [Read/Write DMAP](user/dmap.md)
-        - [Read/Write SuperDARN](user/darn.md)
+        - [Read SuperDARN files](user/SDarnRead.md)
+        - [Write SuperDARN files](user/SDarnWrite.md)
+        - [Read/Write Borealis files](user/BorealisIO.md)
+    - Convert
+      - [Borealis to SuperDARN](user/Borealis2SuperDARN.md)
     - Plotting
         - [Range-Time plots](user/range_time.md)
         - [Time-Series plots](user/time_series.md)
         - [Summary plots](user/summary.md)
-  - Code Documentation
-    - Super IO 
-        - [`ReadDmap`](code/ReadDmap.md)
-        - [`WriteDmap`](code/WriteDmap.md)
-        - [`ReadDarn`](code/ReadDarn.md)
-        - [`WriteDarn`](code/WriteDarn.md)
-    - Plotting
-        - [`plot_range_time`](code/plot_range_time.md)
-        - [`plot_time_series`](code/plot_time_series.md)
-        - [`plot_summary`](code/plot_summary.md)
   - Developer Guide
       - [General Rules of Road](developer/general.md)
   - History
