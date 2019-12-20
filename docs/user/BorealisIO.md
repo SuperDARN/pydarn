@@ -31,15 +31,18 @@ In addition to file structure, there are various types of datasets (filetypes)
 that can be produced by Borealis. The filetypes that can be produced are:
 
 - 'rawrf'
-    This is the raw samples at the receive bandwidth rate. This is rarely
-    produced and only would be done by request.
+  This is the raw samples at the receive bandwidth rate. This is rarely
+  produced and only would be done by request.
+
 - 'antennas_iq'
-    Decimated and filtered data from individual antennas, i and q samples.
+  Decimated and filtered data from individual antennas, i and q samples.
+
 - 'bfiq'
-    Beamformed i and q samples. Typically two array datasets are included,
-    for main array and interferometer array.
+  Beamformed i and q samples. Typically two array datasets are included,
+  for main array and interferometer array.
+
 - 'rawacf'
-    The correlated data given as lags x ranges, for the two arrays.
+  The correlated data given as lags x ranges, for the two arrays.
 
 Borealis files can also be converted to the standard SuperDARN DMap formats
 using pyDARN.
