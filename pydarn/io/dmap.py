@@ -40,9 +40,7 @@ import struct
 
 from typing import List, Union
 
-from pydarn import dmap_exceptions
-from pydarn import DmapArray
-from pydarn import DmapScalar
+from pydarn import dmap_exceptions, DmapArray, DmapScalar, dmap2dict, dict2dmap
 
 # Keeping these global definitions for readability purposes
 # Data types use in s
@@ -160,6 +158,7 @@ class DmapRead():
 
         # _dmap_records are private to avoid tampering.
         self._dmap_records = collections.deque()
+        self._records = collections.deque()
         self.dmap_file = dmap_file
 
         # read the whole file/stream into a byte array
@@ -210,6 +209,20 @@ class DmapRead():
                           cursor=self.cursor,
                           rec_num=self.rec_num,
                           total_bytes=self.dmap_end_bytes)
+
+    @property
+    def get_dmap_records(self):
+        """
+        Returns the DMap structured records
+        """
+        return self._dmap_records
+
+    @property
+    def get_records(self):
+        """
+        Returns records of fields in a dictionary format
+        """
+        return self._records
 
     def zero_negative_check(self, element: int, element_name: str):
         """
@@ -389,7 +402,9 @@ class DmapRead():
 
         self.bytes_check(self.cursor, "cursor",
                          self.dmap_end_bytes, "total bytes in the file")
-        return self._dmap_records
+
+        self._records = dmap2dict(self._dmap_records)
+        return self._records
 
     def read_record(self) -> collections.OrderedDict:
         """
@@ -874,10 +889,12 @@ class DmapWrite(object):
         DmapTypeError
         FilenameRequiredError
         """
-        self.dmap_records = dmap_records
-        self.dmap_bytearr = bytearray()
         self.filename = filename
         self.rec_num = 0
+
+        self.dmap_records = self.__check_dmap_dict(dmap_records)
+
+        self.dmap_bytearr = bytearray()
         pydarn_log.debug("Initiating DmapWrite")
 
     def __repr__(self):
@@ -898,6 +915,28 @@ class DmapWrite(object):
         return "Writing to filename: {filename} at record number: {rec_num}"\
                "".format(filename=self.filename,
                          rec_num=self.rec_num)
+
+    def __check_dmap_dict(self, dmap_records):
+        """
+        Checks if the dmap data is a dict, if so, converts to a dmap_structure
+
+        Parameter:
+            dmap_data : List[dict]
+                dmap_data structure to test if it is a dict of value or dmap
+                structure
+        Returns:
+            dmap_structure : List[dict]
+                returns the dmap structure of dmap_data
+        """
+        try:
+            first_value = list(dmap_records[0].values())[0]
+            if isinstance(first_value, DmapScalar) or isinstance(first_value,
+                                                                 DmapArray):
+                return dmap_records
+            else:
+                return dict2dmap(dmap_records)
+        except IndexError:
+            return dmap_records
 
     # HONEY BADGER method: Because dmap just don't care -
     # will write anything into DMap format with out any file
@@ -938,7 +977,7 @@ class DmapWrite(object):
         correct.
         """
         if self.dmap_records == []:
-            self.dmap_records = dmap_records
+            self.dmap_records = self.__check_dmap_dict(dmap_records)
         self._empty_record_check()
         pydarn_log.debug("Writing to dmap stream")
         self.dmap_records_to_bytes()
