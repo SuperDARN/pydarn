@@ -14,7 +14,7 @@ where 'fitacf_data' is the read in data, and the options are several python para
 First, make sure Pydarn and matplotlib are imported, then read in the .fitacf file with the data you wish to plot:
 ```python
 import pydarn
-import matplotlib.pyplot as plt'
+import matplotlib.pyplot as plt
 
 fitacf_file = "path/to/fitacf/file"
 sdarn_read = pydarn.SDarnRead(fitacf_file)
