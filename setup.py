@@ -35,7 +35,8 @@ setup(
     # used to import the logging config file into pydarn.
     include_package_data=True,
     # pyyaml library install
-    install_requires=['pyyaml','numpy','matplotlib']
+    install_requires=['Cython', 'pyyaml','numpy','matplotlib',
+                      'h5py', 'deepdish', 'pathlib2']
     # commented out due to not implemented yet.
     #ext_modules = [rstmodule]
 )
