@@ -29,6 +29,7 @@ the original file was structured.
 
 In addition to file structure, there are various types of datasets (filetypes)
 that can be produced by Borealis. The filetypes that can be produced are:
+
 - 'rawrf'
     This is the raw samples at the receive bandwidth rate. This is rarely
     produced and only would be done by request.
