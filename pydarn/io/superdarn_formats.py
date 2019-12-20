@@ -68,13 +68,14 @@ class Rawacf():
         'slist': 'h',
         'pwr0': 'f',
         'acfd': 'f',
-        'xcfd': 'f',
         }
     extra_fields = {
             'ifmode': 'h',
             'mplgexs': 'h',
             }
-
+    cross_correlation_field = {
+            'xcfd': 'f'
+            }
 
 class Fitacf():
     """
