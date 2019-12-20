@@ -11,16 +11,16 @@ Current documentation on modes:
 
 class SuperDARNCpids():
 
-    cpids = {-26401: 'stereoscan',
-             -26009: 'stereoscan',
-             -26008: 'stereoscan',
-             -26007: 'stereoscan',
-             -26006: 'stereoscan',
-             -26005: 'stereoscan',
-             -26004: 'stereoscan',
-             -26003: 'stereoscan',
-             -26002: 'stereoscan',
-             -6401: 'stereoscan',
+    cpids = {26401: 'stereoscan',
+             26009: 'stereoscan',
+             26008: 'stereoscan',
+             26007: 'stereoscan',
+             26006: 'stereoscan',
+             26005: 'stereoscan',
+             26004: 'stereoscan',
+             26003: 'stereoscan',
+             26002: 'stereoscan',
+             6401: 'stereoscan',
              150: 'normalscan slow',
              151: 'normalscan fast',
              152: 'stereoscan',
@@ -55,4 +55,5 @@ class SuperDARNCpids():
              3601: 'tauscan fast',
              8510: 'ltuseqscan slow',
              8511: 'ltuseqscan fast',
-             9211: 'pcpscan'}
+             9211: 'pcpscan',
+             9151: 'pcodecamp'}
