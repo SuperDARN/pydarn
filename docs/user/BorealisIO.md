@@ -10,11 +10,11 @@ HDF5, see the website of the [HDF Group](www.hdfgroup.org).
 The Borealis software writes data files in HDF5 format. The files written on
 site are written record-by-record, in a similar style to the SuperDARN standard
 dmap format. These files are named with a .site extension and are said to be
-'site' structured.
+`'site'` structured.
 
 After recording, the files are array restructured using pyDARN, for distribution.
 The restructuring is done to make the files more human-readable, and it also
-reduces the file size. After restructuring the files are said to be 'array'
+reduces the file size. After restructuring the files are said to be `'array'`
 structured.
 
 Restructuring reduces repetition by writing file-wide parameters only once,
@@ -30,19 +30,23 @@ the original file was structured.
 In addition to file structure, there are various types of datasets (filetypes)
 that can be produced by Borealis. The filetypes that can be produced are:
 
-- 'rawrf'
-  This is the raw samples at the receive bandwidth rate. This is rarely
-  produced and only would be done by request.
 
-- 'antennas_iq'
-  Decimated and filtered data from individual antennas, i and q samples.
+- `'rawrf'`
+This is the raw samples at the receive bandwidth rate. This is rarely
+produced and only would be done by request.
 
-- 'bfiq'
-  Beamformed i and q samples. Typically two array datasets are included,
-  for main array and interferometer array.
 
-- 'rawacf'
-  The correlated data given as lags x ranges, for the two arrays.
+- `'antennas_iq'`
+Decimated and filtered data from individual antennas, i and q samples.
+
+
+- `'bfiq'`
+Beamformed i and q samples. Typically two array datasets are included,
+for main array and interferometer array.
+
+
+- `'rawacf'`
+The correlated data given as lags x ranges, for the two arrays.
 
 Borealis files can also be converted to the standard SuperDARN DMap formats
 using pyDARN.
