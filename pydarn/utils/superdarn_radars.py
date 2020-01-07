@@ -4,10 +4,11 @@
 """
 This module contains SuperDARN radar information
 """
+import os
+
 from typing import NamedTuple
 from enum import Enum
 from datetime import datetime
-
 
 class _Hemisphere(Enum):
     """
@@ -94,7 +95,6 @@ class _Radar(NamedTuple):
     decommissioned: datetime
     commissioned: datetime
     beamSep: float
-
 
 class SuperDARNRadars():
     """
@@ -282,3 +282,22 @@ class SuperDARNRadars():
                          _Coord(-74.9, 97.2, 123.5), _Hemisphere.South,
                          'Polar Research Institute of China', None,
                          datetime(2010, 4, 1), 3.24)}
+
+    def read_hdw_file(self, abbrv, year):
+        hdw_path = os.path.abspath(__file__)+'/hdw/'
+        hdw_file = "{path}/hdw.dat.{radar}".format(path=hdw_path, radar=abbrv)
+        hdw_lines = []
+        with open(hdw_file, 'r') as reader:
+            for line in reader.readlines():
+                if '#' not in line:
+                    hdw_lines.append(line.split())
+
+    def __parse_hdw_line(self, line):
+
+
+
+
+
+
+
+
