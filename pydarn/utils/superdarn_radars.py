@@ -10,6 +10,30 @@ from typing import NamedTuple
 from enum import Enum
 from datetime import datetime
 
+
+def read_hdw_file(abbrv, year: int = None):
+    if year is None:
+        today = datetime.now()
+        year = today.year
+
+    hdw_path = os.path.dirname(__file__)+'/hdw/'
+    hdw_file = "{path}/hdw.dat.{radar}".format(path=hdw_path, radar=abbrv)
+    with open(hdw_file, 'r') as reader:
+        for line in reader.readlines():
+            if '#' not in line and year < line.split()[1]:
+                hdw_data = line.split()
+                return _HdwInfo(hdw_data[0], abbrv, _Coord(hdw_data[3],
+                                                           hdw_data[4],
+                                                           hdw_data[5]),
+                                hdw_data[6], hdw_data[7], hdw_data[8],
+                                hdw_data[9], hdw_data[10], hdw_data[11],
+                                _InterferometerOffset(hdw_data[12],
+                                                      hdw_data[13],
+                                                      hdw_data[14]),
+                                hdw_data[15], hdw_data[16], hdw_data[17],
+                                hdw_data[18])
+
+
 class _Hemisphere(Enum):
     """
     Class used to denote which hemisphere a radar is located in
@@ -27,10 +51,12 @@ class _Hemisphere(Enum):
     North = 1
     South = -1
 
+
 class _InterferometerOffset(NamedTuple):
     x: float
     y: float
     z: float
+
 
 class _Coord(NamedTuple):
     """
@@ -50,24 +76,6 @@ class _Coord(NamedTuple):
     lon: float
     alt: float
 
-class _Radar(NamedTuple):
-    """
-    Class used to combine all Radar information
-    Attributes
-    ----------
-    name: str
-        Name of the Radar
-    institute: str
-        Institution of the Radar
-    hemisphere: _Hemisphere
-        Hemisphere the radar belongs to
-    hardware_info: _HdwInfo
-        NamedTuple containing all hardware information from hardware files
-    """
-    name: str
-    institution: str
-    hemisphere: _Hemisphere
-    hardware_info: _HdwInfo
 
 class _HdwInfo(NamedTuple):
     """
@@ -114,6 +122,27 @@ class _HdwInfo(NamedTuple):
     hemisphere: _Hemisphere
     beamSep: float
 
+
+class _Radar(NamedTuple):
+    """
+    Class used to combine all Radar information
+    Attributes
+    ----------
+    name: str
+        Name of the Radar
+    institute: str
+        Institution of the Radar
+    hemisphere: _Hemisphere
+        Hemisphere the radar belongs to
+    hardware_info: _HdwInfo
+        NamedTuple containing all hardware information from hardware files
+    """
+    name: str
+    institution: str
+    hemisphere: _Hemisphere
+    hardware_info: _HdwInfo
+
+
 class SuperDARNRadars():
     """
     Class containing a dictionary of Nested Named Tuples with information
@@ -127,77 +156,80 @@ class SuperDARNRadars():
     # Information obtained from http://vt.superdarn.org/tiki-index.php?page=Radar+Overview
     radars = {209: _Radar('Adak Island East',
                           'University of Alaska Fairbanks', _Hemisphere.North,
-                          self.read_hdw_file('ade')),
+                          read_hdw_file('ade')),
               208: _Radar('Adak Island West', 'University of Alaska Fairbanks',
-                          _Hemisphere.North, self.read_hdw_file('adw')),
+                          _Hemisphere.North, read_hdw_file('adw')),
               33: _Radar('Blackstone', 'Virginia Tech', _Hemisphere.North,
-                         self.read_hdw_file('bks')),
+                         read_hdw_file('bks')),
               207: _Radar('Christmas Valley East', 'Dartmouth College',
-                          _Hemisphere.North, self.read_hdw_file('cve')),
+                          _Hemisphere.North, read_hdw_file('cve')),
               206: _Radar('Christmas Valley West', 'Dartmouth College',
-                          _Hemisphere.North, self.read_hdw_file('cvw')),
+                          _Hemisphere.North, read_hdw_file('cvw')),
               66: _Radar('Clyde River', 'University of Saskatchewan',
-                         _Hemisphere.North, self.read_hdw_file('cly')),
+                         _Hemisphere.North, read_hdw_file('cly')),
               205: _Radar('Fort Hays East', 'Virginia Tech', _Hemisphere.North,
-                          self.read_hdw_file('fhe')),
+                          read_hdw_file('fhe')),
               204: _Radar('Fort Hays West', 'Virginia Tech', _Hemisphere.North,
-                          self.read_hdw_file('fhw')),
+                          read_hdw_file('fhw')),
               1: _Radar('Goose Bay', 'Virginia Tech', _Hemisphere.North,
-                        self.read_hdw_file('gbr')),
+                        read_hdw_file('gbr')),
               10: _Radar('Hankasalmi', 'University of Leicester',
-                        _Hemisphere.North, self.read_hdw_file('han')),
+                         _Hemisphere.North, read_hdw_file('han')),
               40: _Radar('Hokkaido East', 'Nagoya University',
-                         _Hemisphere.North, self.read_hdw_file('hok')),
-              41:
-              64:
-              3:
-              15:
-              16:
-              7:
-              90:
-              20:
-              6:
-              9:
-              65:
-              11:
-              5:
-              2:
-              22:
-              8:
-              13:
-              12:
-              14:
-              18:
-              32:
-              19:
-             }
-
-
-
-
-    @staticmethod
-    def read_hdw_file(abbrv, year: int = None):
-        if year is None:
-            today = datetime.now()
-            year = today.year()
-
-        hdw_path = os.path.abspath(__file__)+'/hdw/'
-        hdw_file = "{path}/hdw.dat.{radar}".format(path=hdw_path, radar=abbrv)
-        hdw_lines = []
-        with open(hdw_file, 'r') as reader:
-            for line in reader.readlines():
-                if '#' not in line and year < line.split()[1]:
-                    hdw_data = line.split()
-                    return _HdwInfo(hdw_data[0], abbrv, _coord(hdw_data[3],
-                                                               hdw_data[4],
-                                                               hdw_data[5]),
-                                    hdw_data[6], hdw_data[7], hdw_data[8],
-                                    hdw_data[9], hdw_data[10], hdw_data[11],
-                                    _interferometer_offset(hdw_data[12],
-                                                           hdw_data[13],
-                                                           hdw_data[14]),
-                                    hdw_data[15], hdw_data[16], hdw_data[17],
-                                    hdw_data[18])
-
-
-
+                         _Hemisphere.North, read_hdw_file('hok')),
+              41: _Radar('Hokkaido West', 'Nagoya University',
+                         _Hemisphere.North, read_hdw_file('hkw')),
+              64: _Radar('Inuvik', 'University of Saskatchewan',
+                         _Hemisphere.North, read_hdw_file('inv')),
+              3: _Radar('Kapuskasing', 'Virginia Tech', _Hemisphere.North,
+                        read_hdw_file('kap')),
+              16: _Radar('King Salmon',
+                         'National Institute of Information and'
+                         ' Communications Technology', _Hemisphere.North,
+                         read_hdw_file('ksr')),
+              7: _Radar('Kodiak', 'University of Alaska Fairbanks',
+                        _Hemisphere.North, read_hdw_file('kod')),
+              90: _Radar('Longyearbyen', 'University of Centre in Svalbard',
+                         _Hemisphere.North, read_hdw_file('lyr')),
+              9: _Radar('Pykkvibaer', 'University of Leicester',
+                        _Hemisphere.North, read_hdw_file('pyk')),
+              6: _Radar('Prince George', 'University of Saskatchewan',
+                        _Hemisphere.North, read_hdw_file('pgr')),
+              65: _Radar('Rankin Inlet', 'University of Saskatchewan',
+                         _Hemisphere.North, read_hdw_file('rkn')),
+              5: _Radar('Saskatoon', 'University of Saskatchewan',
+                        _Hemisphere.North, read_hdw_file('sas')),
+              2: _Radar('Schefferville', 'CNRS/LPCE', _Hemisphere.North,
+                        read_hdw_file('sch')),
+              8: _Radar('Stokkseyri', 'Lancaster University',
+                        _Hemisphere.North, read_hdw_file('sto')),
+              32: _Radar('Wallops Island', 'JHU Applied Physics Laboratory',
+                         _Hemisphere.North, read_hdw_file('wal')),
+              24: _Radar('Buckland Park', 'La Trobe University',
+                         _Hemisphere.North, read_hdw_file('bpk')),
+              96: _Radar('Dome C',
+                         'Institute for Space Astrophysics and Planetology',
+                         _Hemisphere.North, read_hdw_file('dce')),
+              21: _Radar('Falkland Islands', 'British Antarctic Survey',
+                         _Hemisphere.North, read_hdw_file('fir')),
+              4: _Radar('Halley', 'British Antarctic Survey',
+                        _Hemisphere.North, read_hdw_file('hal')),
+              15: _Radar('Kerguelen', 'IRAP/CNRS/IPEV', _Hemisphere.North,
+                         read_hdw_file('ker')),
+              20: _Radar('McMurdo', 'University of Alaska, Fairbanks',
+                         _Hemisphere.North, read_hdw_file('mcm')),
+              11: _Radar('SANAE', 'South African National Space Agency',
+                         _Hemisphere.North, read_hdw_file('san')),
+              22: _Radar('South Pole Station',
+                         'University of Alaska, Fairbanks', _Hemisphere.North,
+                         read_hdw_file('sps')),
+              13: _Radar('Syowa East', 'National Institute of Polar Research',
+                         _Hemisphere.North, read_hdw_file('sye')),
+              12: _Radar('Syowa South', 'National Institute of Polar Research',
+                         _Hemisphere.North, read_hdw_file('sys')),
+              14: _Radar('Tiger', 'La Trobe University', _Hemisphere.North,
+                         read_hdw_file('tig')),
+              18: _Radar('Unwin', 'La Trobe University', _Hemisphere.North,
+                         read_hdw_file('unw')),
+              19: _Radar('Zhongshan', 'Polar Research Institute of China',
+                         _Hemisphere.North, read_hdw_file('zho'))}
