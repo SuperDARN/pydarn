@@ -9,52 +9,96 @@ import os
 from typing import NamedTuple
 from enum import Enum
 from datetime import datetime
+from pydarn import radar_exceptions
 
 
 def read_hdw_file(abbrv, year: int = None):
+    """
+    Reads the hardware file for the associated abbreviation of the radar name.
+
+    Parameters
+    ----------
+        abbrv : str
+            Radars 3 letter assigned abbreviation
+        year: int
+            The year of hardware information to obtain
+            default: current year
+
+    Return
+    ------
+    _HdwInfo object that contains all the field names in a hardware
+        file
+
+    Raises
+    ------
+    HardwareFileNotFoundError raised when there is no hardware file found for
+    the given abbreviation
+    """
     if year is None:
         today = datetime.now()
         year = today.year
 
     hdw_path = os.path.dirname(__file__)+'/hdw/'
     hdw_file = "{path}/hdw.dat.{radar}".format(path=hdw_path, radar=abbrv)
-    with open(hdw_file, 'r') as reader:
-        for line in reader.readlines():
-            if '#' not in line and len(line.split()) > 1 and year < int(line.split()[1]):
-                hdw_data = line.split()
-                """
-                Hardware data array positions definitions:
-                    0: station id - stid
-                    1: last year that the parameter string is valid.
-                    Note: currently updated line will have a year of 2999
-                    meaning it is currently still up to date.
-                    2: last second of year that parameter string is valid.
-                    3: Geographic latitude of radar site
-                    4: Geographic longitude of radar site
-                    Note: southern lat and long are negative
-                    5: Altitude of the radar site (meters)
-                    6: Scanning boresight - direction of the centre beam,
-                    measured in degrees relative to geographic north.
-                    Counter clockwise rotations are negative.
-                    7: Beam separation (Angular seperation in degrees)
-                    8: velocity sign - at radar level, backscattered signal with
-                    frequencies above the transmitted frequency are assigned positive
-                    Doppler velocities while backscattered signals with frequencies
-                    below the transmitted frequency are assigned negative Doppler
-                    velocity. Can be changed in receiver design.
-                    9: Analog Rx attenuator step (dB)
-                    10: Tdiff
-                """
-                return _HdwInfo(int(hdw_data[0]), abbrv, _Coord(float(hdw_data[3]),
-                                                                float(hdw_data[4]),
-                                                                float(hdw_data[5])),
-                                float(hdw_data[6]), float(hdw_data[7]), float(hdw_data[8]),
-                                float(hdw_data[9]), float(hdw_data[10]), float(hdw_data[11]),
-                                _InterferometerOffset(float(hdw_data[12]),
-                                                      float(hdw_data[13]),
-                                                      float(hdw_data[14])),
-                                float(hdw_data[15]), float(hdw_data[16]), int(hdw_data[17]),
-                                int(hdw_data[18]))
+    try:
+        with open(hdw_file, 'r') as reader:
+            for line in reader.readlines():
+                if '#' not in line and len(line.split()) > 1 and\
+                   year < int(line.split()[1]):
+                    hdw_data = line.split()
+                    """
+                    Hardware data array positions definitions:
+                        0: station id - stid
+                        1: last year that the parameter string is valid.
+                        Note: currently updated line will have a year of 2999
+                        meaning it is currently still up to date.
+                        2: last second of year that parameter string is valid.
+                        3: Geographic latitude of radar site
+                        4: Geographic longitude of radar site
+                        Note: southern lat and long are negative
+                        5: Altitude of the radar site (meters)
+                        6: Scanning boresight - direction of the centre beam,
+                        measured in degrees relative to geographic north.
+                        Counter clockwise rotations are negative.
+                        7: Beam separation (Angular seperation in degrees)
+                        8: velocity sign - at radar level, backscattered signal with
+                        frequencies above the transmitted frequency are assigned positive
+                        Doppler velocities while backscattered signals with frequencies
+                        below the transmitted frequency are assigned negative Doppler
+                        velocity. Can be changed in receiver design.
+                        9: Analog Rx attenuator step (dB)
+                        10: Tdiff - propagation time from interferometer array antenna
+                        to phasing matrix input miunus propagation time from main array
+                        antenna through transmitter to phasing matrix input.
+                        (microseconds)
+                        11: phase sign - to account for any cable errors
+                        Interferometer offset - displacement of midpoint
+                        interferometer array from midpoint main array (meters).
+                        12: x direction - along the line of antennas with +X toward
+                        higher antenna number
+                        13: y direction - along the array normal with +Y in the
+                        direction of the array normal
+                        14: z direction - is the altitude difference, +Z up
+                        15: Analog Rx rise time (microseconds)
+                        16: Analog Attenuation stages - gain control of an analog
+                        receiver or front-end
+                        17: maximum range gates
+                        18: maximum number of beams
+                    """
+                    return _HdwInfo(int(hdw_data[0]), abbrv,
+                                    _Coord(float(hdw_data[3]),
+                                           float(hdw_data[4]),
+                                           float(hdw_data[5])),
+                                    float(hdw_data[6]), float(hdw_data[7]),
+                                    float(hdw_data[8]), float(hdw_data[9]),
+                                    float(hdw_data[10]), float(hdw_data[11]),
+                                    _InterferometerOffset(float(hdw_data[12]),
+                                                          float(hdw_data[13]),
+                                                          float(hdw_data[14])),
+                                    float(hdw_data[15]), float(hdw_data[16]),
+                                    int(hdw_data[17]), int(hdw_data[18]))
+    except FileNotFoundError:
+        raise radar_exceptions.HardwareFileNotFoundError(abbrv)
 
 
 class _Hemisphere(Enum):
@@ -76,6 +120,21 @@ class _Hemisphere(Enum):
 
 
 class _InterferometerOffset(NamedTuple):
+    """
+    Named tuple class to contain the interferometer offset
+    Cartesian coordinates.
+
+    Attributes
+    ----------
+    x : float
+        direction along the line of antennas with +X toward
+        higher antenna number
+    y : float
+        direction along the array normal with +Y in the
+        direction of the array normal
+    z : float
+        direction is the altitude difference, +Z up
+    """
     x: float
     y: float
     z: float
@@ -92,8 +151,8 @@ class _Coord(NamedTuple):
         Latitude in decimal format
     lon : float
         Longitude in decimal format
-    bore : float
-        Boresight in decimal format
+    alt : float
+        Altitude in meters
     """
     lat: float
     lon: float
@@ -106,41 +165,55 @@ class _HdwInfo(NamedTuple):
 
     Attributes
     ----------
-    name : str
-        full text of radar name
     stid : int
         station number
     abbrev : str
         three letter station abbreviation
-    beams : int
-        number of possible beams
+    geographic : _Coord object
+        Named Tuple containing geographic latitude longitude and altitude
+    boresight : float
+        boresight center beam in degrees
+    beam_seperation : float
+        angular separation between radar beams
+    velocity_sign : float
+        at radar level, backscattered signal with
+        frequencies above the transmitted frequency are assigned positive
+        Doppler velocities while backscattered signals with frequencies
+        below the transmitted frequency are assigned negative Doppler
+        velocity. Can be changed in receiver design.
+    rx_attenuator : float
+        Analog Rx attenuator step (dB)
+    tdiff : float
+        propagation time from interferometer array antenna
+        to phasing matrix input minus propagation time from main array
+        antenna through transmitter to phasing matrix input.
+        (microseconds)
+    phase_sign : float
+        To account for flipped cable errors
+    interferometer_offset : _InterferometerOffset
+        displacement of midpoint
+        interferometer array from midpoint main array in
+        Cartesian coordinates(meters).
+        rx_rise : float
+        Analog Rx rise time (microseconds)
+    attenuation_stages : float
+        Analog Attenuation stages - gain control of an analog
+        receiver or front-end
     gates :int
         number of range gates per beam
-    geographic : _Coord object
-        Named Tuple containing geographic latitude longitude and Boresite
-    geomagnetic : _Coord object
-        Named Tuple containing geomagnetic latitude longitude and Boresite
-    hemisphere : _Hemisphere enum
-        Hemisphere the radar is associated with: North or South
-    institute : str
-        full text name of institution operating the radar site
-    decommissioned : datetime object
-        date radar was decommissioned (shut down)
-    commissioned : datetime object
-        sate radar was officially commissioned (data considered stable)
-    beamSep : float
-        angular separation between radar beams
+    beams : int
+        number of possible beams
 
     See Also
     --------
-    _Hemisphere : enum for North and South hemisphere
+    read_hdw_file : function for reading hardware files
     _Coord : object contain coordinate information
     """
     stid: int
     abbrev: str
     geographic: _Coord
     boresight: float
-    beamSep: float
+    beam_seperation: float
     velocity_sign: float
     rx_attenuator: float
     tdiff: float
@@ -148,7 +221,7 @@ class _HdwInfo(NamedTuple):
     interferometer_offset: _InterferometerOffset
     rx_rise_time: float
     attenuation_stages: float
-    max_range: int
+    gates: int
     beams: int
 
 
@@ -180,7 +253,14 @@ class SuperDARNRadars():
     Attributes
     ----------
         radars: dict
-            dictionary of each SuperDARN radar with key being STID value
+            dictionary of each SuperDARN radar with key being STID value and
+            a _Radar object containing the name, institutional and hardware
+            information of the radar
+
+    See Also
+    --------
+        _Radar : radar object containing radar information
+        read_hdw_file : function to read hardware information for a given radar
     """
     # Information obtained from http://vt.superdarn.org/tiki-index.php?page=Radar+Overview
     radars = {209: _Radar('Adak Island East',
