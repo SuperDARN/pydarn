@@ -20,18 +20,41 @@ def read_hdw_file(abbrv, year: int = None):
     hdw_file = "{path}/hdw.dat.{radar}".format(path=hdw_path, radar=abbrv)
     with open(hdw_file, 'r') as reader:
         for line in reader.readlines():
-            if '#' not in line and year < line.split()[1]:
+            if '#' not in line and len(line.split()) > 1 and year < int(line.split()[1]):
                 hdw_data = line.split()
-                return _HdwInfo(hdw_data[0], abbrv, _Coord(hdw_data[3],
-                                                           hdw_data[4],
-                                                           hdw_data[5]),
-                                hdw_data[6], hdw_data[7], hdw_data[8],
-                                hdw_data[9], hdw_data[10], hdw_data[11],
-                                _InterferometerOffset(hdw_data[12],
-                                                      hdw_data[13],
-                                                      hdw_data[14]),
-                                hdw_data[15], hdw_data[16], hdw_data[17],
-                                hdw_data[18])
+                """
+                Hardware data array positions definitions:
+                    0: station id - stid
+                    1: last year that the parameter string is valid.
+                    Note: currently updated line will have a year of 2999
+                    meaning it is currently still up to date.
+                    2: last second of year that parameter string is valid.
+                    3: Geographic latitude of radar site
+                    4: Geographic longitude of radar site
+                    Note: southern lat and long are negative
+                    5: Altitude of the radar site (meters)
+                    6: Scanning boresight - direction of the centre beam,
+                    measured in degrees relative to geographic north.
+                    Counter clockwise rotations are negative.
+                    7: Beam separation (Angular seperation in degrees)
+                    8: velocity sign - at radar level, backscattered signal with
+                    frequencies above the transmitted frequency are assigned positive
+                    Doppler velocities while backscattered signals with frequencies
+                    below the transmitted frequency are assigned negative Doppler
+                    velocity. Can be changed in receiver design.
+                    9: Analog Rx attenuator step (dB)
+                    10: Tdiff
+                """
+                return _HdwInfo(int(hdw_data[0]), abbrv, _Coord(float(hdw_data[3]),
+                                                                float(hdw_data[4]),
+                                                                float(hdw_data[5])),
+                                float(hdw_data[6]), float(hdw_data[7]), float(hdw_data[8]),
+                                float(hdw_data[9]), float(hdw_data[10]), float(hdw_data[11]),
+                                _InterferometerOffset(float(hdw_data[12]),
+                                                      float(hdw_data[13]),
+                                                      float(hdw_data[14])),
+                                float(hdw_data[15]), float(hdw_data[16]), int(hdw_data[17]),
+                                int(hdw_data[18]))
 
 
 class _Hemisphere(Enum):
@@ -115,12 +138,18 @@ class _HdwInfo(NamedTuple):
     """
     stid: int
     abbrev: str
-    beams: int
-    gates: int
     geographic: _Coord
-    geomagnetic: _Coord
-    hemisphere: _Hemisphere
+    boresight: float
     beamSep: float
+    velocity_sign: float
+    rx_attenuator: float
+    tdiff: float
+    phase_sign: float
+    interferometer_offset: _InterferometerOffset
+    rx_rise_time: float
+    attenuation_stages: float
+    max_range: int
+    beams: int
 
 
 class _Radar(NamedTuple):
