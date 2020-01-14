@@ -32,6 +32,7 @@ from .utils.conversions import dict2dmap
 from .utils.conversions import dmap2dict
 from .utils.superdarn_radars import SuperDARNRadars
 from .utils.superdarn_cpid import SuperDARNCpids
+from .utils.superdarn_radars import Hemisphere
 from .utils.superdarn_radars import read_hdw_file
 
 # Importing pydarn dmap classes
