@@ -5,6 +5,8 @@ import unittest
 
 import pydarn
 
+from datetime import datetime
+
 pydarn_logger = logging.getLogger('pydarn')
 
 
@@ -34,7 +36,8 @@ class TestSuperDarnRadars(unittest.TestCase):
         self.assertEqual(hdw_data.beams, 16)
 
     def test_read_hdw_file_old_year(self):
-        hdw_data = pydarn.read_hdw_file('mcm', 2016)
+        hdw_data = pydarn.read_hdw_file('mcm', datetime(year=2016, month=1,
+                                                        day=1))
         self.assertEqual(hdw_data.abbrev, 'mcm')
         self.assertEqual(hdw_data.stid, 20)
         self.assertEqual(hdw_data.geographic.lat, -77.880)
