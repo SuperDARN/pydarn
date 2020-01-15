@@ -164,9 +164,9 @@ The following instructions will allow you to install and give some examples on h
 
 **python 3.6+**
 
-| Ubuntu      | OpenSuse       | Fedora        |
-| ----------- | -------------- | ------------- |
-| libyaml-dev | python3-PyYAML | libyaml-devel |
+| Ubuntu      | OpenSuse       | Fedora        | OSX           |
+| ----------- | -------------- | ------------- | ------------- |
+| libyaml-dev | python3-PyYAML | libyaml-devel | Xcode/pip     |
 
 You can check your python version with  
 `$ python --version` or 
@@ -189,48 +189,15 @@ You can check your python version with
 
 ### Examples
 
+
 #### Reading DMAP file 
-The following example shows how to read in a FITACF file, one of the SuperDARN's DMAP file types. 
+[`SDarnRead`](code/SDarnRead.md)
 
-```python
-import pydarn
-import bz2
-
-#read in FITACF file that is compressed with bzip2
-fitacf_file = "20170514.C0.rkn.fitacf.bz2"
-with bz2.open(fitacf_file) as fp:
-        fitacf_stream = fp.read()
-	
-# Reading in the compression stream
-dmap = pydarn.DarnRead(fitacf_stream, True)
-fitacf_dmap = dmap.read_fitacf()
-
-#convert to a dictionary
-fitacf_data = pydarn.dmap2dict(fitacf_dmap)
-
-#Do some parsing of the data!
-elv_list = []
-for fitacf_rec in fitacf_data:
-    if fitacf_rec['bmnum'] == 5:
-        elv_list.append(fitacf_rec['elv'])
-
-print(elv_list[100])
-```
 #### Generating a Summary Plot
-```python
-import pydarn
-import matplotlib.pyplot as plt
+[`plot_range_time`](code/summary.md.md)
 
-fitacf_file = "20160331.2201.00.mcm.a.fitacf"
-darn_read = pydarn.DarnRead(fitacf_file)
-fitacf_data = darn_read.read_fitacf()
-
-pydarn.RTP.plot_summary(fitacf_data, beam_num=7)
-
-plt.show()
-```
-![pyDARN summary plot](./mcm_summary_plot.png)
 #### Generate Range-time Parameter Plot
+[`plot_summary`](code/range_time.md)
 
 ##### Using matplotlib pyplot
 
