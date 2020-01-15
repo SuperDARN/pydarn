@@ -201,7 +201,7 @@ class _HdwInfo(NamedTuple):
         displacement of midpoint
         interferometer array from midpoint main array in
         Cartesian coordinates(meters).
-        rx_rise : float
+    rx_rise : float
         Analog Rx rise time (microseconds)
     attenuation_stages : float
         Analog Attenuation stages - gain control of an analog
