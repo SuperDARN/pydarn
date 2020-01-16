@@ -12,6 +12,7 @@ If you have any questions or concerns please submit an **Issue** on the SuperDAR
 
 ## Table of Contents 
   - [Installation](user/install.md)
+  - [Citing](user/citing.md)
   - Tutorials 
     - IO 
         - [Read SuperDARN files](user/SDarnRead.md)
