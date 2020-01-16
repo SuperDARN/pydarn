@@ -9,7 +9,8 @@ markdown_extensions:
 nav:
     - Home: index.md
     - About: about.md
-    - Installation: user/install.md  
+    - Installation: user/install.md
+    - Citing: user/citing.md
     - Tutorials:
         - IO:
             - Read SuperDARN files: user/SDarnRead.md 
