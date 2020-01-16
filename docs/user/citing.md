@@ -44,7 +44,7 @@ Currently in development
 
 ## Acknowledgements
 
-pyDARN uses other python libraries and the SuperDARN communities help. 
+pyDARN uses other python libraries and the SuperDARN community's help. 
 
 ### Python Library References 
 
