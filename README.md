@@ -17,3 +17,33 @@ pyDarn is released! Included are the following features:
 ## Getting Started
 
 To install and use pyDARN please read the [documentation](https://pydarn.readthedocs.io/en/develop/)
+
+If wish to get access to SuperDARN data please contact the chair of Data Distribution Working Group, Kevin Krieger (email: superdarn@usask.ca). 
+Currently there is two servers that you can get data from: 
+  - SuperDARN Canada: https://github.com/SuperDARNCanada/globus
+  - BAS: https://www.bas.ac.uk/project/superdarn/#data
+ 
+If you use SuperDARN Data please make sure to **cite it appropriately**. 
+
+As a quick tutorial on using pydarn to read a compressed file: 
+``` python
+import bz2
+import pydarn 
+
+# read in compressed file
+fitacf_file = '20180220.C0.rkn.stream.fitacf.bz2'
+with bz2.open(fitacf_file) as fp: 
+      fitacf_stream = fp.read()
+
+reader = pydarn.SDarnRead(fitacf_stream, True)
+records = reader.read_fitacf()
+```
+
+## Getting involved
+
+pyDARN is always looking for testers and developers keen on learning python, github, and/or SuperDARN data visualization. 
+If you wish to help out in testing we have priority list based on **Milestone** releases that you can sort on [GitHub's Pull Request tab](https://github.com/SuperDARN/pydarn/pulls?q=is%3Aopen+is%3Apr+milestone%3A%22v1.0.0+%22)
+If you want to get involved in a specific project on pyDARN look at what we have to offer in [projects tab](https://github.com/SuperDARN/pydarn/projects), you can also filter [Pull Requests](https://github.com/SuperDARN/pydarn/pulls) and [Issues](https://github.com/SuperDARN/pydarn/issues) via the project you are interested in. 
+If you want to help out with developing some code or answer some issues and sort by milestones to get the [highest priority issues](https://github.com/SuperDARN/pydarn/issues?q=is%3Aopen+is%3Aissue+milestone%3A%22v1.1.0+%22). Filtering by labels may also help if you looking for a `question`, `enhancement`, `documentation`. 
+
+Please contact the main developer or group if you would like to become a member of the team!
