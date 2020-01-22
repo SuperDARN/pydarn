@@ -11,7 +11,7 @@ Types of files used by SuperDARN which are usually accessed in DMap format are:
 - GRID/GRD
 - MAP
 
-This tutorial will focus on reading in DMap structured files using Pydarn, including how to access common data fields.
+This tutorial will focus on reading in DMap structured files using Pydarn, including how to read compressed files and access common data fields.
 
 ## Reading with SDarnRead
 
@@ -31,8 +31,9 @@ fitacf_data = SDarn_read.read_fitacf()
 where the named variable `fitacf_data` is a python dictionary list containing all the data in the file. If you were reading a different kind of file, you would need to use the methods `read_iqdat`, `read_rawacf`, `read_grid` or `read_map` for their respective filetypes.
 
 ## Reading a compressed file
-Since it is undetermined what compression a user may use on a file, python comes with various compression libraries and pyDARN has the feature to read in the compression stream. 
-For example to read in a **bz2** compressed FitACF file (commonly used for SuperDARN data products) use the [bz2 library](https://docs.python.org/3/library/bz2.html):
+
+To read a compressed file like **bz2** (commonly used for SuperDARN data products), you will need to use [bz2 library](https://docs.python.org/3/library/bz2.html). 
+The `SDarnRead` class allows the user to provide the file data as a stream of data which is what the **bz2** returns when it reads a compressed file: 
 ```python
 import bz2
 import pydarn
@@ -61,7 +62,10 @@ map_data = SDarn_read.read_map()
 cpcps=[i['pot.drop'] for i in map_data]
 ```
 ## Other Examples
-Other examples of using pyDARN with file reading, is reading in multiple 2-hour files, sorting them and concatenating the data together: 
+
+Other examples of using pyDARN with file reading, is reading in multiple 2-hour files, sorting them, and concatenating the data together.
+For example you may do something like this, using the **glob** library:
+
 ```python
 import bz2 
 import pydarn 
