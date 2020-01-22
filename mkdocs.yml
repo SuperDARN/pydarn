@@ -11,6 +11,7 @@ nav:
     - About: about.md
     - Installation: user/install.md  
     - SuperDARN Data Access: user/superdarn_data.md 
+    - Citing: user/citing.md
     - Tutorials:
         - IO:
             - Read SuperDARN files: user/SDarnRead.md 
