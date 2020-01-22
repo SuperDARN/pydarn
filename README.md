@@ -5,8 +5,9 @@
 Python data visualization library for the Super Dual Auroral Radar Network (SuperDARN).
 
 ## Changelog
+
 ## Version 1.0 - Release!
- 
+
 pyDarn is released! Included are the following features:
 - Reading and writing DMap format IQDAT, RAWACF, FITACF, GRID/GRD and MAP files
 - Reading and writing HDF5 format files for Borealis radar data, as well as conversion to and from DMap format
@@ -14,16 +15,16 @@ pyDarn is released! Included are the following features:
 - Summary plots for RAWACF and FITACF files
 - Time series plots for RAWACF and FITACF files
 
+## Documentation
+
+pyDARN's documentation can found [here](https://pydarn.readthedocs.io/en/latest)
+
 ## Getting Started
 
-To install and use pyDARN please read the [documentation](https://pydarn.readthedocs.io/en/develop/)
+To install and use pyDARN please read the [installation guide](https://pydarn.readthedocs.io/en/latest/user/install/).
 
-If wish to get access to SuperDARN data please contact the chair of Data Distribution Working Group, Kevin Krieger (email: superdarn@usask.ca). 
-Currently there is two servers that you can get data from: 
-  - SuperDARN Canada: https://github.com/SuperDARNCanada/globus
-  - BAS: https://www.bas.ac.uk/project/superdarn/#data
- 
-If you use SuperDARN Data please make sure to **cite it appropriately**. 
+If wish to get access to SuperDARN data please read [SuperDARN data access documentation](https://pydarn.readthedocs.io/en/latest/user/superdarn_data/).
+Please make sure to also read the documentation on [**citing superDARN and pydarn**](https://pydarn.readthedocs.io/en/latest/user/citing/). 
 
 As a quick tutorial on using pydarn to read a compressed file: 
 ``` python
@@ -38,6 +39,8 @@ with bz2.open(fitacf_file) as fp:
 reader = pydarn.SDarnRead(fitacf_stream, True)
 records = reader.read_fitacf()
 ```
+
+For more information and tutorials on pyDARN please see the [tutorial section](https://pydarn.readthedocs.io/en/latest/)
 
 ## Getting involved
 
