@@ -41,7 +41,7 @@ Instructions can be found here [virtual environment](https://packaging.python.or
 
 !!! Note
     If you have multiple versions of python 3 on your machine, you can access a specific version by: `python<version number>`. 
-    For example if you want to install python 3.6 virtual environment use: `python3.6 -m pip install --user virtualenv`.
+    For example, if you want to install python 3.6 virtual environment: `python3.6 -m pip install --user virtualenv`.
 
 ### Anaconda Virtual Environment
 Instructions can be found here [conda environment](https://uoa-eresearch.github.io/eresearch-cookbook/recipe/2014/11/20/conda/) and installing [anaconda](https://docs.anaconda.com/anaconda/install/)
