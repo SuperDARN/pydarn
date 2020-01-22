@@ -20,7 +20,7 @@ A list of radars, institutions, and their PI's information can be found [here](h
 
 ```latex
 @Misc = [pydarn,
-author={Schmidt, M.T. and Detwiller, M. and
+author={Schmidt, M.T. and Detwiller, M.H. and
 Billet, D.D. and 
 Bland, E. C. and 
 Burrell, A. G. and 
