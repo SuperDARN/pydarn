@@ -14,6 +14,13 @@ For the general achievements of the SuperDARN Network, you can read these papers
 During your study, if using data from individual radars only, please contact the Principal Investigator (PI) of that radar about potential co-authorship. 
 A list of radars, institutions, and their PI's information can be found [here](http://vt.superdarn.org/tiki-index.php?page=Radar+Overview).  
 
+## DOI
+
+Currently SuperDARN in the process of placing DOI's on their data set. In the meantime, please use any local available services to DOI your data set. 
+Possible services: 
+  - [FRDR](https://www.frdr.ca/repo/): Canadian resource 
+  - [zenodo](https://help.zenodo.org/features/) 
+
 # Citing pyDARN
 
 ## Bibtex
