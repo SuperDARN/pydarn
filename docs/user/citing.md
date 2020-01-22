@@ -2,7 +2,7 @@ If pyDARN contributes to a project that leads to a scientific publication, pleas
 
 # How to cite SuperDARN
 
-Super Dual Auroral Radar Network (SuperDARN) is a network of 36 radars 20 institutions, to cite general SuperDARN you can use: 
+Super Dual Auroral Radar Network (SuperDARN) is a made up of 36 radars 20 institutions, to cite general SuperDARN you can use: 
 
 - Greenwald, R.A., Baker, K.B., Dudeney, J.R. et al. Space Sci Rev (1995) 71: 761. [doi:10.1007/BF00751350](https://doi.org/10.1007/BF00751350)
 
