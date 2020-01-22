@@ -10,6 +10,7 @@ nav:
     - Home: index.md
     - About: about.md
     - Installation: user/install.md  
+    - SuperDARN Data Access: user/superdarn_data.md 
     - Tutorials:
         - IO:
             - Read SuperDARN files: user/SDarnRead.md 
