@@ -44,9 +44,12 @@ For more information and tutorials on pyDARN please see the [tutorial section](h
 
 ## Getting involved
 
-pyDARN is always looking for testers and developers keen on learning python, github, and/or SuperDARN data visualization. 
-If you wish to help out in testing we have priority list based on **Milestone** releases that you can sort on [GitHub's Pull Request tab](https://github.com/SuperDARN/pydarn/pulls?q=is%3Aopen+is%3Apr+milestone%3A%22v1.0.0+%22)
-If you want to get involved in a specific project on pyDARN look at what we have to offer in [projects tab](https://github.com/SuperDARN/pydarn/projects), you can also filter [Pull Requests](https://github.com/SuperDARN/pydarn/pulls) and [Issues](https://github.com/SuperDARN/pydarn/issues) via the project you are interested in. 
-If you want to help out with developing some code or answer some issues and sort by milestones to get the [highest priority issues](https://github.com/SuperDARN/pydarn/issues?q=is%3Aopen+is%3Aissue+milestone%3A%22v1.1.0+%22). Filtering by labels may also help if you looking for a `question`, `enhancement`, `documentation`. 
+pyDARN is always looking for testers and developers keen on learning python, github, and/or SuperDARN data visualizations! 
+Here are some ways to get started: 
+
+  - **Testing Pull Request**: to determine which [pull requests](https://github.com/SuperDARN/pydarn/pulls) need to be tested right away filter them by their milestones.
+  - **Getting involved in projects**: if you are looking to help in specific area, look at pyDARN's [projects tab](https://github.com/SuperDARN/pydarn/projects). This will give you the information on wants needs to get done, what is in progress, and what needs to be reviewed. 
+  - **Answer questions**: if you want to try your hand at answer some pyDARN questions or adding to the discussion, look at pyDARN's [issues](https://github.com/SuperDARN/pydarn/issues) and filter by labels.
+  - **Become a developer**: if you want to practice those coding skill and at to the library, look at pyDARN [issues](https://github.com/SuperDARN/pydarn/issues) and filter by milestone's to see what needs to get done right away. 
 
 Please contact the main developer or group if you would like to become a member of the team!
