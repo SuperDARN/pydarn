@@ -8,11 +8,11 @@ import os
 
 from typing import NamedTuple
 from enum import Enum
-from datetime import datetime
+from datetime import datetime, timedelta
 from pydarn import radar_exceptions
 
 
-def read_hdw_file(abbrv, year: int = None):
+def read_hdw_file(abbrv, date: datetime = None):
     """
     Reads the hardware file for the associated abbreviation of the radar name.
 
@@ -20,9 +20,9 @@ def read_hdw_file(abbrv, year: int = None):
     ----------
         abbrv : str
             Radars 3 letter assigned abbreviation
-        year: int
-            The year of hardware information to obtain
-            default: current year
+        date: datetime
+            Datetime object of hardware information to obtain
+            default: current date
 
     Return
     ------
@@ -34,69 +34,76 @@ def read_hdw_file(abbrv, year: int = None):
     HardwareFileNotFoundError raised when there is no hardware file found for
     the given abbreviation
     """
-    if year is None:
-        today = datetime.now()
-        year = today.year
+    if date is None:
+        date = datetime.now()
 
     hdw_path = os.path.dirname(__file__)+'/hdw/'
     hdw_file = "{path}/hdw.dat.{radar}".format(path=hdw_path, radar=abbrv)
     try:
         with open(hdw_file, 'r') as reader:
             for line in reader.readlines():
-                if '#' not in line and len(line.split()) > 1 and\
-                   year < int(line.split()[1]):
+                if '#' not in line and len(line.split()) > 1:
                     hdw_data = line.split()
                     """
-                    Hardware data array positions definitions:
-                        0: station id - stid
-                        1: last year that the parameter string is valid.
-                        Note: currently updated line will have a year of 2999
-                        meaning it is currently still up to date.
-                        2: last second of year that parameter string is valid.
-                        3: Geographic latitude of radar site
-                        4: Geographic longitude of radar site
-                        Note: southern lat and long are negative
-                        5: Altitude of the radar site (meters)
-                        6: Scanning boresight - direction of the centre beam,
-                        measured in degrees relative to geographic north.
-                        Counter clockwise rotations are negative.
-                        7: Beam separation (Angular seperation in degrees)
-                        8: velocity sign - at radar level, backscattered signal with
-                        frequencies above the transmitted frequency are assigned positive
-                        Doppler velocities while backscattered signals with frequencies
-                        below the transmitted frequency are assigned negative Doppler
-                        velocity. Can be changed in receiver design.
-                        9: Analog Rx attenuator step (dB)
-                        10: Tdiff - propagation time from interferometer array antenna
-                        to phasing matrix input miunus propagation time from main array
-                        antenna through transmitter to phasing matrix input.
-                        (microseconds)
-                        11: phase sign - to account for any cable errors
-                        Interferometer offset - displacement of midpoint
-                        interferometer array from midpoint main array (meters).
-                        12: x direction - along the line of antennas with +X toward
-                        higher antenna number
-                        13: y direction - along the array normal with +Y in the
-                        direction of the array normal
-                        14: z direction - is the altitude difference, +Z up
-                        15: Analog Rx rise time (microseconds)
-                        16: Analog Attenuation stages - gain control of an analog
-                        receiver or front-end
-                        17: maximum range gates
-                        18: maximum number of beams
+                    Hardware files give the year and seconds from the beginning
+                    of that year. Thus to check the date if it corresponds we
+                    need to convert to a datetime object and then compare.
                     """
-                    return _HdwInfo(int(hdw_data[0]), abbrv,
-                                    _Coord(float(hdw_data[3]),
-                                           float(hdw_data[4]),
-                                           float(hdw_data[5])),
-                                    float(hdw_data[6]), float(hdw_data[7]),
-                                    float(hdw_data[8]), float(hdw_data[9]),
-                                    float(hdw_data[10]), float(hdw_data[11]),
-                                    _InterferometerOffset(float(hdw_data[12]),
-                                                          float(hdw_data[13]),
-                                                          float(hdw_data[14])),
-                                    float(hdw_data[15]), float(hdw_data[16]),
-                                    int(hdw_data[17]), int(hdw_data[18]))
+                    hdw_line_date = datetime(year=int(hdw_data[1]), month=1,
+                                             day=1) +\
+                            timedelta(seconds=int(hdw_data[2]))
+                    if hdw_line_date > date:
+                        """
+                        Hardware data array positions definitions:
+                            0: station id - stid
+                            1: last year that the parameter string is valid.
+                            Note: currently updated line will have a year of 2999
+                            meaning it is currently still up to date.
+                            2: last second of year that parameter string is valid.
+                            3: Geographic latitude of radar site
+                            4: Geographic longitude of radar site
+                            Note: southern lat and long are negative
+                            5: Altitude of the radar site (meters)
+                            6: Scanning boresight - direction of the centre beam,
+                            measured in degrees relative to geographic north.
+                            Counter clockwise rotations are negative.
+                            7: Beam separation (Angular seperation in degrees)
+                            8: velocity sign - at radar level, backscattered signal with
+                            frequencies above the transmitted frequency are assigned positive
+                            Doppler velocities while backscattered signals with frequencies
+                            below the transmitted frequency are assigned negative Doppler
+                            velocity. Can be changed in receiver design.
+                            9: Analog Rx attenuator step (dB)
+                            10: Tdiff - propagation time from interferometer array antenna
+                            to phasing matrix input miunus propagation time from main array
+                            antenna through transmitter to phasing matrix input.
+                            (microseconds)
+                            11: phase sign - to account for any cable errors
+                            Interferometer offset - displacement of midpoint
+                            interferometer array from midpoint main array (meters).
+                            12: x direction - along the line of antennas with +X toward
+                            higher antenna number
+                            13: y direction - along the array normal with +Y in the
+                            direction of the array normal
+                            14: z direction - is the altitude difference, +Z up
+                            15: Analog Rx rise time (microseconds)
+                            16: Analog Attenuation stages - gain control of an analog
+                            receiver or front-end
+                            17: maximum range gates
+                            18: maximum number of beams
+                        """
+                        return _HdwInfo(int(hdw_data[0]), abbrv,
+                                        _Coord(float(hdw_data[3]),
+                                               float(hdw_data[4]),
+                                               float(hdw_data[5])),
+                                        float(hdw_data[6]), float(hdw_data[7]),
+                                        float(hdw_data[8]), float(hdw_data[9]),
+                                        float(hdw_data[10]), float(hdw_data[11]),
+                                        _InterferometerOffset(float(hdw_data[12]),
+                                                              float(hdw_data[13]),
+                                                              float(hdw_data[14])),
+                                        float(hdw_data[15]), float(hdw_data[16]),
+                                        int(hdw_data[17]), int(hdw_data[18]))
     except FileNotFoundError:
         raise radar_exceptions.HardwareFileNotFoundError(abbrv)
 
@@ -194,7 +201,7 @@ class _HdwInfo(NamedTuple):
         displacement of midpoint
         interferometer array from midpoint main array in
         Cartesian coordinates(meters).
-        rx_rise : float
+    rx_rise : float
         Analog Rx rise time (microseconds)
     attenuation_stages : float
         Analog Attenuation stages - gain control of an analog
