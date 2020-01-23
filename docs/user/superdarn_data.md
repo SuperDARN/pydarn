@@ -2,7 +2,7 @@
 
 pyDARN does not provide an interface to downloading data. However, there are other means of getting access to the data. 
 
-Data Distribution Working Group manages the checking and distribution of data if you have any inquiries, please contact the head chair Kevin Krieger at superdarn@usask.ca
+The Data Distribution Working Group (DDWG) manages the checking and distribution of data if you have any inquiries, please contact the chair Kevin Krieger at superdarn@usask.ca
 
 ## Data Mirrors
 To get access to the data, there are two data servers setup: 
