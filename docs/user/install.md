@@ -29,7 +29,7 @@ pydarn's setup will download the following dependencies:
 - [h5py](https://www.h5py.org/)
 
 ## Virtual Environments
-It is recommended to install pyDARN in a virtual environment if you have multiple python/pip 3 versions on your computer or do not want to affect the main systems python libraries. 
+It is recommended to install pyDARN in a virtual environment if you have multiple python/pip 3 versions on your computer or, do not want to affect the main systems python libraries. 
 
 ### pip Virtual Environment
 Instructions can be found here [virtual environment](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/)
