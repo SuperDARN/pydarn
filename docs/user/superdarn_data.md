@@ -10,5 +10,3 @@ To get access to the data, there are two possible data servers: one utilizes Glo
   - [SuperDARN Canada](https://superdarn.ca/): uses [Globus](https://github.com/SuperDARNCanada/globus) to allow access to the SuperDARN data. 
   - [BAS](https://www.bas.ac.uk/project/superdarn/#about): information on data access can be found [here](https://www.bas.ac.uk/project/superdarn/#data)
 
-
-Please cite SuperDARN appropriately and/or pyDARN if used in any scientific publications. More information can be found here.
