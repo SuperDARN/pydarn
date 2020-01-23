@@ -48,14 +48,14 @@ class RTP():
                 "   - plot_summary()\n"
 
     @classmethod
-    def plot_range_time(cls, dmap_data: List[dict], parameter: str = 'p_l',
+    def plot_range_time(cls, dmap_data: List[dict], parameter: str = 'v',
                         beam_num: int = 0, channel: int = 'all', ax=None,
                         background: str = 'w', groundscatter: bool = False,
                         zmin: int = None, zmax: int = None,
                         start_time: datetime = None, end_time: datetime = None,
                         colorbar: plt.colorbar = None, ymax: int = None,
                         colorbar_label: str = '', norm=colors.Normalize,
-                        cmap: str = PyDARNColormaps.PYDARN, filter_settings: dict = {},
+                        cmap: str = PyDARNColormaps.PYDARN_VELOCITY, filter_settings: dict = {},
                         date_fmt: str = '%y/%m/%d\n %H:%M', **kwargs):
         """
         Plots a range-time parameter plot of the given
@@ -73,7 +73,7 @@ class RTP():
         dmap_data: List[dict]
         parameter: str
             key name indicating which parameter to plot.
-            Default: p_l (Signal to Noise)
+            Default: v (Velocity)
         beam_num : int
             The beam number of data to plot
             Default: 0
@@ -123,7 +123,7 @@ class RTP():
         cmap: str or matplotlib.cm
             matplotlib colour map
             https://matplotlib.org/tutorials/colors/colormaps.html
-            Default: PyDARNColormaps.PYDARN
+            Default: PyDARNColormaps.PYDARN_VELOCITY
             note: to reverse the color just add _r to the string name
         plot_filter: dict
             dictionary of the following keys for filtering data out:
