@@ -23,7 +23,7 @@ pyDARN's documentation can found [here](https://pydarn.readthedocs.io/en/latest)
 
 To install and use pyDARN please read the [installation guide](https://pydarn.readthedocs.io/en/latest/user/install/).
 
-If wish to get access to SuperDARN data please read [SuperDARN data access documentation](https://pydarn.readthedocs.io/en/latest/user/superdarn_data/).
+If wish to get access to SuperDARN data please read the [SuperDARN data access documentation](https://pydarn.readthedocs.io/en/latest/user/superdarn_data/).
 Please make sure to also read the documentation on [**citing superDARN and pydarn**](https://pydarn.readthedocs.io/en/latest/user/citing/). 
 
 As a quick tutorial on using pydarn to read a compressed file: 
