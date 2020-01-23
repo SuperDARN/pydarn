@@ -122,3 +122,12 @@ dmypy.json
 
 # mkdocs 
 site/
+
+# SuperDARN files
+*.rawacf
+*.fitacf 
+*.map
+*.dmap
+*.grid
+*.iqdat
+*.hdf5
