@@ -17,6 +17,7 @@ from .exceptions import dmap_exceptions
 from .exceptions import superdarn_exceptions
 from .exceptions import rtp_exceptions
 from .exceptions import borealis_exceptions
+from .exceptions import radar_exceptions
 from .exceptions.warning_formatting import standard_warning_format
 from .exceptions.warning_formatting import only_message_warning_format
 
@@ -29,6 +30,10 @@ from .io import superdarn_formats
 # importing utils
 from .utils.conversions import dict2dmap
 from .utils.conversions import dmap2dict
+from .utils.superdarn_radars import SuperDARNRadars
+from .utils.superdarn_cpid import SuperDARNCpids
+from .utils.superdarn_radars import Hemisphere
+from .utils.superdarn_radars import read_hdw_file
 
 # Importing pydarn dmap classes
 from .io.dmap import DmapRead
@@ -47,8 +52,6 @@ from .io.borealis.borealis_convert import BorealisConvert
 
 # import plotting
 from .plotting.color_maps import PyDARNColormaps
-from .plotting.superdarn_radars import SuperDARNRadars
-from .plotting.superdarn_cpid import SuperDARNCpids
 from .plotting.rtp import RTP
 
 """

@@ -6,3 +6,6 @@ include LICENSE
 
 # Include data files (metadata for pydarn package)
 include pydarn/logging_config.yaml
+
+# Include hardware files
+include pydarn/utils/hdw/*

@@ -12,14 +12,24 @@ Marina Schmidt
 
 from distutils.core import setup
 from setuptools import setup, find_packages
+from os import path
+from subprocess import check_call
+from setuptools.command.install import install
 
 # TODO: currently not implemented due to some challenges
 # with C API and memory leaks.
 #rstmodule = Extension('dmap',
 #                      sources= ['dmap.c'])
 
+class initialize_submodules(install):
+    def run(self):
+        if path.exists('.git'):
+            check_call(['git', 'submodule', 'update', '--init', '--recursive'])
+        install.run(self)
+
 # Setup information
 setup(
+    cmdclass = {'install': initialize_submodules},
     name="pydarn",
     version="0.1.dev",
     description="Data visualization library for SuperDARN data",
