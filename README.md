@@ -8,7 +8,7 @@ Python data visualization library for the Super Dual Auroral Radar Network (Supe
 
 ## Version 1.0 - Release!
 
-pyDarn is released! Included are the following features:
+pyDARN is released! Included are the following features:
 - Reading and writing DMap format IQDAT, RAWACF, FITACF, GRID/GRD and MAP files
 - Reading and writing HDF5 format files for Borealis radar data, as well as conversion to and from DMap format
 - Range-time parameter style plots for RAWACF and FITACF files
@@ -23,7 +23,7 @@ pyDARN's documentation can found [here](https://pydarn.readthedocs.io/en/latest)
 
 To install and use pyDARN please read the [installation guide](https://pydarn.readthedocs.io/en/latest/user/install/).
 
-If wish to get access to SuperDARN data please read [SuperDARN data access documentation](https://pydarn.readthedocs.io/en/latest/user/superdarn_data/).
+If wish to get access to SuperDARN data please read the [SuperDARN data access documentation](https://pydarn.readthedocs.io/en/latest/user/superdarn_data/).
 Please make sure to also read the documentation on [**citing superDARN and pydarn**](https://pydarn.readthedocs.io/en/latest/user/citing/). 
 
 As a quick tutorial on using pydarn to read a non-compressed file: 
@@ -60,9 +60,9 @@ For more information and tutorials on pyDARN please see the [tutorial section](h
 pyDARN is always looking for testers and developers keen on learning python, github, and/or SuperDARN data visualizations! 
 Here are some ways to get started: 
 
-  - **Testing Pull Request**: to determine which [pull requests](https://github.com/SuperDARN/pydarn/pulls) need to be tested right away, filter them by their milestones.
-  - **Getting involved in projects**: if you are looking to help in a specific area, look at pyDARN's [projects tab](https://github.com/SuperDARN/pydarn/projects). The project you are interested in will give you the information on what is needed to get done, in progress, and to be reviewed. 
-  - **Answer questions**: if you want to try your hand at answer some pyDARN questions or adding to the discussion, look at pyDARN's [issues](https://github.com/SuperDARN/pydarn/issues) and filter by labels.
-  - **Become a developer**: if you want to practice those coding skills and at to the library, look at pyDARN [issues](https://github.com/SuperDARN/pydarn/issues) and filter by milestone's to see what needs to get done right away. 
+  - **Testing Pull Request**: to determine which [pull requests](https://github.com/SuperDARN/pydarn/pulls) need to be tested right away, filter them by their milestones (v1.1.0 is currently highest priority).
+  - **Getting involved in projects**: if you are looking to help in a specific area, look at pyDARN's [projects tab](https://github.com/SuperDARN/pydarn/projects). The project you are interested in will give you information on what is needed to reach completion. This includes things currently in progress, and those awaiting reviews. 
+  - **Answer questions**: if you want to try your hand at answering some pyDARN questions, or adding to the discussion, look at pyDARN's [issues](https://github.com/SuperDARN/pydarn/issues) and filter by labels.
+  - **Become a developer**: if you want to practice those coding skills and add to the library, look at pyDARN [issues](https://github.com/SuperDARN/pydarn/issues) and filter by milestone's to see what needs to get done right away. 
 
-Please contact the leading developer or group if you would like to become a member of the team!
+Please contact the leading developer, Marina Schmidt (marina.t.schmidt@gmail.com), if you would like to become a member of the team!
