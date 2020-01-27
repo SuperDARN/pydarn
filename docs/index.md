@@ -21,6 +21,7 @@ If you have any questions or concerns please submit an **Issue** on the SuperDAR
         - [Read/Write Borealis files](user/BorealisIO.md)
     - Convert
       - [Borealis to SuperDARN](user/Borealis2SuperDARN.md)
+    - [Radar and Hardware Information](user/hardware.md)
     - Plotting
         - [Range-Time plots](user/range_time.md)
         - [Time-Series plots](user/time_series.md)
