@@ -26,7 +26,19 @@ To install and use pyDARN please read the [installation guide](https://pydarn.re
 If wish to get access to SuperDARN data please read [SuperDARN data access documentation](https://pydarn.readthedocs.io/en/latest/user/superdarn_data/).
 Please make sure to also read the documentation on [**citing superDARN and pydarn**](https://pydarn.readthedocs.io/en/latest/user/citing/). 
 
-As a quick tutorial on using pydarn to read a compressed file: 
+As a quick tutorial on using pydarn to read a non-compressed file: 
+```python
+import pydarn 
+
+# read a non-compressed file
+fitacf_file = '20180220.C0.rkn.stream.fitacf'
+
+# pyDARN functions to read a fitacf file
+reader = pydarn.SDarnRead(fitacf_file)
+records = reader.read_fitacf()
+```
+
+or to read a compressed file:
 ``` python
 import bz2
 import pydarn 
@@ -36,6 +48,7 @@ fitacf_file = '20180220.C0.rkn.stream.fitacf.bz2'
 with bz2.open(fitacf_file) as fp: 
       fitacf_stream = fp.read()
 
+# pyDARN functions to read a fitacf file stream
 reader = pydarn.SDarnRead(fitacf_stream, True)
 records = reader.read_fitacf()
 ```
