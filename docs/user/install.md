@@ -21,7 +21,7 @@ You can check your python version with
 pydarn's setup will download the following dependencies: 
 
 - [NumPy](https://numpy.org/)
-- [matplotlib]()https://matplotlib.org/
+- [matplotlib](https://matplotlib.org/)
 - [deepdish](https://deepdish.readthedocs.io/en/latest/api_io.html)
 - [pathlib2](https://docs.python.org/dev/library/pathlib.html)
 - [PyYAML](https://pyyaml.org/wiki/PyYAMLDocumentation)
@@ -29,7 +29,9 @@ pydarn's setup will download the following dependencies:
 - [h5py](https://www.h5py.org/)
 
 ## Virtual Environments
-It is recommended to install pyDARN in a virtual environment if you have multiple python/pip 3 versions on your computer or do not want to affect the main systems python libraries. 
+It is recommended to install pyDARN in one of the suggested virtual environments if you have multiple python/pip 3 versions on your computer or, do not want to affect the main systems python libraries. 
+
+Please pick on of the following virtual environments. 
 
 ### pip Virtual Environment
 Instructions can be found here [virtual environment](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/)
