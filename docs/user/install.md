@@ -21,7 +21,7 @@ You can check your python version with
 pydarn's setup will download the following dependencies: 
 
 - [NumPy](https://numpy.org/)
-- [matplotlib]()https://matplotlib.org/
+- [matplotlib](https://matplotlib.org/)
 - [deepdish](https://deepdish.readthedocs.io/en/latest/api_io.html)
 - [pathlib2](https://docs.python.org/dev/library/pathlib.html)
 - [PyYAML](https://pyyaml.org/wiki/PyYAMLDocumentation)
@@ -29,15 +29,21 @@ pydarn's setup will download the following dependencies:
 - [h5py](https://www.h5py.org/)
 
 ## Virtual Environments
-It is recommended to install pyDARN in a virtual environment to ensure the installation process does not affect the system libraries.
+It is recommended to install pyDARN in one of the suggested virtual environments if you have multiple python/pip 3 versions on your computer or, do not want to affect the main systems python libraries. 
+
+Please pick on of the following virtual environments. 
 
 ### pip Virtual Environment
-Instructions can be found here [virtual environment](https://packaging.python.org/guides/installing-using-pip-and-virtualenv/)
+Instructions can be found here [virtual environment](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/)
 
 1. `$ python3 -m pip install --user virtualenv`  
 2. `$ python3 -m virtualenv <environment name>`  
 * `$ source <environment name>/bin/activate`
 * `$ pip install git+https://github.com/superdarn/pydarn@develop`
+
+!!! Note
+    If you have multiple versions of python 3 on your machine, you can access a specific version by: `python<version number>`. 
+    For example, if you want to install python 3.6 virtual environment: `python3.6 -m pip install --user virtualenv`.
 
 ### Anaconda Virtual Environment
 Instructions can be found here [conda environment](https://uoa-eresearch.github.io/eresearch-cookbook/recipe/2014/11/20/conda/) and installing [anaconda](https://docs.anaconda.com/anaconda/install/)
