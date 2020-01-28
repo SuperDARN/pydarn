@@ -17,7 +17,8 @@ A list of radars, institutions, and their PI's information can be found [here](h
 ## DOI
 
 Currently SuperDARN in the process of placing DOI's on their data set. In the meantime, please use any local available services to DOI your data set. 
-Possible services: 
+Possible services:
+
   - [FRDR](https://www.frdr.ca/repo/): Canadian resource 
   - [zenodo](https://help.zenodo.org/features/) 
 
