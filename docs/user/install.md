@@ -25,7 +25,6 @@ pyDARN's setup will download the following dependencies:
 - [deepdish](https://deepdish.readthedocs.io/en/latest/api_io.html)
 - [pathlib2](https://docs.python.org/dev/library/pathlib.html)
 - [PyYAML](https://pyyaml.org/wiki/PyYAMLDocumentation)
-- [Cython](https://cython.org/)
 - [h5py](https://www.h5py.org/)
 
 ## Virtual Environments
