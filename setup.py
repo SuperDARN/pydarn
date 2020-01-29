@@ -3,7 +3,7 @@ Copyright 2018 SuperDARN
 
 setup.py
 2018-11-05
-To setup pydarn as a third party library. Include installing need libraries for
+To setup pyDARN as a third party library. Include installing need libraries for
 running the files.
 
 author:
@@ -50,4 +50,3 @@ setup(
     # commented out due to not implemented yet.
     #ext_modules = [rstmodule]
 )
-
