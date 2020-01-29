@@ -3,7 +3,7 @@ Copyright 2018 SuperDARN
 
 __init__.py
 2018-11-05
-Init file to setup the logging configuration and linking pydarn's
+Init file to setup the logging configuration and linking pyDARN's
 module, classes, and functions.
 """
 # KEEP THIS FILE AS MINIMAL AS POSSIBLE!
