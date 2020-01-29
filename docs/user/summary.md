@@ -38,9 +38,9 @@ Note that ground scatter is displayed as default in the velocity panel. To disab
 ### Additional options
 In the example above, we can see the velocities are a little too high for the default colour scale. To change that, we need to create a python dictionary that redefines the boundaries:
 ```python
-boundaries={'v':[-500,500]}
+boundaries={'v': [-500,500]}
 
-pydarn.RTP.plot_summary(fitacf_data,beam_num=2, boundary=boundaries)
+pydarn.RTP.plot_summary(fitacf_data,beam_num=2,boundary=boundaries)
 plt.show()
 
 ```
