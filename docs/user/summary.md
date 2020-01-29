@@ -16,7 +16,7 @@ Summary plots in SuperDARN are a collection of set parameter plots from a FitACF
     If the radar doesn't have elevation data then it is not plotted.
 
 ## Default Summary
-With Pydarn and matplotlib imported, read in a FitACF with SDarn_read, then call plot_summary with a chosen beam number. Here, we've loaded in some data from Clyde River and chosen beam 2:
+With PyDARN and matplotlib imported, read in a FITACF with SDarn_read, then call plot_summary with a chosen beam number. Here, we've loaded in some data from Clyde River and chosen beam 2:
 ```python
 import pydarn
 import matplotlib.pyplot as plt
@@ -51,4 +51,3 @@ which gives:
 You can change the boundaries on all of the panels by adding more keys to the dictionary. The keys must be named correctly to work, using the strings at the top of this tutorial.
 
 For more options on how to modify plot_summary, take a look at the method in `rtp.py`.
-

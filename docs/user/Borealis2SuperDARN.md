@@ -40,7 +40,7 @@ converter = pydarn.BorealisConvert(my_borealis_file, "rawacf",
 Similarly to read and write functions, if the structure is not provided, array
 structure is attempted first.
 
-Other information can be gathered from the converter if desired, for examples:
+Other information can be gathered from the converter if desired, for example:
 
 ```python
 borealis_array_data = converter.arrays

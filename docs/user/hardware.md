@@ -3,7 +3,7 @@ Author(s): Marina Schmidt -->
 # Accessing Hardware File Information 
 
 SuperDARN Radar hardware information is stored in hardware files located [here](https://github.com/vtsuperdarn/hdw.dat). 
-pyDarn pulls down the hardware files from the `master` branch on the [repository](https://github.com/vtsuperdarn/hdw.dat) to obtain geographical and hardware information for plotting functionality. 
+pyDARN pulls down the hardware files from the `master` branch on the [repository](https://github.com/vtsuperdarn/hdw.dat) to obtain geographical and hardware information for plotting functionality. 
 
 Users can also read and access these hardware files information by using the function `read_hdw_file`.
 ``` python 
@@ -57,7 +57,7 @@ Other information a user can access from the `_HdwInfo` object is:
 
 # Accessing Radar and Hardware Information
 
-Another way to access this information and the radar's full name, institution's name and hemisphere it is in from the station id number (`stid` field in most files) by using `SuperDARNRadars` class. 
+Another way to access the hardware information, the radar's full name, the institution's name and the  hemisphere that the radar is located in is by using the `SuperDARNRadars` class with the station id number (`stid` field in most files). 
 This class contains a dictionary of all currently accepted SuperDARN radars (including decommissioned):
 ``` python
 import pydarn
@@ -73,4 +73,4 @@ _Radar(name='Prince George', institution='University of Saskatchewan', hemispher
 ```
 
 !!! Warning
-    The hardware information obtained via this class contains most recent updates to the hardware file as it does not take a specific date in. To get specific hardware information, please use `read_hdw_file`.
+    The hardware information obtained via this class contains most recent updates to the hardware file as it does not take a specific date as an input. To get specific hardware information, please use `read_hdw_file`.

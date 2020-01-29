@@ -16,7 +16,8 @@ plt.show()
 ```    
 If no scalar parameter is specified (using `parameter=string`), or beam (using `beam_num=int`), then the default is a `tfreq` time series from beam 0. 
 
-In a similar way to RTP plots, you also have access to numerous plotting options:
+In a similar way to RTP, you also have access to numerous plotting options:
+
 
 | Parameter                    | Action                                                      |
 |------------------------------|-------------------------------------------------------------|
@@ -24,9 +25,11 @@ In a similar way to RTP plots, you also have access to numerous plotting options
 | end_time=(datetime object)   | Control the end time of the plot                            |
 | date_fmt=(string)            | How the x-tick labels look. Default is ('%y/%m/%d\n %H:%M') |
 | channel=(int or string)      | Choose which channel to plot. Default is 'all'.             |
-| cp_name=(bool)               | Print the name of the cp ID when plotting cp ID timeseries' |
+| cp_name=(bool)               | Print the name of the cpid when plotting cpid timeseries' |
 
-For example, checking out the cp ID's for a 24hour Clyde FITACF file:
+
+For example, checking out the cpid's for a 24hour Clyde FITACF file:
+
 ```python
 file = "20180101.C0.cly.fitacf"
 SDarn_read = pydarn.SDarnRead(file)
@@ -37,4 +40,3 @@ pydarn.RTP.plot_time_series(fitacf_data, parameter='cp', date_fmt=('%H:%M'), bea
 plt.show()
 ```    
 ![](../imgs/cpid_eg.png)
-
