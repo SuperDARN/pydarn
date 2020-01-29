@@ -1,7 +1,7 @@
 # Copyright 2018 SuperDARN Canada
 # Author(s): Marina Schmidt
 """
-This Module contains dmap data structure for pydarn.
+This Module contains dmap data structure for pyDARN.
 
 Classes
 -------
