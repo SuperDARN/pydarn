@@ -64,7 +64,7 @@ cpcps=[i['pot.drop'] for i in map_data]
 ## Other Examples
 
 Other examples of using pyDARN with file reading is for reading in multiple 2-hour files, sorting them, and concatenating the data together.
-For example you may do something like this, using the **glob** library:
+For example, you may do something like this, using the **glob** library:
 
 ```python
 import bz2 
@@ -90,4 +90,3 @@ print("Reading complete...")
 ## DMapRead
 
 In pyDARN, there also exists a class called `DMapRead`, which you can use in place of SDarnRead to read in any generic DMap structured file. However, Pydarn won't test its integrety as it doesn't know what file it's supposed to be. If you're reading a SuperDARN file from one of the official data mirrors, then it is best to use SDarnRead in general.
-

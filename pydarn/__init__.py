@@ -56,7 +56,6 @@ from .plotting.rtp import RTP
 
 """
 pyDARN uses yaml for logging configuration because its legibility makes it the preferred configuration file format.
-preferred configuration file format because of its readability.
 
 """
 # real path is needed because path imports from where it is ran and the
