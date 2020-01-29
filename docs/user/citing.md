@@ -62,9 +62,6 @@ John D. Hunter. Matplotlib: A 2D Graphics Environment, Computing in Science & En
 #### Numpy 
 Stéfan van der Walt, S. Chris Colbert and Gaël Varoquaux. The NumPy Array: A Structure for Efficient Numerical Computation, Computing in Science & Engineering, 13, 22-30 (2011), [DOI:10.1109/MCSE.2011.37](https://ieeexplore.ieee.org/document/5725236)
 
-#### Cython
-Stefan Behnel, Robert Bradshaw, Craig Citro, Lisandro Dalcin, Dag Sverre Seljebotn and Kurt Smith. Cython: The Best of Both Worlds, Computing in Science and Engineering, 13, 31-39 (2011), [DOI:10.1109/MCSE.2010.118](https://ieeexplore.ieee.org/document/5582062)
-
 #### H5PY
 
 A. Collette, Python and HDF5, O'Reilly (2014) (http://shop.oreilly.com/product/0636920030249.do)
