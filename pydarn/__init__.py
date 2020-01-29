@@ -55,7 +55,7 @@ from .plotting.color_maps import PyDARNColormaps
 from .plotting.rtp import RTP
 
 """
-Pydarn uses yaml for logging configuration because it is the
+pyDARN uses yaml for logging configuration because its legibility makes it the preferred configuration file format.
 preferred configuration file format because of its readability.
 
 """
