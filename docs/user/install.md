@@ -31,7 +31,7 @@ pydarn's setup will download the following dependencies:
 ## Virtual Environments
 It is recommended to install pyDARN in one of the suggested virtual environments if you have multiple python/pip 3 version on your computer, or do not want to affect the main systems python libraries. 
 
-Please pick on of the following virtual environments. 
+The following virtual environments have been tested by pyDARN developers:"
 
 ### pip Virtual Environment
 Instructions can be found here [virtual environment](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/)
