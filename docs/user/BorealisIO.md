@@ -22,7 +22,7 @@ and writing integration-specific parameters in arrays where the first
 dimension is the record index.
 
 The restructuring process is fully built into the IO so that if you would like to see
-the record-by-record data, you can simply return the records attribute of the
+the record-by-record data, you can simply return the record's attribute of the
 IO class for any Borealis file. Similarly, if you would like to see the data in
 the arrays format, return the arrays attribute. This works regardless of how
 the original file was structured.
@@ -41,7 +41,7 @@ Decimated and filtered data from individual antennas, i and q samples.
 
 
 - `'bfiq'`
-Beamformed i and q samples. Typically two array datasets are included,
+Beamformed i and q samples. Typically two array data sets are included,
 for main array and interferometer array.
 
 
