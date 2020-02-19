@@ -1,152 +1,68 @@
-# pydarn
+![pydarn](docs/imgs/pydarn_logo.png)
+
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) [![Python 3.6](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/downloads/release/python-360/) [![GitHub version](https://badge.fury.io/gh/boennemann%2Fbadges.svg)](http://badge.fury.io/gh/boennemann%2Fbadges)
 
-SuperDARN data visualization library. 
+Python data visualization library for the Super Dual Auroral Radar Network (SuperDARN).
 
-## Getting Started 
+## Changelog
 
-The following instructions will allow you to install and give some examples on how to use pydarn. 
+## Version 1.0 - Release!
 
-### Prerequisites
+pyDARN is released! Included are the following features:
+- Reading and writing DMap format IQDAT, RAWACF, FITACF, GRID/GRD and MAP files
+- Reading and writing HDF5 format files for Borealis radar data, as well as conversion to and from DMap format
+- Range-time parameter style plots for RAWACF and FITACF files
+- Summary plots for RAWACF and FITACF files
+- Time series plots for RAWACF and FITACF files
 
-**python 3.6+**
+## Documentation
 
-| Ubuntu      | OpenSuse       | Fedora        |
-| ----------- | -------------- | ------------- |
-| libyaml-dev | python3-PyYAML | libyaml-devel |
+pyDARN's documentation can found [here](https://pydarn.readthedocs.io/en/latest)
 
-You can check your python version with  
-`$ python --version` or 
-`$ python3 --version`
-### Installing 
+## Getting Started
 
-1. Clone git repository:   
-   `git clone https://github.com/SuperDARN/pydarn.git`
+To install and use pyDARN please read the [installation guide](https://pydarn.readthedocs.io/en/latest/user/install/).
 
-2. Installing pydarn  
-    1. **Recommended**: Installing a [virtual environment](https://packaging.python.org/guides/installing-using-pip-and-virtualenv/), this option allows the library to install needed version of libraries without affecting system libraries.  
-        * First install the environment:  
-      `$ python3 -m pip install --user virtualenv`  
-      `$ python3 -m virtualenv <environment name>`  
-		  `$ source <environment name>/bin/activate`
-	* Install more dependencies in the virtualenv
-		  `$ pip3 install deepdish`
-		  `$ pip3 install pathlib2`
-        * Navigate to where you cloned pydarn:  
-		  `$ python3 setup.py install`
-    2. Install in the system (root privileges required):  
-		   `$ sudo python3 setup.py install`
+If wish to get access to SuperDARN data please read the [SuperDARN data access documentation](https://pydarn.readthedocs.io/en/latest/user/superdarn_data/).
+Please make sure to also read the documentation on [**citing superDARN and pydarn**](https://pydarn.readthedocs.io/en/latest/user/citing/). 
 
-### Examples
-
-#### Reading DMAP file 
-The following example shows how to read in a FITACF file, one of the SuperDARN's DMAP file types. 
-
+As a quick tutorial on using pydarn to read a non-compressed file: 
 ```python
-import pydarn
-dmap_file = "./20180410.C0.sas.fitacf"
-dmap_reader = pydarn.DarnRead(dmap_file)
-dmap_data = dmap_reader.read_fitacf() 
+import pydarn 
 
-# dmap_data[record number][paramter name].value
-print(dmap_data[0]['bmnum'].value) 
+# read a non-compressed file
+fitacf_file = '20180220.C0.rkn.stream.fitacf'
+
+# pyDARN functions to read a fitacf file
+reader = pydarn.SDarnRead(fitacf_file)
+records = reader.read_fitacf()
 ```
 
-#### Generate Range-time Parameter Plot
+or to read a compressed file:
+``` python
+import bz2
+import pydarn 
 
-##### Using matplotlib pyplot
+# read in compressed file
+fitacf_file = '20180220.C0.rkn.stream.fitacf.bz2'
+with bz2.open(fitacf_file) as fp: 
+      fitacf_stream = fp.read()
 
-```python
-import pydarn
-import matplotlib.pyplot as plt
-
-fitacf_file = "./20181209.C0.sas.fitacf"
-darn_read = pydarn.DarnRead(fitacf_file)
-fitacf_data = darn_read.read_fitacf()
-
-plt.subplot(4, 1, 1)
-plt.title("Summary style plot")
-pydarn.RTP.plot_range_time(fitacf_data, parameter='elevation',
-                           beam_num=7, date_fmt='')
-plt.subplot(4, 1, 2)
-pydarn.RTP.plot_range_time(fitacf_data, parameter='power',
-                           beam_num=7, date_fmt='')
-
-plt.subplot(4, 1, 3)
-pydarn.RTP.plot_range_time(fitacf_data, parameter='velocity',
-                           beam_num=7, color_map='jet_r',
-                           date_fmt='')
-
-plt.subplot(4, 1, 4)
-pydarn.RTP.plot_range_time(fitacf_data,
-                           parameter='spectral width',
-                           beam_num=7)
-
-plt.show()
+# pyDARN functions to read a fitacf file stream
+reader = pydarn.SDarnRead(fitacf_stream, True)
+records = reader.read_fitacf()
 ```
-![pyDARN rang-time plot us](./pydarn_range_time_plots.png)
 
-##### Using matplotlib axes object
+For more information and tutorials on pyDARN please see the [tutorial section](https://pydarn.readthedocs.io/en/latest/)
 
-```python
-import pydarn
-import matplotlib.pyplot as plt
+## Getting involved
 
-fitacf_file = "./20181209.C0.sas.fitacf"
-darn_read = pydarn.DarnRead(fitacf_file)
-fitacf_data = darn_read.read_fitacf()
+pyDARN is always looking for testers and developers keen on learning python, github, and/or SuperDARN data visualizations! 
+Here are some ways to get started: 
 
-fig, (ax1, ax2) = plt.subplots(2, 1)
-pydarn.RTP.plot_range_time(fitacf_data, parameter='elevation',
-                           beam_num=7, ax=ax1, channel=1,
-                           date_fmt='')
-ax1.set_ylabel("ch. 1")
+  - **Testing Pull Request**: to determine which [pull requests](https://github.com/SuperDARN/pydarn/pulls) need to be tested right away, filter them by their milestones (v1.1.0 is currently highest priority).
+  - **Getting involved in projects**: if you are looking to help in a specific area, look at pyDARN's [projects tab](https://github.com/SuperDARN/pydarn/projects). The project you are interested in will give you information on what is needed to reach completion. This includes things currently in progress, and those awaiting reviews. 
+  - **Answer questions**: if you want to try your hand at answering some pyDARN questions, or adding to the discussion, look at pyDARN's [issues](https://github.com/SuperDARN/pydarn/issues) and filter by labels.
+  - **Become a developer**: if you want to practice those coding skills and add to the library, look at pyDARN [issues](https://github.com/SuperDARN/pydarn/issues) and filter by milestone's to see what needs to get done right away. 
 
-pydarn.RTP.plot_range_time(fitacf_data, parameter='elevation',
-                           beam_num=7, ax=ax2,
-                           channel=2)
-ax2.set_xlabel("Date (UTC)")
-ax2.set_ylabel("ch. 2")
-
-fig.suptitle("RTP subplots using Axes Object")
-plt.show()
-```
-![pyDARN rang-time plot using Axes object](./pydarn_axes_range_time_plot.png)
-
-#### Turn on debugging 
-
-```python
-import pydarn
-import logging
-
-pydarn_logger = logging.getLogger('pydarn').setLevel(logging.DEBUG)
-
-dmap_file = "./20180410.C0.sas.fitacf"
-damp_reader = pydarn.DmapRead(dmap_file)
-dmap_data = dmap_reader.read_records() 
-
-print(dmap_data[0]['origin.time'].value) 
-```
-Run the code and two log files will be produced:
-  * pydarn.log - DEBUG level info 
-  * pydarn_error.log - ERROR level info
-
-### Release History 
-
-  * 0.0.1 
-    * Add: dmap DmapRead DmapWrite implemented.
-    * Add: superdarn DarnRead DarnWrite implemented
-=======
-# pydarn
-
-Data Visuallization python library for SuperDARN data. 
-
-> Warning: pyDARN currently has not been official released; however, you can use the `develop` branch to use and help test pyDARN
-
-
-Steps to Installing: 
-
-1. `git clone https://github.com/superdarn/pydarn`
-2. `cd pydarn`
-3. `git checkout develop`
-4. Change to `develop` branch on GitHub page and follow README steps. 
+Please contact the leading developer, Marina Schmidt (marina.t.schmidt@gmail.com), if you would like to become a member of the team!

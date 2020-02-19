@@ -1,10 +1,10 @@
-# Copyright (C) 2018  SuperDARN
+# Copyright (C) 2019 SuperDARN
 # Author: Marina Schmidt
 """
 This test suite is to test the implementation for the following classes:
-    DarnRead
+    SDarnRead
     DarnUtilities
-    DarnWrite
+    SDarnWrite
 Support for the following SuperDARN file types:
     iqdat
     rawacf
@@ -13,20 +13,21 @@ Support for the following SuperDARN file types:
     map
 """
 
-import unittest
-import numpy as np
-import logging
-import collections
 import bz2
-import os
 import copy
+import collections
+import logging
+import numpy as np
+import os
+import unittest
 
 import pydarn
-import rawacf_data_sets
-import fitacf_data_sets
-import iqdat_data_sets
+
 import map_data_sets
 import grid_data_sets
+import fitacf_data_sets
+import iqdat_data_sets
+import rawacf_data_sets
 
 pydarn_logger = logging.getLogger('pydarn')
 
@@ -42,46 +43,46 @@ corrupt_file1 = "../testfiles/20070117.1001.00.han.rawacf"
 corrupt_file2 = "../testfiles/20090320.1601.00.pgr.rawacf"
 
 
-class TestDarnRead(unittest.TestCase):
+class TestSDarnRead(unittest.TestCase):
     """
-    Testing class for DarnRead class
+    Testing class for SDarnRead class
     """
     def setUp(self):
         pass
 
     """
-    Testing DarnRead constructor
+    Testing SDarnRead constructor
     """
     def test_incorrect_path(self):
         """
-        Testing DarnRead constructor with an nonexistent folder.
+        Testing SDarnRead constructor with an nonexistent folder.
 
         Expected behaviour: raise FileNotFoundError
         """
-        self.assertRaises(FileNotFoundError, pydarn.DarnRead,
+        self.assertRaises(FileNotFoundError, pydarn.SDarnRead,
                           './dog/somefile.rawacf')
 
     def test_incorrect_file(self):
         """
-        Tests if DarnRead constructor with an non-existent file
+        Tests if SDarnRead constructor with an non-existent file
 
         Expected behaviour: raises FileNotFoundError
         """
-        self.assertRaises(FileNotFoundError, pydarn.DarnRead,
+        self.assertRaises(FileNotFoundError, pydarn.SDarnRead,
                           '../testfiles/somefile.rawacf')
 
     def test_empty_file(self):
         """
-        Tests if DarnRead constructor with an empty file
+        Tests if SDarnRead constructor with an empty file
 
         Expected behaviour: raise EmptyFileError
         """
         self.assertRaises(pydarn.dmap_exceptions.EmptyFileError,
-                          pydarn.DarnRead, '../testfiles/empty.rawacf')
+                          pydarn.SDarnRead, '../testfiles/empty.rawacf')
 
     def test_open_rawacf(self):
         """
-        Tests DarnRead constructor on opening a rawacf.
+        Tests SDarnRead constructor on opening a rawacf.
         It should be able to open the file, read it and convert to bytearray.
 
         Checks:
@@ -89,13 +90,13 @@ class TestDarnRead(unittest.TestCase):
             - bytearray is not empty
         """
         file_path = rawacf_file
-        dm = pydarn.DarnRead(file_path)
+        dm = pydarn.SDarnRead(file_path)
         self.assertIsInstance(dm.dmap_bytearr, bytearray)
         self.assertGreater(dm.dmap_end_bytes, 0)
 
     def test_open_fitacf(self):
         """
-        Tests DarnRead constructor on opening a fitacf.
+        Tests SDarnRead constructor on opening a fitacf.
         It should be able to open the file, read it and convert to bytearray.
 
         Checks:
@@ -103,13 +104,13 @@ class TestDarnRead(unittest.TestCase):
             - bytearray is not empty
         """
         file_path = fitacf_file
-        dm = pydarn.DarnRead(file_path)
+        dm = pydarn.SDarnRead(file_path)
         self.assertIsInstance(dm.dmap_bytearr, bytearray)
         self.assertGreater(dm.dmap_end_bytes, 0)
 
     def test_open_map(self):
         """
-        Tests DarnRead constructor on opening a map.
+        Tests SDarnRead constructor on opening a map.
         It should be able to open the file, read it and convert to bytearray.
 
         Checks:
@@ -117,13 +118,13 @@ class TestDarnRead(unittest.TestCase):
             - bytearray is not empty
         """
         file_path = map_file
-        dm = pydarn.DarnRead(file_path)
+        dm = pydarn.SDarnRead(file_path)
         self.assertIsInstance(dm.dmap_bytearr, bytearray)
         self.assertGreater(dm.dmap_end_bytes, 0)
 
     def test_open_grid(self):
         """
-        Tests DarnRead constructor on opening a grid.
+        Tests SDarnRead constructor on opening a grid.
         It should be able to open the file, read it and convert to bytearray.
 
         Checks:
@@ -131,13 +132,13 @@ class TestDarnRead(unittest.TestCase):
             - bytearray is not empty
         """
         file_path = grid_file
-        dm = pydarn.DarnRead(file_path)
+        dm = pydarn.SDarnRead(file_path)
         self.assertIsInstance(dm.dmap_bytearr, bytearray)
         self.assertGreater(dm.dmap_end_bytes, 0)
 
     def test_open_iqdat(self):
         """
-        Tests DarnRead constructor on opening a iqdat.
+        Tests SDarnRead constructor on opening a iqdat.
         It should be able to open the file, read it and convert to bytearray.
 
         Checks:
@@ -145,7 +146,7 @@ class TestDarnRead(unittest.TestCase):
             - bytearray is not empty
         """
         file_path = iqdat_file
-        dm = pydarn.DarnRead(file_path)
+        dm = pydarn.SDarnRead(file_path)
         self.assertIsInstance(dm.dmap_bytearr, bytearray)
         self.assertGreater(dm.dmap_end_bytes, 0)
 
@@ -159,8 +160,9 @@ class TestDarnRead(unittest.TestCase):
             - returns expected values
         """
         file_path = iqdat_file
-        dm = pydarn.DarnRead(file_path)
-        dm_records = dm.read_iqdat()
+        dm = pydarn.SDarnRead(file_path)
+        dm_data = dm.read_iqdat()
+        dm_records = dm.get_dmap_records
         self.assertIsInstance(dm_records, collections.deque)
         self.assertIsInstance(dm_records[0], collections.OrderedDict)
         self.assertIsInstance(dm_records[0]['rxrise'], pydarn.DmapScalar)
@@ -179,8 +181,9 @@ class TestDarnRead(unittest.TestCase):
             - returns expected values
         """
         file_path = rawacf_file
-        dm = pydarn.DarnRead(file_path)
+        dm = pydarn.SDarnRead(file_path)
         dm_records = dm.read_rawacf()
+        dm_records = dm.get_dmap_records
         self.assertIsInstance(dm_records, collections.deque)
         self.assertIsInstance(dm_records[0], collections.OrderedDict)
         self.assertIsInstance(dm_records[4]['channel'], pydarn.DmapScalar)
@@ -198,8 +201,9 @@ class TestDarnRead(unittest.TestCase):
             - returns expected values
         """
         file_path = fitacf_file
-        dm = pydarn.DarnRead(file_path)
+        dm = pydarn.SDarnRead(file_path)
         dm_records = dm.read_fitacf()
+        dm_records = dm.get_dmap_records
         self.assertIsInstance(dm_records, collections.deque)
         self.assertIsInstance(dm_records[0], collections.OrderedDict)
         self.assertIsInstance(dm_records[4]['bmnum'], pydarn.DmapScalar)
@@ -217,8 +221,9 @@ class TestDarnRead(unittest.TestCase):
             - returns expected values
         """
         file_path = grid_file
-        dm = pydarn.DarnRead(file_path)
-        dm_records = dm.read_grid()
+        dm = pydarn.SDarnRead(file_path)
+        data = dm.read_grid()
+        dm_records = dm.get_dmap_records
         self.assertIsInstance(dm_records, collections.deque)
         self.assertIsInstance(dm_records[0], collections.OrderedDict)
         self.assertIsInstance(dm_records[4]['start.year'], pydarn.DmapScalar)
@@ -236,8 +241,9 @@ class TestDarnRead(unittest.TestCase):
             - returns expected values
         """
         file_path = map_file
-        dm = pydarn.DarnRead(file_path)
-        dm_records = dm.read_map()
+        dm = pydarn.SDarnRead(file_path)
+        data = dm.read_map()
+        dm_records = dm.get_dmap_records
         self.assertIsInstance(dm_records, collections.deque)
         self.assertIsInstance(dm_records[0], collections.OrderedDict)
         self.assertIsInstance(dm_records[2]['IMF.flag'],
@@ -254,7 +260,7 @@ class TestDarnRead(unittest.TestCase):
 
         Expected behaviour: raises pydmap exception
         """
-        dmap = pydarn.DarnRead(corrupt_file1)
+        dmap = pydarn.SDarnRead(corrupt_file1)
         with self.assertRaises(pydarn.dmap_exceptions.DmapDataTypeError):
             dmap.read_rawacf()
 
@@ -264,7 +270,7 @@ class TestDarnRead(unittest.TestCase):
 
         Expected behaviour: raises pydmap exception
         """
-        dmap = pydarn.DarnRead(corrupt_file2)
+        dmap = pydarn.SDarnRead(corrupt_file2)
         with self.assertRaises(pydarn.dmap_exceptions.NegativeByteError):
             dmap.read_rawacf()
 
@@ -282,8 +288,9 @@ class TestDarnRead(unittest.TestCase):
         # stream of bytes without actually uncompressing the file
         with bz2.open(rawacf_stream) as fp:
             dmap_stream = fp.read()
-        dmap = pydarn.DarnRead(dmap_stream, True)
+        dmap = pydarn.SDarnRead(dmap_stream, True)
         dmap_data = dmap.read_rawacf()
+        dmap_data = dmap.get_dmap_records
         self.assertIsInstance(dmap_data, collections.deque)
         self.assertIsInstance(dmap_data[0], collections.OrderedDict)
         self.assertIsInstance(dmap_data[4]['channel'], pydarn.DmapScalar)
@@ -308,7 +315,7 @@ class TestDarnRead(unittest.TestCase):
         corrupt_stream = bytearray(dmap_stream[0:36])
         corrupt_stream[36:40] = bytearray(str(os.urandom(4)).encode('utf-8'))
         corrupt_stream[40:] = dmap_stream[37:]
-        dmap = pydarn.DarnRead(corrupt_stream, True)
+        dmap = pydarn.SDarnRead(corrupt_stream, True)
         with self.assertRaises(pydarn.dmap_exceptions.DmapDataError):
             dmap.read_rawacf()
 
@@ -336,9 +343,9 @@ class TestDarnUtilities(unittest.TestCase):
         b = {'1': 'a', 'c': 'd', 'd': 4, 'z': 'dog'}
         solution_a_b = {'a'}
         solution_b_a = {'1', 'z'}
-        diff_set = pydarn.DarnUtilities.dict_key_diff(a, b)
+        diff_set = pydarn.SDarnUtilities.dict_key_diff(a, b)
         self.assertEqual(diff_set, solution_a_b)
-        diff_set = pydarn.DarnUtilities.dict_key_diff(b, a)
+        diff_set = pydarn.SDarnUtilities.dict_key_diff(b, a)
         self.assertEqual(diff_set, solution_b_a)
 
     def test_dict_list2set(self):
@@ -358,7 +365,7 @@ class TestDarnUtilities(unittest.TestCase):
         complete_set = {'a', 'b', 'c',
                         'rst', 'stid', 'vel',
                         'fitacf', 'rawacf', 'map'}
-        dict_set = pydarn.DarnUtilities.dict_list2set([dict1, dict2, dict3])
+        dict_set = pydarn.SDarnUtilities.dict_list2set([dict1, dict2, dict3])
         self.assertEqual(dict_set, complete_set)
 
     def test_extra_field_check_pass(self):
@@ -377,7 +384,7 @@ class TestDarnUtilities(unittest.TestCase):
         dict2 = {'rst': '4.1', 'stid': 3, 'vel': [2.3, 4.5]}
         dict3 = {'fitacf': 'f', 'rawacf': 's', 'map': 'm'}
         test_dict = {'a': 3, 'b': 3, 'c': 3, 'rst': 1, 'vel': 'd'}
-        pydarn.DarnUtilities.extra_field_check([dict1, dict2, dict3],
+        pydarn.SDarnUtilities.extra_field_check([dict1, dict2, dict3],
                                                test_dict, 1)
 
     def test_extra_field_check_fail(self):
@@ -398,7 +405,7 @@ class TestDarnUtilities(unittest.TestCase):
 
         test_dict = {'a': 3, 'b': 3, 'c': 2, 'd': 3, 'rst': 1, 'vel': 'd'}
         try:
-            pydarn.DarnUtilities.extra_field_check([dict1, dict2, dict3],
+            pydarn.SDarnUtilities.extra_field_check([dict1, dict2, dict3],
                                                    test_dict, 1)
         except pydarn.superdarn_exceptions.SuperDARNExtraFieldError as err:
             self.assertEqual(err.fields, {'d'})
@@ -419,7 +426,7 @@ class TestDarnUtilities(unittest.TestCase):
         test_dict = {}
         test_dict.update(dict1)
         test_dict.update(dict3)
-        pydarn.DarnUtilities.missing_field_check([dict1, dict2,
+        pydarn.SDarnUtilities.missing_field_check([dict1, dict2,
                                                   dict3],
                                                  test_dict, 1)
 
@@ -445,12 +452,12 @@ class TestDarnUtilities(unittest.TestCase):
         test_dict = {'a': 3, 'b': 3, 'c': 2, 'd': 2,
                      'stid': 's', 'rst': 1, 'vel': 'd'}
 
-        pydarn.DarnUtilities.missing_field_check([dict1, dict2, dict3],
+        pydarn.SDarnUtilities.missing_field_check([dict1, dict2, dict3],
                                                  test_dict, 1)
         test_dict = {}
         test_dict.update(dict1)
         test_dict.update(dict3)
-        pydarn.DarnUtilities.missing_field_check([dict1, dict2, dict3],
+        pydarn.SDarnUtilities.missing_field_check([dict1, dict2, dict3],
                                                  test_dict, 1)
 
     def test_missing_field_check_fail2(self):
@@ -474,7 +481,7 @@ class TestDarnUtilities(unittest.TestCase):
                      'fitacf': 3, 'map': 4}
 
         try:
-            pydarn.DarnUtilities.missing_field_check([dict1, dict2, dict3],
+            pydarn.SDarnUtilities.missing_field_check([dict1, dict2, dict3],
                                                      test_dict, 1)
         except pydarn.superdarn_exceptions.SuperDARNFieldMissingError as err:
             self.assertEqual(err.fields, {'c', 'rst', 'rawacf'})
@@ -501,7 +508,7 @@ class TestDarnUtilities(unittest.TestCase):
                      'fitacf': 3, 'map': 4}
 
         try:
-            pydarn.DarnUtilities.missing_field_check([dict1, dict2, dict3],
+            pydarn.SDarnUtilities.missing_field_check([dict1, dict2, dict3],
                                                      test_dict, 1)
         except pydarn.superdarn_exceptions.SuperDARNFieldMissingError as err:
             self.assertEqual(err.fields, {'c', 'rawacf'})
@@ -531,7 +538,7 @@ class TestDarnUtilities(unittest.TestCase):
                      'rawacf': pydarn.DmapScalar('a', 1, 1, 's'),
                      'map': pydarn.DmapScalar('a', 1, 1, 'm')}
 
-        pydarn.DarnUtilities.incorrect_types_check([dict1, dict3],
+        pydarn.SDarnUtilities.incorrect_types_check([dict1, dict3],
                                                    test_dict, 1)
 
     def test_incorrect_types_check_fail(self):
@@ -560,29 +567,29 @@ class TestDarnUtilities(unittest.TestCase):
                      'rawacf': pydarn.DmapScalar('a', 1, 1, 's'),
                      'map': pydarn.DmapScalar('a', 1, 1, 'm')}
         try:
-            pydarn.DarnUtilities.incorrect_types_check([dict1, dict3],
+            pydarn.SDarnUtilities.incorrect_types_check([dict1, dict3],
                                                        test_dict, 1)
         except pydarn.superdarn_exceptions.SuperDARNDataFormatTypeError as err:
             self.assertEqual(err.incorrect_params, {'fitacf': 'f'})
 
 
-class TestDarnWrite(unittest.TestCase):
+class TestSDarnWrite(unittest.TestCase):
     """
-    Tests DarnWrite class
+    Tests SDarnWrite class
     """
     def setUp(self):
         pass
 
     def test_darn_write_constructor(self):
         """
-        Tests DarnWrite constructor
+        Tests SDarnWrite constructor
 
         Expected behaviour
         ------------------
         Contains file name of the data if given to it.
         """
         rawacf_data = copy.deepcopy(rawacf_data_sets.rawacf_data)
-        darn = pydarn.DarnWrite(rawacf_data, "rawacf_test.rawacf")
+        darn = pydarn.SDarnWrite(rawacf_data, "rawacf_test.rawacf")
         self.assertEqual(darn.filename, "rawacf_test.rawacf")
 
     def test_empty_record(self):
@@ -595,7 +602,7 @@ class TestDarnWrite(unittest.TestCase):
         Raise DmapDataError if no data is provided to the constructor
         """
         with self.assertRaises(pydarn.dmap_exceptions.DmapDataError):
-            pydarn.DarnWrite([], 'dummy_file.acf')
+            pydarn.SDarnWrite([], 'dummy_file.acf')
 
     def test_incorrect_filename_input_using_write_methods(self):
         """
@@ -607,7 +614,7 @@ class TestDarnWrite(unittest.TestCase):
         what do we write to ¯\_(ツ)_/¯
         """
         rawacf_data = copy.deepcopy(rawacf_data_sets.rawacf_data)
-        dmap_data = pydarn.DarnWrite(rawacf_data)
+        dmap_data = pydarn.SDarnWrite(rawacf_data)
         with self.assertRaises(pydarn.dmap_exceptions.FilenameRequiredError):
             dmap_data.write_rawacf()
             dmap_data.write_fitacf()
@@ -616,7 +623,7 @@ class TestDarnWrite(unittest.TestCase):
             dmap_data.write_map()
             dmap_data.write_dmap()
 
-    def test_DarnWrite_missing_field_rawacf(self):
+    def test_SDarnWrite_missing_field_rawacf(self):
         """
         Tests write_rawacf method - writes a rawacf structure file for the
         given data
@@ -629,7 +636,7 @@ class TestDarnWrite(unittest.TestCase):
         rawacf_missing_field = copy.deepcopy(rawacf_data_sets.rawacf_data)
         del rawacf_missing_field[2]['nave']
 
-        dmap = pydarn.DarnWrite(rawacf_missing_field)
+        dmap = pydarn.SDarnWrite(rawacf_missing_field)
 
         try:
             dmap.write_rawacf("test_rawacf.rawacf")
@@ -650,7 +657,7 @@ class TestDarnWrite(unittest.TestCase):
         rawacf_extra_field = copy.deepcopy(rawacf_data_sets.rawacf_data)
         rawacf_extra_field[1]['dummy'] = pydarn.DmapScalar('dummy', 'nothing',
                                                            chr(1), 's')
-        dmap = pydarn.DarnWrite(rawacf_extra_field)
+        dmap = pydarn.SDarnWrite(rawacf_extra_field)
 
         try:
             dmap.write_rawacf("test_rawacf.rawacf")
@@ -671,7 +678,7 @@ class TestDarnWrite(unittest.TestCase):
         rawacf_incorrect_fmt = copy.deepcopy(rawacf_data_sets.rawacf_data)
         rawacf_incorrect_fmt[2]['scan'] = \
             rawacf_incorrect_fmt[2]['scan']._replace(data_type_fmt='c')
-        dmap = pydarn.DarnWrite(rawacf_incorrect_fmt)
+        dmap = pydarn.SDarnWrite(rawacf_incorrect_fmt)
 
         try:
             dmap.write_rawacf("test_rawacf.rawacf")
@@ -689,13 +696,13 @@ class TestDarnWrite(unittest.TestCase):
         """
         rawacf_data = copy.deepcopy(rawacf_data_sets.rawacf_data)
 
-        dmap = pydarn.DarnWrite(rawacf_data)
+        dmap = pydarn.SDarnWrite(rawacf_data)
 
         dmap.write_rawacf("test_rawacf.rawacf")
         # only testing the file is created since it should only be created
         # at the last step after all checks have passed
         # Testing the integrity of the insides of the file will be part of
-        # integration testing since we need DarnRead for that.
+        # integration testing since we need SDarnRead for that.
         self.assertTrue(os.path.isfile("test_rawacf.rawacf"))
         os.remove("test_rawacf.rawacf")
 
@@ -708,7 +715,7 @@ class TestDarnWrite(unittest.TestCase):
         fitacf file is produced
         """
         fitacf_data = copy.deepcopy(fitacf_data_sets.fitacf_data)
-        dmap = pydarn.DarnWrite(fitacf_data)
+        dmap = pydarn.SDarnWrite(fitacf_data)
 
         dmap.write_fitacf("test_fitacf.fitacf")
         self.assertTrue(os.path.isfile("test_fitacf.fitacf"))
@@ -726,7 +733,7 @@ class TestDarnWrite(unittest.TestCase):
         """
         fitacf_missing_field = copy.deepcopy(fitacf_data_sets.fitacf_data)
         del fitacf_missing_field[0]['stid']
-        dmap = pydarn.DarnWrite(fitacf_missing_field)
+        dmap = pydarn.SDarnWrite(fitacf_missing_field)
 
         try:
             dmap.write_fitacf("test_fitacf.fitacf")
@@ -748,7 +755,7 @@ class TestDarnWrite(unittest.TestCase):
         fitacf_extra_field[1]['dummy'] = pydarn.DmapArray('dummy',
                                                           np.array([1, 2]),
                                                           chr(1), 'c', 1, [2])
-        dmap = pydarn.DarnWrite(fitacf_extra_field)
+        dmap = pydarn.SDarnWrite(fitacf_extra_field)
 
         try:
             dmap.write_fitacf("test_fitacf.fitacf")
@@ -770,7 +777,7 @@ class TestDarnWrite(unittest.TestCase):
         fitacf_incorrect_fmt = copy.deepcopy(fitacf_data_sets.fitacf_data)
         fitacf_incorrect_fmt[1]['ltab'] = \
             fitacf_incorrect_fmt[1]['ltab']._replace(data_type_fmt='s')
-        dmap = pydarn.DarnWrite(fitacf_incorrect_fmt)
+        dmap = pydarn.SDarnWrite(fitacf_incorrect_fmt)
 
         try:
             dmap.write_fitacf("test_fitacf.fitacf")
@@ -787,7 +794,7 @@ class TestDarnWrite(unittest.TestCase):
         iqdat file is produced
         """
         iqdat_data = copy.deepcopy(iqdat_data_sets.iqdat_data)
-        dmap = pydarn.DarnWrite(iqdat_data)
+        dmap = pydarn.SDarnWrite(iqdat_data)
 
         dmap.write_iqdat("test_iqdat.iqdat")
         self.assertTrue(os.path.isfile("test_iqdat.iqdat"))
@@ -806,7 +813,7 @@ class TestDarnWrite(unittest.TestCase):
 
         iqdat_missing_field = copy.deepcopy(iqdat_data_sets.iqdat_data)
         del iqdat_missing_field[1]['chnnum']
-        dmap = pydarn.DarnWrite(iqdat_missing_field)
+        dmap = pydarn.SDarnWrite(iqdat_missing_field)
 
         try:
             dmap.write_iqdat("test_iqdat.iqdat")
@@ -827,7 +834,7 @@ class TestDarnWrite(unittest.TestCase):
         iqdat_extra_field = copy.deepcopy(iqdat_data_sets.iqdat_data)
         iqdat_extra_field[2]['dummy'] = \
             pydarn.DmapArray('dummy', np.array([1, 2]), chr(1), 'c', 1, [2])
-        dmap = pydarn.DarnWrite(iqdat_extra_field)
+        dmap = pydarn.SDarnWrite(iqdat_extra_field)
 
         try:
             dmap.write_iqdat("test_iqdat.iqdat")
@@ -848,7 +855,7 @@ class TestDarnWrite(unittest.TestCase):
         iqdat_incorrect_fmt = copy.deepcopy(iqdat_data_sets.iqdat_data)
         iqdat_incorrect_fmt[2]['lagfr'] = \
             iqdat_incorrect_fmt[2]['lagfr']._replace(data_type_fmt='d')
-        dmap = pydarn.DarnWrite(iqdat_incorrect_fmt)
+        dmap = pydarn.SDarnWrite(iqdat_incorrect_fmt)
 
         try:
             dmap.write_iqdat("test_iqdat.iqdat")
@@ -865,7 +872,7 @@ class TestDarnWrite(unittest.TestCase):
         map file is produced
         """
         map_data = copy.deepcopy(map_data_sets.map_data)
-        dmap = pydarn.DarnWrite(map_data)
+        dmap = pydarn.SDarnWrite(map_data)
 
         dmap.write_map("test_map.map")
         self.assertTrue(os.path.isfile("test_map.map"))
@@ -883,7 +890,7 @@ class TestDarnWrite(unittest.TestCase):
         """
         map_missing_field = copy.deepcopy(map_data_sets.map_data)
         del map_missing_field[0]['IMF.Kp']
-        dmap = pydarn.DarnWrite(map_missing_field)
+        dmap = pydarn.SDarnWrite(map_missing_field)
 
         try:
             dmap.write_map("test_map.map")
@@ -904,7 +911,7 @@ class TestDarnWrite(unittest.TestCase):
         map_extra_field = copy.deepcopy(map_data_sets.map_data)
         map_extra_field[1]['dummy'] = \
             pydarn.DmapArray('dummy', np.array([1, 2]), chr(1), 'c', 1, [2])
-        dmap = pydarn.DarnWrite(map_extra_field)
+        dmap = pydarn.SDarnWrite(map_extra_field)
 
         try:
             dmap.write_map("test_map.map")
@@ -925,7 +932,7 @@ class TestDarnWrite(unittest.TestCase):
         map_incorrect_fmt = copy.deepcopy(map_data_sets.map_data)
         map_incorrect_fmt[2]['IMF.Bx'] = \
             map_incorrect_fmt[2]['IMF.Bx']._replace(data_type_fmt='i')
-        dmap = pydarn.DarnWrite(map_incorrect_fmt)
+        dmap = pydarn.SDarnWrite(map_incorrect_fmt)
 
         try:
             dmap.write_map("test_map.map")
@@ -942,7 +949,7 @@ class TestDarnWrite(unittest.TestCase):
         grid file is produced
         """
         grid_data = copy.deepcopy(grid_data_sets.grid_data)
-        dmap = pydarn.DarnWrite(grid_data)
+        dmap = pydarn.SDarnWrite(grid_data)
 
         dmap.write_grid("test_grid.grid")
         self.assertTrue(os.path.isfile("test_grid.grid"))
@@ -960,7 +967,7 @@ class TestDarnWrite(unittest.TestCase):
         """
         grid_missing_field = copy.deepcopy(grid_data_sets.grid_data)
         del grid_missing_field[1]['start.year']
-        dmap = pydarn.DarnWrite(grid_missing_field)
+        dmap = pydarn.SDarnWrite(grid_missing_field)
 
         try:
             dmap.write_grid("test_grid.grid")
@@ -981,7 +988,7 @@ class TestDarnWrite(unittest.TestCase):
         grid_extra_field = copy.deepcopy(grid_data_sets.grid_data)
         grid_extra_field[0]['dummy'] = \
             pydarn.DmapArray('dummy', np.array([1, 2]), chr(1), 'c', 1, [2])
-        dmap = pydarn.DarnWrite(grid_extra_field)
+        dmap = pydarn.SDarnWrite(grid_extra_field)
 
         try:
             dmap.write_grid("test_grid.grid")
@@ -1002,7 +1009,7 @@ class TestDarnWrite(unittest.TestCase):
         grid_incorrect_fmt = copy.deepcopy(grid_data_sets.grid_data)
         grid_incorrect_fmt[2]['v.min'] = \
             grid_incorrect_fmt[2]['v.min']._replace(data_type_fmt='d')
-        dmap = pydarn.DarnWrite(grid_incorrect_fmt)
+        dmap = pydarn.SDarnWrite(grid_incorrect_fmt)
 
         try:
             dmap.write_grid("test_grid.grid")

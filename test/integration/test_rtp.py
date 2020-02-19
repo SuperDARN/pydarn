@@ -1,8 +1,12 @@
-import pydarn
-import unittest
+# Copyright (C) 2019 SuperDARN
+# Author: Marina Schmidt
+
 import matplotlib.pyplot as plt
+import unittest
+
 from datetime import datetime
 
+import pydarn
 
 class TestRTP(unittest.TestCase):
     """
