@@ -1,6 +1,7 @@
 # Authors: Marina Schmidt
 import logging
 import datetime
+
 pydarn_log = logging.getLogger('pydarn')
 
 
@@ -12,7 +13,7 @@ class RTPIncorrectPlotMethodError(Exception):
     def __init__(self, parameter: str, data_type: str):
         self.parameter = parameter
         self.data_type = data_type
-        self.message = "Error: Incorrect RTP method is being called for"\
+        self.message = "Incorrect RTP method is being called for"\
             " {parameter} of type {data_type}. plot_range_time is for"\
             " array data types, and plot_time_series is for scalar"\
             " data types.".format(parameter=self.parameter,
@@ -78,14 +79,15 @@ class RTPZeroError(Exception):
         pydarn_log.error(self.message)
 
 
-class RTPUnknownParameter(Exception):
+class RTPUnknownParameterError(Exception):
     """
     Error raised when the parameter is not found in the data passed in
     """
     def __init__(self, parameter: str):
         self.parameter = parameter
-        self.message = "Error: The following parameter was not found in the"\
+        self.message = "The following parameter {parameter}"\
+            " was not found in the"\
             " data set. Please make sure it is typed correctly or"\
-            " you are using the correct data."
+            " you are using the correct data.".format(parameter=self.parameter)
         super().__init__(self.message)
         pydarn_log.error(self.message)

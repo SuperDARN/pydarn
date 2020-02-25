@@ -48,14 +48,14 @@ class RTP():
                 "   - plot_summary()\n"
 
     @classmethod
-    def plot_range_time(cls, dmap_data: List[dict], parameter: str = 'p_l',
+    def plot_range_time(cls, dmap_data: List[dict], parameter: str = 'v',
                         beam_num: int = 0, channel: int = 'all', ax=None,
                         background: str = 'w', groundscatter: bool = False,
                         zmin: int = None, zmax: int = None,
                         start_time: datetime = None, end_time: datetime = None,
                         colorbar: plt.colorbar = None, ymax: int = None,
                         colorbar_label: str = '', norm=colors.Normalize,
-                        cmap: str = PyDARNColormaps.PYDARN, filter_settings: dict = {},
+                        cmap: str = PyDARNColormaps.PYDARN_VELOCITY, filter_settings: dict = {},
                         date_fmt: str = '%y/%m/%d\n %H:%M', **kwargs):
         """
         Plots a range-time parameter plot of the given
@@ -73,7 +73,7 @@ class RTP():
         dmap_data: List[dict]
         parameter: str
             key name indicating which parameter to plot.
-            Default: p_l (Signal to Noise)
+            Default: v (Velocity)
         beam_num : int
             The beam number of data to plot
             Default: 0
@@ -123,7 +123,7 @@ class RTP():
         cmap: str or matplotlib.cm
             matplotlib colour map
             https://matplotlib.org/tutorials/colors/colormaps.html
-            Default: PyDARNColormaps.PYDARN
+            Default: PyDARNColormaps.PYDARN_VELOCITY
             note: to reverse the color just add _r to the string name
         plot_filter: dict
             dictionary of the following keys for filtering data out:
@@ -207,7 +207,7 @@ class RTP():
                isinstance(dmap_data[index_first_match][parameter], DmapScalar):
                 dmap_data = dmap2dict(dmap_data)
         except StopIteration:
-            raise rtp_exceptions.RTPUnknownParameter(parameter)
+            raise rtp_exceptions.RTPUnknownParameterError(parameter)
         cls.dmap_data = dmap_data
         cls.__check_data_type(parameter, 'array', index_first_match)
         start_time, end_time = cls.__determine_start_end_time(start_time,
@@ -217,8 +217,11 @@ class RTP():
         # TODO: implement variant other coordinate systems for the y-axis
         # y shape needs to be +1 longer as requirement of how pcolormesh
         # draws the pixels on the grid
-        y = np.arange(0, cls.dmap_data[0]['nrang']+1, 1)
-        y_max = cls.dmap_data[0]['nrang']
+
+        # because nrang can change based on mode we need to look
+        # for the largest value
+        y_max = max(record['nrang'] for record in cls.dmap_data)
+        y = np.arange(0, y_max+1, 1)
 
         # z: parameter data mapped into the color mesh
         z = np.zeros((1, y_max)) * np.nan
@@ -467,7 +470,7 @@ class RTP():
                isinstance(dmap_data[index_first_match][parameter], DmapScalar):
                 dmap_data = dmap2dict(dmap_data)
         except StopIteration:
-            raise rtp_exceptions.RTPUnknownParameter(parameter)
+            raise rtp_exceptions.RTPUnknownParameterError(parameter)
 
         cls.dmap_data = dmap_data
         cls.__check_data_type(parameter, 'scalar', index_first_match)
