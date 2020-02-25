@@ -27,7 +27,7 @@ class initialize_submodules(install):
         if path.exists('.git'):
             check_call(['git', 'submodule', 'update', '--init', '--recursive'])
         if self.old_and_unmanageable or self.single_version_externally_managed:
-            return _install.run(self)
+            return install.run(self)
         #install.run(self)
         caller = sys._getframe(2)
         caller_module = caller.f_globals.get('__name__','')
