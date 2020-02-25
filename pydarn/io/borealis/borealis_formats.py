@@ -170,8 +170,7 @@ class BorealisRawacfv0_4():
         "xcfs": np.complex64
     }
 
-    shared_fields = ['blanked_samples', 'borealis_git_hash',
-                     'correlation_descriptors',
+    shared_fields = ['borealis_git_hash', 'correlation_descriptors',
                      'data_normalization_factor', 'experiment_comment',
                      'experiment_id', 'experiment_name', 'first_range',
                      'first_range_rtt', 'freq', 'intf_antenna_count', 'lags',
@@ -180,9 +179,9 @@ class BorealisRawacfv0_4():
                      'slice_comment', 'station', 'tau_spacing',
                      'tx_pulse_len']
 
-    unshared_fields = ['num_sequences', 'int_time', 'sqn_timestamps',
-                       'noise_at_freq', 'main_acfs', 'intf_acfs', 'xcfs',
-                       'scan_start_marker', 'beam_nums', 'beam_azms',
+    unshared_fields = ['blanked_samples', 'num_sequences', 'int_time', 
+                       'sqn_timestamps', 'noise_at_freq', 'main_acfs', 'intf_acfs',
+                       'xcfs', 'scan_start_marker', 'beam_nums', 'beam_azms',
                        'num_slices']
 
     array_only_fields = ['num_beams'] # also unshared (array)
@@ -412,8 +411,7 @@ class BorealisBfiqv0_4():
         "data": np.complex64
     }
 
-    shared_fields =  ['antenna_arrays_order',
-                      'blanked_samples', 'borealis_git_hash',
+    shared_fields =  ['antenna_arrays_order', 'borealis_git_hash',
                       'data_descriptors', 'data_normalization_factor',
                       'experiment_comment', 'experiment_id', 'experiment_name',
                       'first_range', 'first_range_rtt', 'freq',
@@ -424,9 +422,10 @@ class BorealisBfiqv0_4():
                       'slice_comment', 'station', 'tau_spacing',
                       'tx_pulse_len']
 
-    unshared_fields = ['num_sequences', 'int_time', 'sqn_timestamps',
-                       'noise_at_freq', 'data', 'scan_start_marker',
-                       'beam_azms', 'beam_nums', 'num_slices']
+    unshared_fields = ['blanked_samples', 'num_sequences', 'int_time', 
+                       'sqn_timestamps', 'noise_at_freq', 'data', 
+                       'scan_start_marker', 'beam_azms', 'beam_nums', 
+                       'num_slices']
 
     array_only_fields = ['num_beams'] # also unshared
 
@@ -847,63 +846,27 @@ class BorealisRawacf(BorealisRawacfv0_4):
     combined into antenna arrays; then autocorrelated and correlated between
     antenna arrays to produce matrices of num_ranges x num_lags.
 
-    Attributes
-    ----------
-    single_element_types: dict
-        Dictionary of data field name to type expected in that field for a
-        dictionary of Borealis data.
-    array_dtypes: dict
-        Dictionary of data field name to array of given numpy dtype expected
-        in the field for a dictionary of Borealis data.
-    shared_fields: list
-        List of the fields that are restructured to a single value per
-        file in the Borealis array type files. These fields are present in both
-        array and site files.
-    unshared_fields: list
-        List of the fields that are restructured to be an array with first
-        dimension equal to the number of records in the file. These fields are
-        present in both array and site files.
-    array_only_fields: list
-        List of fields that are only present in array files. Implicitly
-        also unshared between records.
-    site_only_fields: list
-        List of fields that are only present in site files.
-    site_fields: list
-        List of all fields that are in the site file type.
-    array_fields: list
-        List of all fields that are in the array file type.
-    site_single_element_fields : list
-        List of fields in the site files that are single element types.
-    site_single_element_types: dict
-        subset of single_element_types with only site keys.
-    site_array_dtypes_fields : list
-        List of fields in the site files that are made of numpy arrays.
-    site_array_dtypes: dict
-        subset of array_dtypes with only site keys.
-    array_single_element_fields : list
-        List of fields in the array files that are single element types
-        (unless unshared in which they are converted to the numpy array of
-        that type, with number of records elements)
-    array_single_element_types: dict
-        subset of single_element_types with only array keys.
-    array_array_dtypes_fields : list
-        List of fields in the array files that are made of numpy arrays.
-    array_array_dtypes: dict
-        subset of array_dtypes with only array keys.
-
-    Notes
-    -----
-    single_element_types.keys() + array_dtypes.keys() = all known fields
-    shared_fields + unshared_fields + array_only_fields = all fields in array file
-    shared_fields + unshared_fields + site_only_fields = all fields in site file
+    See base class for description of attributes and notes.
     """
 
     # New fields added in v0.5 to shared fields:
 
+    cls.single_element_types.update({
+        # the slice id of the file and dataset.
+        "slice_id" : np.uint32,
+        # the interfacing of this slice to other slices.
+        "slice_interfacing" : np.unicode_,
+        # A string describing the type of scheduling time at the time of this dataset.
+        "scheduling_mode" : np.unicode_,
+        # A string describing the averaging method, ex. mean, median
+        "averaging_method" : np.unicode_
+        })
+
     cls.shared_fields.append('slice_id')
-    cls.shared_fields.append('slice_interfacing')
     cls.shared_fields.append('scheduling_mode')
     cls.shared_fields.append('averaging_method')
+
+    cls.unshared_fields.append('slice_interfacing')
 
 
 class BorealisBfiq(BorealisBfiqv0_4):
@@ -916,62 +879,24 @@ class BorealisBfiq(BorealisBfiqv0_4):
     and all channels have been combined into their arrays. No correlation
     or averaging has occurred.
 
-    Attributes
-    ----------
-    single_element_types: dict
-        Dictionary of data field name to type expected in that field for a
-        dictionary of Borealis data.
-    array_dtypes: dict
-        Dictionary of data field name to array of given numpy dtype expected
-        in the field for a dictionary of Borealis data.
-    shared_fields: list
-        List of the fields that are restructured to a single value per
-        file in the Borealis array type files. These fields are present in both
-        array and site files.
-    unshared_fields: list
-        List of the fields that are restructured to be an array with first
-        dimension equal to the number of records in the file. These fields are
-        present in both array and site files.
-    array_only_fields: list
-        List of fields that are only present in array files. Implicitly
-        also unshared between records.
-    site_only_fields: list
-        List of fields that are only present in site files.
-    site_fields: list
-        List of all fields that are in the site file type.
-    array_fields: list
-        List of all fields that are in the array file type.
-    site_single_element_fields : list
-        List of fields in the site files that are single element types.
-    site_single_element_types: dict
-        subset of single_element_types with only site keys.
-    site_array_dtypes_fields : list
-        List of fields in the site files that are made of numpy arrays.
-    site_array_dtypes: dict
-        subset of array_dtypes with only site keys.
-    array_single_element_fields : list
-        List of fields in the array files that are single element types
-        (unless unshared in which they are converted to the numpy array of
-        that type, with number of records elements)
-    array_single_element_types: dict
-        subset of single_element_types with only array keys.
-    array_array_dtypes_fields : list
-        List of fields in the array files that are made of numpy arrays.
-    array_array_dtypes: dict
-        subset of array_dtypes with only array keys.
-
-    Notes
-    -----
-    single_element_types.keys() + array_dtypes.keys() = all known fields
-    shared_fields + unshared_fields + array_only_fields = all fields in array file
-    shared_fields + unshared_fields + site_only_fields = all fields in site file
+    See base class for description of attributes and notes.
     """
 
     # New fields added in v0.5 to shared fields:
 
+    cls.single_element_types.update({
+        # the slice id of the file and dataset.
+        "slice_id" : np.uint32,
+        # the interfacing of this slice to other slices.
+        "slice_interfacing" : np.unicode_,
+        # A string describing the type of scheduling time at the time of this dataset.
+        "scheduling_mode" : np.unicode_
+        })
+
     cls.shared_fields.append('slice_id')
-    cls.shared_fields.append('slice_interfacing')
     cls.shared_fields.append('scheduling_mode')
+
+    cls.unshared_fields.append('slice_interfacing')
 
 
 class BorealisAntennasIq(BorealisAntennasIqv0_4):
@@ -983,63 +908,30 @@ class BorealisAntennasIq(BorealisAntennasIqv0_4):
     and filtered, but it has not been beamformed or combined into the
     entire antenna array data product.
 
-    Attributes
-    ----------
-    single_element_types: dict
-        Dictionary of data field name to type expected in that field for a
-        dictionary of Borealis data.
-    array_dtypes: dict
-        Dictionary of data field name to array of given numpy dtype expected
-        in the field for a dictionary of Borealis data.
-    shared_fields: list
-        List of the fields that are restructured to a single value per
-        file in the Borealis array type files. These fields are present in both
-        array and site files.
-    unshared_fields: list
-        List of the fields that are restructured to be an array with first
-        dimension equal to the number of records in the file. These fields are
-        present in both array and site files.
-    array_only_fields: list
-        List of fields that are only present in array files. Implicitly
-        also unshared between records.
-    site_only_fields: list
-        List of fields that are only present in site files.
-    site_fields: list
-        List of all fields that are in the site file type.
-    array_fields: list
-        List of all fields that are in the array file type.
-    site_single_element_fields : list
-        List of fields in the site files that are single element types.
-    site_single_element_types: dict
-        subset of single_element_types with only site keys.
-    site_array_dtypes_fields : list
-        List of fields in the site files that are made of numpy arrays.
-    site_array_dtypes: dict
-        subset of array_dtypes with only site keys.
-    array_single_element_fields : list
-        List of fields in the array files that are single element types
-        (unless unshared in which they are converted to the numpy array of
-        that type, with number of records elements)
-    array_single_element_types: dict
-        subset of single_element_types with only array keys.
-    array_array_dtypes_fields : list
-        List of fields in the array files that are made of numpy arrays.
-    array_array_dtypes: dict
-        subset of array_dtypes with only array keys.
-
-    Notes
-    -----
-    single_element_types.keys() + array_dtypes.keys() = all known fields
-    shared_fields + unshared_fields + array_only_fields = all fields in array file
-    shared_fields + unshared_fields + site_only_fields = all fields in site file
+    See base class for description of attributes and notes.
     """
 
     # New fields added in v0.5 to shared fields:
 
+    cls.single_element_types.update({
+        # the slice id of the file and dataset.
+        "slice_id" : np.uint32,
+        # the interfacing of this slice to other slices.
+        "slice_interfacing" : np.unicode_,
+        # A string describing the type of scheduling time at the time of this dataset.
+        "scheduling_mode" : np.unicode_
+        })
+
+    cls.array_dtypes.update({
+        # Samples that occur during TR switching (transmission times)
+        "blanked_samples" : np.uint32
+        })
+
     cls.shared_fields.append('slice_id')
-    cls.shared_fields.append('slice_interfacing')
     cls.shared_fields.append('scheduling_mode')
-    cls.shared_fields.append('blanked_samples')
+
+    cls.unshared_fields.append('blanked_samples')
+    cls.unshared_fields.append('slice_interfacing')
 
 
 class BorealisRawrf(BorealisRawrfv0_4):
@@ -1050,7 +942,23 @@ class BorealisRawrf(BorealisRawrfv0_4):
 
     # New fields added in v0.5 to shared fields:
 
+    cls.single_element_types.update({
+        # the slice id of the file and dataset.
+        "slice_id" : np.uint32,
+        # the interfacing of this slice to other slices.
+        "slice_interfacing" : np.unicode_,
+        # A string describing the type of scheduling time at the time of this dataset.
+        "scheduling_mode" : np.unicode_
+        })
+
+    cls.array_dtypes.update({
+        # Samples that occur during TR switching (transmission times)
+        "blanked_samples" : np.uint32
+        })
+
     cls.shared_fields.append('slice_id')
-    cls.shared_fields.append('slice_interfacing')
     cls.shared_fields.append('scheduling_mode')
-    cls.shared_fields.append('blanked_samples')
+
+    cls.unshared_fields.append('blanked_samples')
+    cls.unshared_fields.append('slice_interfacing')
+
