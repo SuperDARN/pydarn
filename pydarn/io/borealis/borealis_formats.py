@@ -171,8 +171,7 @@ class BorealisRawacf():
         "xcfs": np.complex64
     }
 
-    shared_fields = ['blanked_samples', 'borealis_git_hash',
-                     'correlation_descriptors',
+    shared_fields = ['borealis_git_hash', 'correlation_descriptors',
                      'data_normalization_factor', 'experiment_comment',
                      'experiment_id', 'experiment_name', 'first_range',
                      'first_range_rtt', 'freq', 'intf_antenna_count', 'lags',
@@ -181,9 +180,9 @@ class BorealisRawacf():
                      'slice_comment', 'station', 'tau_spacing',
                      'tx_pulse_len']
 
-    unshared_fields = ['num_sequences', 'int_time', 'sqn_timestamps',
-                       'noise_at_freq', 'main_acfs', 'intf_acfs', 'xcfs',
-                       'scan_start_marker', 'beam_nums', 'beam_azms',
+    unshared_fields = ['blanked_samples', 'num_sequences', 'int_time', 
+                       'sqn_timestamps', 'noise_at_freq', 'main_acfs', 'intf_acfs',
+                       'xcfs', 'scan_start_marker', 'beam_nums', 'beam_azms',
                        'num_slices']
 
     array_only_fields = ['num_beams']  # also unshared (array)
@@ -414,21 +413,21 @@ class BorealisBfiq():
         "data": np.complex64
     }
 
-    shared_fields = ['antenna_arrays_order',
-                     'blanked_samples', 'borealis_git_hash',
-                     'data_descriptors', 'data_normalization_factor',
-                     'experiment_comment', 'experiment_id', 'experiment_name',
-                     'first_range', 'first_range_rtt', 'freq',
-                     'intf_antenna_count', 'lags', 'main_antenna_count',
-                     'num_ranges', 'num_samps',
-                     'pulse_phase_offset', 'pulses', 'range_sep',
-                     'rx_sample_rate', 'samples_data_type',
-                     'slice_comment', 'station', 'tau_spacing',
-                     'tx_pulse_len']
+    shared_fields =  ['antenna_arrays_order', 'borealis_git_hash',
+                      'data_descriptors', 'data_normalization_factor',
+                      'experiment_comment', 'experiment_id', 'experiment_name',
+                      'first_range', 'first_range_rtt', 'freq',
+                      'intf_antenna_count', 'lags', 'main_antenna_count',
+                      'num_ranges', 'num_samps',
+                      'pulse_phase_offset', 'pulses', 'range_sep',
+                      'rx_sample_rate', 'samples_data_type',
+                      'slice_comment', 'station', 'tau_spacing',
+                      'tx_pulse_len']
 
-    unshared_fields = ['num_sequences', 'int_time', 'sqn_timestamps',
-                       'noise_at_freq', 'data', 'scan_start_marker',
-                       'beam_azms', 'beam_nums', 'num_slices']
+    unshared_fields = ['blanked_samples', 'num_sequences', 'int_time', 
+                       'sqn_timestamps', 'noise_at_freq', 'data', 
+                       'scan_start_marker', 'beam_azms', 'beam_nums', 
+                       'num_slices']
 
     array_only_fields = ['num_beams']  # also unshared
 
@@ -447,7 +446,7 @@ class BorealisBfiq():
     @classmethod
     def site_single_element_fields(cls):
         """ All site fields that are single element in a list """
-        return [k for k in cls.site_fields() if k in
+        returinfon [k for k in cls.site_fields() if k in
                 list(cls.single_element_types.keys())]
 
     @classmethod
@@ -833,3 +832,132 @@ class BorealisRawrf():
         """ Dict of site array field : dtype """
         return {k: cls.array_dtypes[k] for k in
                 cls.site_array_dtypes_fields()}
+
+
+# The following are the currently used classes, with additions according
+# to Borealis updates.
+
+class BorealisRawacf(BorealisRawacfv0_4):
+    """
+    Class containing Borealis Rawacf data fields and their types for the
+    current version of Borealis.
+
+    Rawacf data has been mixed, filtered, and decimated; beamformed and
+    combined into antenna arrays; then autocorrelated and correlated between
+    antenna arrays to produce matrices of num_ranges x num_lags.
+
+    See base class for description of attributes and notes.
+    """
+
+    # New fields added in v0.5 to shared fields:
+
+    cls.single_element_types.update({
+        # the slice id of the file and dataset.
+        "slice_id" : np.uint32,
+        # the interfacing of this slice to other slices.
+        "slice_interfacing" : np.unicode_,
+        # A string describing the type of scheduling time at the time of this dataset.
+        "scheduling_mode" : np.unicode_,
+        # A string describing the averaging method, ex. mean, median
+        "averaging_method" : np.unicode_
+        })
+
+    cls.shared_fields.append('slice_id')
+    cls.shared_fields.append('scheduling_mode')
+    cls.shared_fields.append('averaging_method')
+
+    cls.unshared_fields.append('slice_interfacing')
+
+
+class BorealisBfiq(BorealisBfiqv0_4):
+    """
+    Class containing Borealis Bfiq data fields and their types for the
+    current version of Borealis.
+
+    Bfiq data is beamformed i and q data. It has been mixed, filtered,
+    decimated to the final output receive rate, and it has been beamformed
+    and all channels have been combined into their arrays. No correlation
+    or averaging has occurred.
+
+    See base class for description of attributes and notes.
+    """
+
+    # New fields added in v0.5 to shared fields:
+
+    cls.single_element_types.update({
+        # the slice id of the file and dataset.
+        "slice_id" : np.uint32,
+        # the interfacing of this slice to other slices.
+        "slice_interfacing" : np.unicode_,
+        # A string describing the type of scheduling time at the time of this dataset.
+        "scheduling_mode" : np.unicode_
+        })
+
+    cls.shared_fields.append('slice_id')
+    cls.shared_fields.append('scheduling_mode')
+
+    cls.unshared_fields.append('slice_interfacing')
+
+
+class BorealisAntennasIq(BorealisAntennasIqv0_4):
+    """
+    Class containing Borealis Antennas iq data fields and their types for
+    Borealis current version.
+
+    Antennas iq data is data with all channels separated. It has been mixed
+    and filtered, but it has not been beamformed or combined into the
+    entire antenna array data product.
+
+    See base class for description of attributes and notes.
+    """
+
+    # New fields added in v0.5 to shared fields:
+
+    cls.single_element_types.update({
+        # the slice id of the file and dataset.
+        "slice_id" : np.uint32,
+        # the interfacing of this slice to other slices.
+        "slice_interfacing" : np.unicode_,
+        # A string describing the type of scheduling time at the time of this dataset.
+        "scheduling_mode" : np.unicode_
+        })
+
+    cls.array_dtypes.update({
+        # Samples that occur during TR switching (transmission times)
+        "blanked_samples" : np.uint32
+        })
+
+    cls.shared_fields.append('slice_id')
+    cls.shared_fields.append('scheduling_mode')
+
+    cls.unshared_fields.append('blanked_samples')
+    cls.unshared_fields.append('slice_interfacing')
+
+
+class BorealisRawrf(BorealisRawrfv0_4):
+    """
+    Class containing Borealis Rawrf data fields and their types for current
+    Borealis version.
+    """
+
+    # New fields added in v0.5 to shared fields:
+
+    cls.single_element_types.update({
+        # the slice id of the file and dataset.
+        "slice_id" : np.uint32,
+        # the interfacing of this slice to other slices.
+        "slice_interfacing" : np.unicode_,
+        # A string describing the type of scheduling time at the time of this dataset.
+        "scheduling_mode" : np.unicode_
+        })
+
+    cls.array_dtypes.update({
+        # Samples that occur during TR switching (transmission times)
+        "blanked_samples" : np.uint32
+        })
+
+    cls.shared_fields.append('slice_id')
+    cls.shared_fields.append('scheduling_mode')
+
+    cls.unshared_fields.append('blanked_samples')
+    cls.unshared_fields.append('slice_interfacing')
