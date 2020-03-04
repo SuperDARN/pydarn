@@ -957,8 +957,8 @@ class BorealisRawrf(BorealisRawrfv0_4):
 
     single_element_types = BorealisRawrfv0_4.single_element_types
     array_dtypes = BorealisRawrfv0_4.array_dtypes
-    shared_fields = BorealisRawrfv0_4.shared_fields
-    unshared_fields = BorealisRawrfv0_4.unshared_fields
+    # shared_fields = BorealisRawrfv0_4.shared_fields
+    # unshared_fields = BorealisRawrfv0_4.unshared_fields
 
     single_element_types.update({
         # the slice id of the file and dataset.
@@ -974,9 +974,9 @@ class BorealisRawrf(BorealisRawrfv0_4):
         "blanked_samples" : np.uint32
         })
 
-    shared_fields.append('slice_id')
-    shared_fields.append('scheduling_mode')
+    # shared_fields.append('slice_id')
+    # shared_fields.append('scheduling_mode')
 
-    unshared_fields.append('blanked_samples')
-    unshared_fields.append('slice_interfacing')
+    # unshared_fields.append('blanked_samples')
+    # unshared_fields.append('slice_interfacing')
 
