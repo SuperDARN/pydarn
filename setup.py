@@ -14,14 +14,14 @@ from setuptools import setup, find_packages
 from os import path
 import sys
 from subprocess import check_call
-from setuptools.command.install import orig
+from setuptools.command.install import install, orig
 
 # TODO: currently not implemented due to some challenges
 # with C API and memory leaks.
 #rstmodule = Extension('dmap',
 #                      sources= ['dmap.c'])
 
-class initialize_submodules(orig.install):
+class initialize_submodules(install):
     def run(self):
         if path.exists('.git'):
             check_call(['git', 'submodule', 'update', '--init', '--recursive'])
