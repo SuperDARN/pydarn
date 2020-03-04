@@ -942,7 +942,12 @@ class BorealisRawrf(BorealisRawrfv0_4):
 
     # New fields added in v0.5 to shared fields:
 
-    cls.single_element_types.update({
+    single_element_types = BorealisRawrfv0_4.single_element_types
+    array_dtypes = BorealisRawrfv0_4.array_dtypes
+    # shared_fields = BorealisRawrfv0_4.shared_fields
+    # unshared_fields = BorealisRawrfv0_4.unshared_fields
+
+    single_element_types.update({
         # the slice id of the file and dataset.
         "slice_id" : np.uint32,
         # the interfacing of this slice to other slices.
@@ -956,8 +961,11 @@ class BorealisRawrf(BorealisRawrfv0_4):
         "blanked_samples" : np.uint32
         })
 
-    cls.shared_fields.append('slice_id')
-    cls.shared_fields.append('scheduling_mode')
+    # shared_fields.append('slice_id')
+    # shared_fields.append('scheduling_mode')
+
+    # unshared_fields.append('blanked_samples')
+    # unshared_fields.append('slice_interfacing')
 
     cls.unshared_fields.append('blanked_samples')
     cls.unshared_fields.append('slice_interfacing')
