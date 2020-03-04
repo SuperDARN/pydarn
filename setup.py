@@ -10,33 +10,32 @@ author:
 Marina Schmidt
 """
 
-from distutils.core import setup
 from setuptools import setup, find_packages
 from os import path
 import sys
 from subprocess import check_call
-from setuptools.command.install import install
+from setuptools.command.install import orig
 
 # TODO: currently not implemented due to some challenges
 # with C API and memory leaks.
 #rstmodule = Extension('dmap',
 #                      sources= ['dmap.c'])
 
-class initialize_submodules(install):
+class initialize_submodules(orig.install):
     def run(self):
         if path.exists('.git'):
             check_call(['git', 'submodule', 'update', '--init', '--recursive'])
         if self.old_and_unmanageable or self.single_version_externally_managed:
-            return install.run(self)
+            return orig.install.run(self)
         #install.run(self)
         caller = sys._getframe(2)
         caller_module = caller.f_globals.get('__name__','')
         caller_name = caller.f_code.co_name
         if caller_module != 'distutils.dist' or caller_name!='run_commands':
             # We weren't called from the command line or setup(), so we
-            # should run in backward-compatibility mode to support bdist_*
+            # should run in b`ackward-compatibility mode to support bdist_*
             # commands.
-            install.run(self)
+            orig.install.run(self)
         else:
             self.do_egg_install()
 
