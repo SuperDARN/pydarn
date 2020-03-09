@@ -189,6 +189,14 @@ class BorealisRead():
         """
         return self._reader.arrays
 
+    @property
+    def borealis_version(self):
+        """
+        The Borealis version that created this data. May impact the
+        fields included in the file.
+        """
+        return self._reader._borealis_version
+
     @staticmethod
     def return_reader(borealis_hdf5_file: str, borealis_filetype: str) -> \
                      (Union[BorealisArrayRead, BorealisSiteRead], str):

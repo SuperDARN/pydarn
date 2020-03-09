@@ -73,6 +73,7 @@ class BorealisArrayRead():
     record_names: list(str)
     records: dict
     arrays: dict
+    borealis_version : str
     """
 
     def __init__(self, filename: str, borealis_filetype: str):
@@ -101,6 +102,18 @@ class BorealisArrayRead():
             raise borealis_exceptions.BorealisFileTypeError(
                 self.filename, borealis_filetype)
         self.borealis_filetype = borealis_filetype
+
+        # get the version of the file - split by the dash, first part should be
+        # 'vX.X'
+        version = dd.io.load(self.filename, group='borealis_git_hash').split('-')[0]
+        if version not in borealis_formats.borealis_versions:
+            raise borealis_exceptions.BorealisVersionError(self.filename,
+                version)
+        else:
+            self._borealis_version = version
+
+        self._format_class = borealis_formats.borealis_versions[
+                self.borealis_version][self.borealis_filetype]
 
         # Records are private to avoid tampering.
         self._arrays = {}
@@ -149,6 +162,21 @@ class BorealisArrayRead():
         """
         return self._arrays
 
+    @property
+    def borealis_version(self):
+        """
+        The version of the file, taken from the 'borealis_git_hash' field, in
+        the init.
+        """
+        return self._borealis_version
+
+    @property
+    def format_class(self):
+        """
+        The format class used for the file, from the borealis_formats module.
+        """
+        return self._format_class
+
     def read_file(self) -> dict:
         """
         Reads the specified Borealis file using the other functions for
@@ -156,97 +184,25 @@ class BorealisArrayRead():
 
         Reads the entire file.
 
-        See Also
-        --------
-        read_bfiq
-        read_rawacf
-        read_antennas_iq
-
         Returns
         -------
         arrays: dict
-            borealis data dictionary. Keys are data field names and
+            borealis data dictionary of arrays. Keys are data field names and
             unshared fields have a first dimension = number of records
             in the file.
-
-        Raises
-        ------
-        BorealisFileTypeError
         """
-        if self.borealis_filetype == 'bfiq':
-            return self.read_bfiq()
-        elif self.borealis_filetype == 'rawacf':
-            return self.read_rawacf()
-        elif self.borealis_filetype == 'antennas_iq':
-            return self.read_antennas_iq()
-        else:
-            raise borealis_exceptions.BorealisFileTypeError(
-                self.filename, self.borealis_filetype)
+        pydarn_log.info("Reading Borealis {} {} file: {}"
+                         "".format(self.borealis_version, 
+                            self.borealis_filetype, self.filename))
 
-    def read_bfiq(self) -> dict:
-        """
-        Reads Borealis bfiq file that has been structured into arrays.
-
-        Returns
-        -------
-        arrays: dict
-            The Borealis data in a dictionary of arrays, according to the
-            restructured array file format.
-        """
-        pydarn_log.info("Reading Borealis bfiq file: {}"
-                        "".format(self.filename))
-        attribute_types = \
-            borealis_formats.BorealisBfiq.array_single_element_types()
-        dataset_types = borealis_formats.BorealisBfiq.array_array_dtypes()
-        unshared_fields = borealis_formats.BorealisBfiq.unshared_fields + \
-            borealis_formats.BorealisBfiq.array_only_fields
-        self._read_borealis_arrays(attribute_types,
-                                   dataset_types, unshared_fields)
+        attribute_types = self.format_class.site_single_element_types()
+        dataset_types = self.format_class.site_array_dtypes()   
+        unshared_fields = self.format_class.unshared_fields + \
+            self.format_class.array_only_fields
+        self._read_borealis_records(attribute_types, dataset_types, 
+            unshared_fields)
         return self._arrays
 
-    def read_rawacf(self) -> dict:
-        """
-        Reads Borealis rawacf file that has been structured into arrays.
-
-        Returns
-        -------
-        arrays: dict
-            The Borealis data in a dictionary of arrays, according to the
-            restructured array file format.
-        """
-        pydarn_log.info(
-            "Reading Borealis rawacf file: {}".format(self.filename))
-        attribute_types = \
-            borealis_formats.BorealisRawacf.array_single_element_types()
-        dataset_types = borealis_formats.BorealisRawacf.array_array_dtypes()
-        unshared_fields = borealis_formats.BorealisRawacf.unshared_fields + \
-            borealis_formats.BorealisRawacf.array_only_fields
-        self._read_borealis_arrays(attribute_types, dataset_types,
-                                   unshared_fields)
-        return self._arrays
-
-    def read_antennas_iq(self) -> dict:
-        """
-        Reads Borealis antennas_iq file that has been structured into arrays.
-
-        Returns
-        -------
-        arrays: dict
-            The Borealis data in a dictionary of arrays, according to the
-            restructured array file format.
-        """
-        pydarn_log.info("Reading Borealis antennas_iq file: {}"
-                        "".format(self.filename))
-        attribute_types = \
-            borealis_formats.BorealisAntennasIq.array_single_element_types()
-        dataset_types = \
-            borealis_formats.BorealisAntennasIq.array_array_dtypes()
-        unshared_fields = \
-            borealis_formats.BorealisAntennasIq.unshared_fields + \
-            borealis_formats.BorealisAntennasIq.array_only_fields
-        self._read_borealis_arrays(attribute_types, dataset_types,
-                                   unshared_fields)
-        return self._arrays
 
     def _read_borealis_arrays(self, attribute_types: dict,
                               dataset_types: dict,

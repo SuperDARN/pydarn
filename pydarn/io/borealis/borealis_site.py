@@ -32,18 +32,6 @@ Future Work
 -----------
 Add compression to bzip2
 
-Future Work
------------
-Add compression to bzip2
-
-Future Work
------------
-Add compression to bzip2
-
-Future Work
------------
-Add compression to bzip2
-
 """
 import deepdish as dd
 import h5py
@@ -87,11 +75,14 @@ class BorealisSiteRead():
     record_names: list(str)
     records: dict
     arrays: dict
+    borealis_version : str
     """
 
     def __init__(self, filename: str, borealis_filetype: str):
         """
-        Reads Borealis site file types into a dictionary.
+        Reads Borealis site file types into a dictionary. First determines 
+        the correct format class from borealis_formats module to use to verify
+        the file fields before proceeding with the read.
 
         Parameters
         ----------
@@ -118,6 +109,19 @@ class BorealisSiteRead():
         with h5py.File(self.filename, 'r') as f:
             self._record_names = sorted(list(f.keys()))
             # list of group names in the HDF5 file, to allow partial read.
+
+        # get the version of the file - split by the dash, first part should be
+        # 'vX.X'
+        version = dd.io.load(self.filename, group=self._record_names[0]
+                             )['borealis_git_hash'].split('-')[0]
+        if version not in borealis_formats.borealis_versions:
+            raise borealis_exceptions.BorealisVersionError(self.filename,
+                version)
+        else:
+            self._borealis_version = version
+
+        self._format_class = borealis_formats.borealis_versions[
+                self.borealis_version][self.borealis_filetype]
 
         # Records are private to avoid tampering.
         self._records = OrderedDict()
@@ -167,6 +171,21 @@ class BorealisSiteRead():
                                             self.filename, self.records,
                                             self.borealis_filetype)
 
+    @property
+    def borealis_version(self):
+        """
+        The version of the file, taken from the 'borealis_git_hash' in the first
+        record, in the init.
+        """
+        return self._borealis_version
+
+    @property
+    def format_class(self):
+        """
+        The format class used for the file, from the borealis_formats module.
+        """
+        return self._format_class
+
     def read_file(self) -> dict:
         """
         Reads the specified Borealis file using the other functions for
@@ -174,105 +193,19 @@ class BorealisSiteRead():
 
         Reads the entire file.
 
-        See Also
-        --------
-        read_bfiq
-        read_rawacf
-        read_antennas_iq
-        read_rawrf
-
-        Returns
-        -------
-        records: OrderedDict{dict}
-            records of borealis data. Keys are first sequence timestamp
-            (in ms since epoch).
-
-        Raises
-        ------
-        BorealisFileTypeError
-        """
-        if self.borealis_filetype == 'bfiq':
-            return self.read_bfiq()
-        elif self.borealis_filetype == 'rawacf':
-            return self.read_rawacf()
-        elif self.borealis_filetype == 'antennas_iq':
-            return self.read_antennas_iq()
-        elif self.borealis_filetype == 'rawrf':
-            return self.read_rawrf()
-        else:
-            raise borealis_exceptions.BorealisFileTypeError(
-                self.filename, self.borealis_filetype)
-
-    def read_bfiq(self) -> dict:
-        """
-        Reads Borealis bfiq file
-
-        Returns
-        -------
-        records: OrderedDict{dict}
-            records of beamformed iq data. Keys are first sequence timestamp
-            (in ms since epoch).
-        """
-        pydarn_log.info("Reading Borealis bfiq file: {}"
-                        "".format(self.filename))
-        attribute_types = \
-            borealis_formats.BorealisBfiq.site_single_element_types()
-        dataset_types = borealis_formats.BorealisBfiq.site_array_dtypes()
-        self._read_borealis_records(attribute_types, dataset_types)
-        return self._records
-
-    def read_rawacf(self) -> dict:
-        """
-        Reads Borealis rawacf file
-
         Returns
         -------
         records: OrderedDict{dict}
             records of borealis rawacf data. Keys are first sequence timestamp
             (in ms since epoch).
         """
-        pydarn_log.info(
-            "Reading Borealis rawacf file: {}".format(self.filename))
+        pydarn_log.info("Reading Borealis {} {} file: {}"
+                         "".format(self.borealis_version, 
+                            self.borealis_filetype, self.filename))
 
-        attribute_types = \
-            borealis_formats.BorealisRawacf.site_single_element_types()
-        dataset_types = borealis_formats.BorealisRawacf.site_array_dtypes()
-        self._read_borealis_records(attribute_types, dataset_types)
-        return self._records
+        attribute_types = self.format_class.site_single_element_types()
+        dataset_types = self.format_class.site_array_dtypes()   
 
-    def read_antennas_iq(self) -> dict:
-        """
-        Reads Borealis antennas_iq file
-
-        Returns
-        -------
-        records: OrderedDict{dict}
-            records of borealis antennas iq data. Keys are first sequence
-            timestamp (in ms since epoch).
-        """
-        pydarn_log.info("Reading Borealis antennas_iq file: {}"
-                        "".format(self.filename))
-        attribute_types = \
-            borealis_formats.BorealisAntennasIq.site_single_element_types()
-        dataset_types = borealis_formats.BorealisAntennasIq.site_array_dtypes()
-        self._read_borealis_records(attribute_types, dataset_types)
-        return self._records
-
-    def read_rawrf(self) -> dict:
-        """
-        Reads Borealis rawrf file
-
-        Returns
-        -------
-        records: OrderedDict{dict}
-            records of borealis rawrf data. Keys are first sequence timestamp
-            (in ms since epoch).
-        """
-        pydarn_log.info("Reading Borealis rawrf file: {}"
-                        "".format(self.filename))
-        attribute_types = \
-            borealis_formats.BorealisRawrf.site_single_element_types()
-        dataset_types = borealis_formats.BorealisRawrf.site_array_dtypes()
         self._read_borealis_records(attribute_types, dataset_types)
         return self._records
 
