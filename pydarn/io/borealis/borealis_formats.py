@@ -973,6 +973,7 @@ class BorealisRawrf(BorealisRawrfv0_4):
     # unshared_fields.append('blanked_samples')
     # unshared_fields.append('slice_interfacing')
 
+
 # borealis versions
 borealis_versions = {
     'v0.4' : {
