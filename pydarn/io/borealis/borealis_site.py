@@ -26,7 +26,7 @@ BorealisArrayWrite
 BorealisRestructureUtilities
 
 For more information on Borealis data files and how they convert to SDARN
-files, see: https://borealis.readthedocs.io/en/latest/ 
+files, see: https://borealis.readthedocs.io/en/latest/
 
 Future Work
 -----------
@@ -78,11 +78,14 @@ class BorealisSiteRead():
     record_names: list(str)
     records: dict
     arrays: dict
+    borealis_version : str
     """
 
     def __init__(self, filename: str, borealis_filetype: str):
         """
-        Reads Borealis site file types into a dictionary.
+        Reads Borealis site file types into a dictionary. First determines 
+        the correct format class from borealis_formats module to use to verify
+        the file fields before proceeding with the read.
 
         Parameters
         ----------
@@ -110,6 +113,19 @@ class BorealisSiteRead():
             self._record_names = sorted(list(f.keys()))
             # list of group names in the HDF5 file, to allow partial read.
 
+        # get the version of the file - split by the dash, first part should be
+        # 'vX.X'
+        version = dd.io.load(self.filename, group=self._record_names[0]
+                             )['borealis_git_hash'].split('-')[0]
+        if version not in borealis_formats.borealis_versions:
+            raise borealis_exceptions.BorealisVersionError(self.filename,
+                version)
+        else:
+            self._borealis_version = version
+
+        self._format_class = borealis_formats.borealis_versions[
+                self.borealis_version][self.borealis_filetype]
+
         # Records are private to avoid tampering.
         self._records = OrderedDict()
         self.read_file()
@@ -134,7 +150,7 @@ class BorealisSiteRead():
     @property
     def record_names(self):
         """
-        A sorted list of the set of record names in the HDF5 file read. 
+        A sorted list of the set of record names in the HDF5 file read.
         These correspond to Borealis file record write times (in ms since
         epoch), and are equal to the group names in the site file types.
         """
@@ -143,129 +159,59 @@ class BorealisSiteRead():
     @property
     def records(self):
         """
-        The Borealis data in a dictionary of records, according to the 
+        The Borealis data in a dictionary of records, according to the
         site file format.
         """
         return self._records
 
-    @property 
+    @property
     def arrays(self):
         """
-        The Borealis data in a dictionary of arrays, according to the 
+        The Borealis data in a dictionary of arrays, according to the
         restructured array file format.
         """
         return BorealisRestructureUtilities.borealis_site_to_array_dict(
-                                            self.filename, self.records, 
+                                            self.filename, self.records,
                                             self.borealis_filetype)
+
+    @property
+    def borealis_version(self):
+        """
+        The version of the file, taken from the 'borealis_git_hash' in the first
+        record, in the init.
+        """
+        return self._borealis_version
+
+    @property
+    def format_class(self):
+        """
+        The format class used for the file, from the borealis_formats module.
+        """
+        return self._format_class
 
     def read_file(self) -> dict:
         """
-        Reads the specified Borealis file using the other functions for 
+        Reads the specified Borealis file using the other functions for
         the proper file type.
 
         Reads the entire file.
 
-        See Also
-        --------
-        read_bfiq
-        read_rawacf
-        read_antennas_iq
-        read_rawrf
-
         Returns
         -------
         records: OrderedDict{dict}
-            records of borealis data. Keys are first sequence timestamp 
-            (in ms since epoch).
-
-        Raises
-        ------
-        BorealisFileTypeError
-        """
-        if self.borealis_filetype == 'bfiq':
-            return self.read_bfiq()
-        elif self.borealis_filetype == 'rawacf':
-            return self.read_rawacf()
-        elif self.borealis_filetype == 'antennas_iq':
-            return self.read_antennas_iq()
-        elif self.borealis_filetype == 'rawrf':
-            return self.read_rawrf()
-        else:
-            raise borealis_exceptions.BorealisFileTypeError(
-                self.filename, borealis_filetype)
-
-    def read_bfiq(self) -> dict:
-        """
-        Reads Borealis bfiq file
-
-        Returns
-        -------
-        records: OrderedDict{dict}
-            records of beamformed iq data. Keys are first sequence timestamp
+            records of borealis data. Keys are first sequence timestamp
             (in ms since epoch).
         """
-        pydarn_log.info("Reading Borealis bfiq file: {}"
-                         "".format(self.filename))
-        attribute_types = \
-            borealis_formats.BorealisBfiq.site_single_element_types()
-        dataset_types = borealis_formats.BorealisBfiq.site_array_dtypes()
+        pydarn_log.info("Reading Borealis {} {} file: {}"
+                         "".format(self.borealis_version, 
+                            self.borealis_filetype, self.filename))
+
+        attribute_types = self.format_class.site_single_element_types()
+        dataset_types = self.format_class.site_array_dtypes()   
+
         self._read_borealis_records(attribute_types, dataset_types)
         return self._records
 
-    def read_rawacf(self) -> dict:
-        """
-        Reads Borealis rawacf file
-
-        Returns
-        -------
-        records: OrderedDict{dict}
-            records of borealis rawacf data. Keys are first sequence timestamp 
-            (in ms since epoch).
-        """
-        pydarn_log.info(
-            "Reading Borealis rawacf file: {}".format(self.filename))
-
-        attribute_types = \
-            borealis_formats.BorealisRawacf.site_single_element_types()
-        dataset_types = borealis_formats.BorealisRawacf.site_array_dtypes()
-        self._read_borealis_records(attribute_types, dataset_types)
-        return self._records
-
-    def read_antennas_iq(self) -> dict:
-        """
-        Reads Borealis antennas_iq file
-
-        Returns
-        -------
-        records: OrderedDict{dict}
-            records of borealis antennas iq data. Keys are first sequence
-            timestamp (in ms since epoch).
-        """
-        pydarn_log.info("Reading Borealis antennas_iq file: {}"
-                         "".format(self.filename))
-        attribute_types = \
-            borealis_formats.BorealisAntennasIq.site_single_element_types()
-        dataset_types = borealis_formats.BorealisAntennasIq.site_array_dtypes()
-        self._read_borealis_records(attribute_types, dataset_types)
-        return self._records
-
-    def read_rawrf(self) -> dict:
-        """
-        Reads Borealis rawrf file
-
-        Returns
-        -------
-        records: OrderedDict{dict}
-            records of borealis rawrf data. Keys are first sequence timestamp
-            (in ms since epoch).
-        """
-        pydarn_log.info("Reading Borealis rawrf file: {}"
-                         "".format(self.filename))
-        attribute_types = \
-            borealis_formats.BorealisRawrf.site_single_element_types()
-        dataset_types = borealis_formats.BorealisRawrf.site_array_dtypes()
-        self._read_borealis_records(attribute_types, dataset_types)
-        return self._records
 
     def _read_borealis_records(self, attribute_types: dict,
                                dataset_types: dict):
@@ -273,14 +219,14 @@ class BorealisSiteRead():
         Read the entire file while checking all data fields.
 
         Several Borealis field checks are done to insure the integrity of the
-        file. 
+        file.
 
         Parameters
         ----------
         attribute_types: dict
             Dictionary with the required types for the attributes in the file.
         dataset_types: dict
-            Dictionary with the require dtypes for the numpy arrays in the 
+            Dictionary with the require dtypes for the numpy arrays in the
             file.
 
         Raises
@@ -292,13 +238,13 @@ class BorealisSiteRead():
                                 Borealis file/stream type
         BorealisDataFormatTypeError - when a field has the incorrect
                                 field type for the Borealis file/stream type
-        
+
         See Also
         --------
         BorealisUtilities
         """
         records = dd.io.load(self.filename)
-        BorealisUtilities.check_records(self.filename, records, 
+        BorealisUtilities.check_records(self.filename, records,
                                         attribute_types, dataset_types)
 
         self._records = OrderedDict(sorted(records.items()))
@@ -335,7 +281,7 @@ class BorealisSiteWrite():
         created on site by the Borealis radar. They are not compressed
         as they are appended to record by record.
     """
-    def __init__(self, filename: str, 
+    def __init__(self, filename: str,
                  borealis_records: OrderedDict,
                  borealis_filetype: str,
                  hdf5_compression: Union[str, None] = None):
@@ -347,7 +293,7 @@ class BorealisSiteWrite():
         filename: str
             Name of the file the user wants to write to
         borealis_records: OrderedDict{dict}
-            OrderedDict of borealis records, where keys are the 
+            OrderedDict of borealis records, where keys are the
             record name
         borealis_filetype
             filetype to write as. Currently supported:
@@ -382,8 +328,8 @@ class BorealisSiteWrite():
     @property
     def record_names(self):
         """
-        A sorted list of the set of record names in the HDF5 file read. 
-        These correspond to Borealis file record write times (in ms since 
+        A sorted list of the set of record names in the HDF5 file read.
+        These correspond to Borealis file record write times (in ms since
         epoch), and are equal to the group names in the site file types.
         """
         return self._record_names
@@ -391,19 +337,19 @@ class BorealisSiteWrite():
     @property
     def records(self):
         """
-        The Borealis data in a dictionary of records, according to the 
+        The Borealis data in a dictionary of records, according to the
         site file format.
         """
         return self._records
 
-    @property 
+    @property
     def arrays(self):
         """
-        The Borealis data in a dictionary of arrays, according to the 
+        The Borealis data in a dictionary of arrays, according to the
         restructured array file format.
         """
         return BorealisRestructureUtilities.borealis_site_to_array_dict(
-                                            self.filename, self.records, 
+                                            self.filename, self.records,
                                             self.borealis_filetype)
 
     def write_file(self) -> str:
@@ -500,15 +446,15 @@ class BorealisSiteWrite():
         """
         Write the file in site style after checking records.
 
-        Several Borealis field checks are done to insure the integrity of the 
-        file. 
+        Several Borealis field checks are done to insure the integrity of the
+        file.
 
         Parameters
         ----------
         attributes_type_dict: dict
             Dictionary with the required types for the attributes in the file.
         datasets_type_dict: dict
-            Dictionary with the require dtypes for the numpy arrays in the 
+            Dictionary with the require dtypes for the numpy arrays in the
             file.
 
         Raises
@@ -519,13 +465,13 @@ class BorealisSiteWrite():
                                 Borealis file/stream type
         BorealisDataFormatTypeError - when a field has the incorrect
                                 field type for the Borealis file/stream type
-        
+
         See Also
         --------
         BorealisUtilities
         """
         Path(self.filename).touch()
-        BorealisUtilities.check_records(self.filename, self.records, 
+        BorealisUtilities.check_records(self.filename, self.records,
                                         attribute_types, dataset_types)
 
         # use external h5copy utility to move new record into 2hr file.
@@ -538,7 +484,7 @@ class BorealisSiteWrite():
         for group_name, group_dict in self.records.items():
             dd.io.save(tmp_filename, {str(group_name): group_dict},
                 compression=self.compression)
-            cmd = cp_cmd.format(newfile=tmp_filename, full_file=self.filename, 
+            cmd = cp_cmd.format(newfile=tmp_filename, full_file=self.filename,
                 dtstr='/'+str(group_name))
 
             sp.call(cmd.split())
