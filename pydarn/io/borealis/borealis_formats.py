@@ -12,6 +12,11 @@ BorealisAntennasIq
 BorealisRawrf
 as well as previous versions of these classes.
 
+Variables
+---------
+borealis_versions
+    A lookup table for [version][filetype] that provides the appropriate class.
+
 Notes
 -----
 Debug data files such as Borealis stage iq data (an intermediate
@@ -28,27 +33,8 @@ https://borealis.readthedocs.io/en/latest/
 
 import numpy as np
 
-# borealis versions
-borealis_versions = {
-    'v0.4' : {
-        'bfiq' : BorealisBfiqv0_4, 
-        'rawacf' : BorealisRawacfv0_4,
-        'antennas_iq' : BorealisAntennasIqv0_4,
-        'rawrf' : BorealisRawrfv0_4
-        },
-    'v0.5' : {
-        'bfiq' : BorealisBfiq, 
-        'rawacf' : BorealisRawacf,
-        'antennas_iq' : BorealisAntennasIq,
-        'rawrf' : BorealisRawrf
-    }}
 
-
-<<<<<<< HEAD
-class BorealisRawacf():
-=======
 class BorealisRawacfv0_4():
->>>>>>> Adding borealis version lookup table
     """
     Class containing Borealis Rawacf data fields and their types.
 
@@ -987,5 +973,18 @@ class BorealisRawrf(BorealisRawrfv0_4):
     # unshared_fields.append('blanked_samples')
     # unshared_fields.append('slice_interfacing')
 
-    cls.unshared_fields.append('blanked_samples')
-    cls.unshared_fields.append('slice_interfacing')
+# borealis versions
+borealis_versions = {
+    'v0.4' : {
+        'bfiq' : BorealisBfiqv0_4, 
+        'rawacf' : BorealisRawacfv0_4,
+        'antennas_iq' : BorealisAntennasIqv0_4,
+        'rawrf' : BorealisRawrfv0_4
+        },
+    'v0.5' : {
+        'bfiq' : BorealisBfiq, 
+        'rawacf' : BorealisRawacf,
+        'antennas_iq' : BorealisAntennasIq,
+        'rawrf' : BorealisRawrf
+    }
+}
