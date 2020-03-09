@@ -44,7 +44,11 @@ borealis_versions = {
     }}
 
 
+<<<<<<< HEAD
 class BorealisRawacf():
+=======
+class BorealisRawacfv0_4():
+>>>>>>> Adding borealis version lookup table
     """
     Class containing Borealis Rawacf data fields and their types.
 
