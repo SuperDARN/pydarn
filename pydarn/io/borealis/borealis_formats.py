@@ -1013,8 +1013,8 @@ class BorealisAntennasIq(BorealisAntennasIqv0_4):
         "blanked_samples" : np.uint32
         })
 
-    cls.shared_fields.append('slice_id')
-    cls.shared_fields.append('scheduling_mode')
+    shared_fields.append('slice_id')
+    shared_fields.append('scheduling_mode')
 
     unshared_fields_dims.update({
         'blanked_samples': ['max_num_blanked_samples'],
