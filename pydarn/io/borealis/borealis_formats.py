@@ -19,11 +19,14 @@ borealis_versions
 
 Notes
 -----
-Debug data files such as Borealis stage iq data (an intermediate
-product that can be generated during filtering and decimating, showing
-progression from rawrf to output ptrs iq files) will not be included here.
-This is a debug format only and should not be used for higher level
-data products.
+- Debug data files such as Borealis stage iq data (an intermediate
+  product that can be generated during filtering and decimating, showing
+  progression from rawrf to output ptrs iq files) will not be included here.
+  This is a debug format only and should not be used for higher level
+  data products.
+- 'borealis_git_hash' is a necessary field for all versions, as its use is 
+  hardcoded into the code in order to determine the format version to use.
+
 
 See Also
 --------
@@ -54,10 +57,20 @@ class BorealisRawacfv0_4():
         List of the fields that are restructured to a single value per
         file in the Borealis array type files. These fields are present in both
         array and site files.
+    unshared_fields_dims: dict
+        Dimensions of the unshared fields. Dimensions given are for site 
+        structure. In array structure the first dimension will be num_records
+        followed by these dimensions. 'max_??' strings indicate a maximum value 
+        has to be found for this dimension.
     unshared_fields: list
-        List of the fields that are restructured to be an array with first
-        dimension equal to the number of records in the file. These fields are
-        present in both array and site files.
+        List of the fields that are restructured to be an array. These fields are
+        present in both array and site files but are not shared by all records 
+        so they are formed into arrays with first dimension = num_records.
+    array_only_fields_dims: dict
+        Dimensions of the array only fields. Dimensions given are for site 
+        structure. In array structure the first dimension will be num_records
+        followed by these dimensions. 'max_??' strings indicate a maximum value 
+        has to be found for this dimension.
     array_only_fields: list
         List of fields that are only present in array files. Implicitly
         also unshared between records.
@@ -96,7 +109,7 @@ class BorealisRawacfv0_4():
     """
 
     single_element_types = {
-        # Identifies the version of Borealis that made this data.
+        # Identifies the version of Borealis that made this data. Necessary for all versions.
         "borealis_git_hash": np.unicode_,
         # Number used to identify experiment.
         "experiment_id": np.int64,
@@ -177,7 +190,10 @@ class BorealisRawacfv0_4():
         "xcfs": np.complex64
     }
 
-    shared_fields = ['borealis_git_hash', 'correlation_descriptors',
+    # we don't need to know dimension info for these fields because dims
+    # will be the same for site and restructured files.
+    shared_fields = ['blanked_samples', 'borealis_git_hash', 
+                     'correlation_descriptors',
                      'data_normalization_factor', 'experiment_comment',
                      'experiment_id', 'experiment_name', 'first_range',
                      'first_range_rtt', 'freq', 'intf_antenna_count', 'lags',
@@ -186,12 +202,23 @@ class BorealisRawacfv0_4():
                      'slice_comment', 'station', 'tau_spacing',
                      'tx_pulse_len']
 
-    unshared_fields = ['blanked_samples', 'num_sequences', 'int_time', 
-                       'sqn_timestamps', 'noise_at_freq', 'main_acfs', 'intf_acfs',
-                       'xcfs', 'scan_start_marker', 'beam_nums', 'beam_azms',
-                       'num_slices']
+    unshared_fields_dims = {
+        'num_sequences': [],
+        'int_time': [], 
+        'sqn_timestamps': ['max_sequences'],
+        'noise_at_freq': ['max_sequences'],
+        'main_acfs': ['max_num_beams', 'num_ranges', 'num_lags'],
+        'intf_acfs': ['max_num_beams', 'num_ranges', 'num_lags'],
+        'xcfs': ['max_num_beams', 'num_ranges', 'num_lags'],
+        'scan_start_marker': [],
+        'beam_nums': ['max_num_beams'],
+        'beam_azms': ['max_num_beams'],
+        'num_slices': [],
+    }
+    unshared_fields = list(unshared_fields_dims.keys())
 
-    array_only_fields = ['num_beams']  # also unshared (array)
+    array_only_fields_dims = {'num_beams': []} # also unshared (array)
+    array_only_fields = list(array_only_fields_dims.keys())
 
     site_only_fields = ['correlation_dimensions']
 
@@ -334,7 +361,7 @@ class BorealisBfiq():
     """
 
     single_element_types = {
-        # Identifies the version of Borealis that made this data.
+        # Identifies the version of Borealis that made this data. Necessary for all versions.
         "borealis_git_hash": np.unicode_,
         # Number used to identify experiment.
         "experiment_id": np.int64,
@@ -419,7 +446,8 @@ class BorealisBfiq():
         "data": np.complex64
     }
 
-    shared_fields =  ['antenna_arrays_order', 'borealis_git_hash',
+    shared_fields =  ['antenna_arrays_order', 'blanked_samples', 
+                      'borealis_git_hash',
                       'data_descriptors', 'data_normalization_factor',
                       'experiment_comment', 'experiment_id', 'experiment_name',
                       'first_range', 'first_range_rtt', 'freq',
@@ -430,12 +458,22 @@ class BorealisBfiq():
                       'slice_comment', 'station', 'tau_spacing',
                       'tx_pulse_len']
 
-    unshared_fields = ['blanked_samples', 'num_sequences', 'int_time', 
-                       'sqn_timestamps', 'noise_at_freq', 'data', 
-                       'scan_start_marker', 'beam_azms', 'beam_nums', 
-                       'num_slices']
+    unshared_fields_dims = {
+        'num_sequences': [],
+        'int_time': [], 
+        'sqn_timestamps': ['max_sequences'],
+        'noise_at_freq': ['max_sequences'],
+        'data': ['num_antenna_arrays', 'max_sequences', 'max_num_beams', 
+                 'num_samps'],
+        'scan_start_marker': [],
+        'beam_nums': ['max_num_beams'],
+        'beam_azms': ['max_num_beams'],
+        'num_slices': [],
+    }
+    unshared_fields = list(unshared_fields_dims.keys())
 
-    array_only_fields = ['num_beams']  # also unshared
+    array_only_fields_dims = {'num_beams': []} # also unshared (array)
+    array_only_fields = list(array_only_fields_dims.keys())
 
     site_only_fields = ['data_dimensions']
 
@@ -576,7 +614,7 @@ class BorealisAntennasIq():
     """
 
     single_element_types = {
-        # Identifies the version of Borealis that made this data.
+        # Identifies the version of Borealis that made this data. Necessary for all versions.
         "borealis_git_hash": np.unicode_,
         # Number used to identify experiment.
         "experiment_id": np.int64,
@@ -659,11 +697,22 @@ class BorealisAntennasIq():
                      'slice_comment', 'station', 'tau_spacing',
                      'tx_pulse_len']
 
-    unshared_fields = ['num_sequences', 'int_time', 'sqn_timestamps',
-                       'noise_at_freq', 'data', 'scan_start_marker',
-                       'beam_azms', 'beam_nums', 'num_slices']
+    unshared_fields_dims = {
+        'num_sequences': [],
+        'int_time': [], 
+        'sqn_timestamps': ['max_sequences'],
+        'noise_at_freq': ['max_sequences'],
+        'data': ['num_antennas', 'max_sequences', 'num_samps'],
+        'scan_start_marker': [],
+        'beam_nums': ['max_num_beams'],
+        'beam_azms': ['max_num_beams'],
+        'num_slices': [],
+    }
+    unshared_fields = list(unshared_fields_dims.keys())
 
-    array_only_fields = ['num_beams']  # also unshared
+    array_only_fields_dims = {'num_beams': []} # also unshared (array)
+    array_only_fields = list(array_only_fields_dims.keys())
+
     site_only_fields = ['data_dimensions']
 
     @classmethod
@@ -764,7 +813,7 @@ class BorealisRawrf():
     """
 
     single_element_types = {
-        # Identifies the version of Borealis that made this data.
+        # Identifies the version of Borealis that made this data. Necessary for all versions.
         "borealis_git_hash": np.unicode_,
         # Number used to identify experiment.
         "experiment_id": np.int64,
@@ -846,18 +895,27 @@ class BorealisRawrf():
 class BorealisRawacf(BorealisRawacfv0_4):
     """
     Class containing Borealis Rawacf data fields and their types for the
-    current version of Borealis.
+    current version of Borealis (v0.5).
 
     Rawacf data has been mixed, filtered, and decimated; beamformed and
     combined into antenna arrays; then autocorrelated and correlated between
     antenna arrays to produce matrices of num_ranges x num_lags.
 
     See base class for description of attributes and notes.
+
+    In v0.5, the following fields were added:
+    slice_id, slice_interfacing, scheduling_mode, and averaging_method.
+    As well, blanked_samples was changed from shared to unshared in the array
+    restructuring.
     """
 
     # New fields added in v0.5 to shared fields:
 
-    cls.single_element_types.update({
+    single_element_types = BorealisRawacfv0_4.single_element_types
+    shared_fields = BorealisRawacfv0_4.shared_fields
+    unshared_fields_dims = BorealisRawacfv0_4.unshared_fields_dims
+
+    single_element_types.update({
         # the slice id of the file and dataset.
         "slice_id" : np.uint32,
         # the interfacing of this slice to other slices.
@@ -868,17 +926,20 @@ class BorealisRawacf(BorealisRawacfv0_4):
         "averaging_method" : np.unicode_
         })
 
-    cls.shared_fields.append('slice_id')
-    cls.shared_fields.append('scheduling_mode')
-    cls.shared_fields.append('averaging_method')
+    shared_fields.append('slice_id')
+    shared_fields.append('scheduling_mode')
+    shared_fields.append('averaging_method')
+    shared_fields.remove('blanked_samples') # changed to unshared
 
-    cls.unshared_fields.append('slice_interfacing')
-
+    unshared_fields_dims.update({
+        'blanked_samples': ['max_num_blanked_samples'],
+        'slice_interfacing': []
+        })
 
 class BorealisBfiq(BorealisBfiqv0_4):
     """
     Class containing Borealis Bfiq data fields and their types for the
-    current version of Borealis.
+    current version of Borealis (v0.5).
 
     Bfiq data is beamformed i and q data. It has been mixed, filtered,
     decimated to the final output receive rate, and it has been beamformed
@@ -886,11 +947,20 @@ class BorealisBfiq(BorealisBfiqv0_4):
     or averaging has occurred.
 
     See base class for description of attributes and notes.
+
+    In v0.5, the following fields were added:
+    slice_id, slice_interfacing, and scheduling_mode.
+    As well, blanked_samples was changed from shared to unshared in the array
+    restructuring.
     """
 
     # New fields added in v0.5 to shared fields:
 
-    cls.single_element_types.update({
+    single_element_types = BorealisBfiqv0_4.single_element_types
+    shared_fields = BorealisBfiqv0_4.shared_fields
+    unshared_fields_dims = BorealisBfiqv0_4.unshared_fields_dims
+
+    single_element_types.update({
         # the slice id of the file and dataset.
         "slice_id" : np.uint32,
         # the interfacing of this slice to other slices.
@@ -899,27 +969,37 @@ class BorealisBfiq(BorealisBfiqv0_4):
         "scheduling_mode" : np.unicode_
         })
 
-    cls.shared_fields.append('slice_id')
-    cls.shared_fields.append('scheduling_mode')
+    shared_fields.append('slice_id')
+    shared_fields.append('scheduling_mode')
+    shared_fields.remove('blanked_samples') # changed to unshared
 
-    cls.unshared_fields.append('slice_interfacing')
-
+    unshared_fields_dims.update({
+        'blanked_samples': ['max_num_blanked_samples'],
+        'slice_interfacing': []
+        })
 
 class BorealisAntennasIq(BorealisAntennasIqv0_4):
     """
     Class containing Borealis Antennas iq data fields and their types for
-    Borealis current version.
+    Borealis current version (v0.5).
 
     Antennas iq data is data with all channels separated. It has been mixed
     and filtered, but it has not been beamformed or combined into the
     entire antenna array data product.
 
     See base class for description of attributes and notes.
+    In v0.5, the following fields were added:
+    slice_id, slice_interfacing, scheduling_mode, and blanked_samples.
     """
 
     # New fields added in v0.5 to shared fields:
 
-    cls.single_element_types.update({
+    single_element_types = BorealisAntennasIqv0_4.single_element_types
+    array_dtypes = BorealisAntennasIqv0_4.array_dtypes
+    shared_fields = BorealisAntennasIqv0_4.shared_fields
+    unshared_fields_dims = BorealisAntennasIqv0_4.unshared_fields_dims
+
+    single_element_types.update({
         # the slice id of the file and dataset.
         "slice_id" : np.uint32,
         # the interfacing of this slice to other slices.
@@ -936,14 +1016,19 @@ class BorealisAntennasIq(BorealisAntennasIqv0_4):
     cls.shared_fields.append('slice_id')
     cls.shared_fields.append('scheduling_mode')
 
-    cls.unshared_fields.append('blanked_samples')
-    cls.unshared_fields.append('slice_interfacing')
-
+    unshared_fields_dims.update({
+        'blanked_samples': ['max_num_blanked_samples'],
+        'slice_interfacing': []
+        })
 
 class BorealisRawrf(BorealisRawrfv0_4):
     """
     Class containing Borealis Rawrf data fields and their types for current
-    Borealis version.
+    Borealis version (v0.5).
+
+    See base class for description of attributes and notes.
+    In v0.5, the following fields were added:
+    slice_id, slice_interfacing, scheduling_mode, and blanked_samples.
     """
 
     # New fields added in v0.5 to shared fields:
