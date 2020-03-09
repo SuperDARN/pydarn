@@ -10,6 +10,7 @@ BorealisRawacf
 BorealisBfiq
 BorealisAntennasIq
 BorealisRawrf
+as well as previous versions of these classes.
 
 Notes
 -----
@@ -26,6 +27,21 @@ https://borealis.readthedocs.io/en/latest/
 """
 
 import numpy as np
+
+# borealis versions
+borealis_versions = {
+    'v0.4' : {
+        'bfiq' : BorealisBfiqv0_4, 
+        'rawacf' : BorealisRawacfv0_4,
+        'antennas_iq' : BorealisAntennasIqv0_4,
+        'rawrf' : BorealisRawrfv0_4
+        },
+    'v0.5' : {
+        'bfiq' : BorealisBfiq, 
+        'rawacf' : BorealisRawacf,
+        'antennas_iq' : BorealisAntennasIq,
+        'rawrf' : BorealisRawrf
+    }}
 
 
 class BorealisRawacfv0_4():
