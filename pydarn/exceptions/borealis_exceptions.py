@@ -354,3 +354,31 @@ class ConvertFileOverWriteError(Exception):
         self.message = "Writing to {filename} not permitted while reading"\
             " the file as source.".format(filename=filename)
         Exception.__init__(self, self.message)
+
+
+class BorealisVersionError(Exception):
+    """
+    The version is not found in the current list of versions
+    available in the borealis formats.
+
+    Parameters
+    ----------
+    filename: str
+        File attempted to read/write
+    file_version: str
+        SuperDARN Borealis version that is not implemented or correct
+
+    Attributes
+    ----------
+    message: str
+        The message to display with the error
+    """
+
+    def __init__(self, filename: str, file_version: str):
+        self.file_version = file_version
+        self.filename = filename
+        self.message = "Version {file_version} from the borealis_git_hash is not"\
+            " a recognized Borealis version or has not been implemented yet."\
+            " {filename} was not used.".format(file_version=self.file_version,
+                                   filename=self.filename)
+        Exception.__init__(self, self.message)
