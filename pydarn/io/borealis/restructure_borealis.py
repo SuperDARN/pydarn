@@ -35,15 +35,6 @@ class BorealisRestructureUtilities():
     and unshared fields are written as arrays where number of records is the
     first dimension.
 
-    Static Methods
-    --------------
-    find_max_sequences(data)
-        Find the max number of sequences between records in a site file, for
-        restructuring to arrays.
-    find_max_beams(data)
-        Find the max number of beams between records in a site file, for
-        restructuring to arrays.
-
     Class Methods
     -------------
     borealis_site_to_array_dict(origin_string, data_dict, conversion_type)
@@ -67,55 +58,6 @@ class BorealisRestructureUtilities():
     rawacf_array_to_site(data_dict, origin_string)
         Convert rawacf array data to site record dictionary.
     """
-
-    @staticmethod
-    def find_max_sequences(data: OrderedDict) -> int:
-        """
-        Finds the maximum number of sequences between records in a Borealis
-        site style data file.
-
-        Parameters
-        ----------
-        data
-            Site formatted data from a Borealis file, organized as one
-            record for each slice
-
-        Returns
-        -------
-        max_seqs
-            The largest number of sequences found in one record from the
-            file
-        """
-        max_seqs = 0
-        for k in data:
-            if max_seqs < data[k]["num_sequences"]:
-                max_seqs = data[k]["num_sequences"]
-        return max_seqs
-
-    @staticmethod
-    def find_max_beams(data: OrderedDict) -> int:
-        """
-        Finds the maximum number of beams between records in a Borealis
-        site style data file.
-
-        Parameters
-        ----------
-        data
-            Site formatted data from a Borealis file, organized as one
-            record for each slice
-
-        Returns
-        -------
-        max_beams
-            The largest number of beams found in one record from the
-            file
-        """
-        max_beams = 0
-        for k in data:
-
-            if max_beams < len(data[k]["beam_nums"]):
-                max_beams = len(data[k]["beam_nums"])
-        return max_beams
 
     @classmethod
     def _iq_site_to_array(cls, data_dict: OrderedDict,
@@ -162,8 +104,7 @@ class BorealisRestructureUtilities():
                                    dtype=np.complex64)
 
             data_descriptors = np.array(["num_records", "num_antennas",
-                                         "max_num_sequences", "num_samps"],
-                                        dtype=np.unicode_)
+                "max_num_sequences", "num_samps"], dtype=np.unicode_)
             data_shape = (num_records, num_antennas, max_seqs, num_samps)
 
         elif iq_filetype == 'bfiq':
@@ -174,14 +115,10 @@ class BorealisRestructureUtilities():
             num_samps = dims[3]
 
             data_buffer_offset = num_arrays * max_beams * num_samps * max_seqs
-            data_buffer = np.zeros(num_records * data_buffer_offset,
-                                   dtype=np.complex64)
+            data_buffer = np.zeros(num_records * data_buffer_offset, dtype=np.complex64)
             data_descriptors = np.array(["num_records", "num_antenna_arrays",
-                                         "max_num_sequences",
-                                         "max_num_beams", "num_samps"],
-                                        dtype=np.unicode_)
-            data_shape = (num_records, num_arrays, max_seqs,
-                          max_beams, num_samps)
+                "max_num_sequences", "max_num_beams", "num_samps"], dtype=np.unicode_)
+            data_shape = (num_records, num_arrays, max_seqs, max_beams, num_samps)
 
         else:  # Unrecognized
             raise borealis_exceptions.BorealisRestructureError("Unrecognized"
@@ -216,10 +153,8 @@ class BorealisRestructureUtilities():
             beam_azms_buffer = data_dict[k]["beam_azms"]
             # the beam_nums, beam_azms at a record may have appended zeros,
             # which is why a num_beams array is necessary.
-            beam_nums_array[rec_idx][0:len(beam_nums_buffer)] =\
-                beam_nums_buffer
-            beam_azms_array[rec_idx][0:len(beam_azms_buffer)] =\
-                beam_azms_buffer
+            beam_nums_array[rec_idx][0:len(beam_nums_buffer)] = beam_nums_buffer
+            beam_azms_array[rec_idx][0:len(beam_azms_buffer)] = beam_azms_buffer
             num_beams_array[rec_idx] = len(beam_nums_buffer)
 
             # insert data into buffer
@@ -282,9 +217,9 @@ class BorealisRestructureUtilities():
             new_data_dict = cls._iq_site_to_array(data_dict, 'bfiq')
 
             BorealisUtilities.check_arrays(origin_string, new_data_dict,
-                                           borealis_formats.BorealisBfiq.array_single_element_types(),
-                                           borealis_formats.BorealisBfiq.array_array_dtypes(),
-                                           borealis_formats.BorealisBfiq.unshared_fields)
+                borealis_formats.BorealisBfiq.array_single_element_types(),
+                borealis_formats.BorealisBfiq.array_array_dtypes(),
+                borealis_formats.BorealisBfiq.unshared_fields)
 
         except Exception as e:
             raise borealis_exceptions.BorealisRestructureError('Error '
@@ -323,9 +258,9 @@ class BorealisRestructureUtilities():
             new_data_dict = cls._iq_site_to_array(data_dict, 'antennas_iq')
 
             BorealisUtilities.check_arrays(origin_string, new_data_dict,
-                                           borealis_formats.BorealisAntennasIq.array_single_element_types(),
-                                           borealis_formats.BorealisAntennasIq.array_array_dtypes(),
-                                           borealis_formats.BorealisAntennasIq.unshared_fields)
+                borealis_formats.BorealisAntennasIq.array_single_element_types(),
+                borealis_formats.BorealisAntennasIq.array_array_dtypes(),
+                borealis_formats.BorealisAntennasIq.unshared_fields)
 
         except Exception as e:
             raise borealis_exceptions.BorealisRestructureError('Error '
@@ -377,8 +312,7 @@ class BorealisRestructureUtilities():
             num_lags = first_dims[2]
 
             correlation_descriptors = np.array(['num_records', 'max_num_beams',
-                                                'num_ranges', 'num_lags'],
-                                               dtype=np.unicode_)
+                'num_ranges', 'num_lags'], dtype=np.unicode_)
             correlation_shape = (num_records, max_beams, num_ranges, num_lags)
 
             noise_buffer_offset = max_seqs
@@ -413,10 +347,8 @@ class BorealisRestructureUtilities():
                 beam_azms_buffer = data_dict[k]["beam_azms"]
                 # the beam_nums, beam_azms at a record may have appended zeros,
                 # which is why a num_beams array is necessary.
-                beam_nums_array[rec_idx][0:len(beam_nums_buffer)] =\
-                    beam_nums_buffer
-                beam_azms_array[rec_idx][0:len(beam_azms_buffer)] =\
-                    beam_azms_buffer
+                beam_nums_array[rec_idx][0:len(beam_nums_buffer)] = beam_nums_buffer
+                beam_azms_array[rec_idx][0:len(beam_azms_buffer)] = beam_azms_buffer
                 num_beams = num_beams_array[rec_idx] = len(beam_nums_buffer)
 
                 # some records have fewer than the specified
@@ -459,9 +391,9 @@ class BorealisRestructureUtilities():
             new_data_dict["xcfs"] = xcfs_array
 
             BorealisUtilities.check_arrays(origin_string, new_data_dict,
-                                           borealis_formats.BorealisRawacf.array_single_element_types(),
-                                           borealis_formats.BorealisRawacf.array_array_dtypes(),
-                                           borealis_formats.BorealisRawacf.unshared_fields)
+                borealis_formats.BorealisRawacf.array_single_element_types(),
+                borealis_formats.BorealisRawacf.array_array_dtypes(),
+                borealis_formats.BorealisRawacf.unshared_fields)
 
         except Exception as e:
             raise borealis_exceptions.BorealisRestructureError('Error '
@@ -504,9 +436,13 @@ class BorealisRestructureUtilities():
                 max_num_beams, num_samps = data_dict["data"].shape
             # new data descriptors
             data_descriptors = np.array(["num_antenna_arrays",
+<<<<<<< HEAD
                                          "num_sequences", "num_beams",
                                          "num_samps"],
                                         dtype=np.unicode_)
+=======
+                "num_sequences", "num_beams", "num_samps"], dtype=np.unicode_)
+>>>>>>> Moved dimension finder classes to format classes
         elif iq_filetype == 'antennas_iq':
             # dims are num_antennas, num_sequences, num_samps
             shared_fields = borealis_formats.BorealisAntennasIq.shared_fields
@@ -517,11 +453,18 @@ class BorealisRestructureUtilities():
             max_num_beams = max(data_dict["num_beams"])  # array only field
             # new data descriptors
             data_descriptors = np.array(["num_antennas", "num_sequences",
+<<<<<<< HEAD
                                          "num_samps"], dtype=np.unicode_)
         else:
             raise borealis_exceptions.BorealisRestructureError("Unrecognized"
                                                                " filetype in"
                                                                " _iq_site_to_array")
+=======
+                "num_samps"], dtype=np.unicode_)
+        else:
+            raise borealis_exceptions.BorealisRestructureError(""\
+                "Unrecognized filetype in _iq_site_to_array")
+>>>>>>> Moved dimension finder classes to format classes
 
         # get keys from first sequence timestamps
         for rec, seq_timestamp in enumerate(data_dict["sqn_timestamps"]):
@@ -543,9 +486,14 @@ class BorealisRestructureUtilities():
             for field in unshared_fields:
                 timestamp_dict[key][field] = data_dict[field][rec]
 
+<<<<<<< HEAD
             # Handle special cases - where dimensions may be
             # larger than necessary.
             num_beams = data_dict["num_beams"][rec]  # array only field
+=======
+            # Handle special cases - where dimensions may be larger than necessary.
+            num_beams = data_dict["num_beams"][rec] # array only field
+>>>>>>> Moved dimension finder classes to format classes
             if num_beams != max_num_beams:
                 timestamp_dict[key]["beam_nums"] =\
                     timestamp_dict[key]["beam_nums"][rec, :num_beams]
@@ -554,6 +502,7 @@ class BorealisRestructureUtilities():
 
             num_sequences = timestamp_dict[key]["num_sequences"]
             if num_sequences != max_num_sequences:
+<<<<<<< HEAD
                 timestamp_dict[key]["sqn_timestamps"] =\
                     data_dict["sqn_timestamps"][rec, :num_sequences]
                 timestamp_dict[key]["noise_at_freq"] =\
@@ -561,6 +510,12 @@ class BorealisRestructureUtilities():
 
             # have to take correct dimensions to remove appended zeros if
             # num_sequences or
+=======
+                timestamp_dict[key]["sqn_timestamps"] = data_dict["sqn_timestamps"][rec,:num_sequences]
+                timestamp_dict[key]["noise_at_freq"] = data_dict["noise_at_freq"][rec,:num_sequences]
+
+            # have to take correct dimensions to remove appended zeros if num_sequences or
+>>>>>>> Moved dimension finder classes to format classes
             # num_beams are less than their max.
             if iq_filetype == 'bfiq':
                 dims = np.array([num_antenna_arrays, num_sequences,
@@ -569,11 +524,18 @@ class BorealisRestructureUtilities():
                 new_data = data_dict["data"][rec, :dims[0], :dims[1],
                                              :dims[2], :dims[3]]
             elif iq_filetype == 'antennas_iq':
+<<<<<<< HEAD
                 dims = np.array([num_antennas, num_sequences, num_samps],
                                 dtype=np.uint32)
                 new_data = data_dict["data"][rec, :dims[0], :dims[1], :dims[2]]
 
             timestamp_dict[key]["data_dimensions"] = dims  # site only field
+=======
+                dims = np.array([num_antennas, num_sequences, num_samps], dtype=np.uint32)
+                new_data = data_dict["data"][rec,:dims[0],:dims[1],:dims[2]]
+
+            timestamp_dict[key]["data_dimensions"] = dims # site only field
+>>>>>>> Moved dimension finder classes to format classes
             timestamp_dict[key]["data"] = new_data.flatten()
 
         return timestamp_dict
@@ -602,8 +564,13 @@ class BorealisRestructureUtilities():
         try:
             timestamp_dict = cls._iq_array_to_site(data_dict, 'bfiq')
             BorealisUtilities.check_records(origin_string, timestamp_dict,
+<<<<<<< HEAD
                                             borealis_formats.BorealisBfiq.site_single_element_types(),
                                             borealis_formats.BorealisBfiq.site_array_dtypes())
+=======
+                borealis_formats.BorealisBfiq.site_single_element_types(),
+                borealis_formats.BorealisBfiq.site_array_dtypes())
+>>>>>>> Moved dimension finder classes to format classes
 
         except Exception as e:
             raise borealis_exceptions.BorealisRestructureError('Error '
@@ -639,8 +606,13 @@ class BorealisRestructureUtilities():
         try:
             timestamp_dict = cls._iq_array_to_site(data_dict, 'antennas_iq')
             BorealisUtilities.check_records(origin_string, timestamp_dict,
+<<<<<<< HEAD
                                             borealis_formats.BorealisAntennasIq.site_single_element_types(),
                                             borealis_formats.BorealisAntennasIq.site_array_dtypes())
+=======
+                borealis_formats.BorealisAntennasIq.site_single_element_types(),
+                borealis_formats.BorealisAntennasIq.site_array_dtypes())
+>>>>>>> Moved dimension finder classes to format classes
 
         except Exception as e:
             raise borealis_exceptions.BorealisRestructureError('Error '
@@ -703,8 +675,13 @@ class BorealisRestructureUtilities():
                 timestamp_dict[key]["correlation_descriptors"] =\
                     correlation_descriptors
 
+<<<<<<< HEAD
                 # Handle per record fields, copy all and deal with
                 # dimensions issues after
+=======
+                # Handle per record fields, copy all and deal with dimensions issues
+                # after
+>>>>>>> Moved dimension finder classes to format classes
                 for field in unshared_fields:
                     timestamp_dict[key][field] = data_dict[field][rec]
 
@@ -743,6 +720,13 @@ class BorealisRestructureUtilities():
                                             borealis_formats.BorealisRawacf.site_single_element_types(),
                                             borealis_formats.BorealisRawacf.site_array_dtypes())
 
+<<<<<<< HEAD
+=======
+            BorealisUtilities.check_records(origin_string, timestamp_dict,
+                borealis_formats.BorealisRawacf.site_single_element_types(),
+                borealis_formats.BorealisRawacf.site_array_dtypes())
+
+>>>>>>> Moved dimension finder classes to format classes
         except Exception as e:
             raise borealis_exceptions.BorealisRestructureError('Error '
                                                                'restructuring'
@@ -754,8 +738,12 @@ class BorealisRestructureUtilities():
         return timestamp_dict
 
     @classmethod
+<<<<<<< HEAD
     def borealis_site_to_array_dict(cls, origin_string: str,
                                     data_dict: OrderedDict,
+=======
+    def borealis_site_to_array_dict(cls, origin_string: str, data_dict: OrderedDict,
+>>>>>>> Moved dimension finder classes to format classes
                                     conversion_type: str) -> dict:
         """
         Converts a file from site style to restructured array style. Determines

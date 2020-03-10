@@ -6,6 +6,7 @@ SuperDARN Borealis HDF5 files.
 
 Classes
 -------
+BaseFormatClass
 BorealisRawacf
 BorealisBfiq
 BorealisAntennasIq
@@ -36,8 +37,92 @@ https://borealis.readthedocs.io/en/latest/
 
 import numpy as np
 
+class BaseFormatClass():
+    """
+    Static Methods
+    --------------
+    find_max_sequences(data)
+        Find the max number of sequences between records in a site file, for
+        restructuring to arrays.
+    find_max_beams(data)
+        Find the max number of beams between records in a site file, for
+        restructuring to arrays.
+    """
+    @staticmethod
+    def find_max_sequences(data: OrderedDict) -> int:
+        """
+        Finds the maximum number of sequences between records in a Borealis
+        site style data file.
 
-class BorealisRawacfv0_4():
+        Parameters
+        ----------
+        data
+            Site formatted data from a Borealis file, organized as one
+            record for each slice
+
+        Returns
+        -------
+        max_seqs
+            The largest number of sequences found in one record from the
+            file
+        """
+        max_seqs = 0
+        for k in data:
+            if max_seqs < data[k]["num_sequences"]:
+                max_seqs = data[k]["num_sequences"]
+        return max_seqs
+
+    @staticmethod
+    def find_max_beams(data: OrderedDict) -> int:
+        """
+        Finds the maximum number of beams between records in a Borealis
+        site style data file.
+
+        Parameters
+        ----------
+        data
+            Site formatted data from a Borealis file, organized as one
+            record for each slice
+
+        Returns
+        -------
+        max_beams
+            The largest number of beams found in one record from the
+            file
+        """
+        max_beams = 0
+        for k in data:
+            if max_beams < len(data[k]["beam_nums"]):
+                max_beams = len(data[k]["beam_nums"])
+        return max_beams
+
+    @staticmethod
+    def find_max_blanked_samples(data: OrderedDict) -> int:
+        """
+        Finds the maximum number of blanked samples between records in a Borealis
+        site style data file.
+
+        Parameters
+        ----------
+        data
+            Site formatted data from a Borealis file, organized as one
+            record for each slice
+
+        Returns
+        -------
+        max_beams
+            The largest number of beams found in one record from the
+            file
+        """
+        max_blanked_samples = 0
+        for k in data:
+            if max_blanked_samples < len(data[k]["blanked_samples"]):
+                max_blanked_samples = len(data[k]["blanked_samples"])
+        return max_blanked_samples
+
+
+
+class BorealisRawacfv0_4(BaseFormatClass):
     """
     Class containing Borealis Rawacf data fields and their types.
 
@@ -60,8 +145,8 @@ class BorealisRawacfv0_4():
     unshared_fields_dims: dict
         Dimensions of the unshared fields. Dimensions given are for site 
         structure. In array structure the first dimension will be num_records
-        followed by these dimensions. 'max_??' strings indicate a maximum value 
-        has to be found for this dimension.
+        followed by these dimensions. Dimensions are provided as functions that 
+        will calculate the dimension given a single record (data dictionary)
     unshared_fields: list
         List of the fields that are restructured to be an array. These fields are
         present in both array and site files but are not shared by all records 
@@ -205,14 +290,20 @@ class BorealisRawacfv0_4():
     unshared_fields_dims = {
         'num_sequences': [],
         'int_time': [], 
-        'sqn_timestamps': ['max_sequences'],
-        'noise_at_freq': ['max_sequences'],
-        'main_acfs': ['max_num_beams', 'num_ranges', 'num_lags'],
-        'intf_acfs': ['max_num_beams', 'num_ranges', 'num_lags'],
-        'xcfs': ['max_num_beams', 'num_ranges', 'num_lags'],
+        'sqn_timestamps': [cls.find_max_sequences],
+        'noise_at_freq': [cls.find_max_sequences],
+        'main_acfs': [cls.find_max_beams, 
+                lambda record: record['correlation_dimensions'][1], # num_ranges
+                lambda record: record['correlation_dimensions'][2]], # num_lags
+        'intf_acfs': [cls.find_max_beams, 
+                lambda record: record['correlation_dimensions'][1], # num_ranges
+                lambda record: record['correlation_dimensions'][2]], # num_lags
+        'xcfs': [cls.find_max_beams, 
+                lambda record: record['correlation_dimensions'][1], # num_ranges
+                lambda record: record['correlation_dimensions'][2]], # num_lags
         'scan_start_marker': [],
-        'beam_nums': ['max_num_beams'],
-        'beam_azms': ['max_num_beams'],
+        'beam_nums': [cls.find_max_beams],
+        'beam_azms': [cls.find_max_beams],
         'num_slices': [],
     }
     unshared_fields = list(unshared_fields_dims.keys())
@@ -298,7 +389,7 @@ class BorealisRawacfv0_4():
         return array_array_dtypes
 
 
-class BorealisBfiq():
+class BorealisBfiqv0_4(BaseFormatClass):
     """
     Class containing Borealis Bfiq data fields and their types.
 
@@ -461,13 +552,14 @@ class BorealisBfiq():
     unshared_fields_dims = {
         'num_sequences': [],
         'int_time': [], 
-        'sqn_timestamps': ['max_sequences'],
-        'noise_at_freq': ['max_sequences'],
-        'data': ['num_antenna_arrays', 'max_sequences', 'max_num_beams', 
-                 'num_samps'],
+        'sqn_timestamps': [cls.find_max_sequences],
+        'noise_at_freq': [cls.find_max_sequences],
+        'data': [lambda record: record['data_dimensions'][0], # num_antenna_arrays
+                 cls.find_max_sequences, cls.find_max_beams, 
+                 lambda record: record['data_dimensions'][3]], # num_samps
         'scan_start_marker': [],
-        'beam_nums': ['max_num_beams'],
-        'beam_azms': ['max_num_beams'],
+        'beam_nums': [cls.find_max_beams],
+        'beam_azms': [cls.find_max_beams],
         'num_slices': [],
     }
     unshared_fields = list(unshared_fields_dims.keys())
@@ -552,7 +644,7 @@ class BorealisBfiq():
         return array_array_dtypes
 
 
-class BorealisAntennasIq():
+class BorealisAntennasIqv0_4(BaseFormatClass):
     """
     Class containing Borealis Antennas iq data fields and their types.
 
@@ -700,12 +792,14 @@ class BorealisAntennasIq():
     unshared_fields_dims = {
         'num_sequences': [],
         'int_time': [], 
-        'sqn_timestamps': ['max_sequences'],
-        'noise_at_freq': ['max_sequences'],
-        'data': ['num_antennas', 'max_sequences', 'num_samps'],
+        'sqn_timestamps': [cls.find_max_sequences],
+        'noise_at_freq': [cls.find_max_sequences],
+        'data': [lambda record: record['data_dimensions'][0], # num_antennas
+                 cls.find_max_sequences,
+                 lambda record: record['data_dimensions'][2]], # num_samps
         'scan_start_marker': [],
-        'beam_nums': ['max_num_beams'],
-        'beam_azms': ['max_num_beams'],
+        'beam_nums': [cls.find_max_beams],
+        'beam_azms': [cls.find_max_beams],
         'num_slices': [],
     }
     unshared_fields = list(unshared_fields_dims.keys())
@@ -791,7 +885,7 @@ class BorealisAntennasIq():
         return array_array_dtypes
 
 
-class BorealisRawrf():
+class BorealisRawrfv0_4(BaseFormatClass):
     """
     Class containing Borealis Rawrf data fields and their types.
 
@@ -932,7 +1026,7 @@ class BorealisRawacf(BorealisRawacfv0_4):
     shared_fields.remove('blanked_samples') # changed to unshared
 
     unshared_fields_dims.update({
-        'blanked_samples': ['max_num_blanked_samples'],
+        'blanked_samples': [cls.find_max_blanked_samples],
         'slice_interfacing': []
         })
 
@@ -974,7 +1068,7 @@ class BorealisBfiq(BorealisBfiqv0_4):
     shared_fields.remove('blanked_samples') # changed to unshared
 
     unshared_fields_dims.update({
-        'blanked_samples': ['max_num_blanked_samples'],
+        'blanked_samples': [cls.find_max_blanked_samples],
         'slice_interfacing': []
         })
 
@@ -1017,7 +1111,7 @@ class BorealisAntennasIq(BorealisAntennasIqv0_4):
     shared_fields.append('scheduling_mode')
 
     unshared_fields_dims.update({
-        'blanked_samples': ['max_num_blanked_samples'],
+        'blanked_samples': [cls.find_max_blanked_samples],
         'slice_interfacing': []
         })
 
