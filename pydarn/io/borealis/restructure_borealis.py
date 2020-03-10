@@ -60,6 +60,77 @@ class BorealisRestructureUtilities():
     """
 
     @classmethod
+    def _site_to_array(cls, data_dict: OrderedDict, filetype: str, 
+            format_class: type) -> dict:
+        """
+        Base function for converting site Borealis data to
+        restructured array format.
+
+        Parameters
+        ----------
+        data_dict: OrderedDict
+            a dict of timestamped records loaded from an hdf5 Borealis site file
+        filetype: str
+            'borealis_filetype' for more info on how to process
+        format_class: type
+            the class to use to get the format information for this file. Can 
+            be any class from the borealis_formats module.
+
+        Returns
+        -------
+        new_data_dict
+            A dictionary containing the data from data_dict
+            reformatted to be stored entirely as arrays, or as
+            one entry if the field does not change between records
+        """
+        new_data_dict = dict()
+        num_records = len(data_dict)
+
+        # write shared fields to dictionary
+        first_key = list(data_dict.keys())[0]
+        for field in format_class.shared_fields:
+            new_data_dict[field] = data_dict[first_key][field]
+
+        temp_array_dict = dict()
+        for field in format_class_unshared_fields:
+            dims = tuple([map(dimension_function, data_dict[first_key]) for 
+                    dimension_function in 
+                    format_class.unshared_field_dims[field]])
+            if np.dtype(data_dict[first_key][field]) = np.ndarray:
+                datatype = data_dict[first_key][field].dtype
+            else:
+                datatype = np.dtype(data_dict[first_key][field])
+            empty_array = np.empty(dims, dtype=datatype)
+            # initialize all values to NaN; some indices may not be filled 
+            # do to dimensions that are max values (num sequences, etc can
+            # change between records)
+            empty_array[:] = np.NaN 
+            temp_array_dict[field] = empty_array
+            
+        for rec_idx, k in enumerate(data_dict.keys()):
+            for field, empty_array in temp_array_dict.items():  # all unshared fields
+                if np.dtype(data_dict[first_key][field]) = np.ndarray:
+                    # only fill the correct length, appended zeros occur for 
+                    # dims with a determined max value
+                    data_buffer = data_dict[k][field]
+                    buffer_shape = data_buffer.shape 
+                    index_slice = [slice(0,i) for i in buffer_shape]
+                    # insert record index at start of array's slice list
+                    index_slice.insert(0, rec_idx) 
+                    # place data buffer in the correct place
+                    empty_array[index_slice] = data_buffer 
+                else: # not an array, num_records is the only dimension
+                    empty_array[rec_idx] = data_dict[k][field]
+
+        new_data_dict.update(temp_array_dict)
+
+        # figure out array only fields
+
+        
+
+
+
+    @classmethod
     def _iq_site_to_array(cls, data_dict: OrderedDict,
                           iq_filetype: str) -> dict:
         """
