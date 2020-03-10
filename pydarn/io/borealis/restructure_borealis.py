@@ -436,13 +436,7 @@ class BorealisRestructureUtilities():
                 max_num_beams, num_samps = data_dict["data"].shape
             # new data descriptors
             data_descriptors = np.array(["num_antenna_arrays",
-<<<<<<< HEAD
-                                         "num_sequences", "num_beams",
-                                         "num_samps"],
-                                        dtype=np.unicode_)
-=======
                 "num_sequences", "num_beams", "num_samps"], dtype=np.unicode_)
->>>>>>> Moved dimension finder classes to format classes
         elif iq_filetype == 'antennas_iq':
             # dims are num_antennas, num_sequences, num_samps
             shared_fields = borealis_formats.BorealisAntennasIq.shared_fields
@@ -453,18 +447,10 @@ class BorealisRestructureUtilities():
             max_num_beams = max(data_dict["num_beams"])  # array only field
             # new data descriptors
             data_descriptors = np.array(["num_antennas", "num_sequences",
-<<<<<<< HEAD
-                                         "num_samps"], dtype=np.unicode_)
-        else:
-            raise borealis_exceptions.BorealisRestructureError("Unrecognized"
-                                                               " filetype in"
-                                                               " _iq_site_to_array")
-=======
                 "num_samps"], dtype=np.unicode_)
         else:
             raise borealis_exceptions.BorealisRestructureError(""\
                 "Unrecognized filetype in _iq_site_to_array")
->>>>>>> Moved dimension finder classes to format classes
 
         # get keys from first sequence timestamps
         for rec, seq_timestamp in enumerate(data_dict["sqn_timestamps"]):
@@ -486,14 +472,8 @@ class BorealisRestructureUtilities():
             for field in unshared_fields:
                 timestamp_dict[key][field] = data_dict[field][rec]
 
-<<<<<<< HEAD
-            # Handle special cases - where dimensions may be
-            # larger than necessary.
-            num_beams = data_dict["num_beams"][rec]  # array only field
-=======
             # Handle special cases - where dimensions may be larger than necessary.
             num_beams = data_dict["num_beams"][rec] # array only field
->>>>>>> Moved dimension finder classes to format classes
             if num_beams != max_num_beams:
                 timestamp_dict[key]["beam_nums"] =\
                     timestamp_dict[key]["beam_nums"][rec, :num_beams]
@@ -502,20 +482,10 @@ class BorealisRestructureUtilities():
 
             num_sequences = timestamp_dict[key]["num_sequences"]
             if num_sequences != max_num_sequences:
-<<<<<<< HEAD
-                timestamp_dict[key]["sqn_timestamps"] =\
-                    data_dict["sqn_timestamps"][rec, :num_sequences]
-                timestamp_dict[key]["noise_at_freq"] =\
-                    data_dict["noise_at_freq"][rec, :num_sequences]
-
-            # have to take correct dimensions to remove appended zeros if
-            # num_sequences or
-=======
                 timestamp_dict[key]["sqn_timestamps"] = data_dict["sqn_timestamps"][rec,:num_sequences]
                 timestamp_dict[key]["noise_at_freq"] = data_dict["noise_at_freq"][rec,:num_sequences]
 
             # have to take correct dimensions to remove appended zeros if num_sequences or
->>>>>>> Moved dimension finder classes to format classes
             # num_beams are less than their max.
             if iq_filetype == 'bfiq':
                 dims = np.array([num_antenna_arrays, num_sequences,
@@ -524,18 +494,10 @@ class BorealisRestructureUtilities():
                 new_data = data_dict["data"][rec, :dims[0], :dims[1],
                                              :dims[2], :dims[3]]
             elif iq_filetype == 'antennas_iq':
-<<<<<<< HEAD
-                dims = np.array([num_antennas, num_sequences, num_samps],
-                                dtype=np.uint32)
-                new_data = data_dict["data"][rec, :dims[0], :dims[1], :dims[2]]
-
-            timestamp_dict[key]["data_dimensions"] = dims  # site only field
-=======
                 dims = np.array([num_antennas, num_sequences, num_samps], dtype=np.uint32)
                 new_data = data_dict["data"][rec,:dims[0],:dims[1],:dims[2]]
 
             timestamp_dict[key]["data_dimensions"] = dims # site only field
->>>>>>> Moved dimension finder classes to format classes
             timestamp_dict[key]["data"] = new_data.flatten()
 
         return timestamp_dict
@@ -564,13 +526,8 @@ class BorealisRestructureUtilities():
         try:
             timestamp_dict = cls._iq_array_to_site(data_dict, 'bfiq')
             BorealisUtilities.check_records(origin_string, timestamp_dict,
-<<<<<<< HEAD
-                                            borealis_formats.BorealisBfiq.site_single_element_types(),
-                                            borealis_formats.BorealisBfiq.site_array_dtypes())
-=======
                 borealis_formats.BorealisBfiq.site_single_element_types(),
                 borealis_formats.BorealisBfiq.site_array_dtypes())
->>>>>>> Moved dimension finder classes to format classes
 
         except Exception as e:
             raise borealis_exceptions.BorealisRestructureError('Error '
@@ -606,13 +563,8 @@ class BorealisRestructureUtilities():
         try:
             timestamp_dict = cls._iq_array_to_site(data_dict, 'antennas_iq')
             BorealisUtilities.check_records(origin_string, timestamp_dict,
-<<<<<<< HEAD
-                                            borealis_formats.BorealisAntennasIq.site_single_element_types(),
-                                            borealis_formats.BorealisAntennasIq.site_array_dtypes())
-=======
                 borealis_formats.BorealisAntennasIq.site_single_element_types(),
                 borealis_formats.BorealisAntennasIq.site_array_dtypes())
->>>>>>> Moved dimension finder classes to format classes
 
         except Exception as e:
             raise borealis_exceptions.BorealisRestructureError('Error '
@@ -672,16 +624,10 @@ class BorealisRestructureUtilities():
                 for field in shared_fields:
                     timestamp_dict[key][field] = data_dict[field]
                 # overwrite the correlation descriptors
-                timestamp_dict[key]["correlation_descriptors"] =\
-                    correlation_descriptors
+                timestamp_dict[key]["correlation_descriptors"] = correlation_descriptors
 
-<<<<<<< HEAD
-                # Handle per record fields, copy all and deal with
-                # dimensions issues after
-=======
                 # Handle per record fields, copy all and deal with dimensions issues
                 # after
->>>>>>> Moved dimension finder classes to format classes
                 for field in unshared_fields:
                     timestamp_dict[key][field] = data_dict[field][rec]
 
@@ -717,16 +663,9 @@ class BorealisRestructureUtilities():
                 timestamp_dict[key]["correlation_dimensions"] = dims
 
             BorealisUtilities.check_records(origin_string, timestamp_dict,
-                                            borealis_formats.BorealisRawacf.site_single_element_types(),
-                                            borealis_formats.BorealisRawacf.site_array_dtypes())
-
-<<<<<<< HEAD
-=======
-            BorealisUtilities.check_records(origin_string, timestamp_dict,
                 borealis_formats.BorealisRawacf.site_single_element_types(),
                 borealis_formats.BorealisRawacf.site_array_dtypes())
 
->>>>>>> Moved dimension finder classes to format classes
         except Exception as e:
             raise borealis_exceptions.BorealisRestructureError('Error '
                                                                'restructuring'
@@ -738,12 +677,7 @@ class BorealisRestructureUtilities():
         return timestamp_dict
 
     @classmethod
-<<<<<<< HEAD
-    def borealis_site_to_array_dict(cls, origin_string: str,
-                                    data_dict: OrderedDict,
-=======
     def borealis_site_to_array_dict(cls, origin_string: str, data_dict: OrderedDict,
->>>>>>> Moved dimension finder classes to format classes
                                     conversion_type: str) -> dict:
         """
         Converts a file from site style to restructured array style. Determines
