@@ -157,6 +157,9 @@ class BorealisRawacfv0_4(BaseFormatClass):
         structure. In array structure the first dimension will be num_records
         followed by these dimensions. 'max_??' strings indicate a maximum value 
         has to be found for this dimension.
+    array_only_fields_generate: dict
+        The generated field for a given record (function to generate). Provide
+        the record to determine this value.
     array_only_fields: list
         List of fields that are only present in array files. Implicitly
         also unshared between records.
@@ -308,6 +311,9 @@ class BorealisRawacfv0_4(BaseFormatClass):
     unshared_fields = list(unshared_fields_dims.keys())
 
     array_only_fields_dims = {'num_beams': []} # also unshared (array)
+    array_only_fields_generate = {
+        'num_beams': lambda record: len(record['beam_nums'])
+        }
     array_only_fields = list(array_only_fields_dims.keys())
 
     site_only_fields = ['correlation_dimensions']
@@ -410,10 +416,23 @@ class BorealisBfiqv0_4(BaseFormatClass):
         List of the fields that are restructured to a single value per
         file in the Borealis array type files. These fields are present in both
         array and site files.
+    unshared_fields_dims: dict
+        Dimensions of the unshared fields. Dimensions given are for site 
+        structure. In array structure the first dimension will be num_records
+        followed by these dimensions. Dimensions are provided as functions that 
+        will calculate the dimension given a single record (data dictionary)
     unshared_fields: list
-        List of the fields that are restructured to be an array with first
-        dimension equal to the number of records in the file. These fields are
-        present in both array and site files.
+        List of the fields that are restructured to be an array. These fields are
+        present in both array and site files but are not shared by all records 
+        so they are formed into arrays with first dimension = num_records.
+    array_only_fields_dims: dict
+        Dimensions of the array only fields. Dimensions given are for site 
+        structure. In array structure the first dimension will be num_records
+        followed by these dimensions. 'max_??' strings indicate a maximum value 
+        has to be found for this dimension.
+    array_only_fields_generate: dict
+        The generated field for a given record (function to generate). Provide
+        the record to determine this value.
     array_only_fields: list
         List of fields that are only present in array files. Implicitly
         also unshared between records.
@@ -563,6 +582,9 @@ class BorealisBfiqv0_4(BaseFormatClass):
     unshared_fields = list(unshared_fields_dims.keys())
 
     array_only_fields_dims = {'num_beams': []} # also unshared (array)
+    array_only_fields_generate = {
+        'num_beams': lambda record: len(record['beam_nums'])
+        }
     array_only_fields = list(array_only_fields_dims.keys())
 
     site_only_fields = ['data_dimensions']
@@ -664,10 +686,23 @@ class BorealisAntennasIqv0_4(BaseFormatClass):
         List of the fields that are restructured to a single value per
         file in the Borealis array type files. These fields are present in both
         array and site files.
+    unshared_fields_dims: dict
+        Dimensions of the unshared fields. Dimensions given are for site 
+        structure. In array structure the first dimension will be num_records
+        followed by these dimensions. Dimensions are provided as functions that 
+        will calculate the dimension given a single record (data dictionary)
     unshared_fields: list
-        List of the fields that are restructured to be an array with first
-        dimension equal to the number of records in the file. These fields are
-        present in both array and site files.
+        List of the fields that are restructured to be an array. These fields are
+        present in both array and site files but are not shared by all records 
+        so they are formed into arrays with first dimension = num_records.
+    array_only_fields_dims: dict
+        Dimensions of the array only fields. Dimensions given are for site 
+        structure. In array structure the first dimension will be num_records
+        followed by these dimensions. 'max_??' strings indicate a maximum value 
+        has to be found for this dimension.
+    array_only_fields_generate: dict
+        The generated field for a given record (function to generate). Provide
+        the record to determine this value.
     array_only_fields: list
         List of fields that are only present in array files. Implicitly
         also unshared between records.
@@ -803,6 +838,9 @@ class BorealisAntennasIqv0_4(BaseFormatClass):
     unshared_fields = list(unshared_fields_dims.keys())
 
     array_only_fields_dims = {'num_beams': []} # also unshared (array)
+    array_only_fields_generate = {
+        'num_beams': lambda record: len(record['beam_nums'])
+        }
     array_only_fields = list(array_only_fields_dims.keys())
 
     site_only_fields = ['data_dimensions']
