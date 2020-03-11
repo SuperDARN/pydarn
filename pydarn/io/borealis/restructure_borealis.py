@@ -60,8 +60,7 @@ class BorealisRestructureUtilities():
     """
 
     @classmethod
-    def _site_to_array(cls, data_dict: OrderedDict, filetype: str, 
-            format_class: type) -> dict:
+    def _site_to_array(cls, data_dict: OrderedDict, format_class: type) -> dict:
         """
         Base function for converting site Borealis data to
         restructured array format.
@@ -70,8 +69,6 @@ class BorealisRestructureUtilities():
         ----------
         data_dict: OrderedDict
             a dict of timestamped records loaded from an hdf5 Borealis site file
-        filetype: str
-            'borealis_filetype' for more info on how to process
         format_class: type
             the class to use to get the format information for this file. Can 
             be any class from the borealis_formats module.
@@ -92,10 +89,12 @@ class BorealisRestructureUtilities():
             new_data_dict[field] = data_dict[first_key][field]
 
         temp_array_dict = dict()
-        for field in format_class_unshared_fields:
+
+        # init the unshared fields arrays
+        for field in format_class.unshared_fields:
             dims = tuple([map(dimension_function, data_dict[first_key]) for 
                     dimension_function in 
-                    format_class.unshared_field_dims[field]])
+                    format_class.unshared_fields_dims[field]])
             if np.dtype(data_dict[first_key][field]) = np.ndarray:
                 datatype = data_dict[first_key][field].dtype
             else:
@@ -106,11 +105,27 @@ class BorealisRestructureUtilities():
             # change between records)
             empty_array[:] = np.NaN 
             temp_array_dict[field] = empty_array
-            
+
+        # init the array only fields arrays
+        for field in format_class.array_only_fields:
+            dims = tuple([map(dimension_function, data_dict[first_key]) for 
+                    dimension_function in 
+                    format_class.array_only_fields_dims[field]])
+            if field in format_class.single_element_types:
+                datatype = format_class.single_element_types[field]
+            else: # field in array_dtypes
+                datatype = format_class.array_dtypes[field]  
+            empty_array = np.empty(dims, dtype=datatype)     
+            empty_array[:] = np.NaN 
+            temp_array_dict[field] = empty_array
+        
+        # iterate through the records, filling the unshared and array only 
+        # fields
         for rec_idx, k in enumerate(data_dict.keys()):
-            for field, empty_array in temp_array_dict.items():  # all unshared fields
+            for field in format_class.unshared_fields:  # all unshared fields
+                empty_array = temp_array_dict[field]
                 if np.dtype(data_dict[first_key][field]) = np.ndarray:
-                    # only fill the correct length, appended zeros occur for 
+                    # only fill the correct length, appended NaNs occur for 
                     # dims with a determined max value
                     data_buffer = data_dict[k][field]
                     buffer_shape = data_buffer.shape 
@@ -122,13 +137,29 @@ class BorealisRestructureUtilities():
                 else: # not an array, num_records is the only dimension
                     empty_array[rec_idx] = data_dict[k][field]
 
+            for field in format_class.array_only_fields:
+                empty_array = temp_array_dict[field]
+                if len(empty_array.shape) == 1:
+                    # num_records is the only dimension
+                    # pass record to the generate function to fill the array.
+                    empty_array[rec_idx] = map(
+                        format_class.array_only_fields_generate[field], 
+                        data_dict[rec_idx])
+                else: # multi-dimensional
+                    # only fill the correct length, appended NaNs occur for 
+                    # dims with a determined max value
+                    data_buffer = map(format_class.array_only_fields_generate, 
+                        data_dict[rec_idx])
+                    buffer_shape = data_buffer.shape 
+                    index_slice = [slice(0,i) for i in buffer_shape]
+                    # insert record index at start of array's slice list
+                    index_slice.insert(0, rec_idx) 
+                    # place data buffer in the correct place
+                    empty_array[index_slice] = data_buffer 
+
         new_data_dict.update(temp_array_dict)
 
-        # figure out array only fields
-
-        
-
-
+        return new_data_dict
 
     @classmethod
     def _iq_site_to_array(cls, data_dict: OrderedDict,
@@ -749,7 +780,7 @@ class BorealisRestructureUtilities():
 
     @classmethod
     def borealis_site_to_array_dict(cls, origin_string: str, data_dict: OrderedDict,
-                                    conversion_type: str) -> dict:
+                                    conversion_type: str, format_class: type) -> dict:
         """
         Converts a file from site style to restructured array style. Determines
         which base function to call based on conversion_type.
@@ -762,6 +793,9 @@ class BorealisRestructureUtilities():
             An opened rawacf hdf5 file in site record-by-record format
         conversion_type: str
             'bfiq', 'antennas_iq' or 'rawacf' to determine keys to convert
+        format_class: type
+            the class to use to get the format information for this file. Can 
+            be any class from the borealis_formats module.
 
         Returns
         -------
@@ -769,12 +803,8 @@ class BorealisRestructureUtilities():
             A dictionary containing the data from data_dict
             formatted to the array format
         """
-        if conversion_type == 'bfiq':
-            new_dict = cls.bfiq_site_to_array(data_dict, origin_string)
-        elif conversion_type == 'rawacf':
-            new_dict = cls.rawacf_site_to_array(data_dict, origin_string)
-        elif conversion_type == 'antennas_iq':
-            new_dict = cls.antennas_iq_site_to_array(data_dict, origin_string)
+        if conversion_type in ['bfiq', 'rawacf', 'antennas_iq']:
+            new_dict = cls._site_to_array(data_dict, format_class)
         else:
             raise borealis_exceptions.BorealisRestructureError('File type {} '
                                                                'not recognized'
