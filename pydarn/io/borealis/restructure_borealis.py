@@ -93,17 +93,17 @@ class BorealisRestructureUtilities():
 
         # write shared fields to dictionary
         first_key = list(data_dict.keys())[0]
-        for field in format_class.shared_fields:
+        for field in format_class.shared_fields():
             new_data_dict[field] = data_dict[first_key][field]
 
         temp_array_dict = dict()
 
         # init the unshared fields arrays
-        for field in format_class.unshared_fields:
+        for field in format_class.unshared_fields():
             dims = tuple([map(dimension_function, data_dict[first_key]) for 
                     dimension_function in 
-                    format_class.unshared_fields_dims[field]])
-            if np.dtype(data_dict[first_key][field]) = np.ndarray:
+                    format_class.unshared_fields_dims()[field]])
+            if np.dtype(data_dict[first_key][field]) == np.ndarray:
                 datatype = data_dict[first_key][field].dtype
             else:
                 datatype = np.dtype(data_dict[first_key][field])
@@ -115,14 +115,14 @@ class BorealisRestructureUtilities():
             temp_array_dict[field] = empty_array
 
         # init the array only fields arrays
-        for field in format_class.array_only_fields:
+        for field in format_class.array_only_fields():
             dims = tuple([map(dimension_function, data_dict[first_key]) for 
                     dimension_function in 
-                    format_class.array_only_fields_dims[field]])
-            if field in format_class.single_element_types:
-                datatype = format_class.single_element_types[field]
+                    format_class.array_only_fields_dims()[field]])
+            if field in format_class.single_element_types():
+                datatype = format_class.single_element_types()[field]
             else: # field in array_dtypes
-                datatype = format_class.array_dtypes[field]  
+                datatype = format_class.array_dtypes()[field]  
             empty_array = np.empty(dims, dtype=datatype)     
             empty_array[:] = np.NaN 
             temp_array_dict[field] = empty_array
@@ -130,9 +130,9 @@ class BorealisRestructureUtilities():
         # iterate through the records, filling the unshared and array only 
         # fields
         for rec_idx, k in enumerate(data_dict.keys()):
-            for field in format_class.unshared_fields:  # all unshared fields
+            for field in format_class.unshared_fields():  # all unshared fields
                 empty_array = temp_array_dict[field]
-                if np.dtype(data_dict[first_key][field]) = np.ndarray:
+                if np.dtype(data_dict[first_key][field]) == np.ndarray:
                     # only fill the correct length, appended NaNs occur for 
                     # dims with a determined max value
                     data_buffer = data_dict[k][field]
@@ -145,18 +145,19 @@ class BorealisRestructureUtilities():
                 else: # not an array, num_records is the only dimension
                     empty_array[rec_idx] = data_dict[k][field]
 
-            for field in format_class.array_only_fields:
+            for field in format_class.array_only_fields():
                 empty_array = temp_array_dict[field]
                 if len(empty_array.shape) == 1:
                     # num_records is the only dimension
                     # pass record to the generate function to fill the array.
                     empty_array[rec_idx] = map(
-                        format_class.array_only_fields_generate[field], 
+                        format_class.array_only_fields_generate()[field], 
                         data_dict[rec_idx])
                 else: # multi-dimensional
                     # only fill the correct length, appended NaNs occur for 
                     # dims with a determined max value
-                    data_buffer = map(format_class.array_only_fields_generate, 
+                    data_buffer = map(
+                        format_class.array_only_fields_generate()[field], 
                         data_dict[rec_idx])
                     buffer_shape = data_buffer.shape 
                     index_slice = [slice(0,i) for i in buffer_shape]
