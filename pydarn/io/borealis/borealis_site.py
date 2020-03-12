@@ -172,7 +172,8 @@ class BorealisSiteRead():
         """
         return BorealisRestructureUtilities.borealis_site_to_array_dict(
                                             self.filename, self.records,
-                                            self.borealis_filetype)
+                                            self.borealis_filetype, 
+                                            self.format_class)
 
     @property
     def borealis_version(self):

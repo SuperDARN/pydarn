@@ -100,13 +100,20 @@ class BorealisRestructureUtilities():
 
         # init the unshared fields arrays
         for field in format_class.unshared_fields():
-            dims = tuple([map(dimension_function, data_dict[first_key]) for 
+            dims = [dimension_function(data_dict[first_key]) for 
                     dimension_function in 
-                    format_class.unshared_fields_dims()[field]])
-            if np.dtype(data_dict[first_key][field]) == np.ndarray:
-                datatype = data_dict[first_key][field].dtype
-            else:
-                datatype = np.dtype(data_dict[first_key][field])
+                    format_class.unshared_fields_dims()[field]]
+            dims.insert(0, num_records)
+            dims = tuple(dims)
+            print(field)
+            # if np.dtype(data_dict[first_key][field]) == np.ndarray:
+            #     datatype = data_dict[first_key][field].dtype
+            # else:
+            #     datatype = np.dtype(data_dict[first_key][field])
+            if field in format_class.single_element_types():
+                datatype = format_class.single_element_types()[field]
+            else: # field in array_dtypes
+                datatype = format_class.array_dtypes()[field]  
             empty_array = np.empty(dims, dtype=datatype)
             # initialize all values to NaN; some indices may not be filled 
             # do to dimensions that are max values (num sequences, etc can
@@ -116,14 +123,16 @@ class BorealisRestructureUtilities():
 
         # init the array only fields arrays
         for field in format_class.array_only_fields():
-            dims = tuple([map(dimension_function, data_dict[first_key]) for 
+            dims = [dimension_function(data_dict[first_key]) for 
                     dimension_function in 
-                    format_class.array_only_fields_dims()[field]])
+                    format_class.array_only_fields_dims()[field]]
+            dims.insert(0, num_records)
+            dims = tuple(dims)
             if field in format_class.single_element_types():
                 datatype = format_class.single_element_types()[field]
             else: # field in array_dtypes
-                datatype = format_class.array_dtypes()[field]  
-            empty_array = np.empty(dims, dtype=datatype)     
+                datatype = format_class.array_dtypes()[field]
+            empty_array = np.empty(dims, dtype=datatype)
             empty_array[:] = np.NaN 
             temp_array_dict[field] = empty_array
         

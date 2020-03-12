@@ -247,7 +247,7 @@ class BorealisRawacfv0_4(BaseFormatClass):
         "data_normalization_factor": np.float64,
         # number of beams calculated for the integration time.
         "num_beams": np.uint32
-    }
+        }
 
     @classmethod
     def array_dtypes(cls): 
@@ -281,7 +281,7 @@ class BorealisRawacfv0_4(BaseFormatClass):
         "intf_acfs": np.complex64,
         # Crosscorrelations between main and interferometer arrays
         "xcfs": np.complex64
-    }
+        }
 
     # we don't need to know dimension info for these fields because dims
     # will be the same for site and restructured files.
@@ -316,8 +316,8 @@ class BorealisRawacfv0_4(BaseFormatClass):
         'scan_start_marker': [],
         'beam_nums': [cls.find_max_beams],
         'beam_azms': [cls.find_max_beams],
-        'num_slices': [],
-    }
+        'num_slices': []
+        }
 
     @classmethod
     def unshared_fields(cls): 
@@ -546,7 +546,7 @@ class BorealisBfiqv0_4(BaseFormatClass):
         "data_normalization_factor": np.float64,
         # number of beams calculated for the integration time.
         "num_beams": np.uint32
-    }
+        }
 
     @classmethod
     def array_dtypes(cls): 
@@ -580,7 +580,7 @@ class BorealisBfiqv0_4(BaseFormatClass):
         "data_dimensions": np.uint32,
         # A contiguous set of samples (complex float) at given sample rate
         "data": np.complex64
-    }
+        }
 
     @classmethod
     def shared_fields(cls): 
@@ -609,8 +609,8 @@ class BorealisBfiqv0_4(BaseFormatClass):
         'scan_start_marker': [],
         'beam_nums': [cls.find_max_beams],
         'beam_azms': [cls.find_max_beams],
-        'num_slices': [],
-    }
+        'num_slices': []
+        }
 
     @classmethod
     def unshared_fields(cls): 
@@ -830,7 +830,7 @@ class BorealisAntennasIqv0_4(BaseFormatClass):
         "data_normalization_factor": np.float64,
         # number of beams to be calculated for the integration time.
         "num_beams": np.uint32
-    }
+        }
 
     @classmethod
     def array_dtypes(cls): 
@@ -860,7 +860,7 @@ class BorealisAntennasIqv0_4(BaseFormatClass):
         "data_dimensions": np.uint32,
         # A contiguous set of samples (complex float) at given sample rate
         "data": np.complex64
-    }
+        }
 
     @classmethod
     def shared_fields(cls): 
@@ -887,8 +887,8 @@ class BorealisAntennasIqv0_4(BaseFormatClass):
         'scan_start_marker': [],
         'beam_nums': [cls.find_max_beams],
         'beam_azms': [cls.find_max_beams],
-        'num_slices': [],
-    }
+        'num_slices': []
+        }
 
     @classmethod
     def unshared_fields(cls): 
@@ -1045,7 +1045,7 @@ class BorealisRawrfv0_4(BaseFormatClass):
         "rx_center_freq": np.float64,
         # Number of samples in the sampling period.
         "num_samps": np.uint32
-    }
+        }
 
     @classmethod
     def array_dtypes(cls): 
@@ -1060,12 +1060,13 @@ class BorealisRawrfv0_4(BaseFormatClass):
         "data_dimensions": np.uint32,
         # A contiguous set of samples (complex float) at given sample rate
         "data": np.complex64
-    }
+        }
 
     @classmethod
     def site_fields(cls):
         """ All site fields """
-        return cls.shared_fields() + cls.unshared_fields() + cls.site_only_fields()
+        return list(cls.single_element_types().keys()) + \
+            list(cls.array_dtypes().keys())
 
     @classmethod
     def site_single_element_fields(cls):
@@ -1116,7 +1117,8 @@ class BorealisRawacf(BorealisRawacfv0_4):
 
     @classmethod
     def single_element_types(cls):
-        return super().single_element_types() + {
+        single_element_types = super(BorealisRawacf, cls).single_element_types()
+        single_element_types.update({
         # the slice id of the file and dataset.
         "slice_id" : np.uint32,
         # the interfacing of this slice to other slices.
@@ -1125,21 +1127,24 @@ class BorealisRawacf(BorealisRawacfv0_4):
         "scheduling_mode" : np.unicode_,
         # A string describing the averaging method, ex. mean, median
         "averaging_method" : np.unicode_
-        }
+        })
+        return single_element_types
 
     @classmethod
     def shared_fields(cls):
-        shared = super().shared_fields() + ['slice_id', 'scheduling_mode', 
-            'averaging_method']
+        shared = super(BorealisRawacf, cls).shared_fields() + \
+            ['slice_id', 'scheduling_mode', 'averaging_method']
         shared.remove('blanked_samples')
         return shared
 
     @classmethod
     def unshared_fields_dims(cls):
-        return super().unshared_fields() + {
+        unshared_fields_dims = super(BorealisRawacf, cls).unshared_fields_dims()
+        unshared_fields_dims.update({
         'blanked_samples': [cls.find_max_blanked_samples],
         'slice_interfacing': []
-        }
+        })
+        return unshared_fields_dims
 
 
 class BorealisBfiq(BorealisBfiqv0_4):
@@ -1164,27 +1169,32 @@ class BorealisBfiq(BorealisBfiqv0_4):
 
     @classmethod
     def single_element_types(cls):
-        return super().single_element_types() + {
+        single_element_types = super(BorealisBfiq, cls).single_element_types()
+        single_element_types.update({
         # the slice id of the file and dataset.
         "slice_id" : np.uint32,
         # the interfacing of this slice to other slices.
         "slice_interfacing" : np.unicode_,
         # A string describing the type of scheduling time at the time of this dataset.
-        "scheduling_mode" : np.unicode_,
-        }
+        "scheduling_mode" : np.unicode_
+        })
+        return single_element_types
 
     @classmethod
     def shared_fields(cls):
-        shared = super().shared_fields() + ['slice_id', 'scheduling_mode']
+        shared = super(BorealisBfiq, cls).shared_fields() + \
+            ['slice_id', 'scheduling_mode']
         shared.remove('blanked_samples')
         return shared
 
     @classmethod
     def unshared_fields_dims(cls):
-        return super().unshared_fields() + {
+        unshared_fields_dims = super(BorealisBfiq, cls).unshared_fields_dims()
+        unshared_fields_dims.update({
         'blanked_samples': [cls.find_max_blanked_samples],
         'slice_interfacing': []
-        }
+        })
+        return unshared_fields_dims
 
 
 class BorealisAntennasIq(BorealisAntennasIqv0_4):
@@ -1205,33 +1215,41 @@ class BorealisAntennasIq(BorealisAntennasIqv0_4):
 
     @classmethod
     def single_element_types(cls):
-        return super().single_element_types() + {
+        single_element_types = super(BorealisAntennasIq, cls).single_element_types()
+        single_element_types.update({
         # the slice id of the file and dataset.
         "slice_id" : np.uint32,
         # the interfacing of this slice to other slices.
         "slice_interfacing" : np.unicode_,
         # A string describing the type of scheduling time at the time of this dataset.
-        "scheduling_mode" : np.unicode_,
-        }
+        "scheduling_mode" : np.unicode_
+        })
+        return single_element_types
 
     @classmethod
     def array_dtypes(cls):
-        return super().array_dtypes() + {
+        array_dtypes = super(BorealisAntennasIq, cls).array_dtypes()
+        array_dtypes.update({
         # Samples that occur during TR switching (transmission times)
         "blanked_samples" : np.uint32
-        }
+        })
+        return array_dtypes
 
     @classmethod
     def shared_fields(cls):
-        shared = super().shared_fields() + ['slice_id', 'scheduling_mode']
+        shared = super(BorealisAntennasIq, cls).shared_fields() + \
+            ['slice_id', 'scheduling_mode']
         return shared
 
     @classmethod
     def unshared_fields_dims(cls):
-        return super().unshared_fields() + {
+        unshared_fields_dims = super(BorealisAntennasIq, 
+            cls).unshared_fields_dims()
+        unshared_fields_dims.update({
         'blanked_samples': [cls.find_max_blanked_samples],
         'slice_interfacing': []
-        }
+        })
+        return unshared_fields_dims
 
 
 class BorealisRawrf(BorealisRawrfv0_4):
@@ -1248,21 +1266,25 @@ class BorealisRawrf(BorealisRawrfv0_4):
 
     @classmethod
     def single_element_types(cls):
-        return super().single_element_types() + {
+        single_element_types = super(BorealisRawrf, cls).single_element_types()
+        single_element_types.update({
         # the slice id of the file and dataset.
         "slice_id" : np.uint32,
         # the interfacing of this slice to other slices.
         "slice_interfacing" : np.unicode_,
         # A string describing the type of scheduling time at the time of this dataset.
-        "scheduling_mode" : np.unicode_,
-        }
+        "scheduling_mode" : np.unicode_
+        })
+        return single_element_types
 
     @classmethod
     def array_dtypes(cls):
-        return super().array_dtypes() + {
+        array_dtypes = super(BorealisRawrf, cls).array_dtypes()
+        array_dtypes.update({
         # Samples that occur during TR switching (transmission times)
         "blanked_samples" : np.uint32
-        }
+        })
+        return array_dtypes
 
 
 # borealis versions
