@@ -962,3 +962,4 @@ class BorealisRawrf(BorealisRawrfv0_4):
     cls.unshared_fields.append('blanked_samples')
     cls.unshared_fields.append('slice_interfacing')
 
+
