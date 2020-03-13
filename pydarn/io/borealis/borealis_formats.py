@@ -6,18 +6,28 @@ SuperDARN Borealis HDF5 files.
 
 Classes
 -------
+BaseFormatClass
 BorealisRawacf
 BorealisBfiq
 BorealisAntennasIq
 BorealisRawrf
+as well as previous versions of these classes.
+
+Variables
+---------
+borealis_versions
+    A lookup table for [version][filetype] that provides the appropriate class.
 
 Notes
 -----
-Debug data files such as Borealis stage iq data (an intermediate
-product that can be generated during filtering and decimating, showing
-progression from rawrf to output ptrs iq files) will not be included here.
-This is a debug format only and should not be used for higher level
-data products.
+- Debug data files such as Borealis stage iq data (an intermediate
+  product that can be generated during filtering and decimating, showing
+  progression from rawrf to output ptrs iq files) will not be included here.
+  This is a debug format only and should not be used for higher level
+  data products.
+- 'borealis_git_hash' is a necessary field for all versions, as its use is 
+  hardcoded into the code in order to determine the format version to use.
+
 
 See Also
 --------
@@ -27,8 +37,94 @@ https://borealis.readthedocs.io/en/latest/
 
 import numpy as np
 
+from collections import OrderedDict
 
-class BorealisRawacfv0_4():
+class BaseFormatClass():
+    """
+    Static Methods
+    --------------
+    find_max_sequences(data)
+        Find the max number of sequences between records in a site file, for
+        restructuring to arrays.
+    find_max_beams(data)
+        Find the max number of beams between records in a site file, for
+        restructuring to arrays.
+    """
+    @staticmethod
+    def find_max_sequences(data: OrderedDict) -> int:
+        """
+        Finds the maximum number of sequences between records in a Borealis
+        site style data file.
+
+        Parameters
+        ----------
+        data
+            Site formatted data from a Borealis file, organized as one
+            record for each slice
+
+        Returns
+        -------
+        max_seqs
+            The largest number of sequences found in one record from the
+            file
+        """
+        max_seqs = 0
+        for k in data:
+            if max_seqs < data[k]["num_sequences"]:
+                max_seqs = data[k]["num_sequences"]
+        return max_seqs
+
+    @staticmethod
+    def find_max_beams(data: OrderedDict) -> int:
+        """
+        Finds the maximum number of beams between records in a Borealis
+        site style data file.
+
+        Parameters
+        ----------
+        data
+            Site formatted data from a Borealis file, organized as one
+            record for each slice
+
+        Returns
+        -------
+        max_beams
+            The largest number of beams found in one record from the
+            file
+        """
+        max_beams = 0
+        for k in data:
+            if max_beams < len(data[k]["beam_nums"]):
+                max_beams = len(data[k]["beam_nums"])
+        return max_beams
+
+    @staticmethod
+    def find_max_blanked_samples(data: OrderedDict) -> int:
+        """
+        Finds the maximum number of blanked samples between records in a Borealis
+        site style data file.
+
+        Parameters
+        ----------
+        data
+            Site formatted data from a Borealis file, organized as one
+            record for each slice
+
+        Returns
+        -------
+        max_beams
+            The largest number of beams found in one record from the
+            file
+        """
+        max_blanked_samples = 0
+        for k in data:
+            if max_blanked_samples < len(data[k]["blanked_samples"]):
+                max_blanked_samples = len(data[k]["blanked_samples"])
+        return max_blanked_samples
+
+
+
+class BorealisRawacfv0_4(BaseFormatClass):
     """
     Class containing Borealis Rawacf data fields and their types for Borealis
     v0.4 and under.
@@ -49,10 +145,23 @@ class BorealisRawacfv0_4():
         List of the fields that are restructured to a single value per
         file in the Borealis array type files. These fields are present in both
         array and site files.
+    unshared_fields_dims: dict
+        Dimensions of the unshared fields. Dimensions given are for site 
+        structure. In array structure the first dimension will be num_records
+        followed by these dimensions. Dimensions are provided as functions that 
+        will calculate the dimension given a single record (data dictionary)
     unshared_fields: list
-        List of the fields that are restructured to be an array with first
-        dimension equal to the number of records in the file. These fields are
-        present in both array and site files.
+        List of the fields that are restructured to be an array. These fields are
+        present in both array and site files but are not shared by all records 
+        so they are formed into arrays with first dimension = num_records.
+    array_only_fields_dims: dict
+        Dimensions of the array only fields. Dimensions given are for site 
+        structure. In array structure the first dimension will be num_records
+        followed by these dimensions. 'max_??' strings indicate a maximum value 
+        has to be found for this dimension.
+    array_only_fields_generate: dict
+        The generated field for a given record (function to generate). Provide
+        the record to determine this value.
     array_only_fields: list
         List of fields that are only present in array files. Implicitly
         also unshared between records.
@@ -88,8 +197,10 @@ class BorealisRawacfv0_4():
     shared_fields + unshared_fields + site_only_fields = all fields in site file
     """
 
-    single_element_types = {
-        # Identifies the version of Borealis that made this data.
+    @classmethod
+    def single_element_types(cls): 
+        return {
+        # Identifies the version of Borealis that made this data. Necessary for all versions.
         "borealis_git_hash": np.unicode_,
         # Number used to identify experiment.
         "experiment_id": np.int64,
@@ -136,9 +247,11 @@ class BorealisRawacfv0_4():
         "data_normalization_factor": np.float64,
         # number of beams calculated for the integration time.
         "num_beams": np.uint32
-    }
+        }
 
-    array_dtypes = {
+    @classmethod
+    def array_dtypes(cls): 
+        return {
         # The pulse sequence in multiples of the tau_spacing.
         "pulses": np.uint32,
         # The lags created from combined pulses.
@@ -168,9 +281,14 @@ class BorealisRawacfv0_4():
         "intf_acfs": np.complex64,
         # Crosscorrelations between main and interferometer arrays
         "xcfs": np.complex64
-    }
+        }
 
-    shared_fields = ['borealis_git_hash', 'correlation_descriptors',
+    # we don't need to know dimension info for these fields because dims
+    # will be the same for site and restructured files.
+    @classmethod
+    def shared_fields(cls): 
+        return ['blanked_samples', 'borealis_git_hash', 
+                     'correlation_descriptors',
                      'data_normalization_factor', 'experiment_comment',
                      'experiment_id', 'experiment_name', 'first_range',
                      'first_range_rtt', 'freq', 'intf_antenna_count', 'lags',
@@ -179,47 +297,82 @@ class BorealisRawacfv0_4():
                      'slice_comment', 'station', 'tau_spacing',
                      'tx_pulse_len']
 
-    unshared_fields = ['blanked_samples', 'num_sequences', 'int_time', 
-                       'sqn_timestamps', 'noise_at_freq', 'main_acfs', 'intf_acfs',
-                       'xcfs', 'scan_start_marker', 'beam_nums', 'beam_azms',
-                       'num_slices']
+    @classmethod
+    def unshared_fields_dims(cls): 
+        return {
+        'num_sequences': [],
+        'int_time': [], 
+        'sqn_timestamps': [cls.find_max_sequences],
+        'noise_at_freq': [cls.find_max_sequences],
+        'main_acfs': [cls.find_max_beams, 
+                lambda record: record['correlation_dimensions'][1], # num_ranges
+                lambda record: record['correlation_dimensions'][2]], # num_lags
+        'intf_acfs': [cls.find_max_beams, 
+                lambda record: record['correlation_dimensions'][1], # num_ranges
+                lambda record: record['correlation_dimensions'][2]], # num_lags
+        'xcfs': [cls.find_max_beams, 
+                lambda record: record['correlation_dimensions'][1], # num_ranges
+                lambda record: record['correlation_dimensions'][2]], # num_lags
+        'scan_start_marker': [],
+        'beam_nums': [cls.find_max_beams],
+        'beam_azms': [cls.find_max_beams],
+        'num_slices': []
+        }
 
-    array_only_fields = ['num_beams'] # also unshared (array)
+    @classmethod
+    def unshared_fields(cls): 
+        return list(cls.unshared_fields_dims().keys())
 
-    site_only_fields = ['correlation_dimensions']
+    @classmethod
+    def array_only_fields_dims(cls): 
+        return {'num_beams': []} # also unshared (array)
+    
+    @classmethod
+    def array_only_fields_generate(cls):
+        return {
+        'num_beams': lambda record: len(record['beam_nums'])
+        }
+
+    @classmethod
+    def array_only_fields(cls): 
+        return list(cls.array_only_fields_dims().keys())
+
+    @classmethod
+    def site_only_fields(cls): 
+        return ['correlation_dimensions']
 
     @classmethod
     def site_fields(cls):
         """ All site fields """
-        return cls.shared_fields + cls.unshared_fields + cls.site_only_fields
+        return cls.shared_fields() + cls.unshared_fields() + cls.site_only_fields()
 
     @classmethod
     def array_fields(cls):
         """ All array fields """
-        return cls.shared_fields + cls.unshared_fields + cls.array_only_fields
+        return cls.shared_fields() + cls.unshared_fields() + cls.array_only_fields()
 
     @classmethod
     def site_single_element_fields(cls):
         """ All site fields that are single element in a list """
         return [k for k in cls.site_fields() if k in
-            list(cls.single_element_types.keys())]
+            list(cls.single_element_types().keys())]
 
     @classmethod
     def site_single_element_types(cls):
         """ Dict of site single element field: type"""
-        return {k: cls.single_element_types[k]
+        return {k: cls.single_element_types()[k]
             for k in cls.site_single_element_fields()}
 
     @classmethod
     def site_array_dtypes_fields(cls):
         """ All site fields that are arrays in a list """
         return [k for k in cls.site_fields() if k in
-        list(cls.array_dtypes.keys())]
+        list(cls.array_dtypes().keys())]
 
     @classmethod
     def site_array_dtypes(cls):
         """ Dict of site array field : dtype """
-        return {k: cls.array_dtypes[k] for k in
+        return {k: cls.array_dtypes()[k] for k in
         cls.site_array_dtypes_fields()}
 
     # for single element fields in the array filetypes, they must
@@ -228,13 +381,13 @@ class BorealisRawacfv0_4():
     def array_single_element_fields(cls):
         """ List of array restructured single element fields """
         return [k for k in cls.array_fields() if
-        k in list(cls.single_element_types.keys()) and k in
+        k in list(cls.single_element_types().keys()) and k in
         cls.shared_fields]
 
     @classmethod
     def array_single_element_types(cls):
         """ Dict of array restructured single element field : type """
-        return {k: cls.single_element_types[k]
+        return {k: cls.single_element_types()[k]
         for k in cls.array_single_element_fields()}
 
     # for array filetypes, there are more array dtypes for any unshared
@@ -244,27 +397,27 @@ class BorealisRawacfv0_4():
     def array_array_dtypes_fields(cls):
         """ List of array restructured array fields """
         return [k for k in cls.array_fields() if
-        k in list(cls.array_dtypes.keys())] + \
+        k in list(cls.array_dtypes().keys())] + \
         [k for k in cls.array_fields() if k in
-        list(cls.single_element_types.keys()) and
-        ((k in cls.unshared_fields) or
-            (k in cls.array_only_fields))]
+        list(cls.single_element_types().keys()) and
+        ((k in cls.unshared_fields()) or
+            (k in cls.array_only_fields()))]
 
     @classmethod
     def array_array_dtypes(cls):
         """ Dict of array restructured array field : dtype """
-        array_array_dtypes = {k: cls.array_dtypes[k] for k in
+        array_array_dtypes = {k: cls.array_dtypes()[k] for k in
         cls.array_array_dtypes_fields() if k in
-        list(cls.array_dtypes.keys())}
+        list(cls.array_dtypes().keys())}
 
-        array_array_dtypes.update({k: cls.single_element_types[k] for
+        array_array_dtypes.update({k: cls.single_element_types()[k] for
             k in cls.array_array_dtypes_fields() if k in
-            list(cls.single_element_types.keys())})
+            list(cls.single_element_types().keys())})
 
         return array_array_dtypes
 
 
-class BorealisBfiqv0_4():
+class BorealisBfiqv0_4(BaseFormatClass):
     """
     Class containing Borealis Bfiq data fields and their types for Borealis
     v0.4 and under.
@@ -286,10 +439,23 @@ class BorealisBfiqv0_4():
         List of the fields that are restructured to a single value per
         file in the Borealis array type files. These fields are present in both
         array and site files.
+    unshared_fields_dims: dict
+        Dimensions of the unshared fields. Dimensions given are for site 
+        structure. In array structure the first dimension will be num_records
+        followed by these dimensions. Dimensions are provided as functions that 
+        will calculate the dimension given a single record (data dictionary)
     unshared_fields: list
-        List of the fields that are restructured to be an array with first
-        dimension equal to the number of records in the file. These fields are
-        present in both array and site files.
+        List of the fields that are restructured to be an array. These fields are
+        present in both array and site files but are not shared by all records 
+        so they are formed into arrays with first dimension = num_records.
+    array_only_fields_dims: dict
+        Dimensions of the array only fields. Dimensions given are for site 
+        structure. In array structure the first dimension will be num_records
+        followed by these dimensions. 'max_??' strings indicate a maximum value 
+        has to be found for this dimension.
+    array_only_fields_generate: dict
+        The generated field for a given record (function to generate). Provide
+        the record to determine this value.
     array_only_fields: list
         List of fields that are only present in array files. Implicitly
         also unshared between records.
@@ -325,8 +491,11 @@ class BorealisBfiqv0_4():
     shared_fields + unshared_fields + site_only_fields = all fields in site file
     """
 
-    single_element_types = {
-        # Identifies the version of Borealis that made this data.
+    @classmethod
+    def single_element_types(cls): 
+        return {
+        # Identifies the version of Borealis that made this data. Necessary 
+        # for all versions.
         "borealis_git_hash": np.unicode_,
         # Number used to identify experiment.
         "experiment_id": np.int64,
@@ -377,9 +546,11 @@ class BorealisBfiqv0_4():
         "data_normalization_factor": np.float64,
         # number of beams calculated for the integration time.
         "num_beams": np.uint32
-    }
+        }
 
-    array_dtypes = {
+    @classmethod
+    def array_dtypes(cls): 
+        return {
         # The pulse sequence in multiples of the tau_spacing.
         "pulses": np.uint32,
         # The lags created from combined pulses.
@@ -409,9 +580,12 @@ class BorealisBfiqv0_4():
         "data_dimensions": np.uint32,
         # A contiguous set of samples (complex float) at given sample rate
         "data": np.complex64
-    }
+        }
 
-    shared_fields =  ['antenna_arrays_order', 'borealis_git_hash',
+    @classmethod
+    def shared_fields(cls): 
+        return ['antenna_arrays_order', 'blanked_samples', 
+                      'borealis_git_hash',
                       'data_descriptors', 'data_normalization_factor',
                       'experiment_comment', 'experiment_id', 'experiment_name',
                       'first_range', 'first_range_rtt', 'freq',
@@ -422,47 +596,76 @@ class BorealisBfiqv0_4():
                       'slice_comment', 'station', 'tau_spacing',
                       'tx_pulse_len']
 
-    unshared_fields = ['blanked_samples', 'num_sequences', 'int_time', 
-                       'sqn_timestamps', 'noise_at_freq', 'data', 
-                       'scan_start_marker', 'beam_azms', 'beam_nums', 
-                       'num_slices']
+    @classmethod
+    def unshared_fields_dims(cls): 
+        return {
+        'num_sequences': [],
+        'int_time': [], 
+        'sqn_timestamps': [cls.find_max_sequences],
+        'noise_at_freq': [cls.find_max_sequences],
+        'data': [lambda record: record['data_dimensions'][0], # num_antenna_arrays
+                 cls.find_max_sequences, cls.find_max_beams, 
+                 lambda record: record['data_dimensions'][3]], # num_samps
+        'scan_start_marker': [],
+        'beam_nums': [cls.find_max_beams],
+        'beam_azms': [cls.find_max_beams],
+        'num_slices': []
+        }
 
-    array_only_fields = ['num_beams'] # also unshared
+    @classmethod
+    def unshared_fields(cls): 
+        return list(cls.unshared_fields_dims().keys())
 
-    site_only_fields = ['data_dimensions']
+    @classmethod
+    def array_only_fields_dims(cls): 
+        return {'num_beams': []} # also unshared (array)
+
+    @classmethod
+    def array_only_fields_generate(cls): 
+        return {
+        'num_beams': lambda record: len(record['beam_nums'])
+        }
+
+    @classmethod
+    def array_only_fields(cls): 
+        return list(cls.array_only_fields_dims().keys())
+
+    @classmethod
+    def site_only_fields(cls): 
+        return ['data_dimensions']
 
     @classmethod
     def site_fields(cls):
         """ All site fields """
-        return cls.shared_fields + cls.unshared_fields + cls.site_only_fields
+        return cls.shared_fields() + cls.unshared_fields() + cls.site_only_fields()
 
     @classmethod
     def array_fields(cls):
         """ All array fields """
-        return cls.shared_fields + cls.unshared_fields + cls.array_only_fields
+        return cls.shared_fields() + cls.unshared_fields() + cls.array_only_fields()
 
     @classmethod
     def site_single_element_fields(cls):
         """ All site fields that are single element in a list """
         return [k for k in cls.site_fields() if k in
-            list(cls.single_element_types.keys())]
+            list(cls.single_element_types().keys())]
 
     @classmethod
     def site_single_element_types(cls):
         """ Dict of site single element field: type"""
-        return {k: cls.single_element_types[k]
+        return {k: cls.single_element_types()[k]
             for k in cls.site_single_element_fields()}
 
     @classmethod
     def site_array_dtypes_fields(cls):
         """ All site fields that are arrays in a list """
         return [k for k in cls.site_fields() if k in
-        list(cls.array_dtypes.keys())]
+        list(cls.array_dtypes().keys())]
 
     @classmethod
     def site_array_dtypes(cls):
         """ Dict of site array field : dtype """
-        return {k: cls.array_dtypes[k] for k in
+        return {k: cls.array_dtypes()[k] for k in
         cls.site_array_dtypes_fields()}
 
     # for single element fields in the array filetypes, they must
@@ -471,13 +674,13 @@ class BorealisBfiqv0_4():
     def array_single_element_fields(cls):
         """ List of array restructured single element fields """
         return [k for k in cls.array_fields() if
-        k in list(cls.single_element_types.keys()) and k in
-        cls.shared_fields]
+        k in list(cls.single_element_types().keys()) and k in
+        cls.shared_fields()]
 
     @classmethod
     def array_single_element_types(cls):
         """ Dict of array restructured single element field : type """
-        return {k: cls.single_element_types[k]
+        return {k: cls.single_element_types()[k]
         for k in cls.array_single_element_fields()}
 
     # for array filetypes, there are more array dtypes for any unshared
@@ -487,27 +690,27 @@ class BorealisBfiqv0_4():
     def array_array_dtypes_fields(cls):
         """ List of array restructured array fields """
         return [k for k in cls.array_fields() if
-        k in list(cls.array_dtypes.keys())] + \
+        k in list(cls.array_dtypes().keys())] + \
         [k for k in cls.array_fields() if k in
-        list(cls.single_element_types.keys()) and
-        ((k in cls.unshared_fields) or
-            (k in cls.array_only_fields))]
+        list(cls.single_element_types().keys()) and
+        ((k in cls.unshared_fields()) or
+            (k in cls.array_only_fields()))]
 
     @classmethod
     def array_array_dtypes(cls):
         """ Dict of array restructured array field : dtype """
-        array_array_dtypes = {k: cls.array_dtypes[k] for k in
+        array_array_dtypes = {k: cls.array_dtypes()[k] for k in
         cls.array_array_dtypes_fields() if k in
-        list(cls.array_dtypes.keys())}
+        list(cls.array_dtypes().keys())}
 
-        array_array_dtypes.update({k: cls.single_element_types[k] for
+        array_array_dtypes.update({k: cls.single_element_types()[k] for
             k in cls.array_array_dtypes_fields() if k in
-            list(cls.single_element_types.keys())})
+            list(cls.single_element_types().keys())})
 
         return array_array_dtypes
 
 
-class BorealisAntennasIqv0_4():
+class BorealisAntennasIqv0_4(BaseFormatClass):
     """
     Class containing Borealis Antennas iq data fields and their types for
     Borealis v0.4 and under.
@@ -528,10 +731,23 @@ class BorealisAntennasIqv0_4():
         List of the fields that are restructured to a single value per
         file in the Borealis array type files. These fields are present in both
         array and site files.
+    unshared_fields_dims: dict
+        Dimensions of the unshared fields. Dimensions given are for site 
+        structure. In array structure the first dimension will be num_records
+        followed by these dimensions. Dimensions are provided as functions that 
+        will calculate the dimension given a single record (data dictionary)
     unshared_fields: list
-        List of the fields that are restructured to be an array with first
-        dimension equal to the number of records in the file. These fields are
-        present in both array and site files.
+        List of the fields that are restructured to be an array. These fields are
+        present in both array and site files but are not shared by all records 
+        so they are formed into arrays with first dimension = num_records.
+    array_only_fields_dims: dict
+        Dimensions of the array only fields. Dimensions given are for site 
+        structure. In array structure the first dimension will be num_records
+        followed by these dimensions. 'max_??' strings indicate a maximum value 
+        has to be found for this dimension.
+    array_only_fields_generate: dict
+        The generated field for a given record (function to generate). Provide
+        the record to determine this value.
     array_only_fields: list
         List of fields that are only present in array files. Implicitly
         also unshared between records.
@@ -567,8 +783,11 @@ class BorealisAntennasIqv0_4():
     shared_fields + unshared_fields + site_only_fields = all fields in site file
     """
 
-    single_element_types = {
-        # Identifies the version of Borealis that made this data.
+    @classmethod
+    def single_element_types(cls): 
+        return {
+        # Identifies the version of Borealis that made this data. Necessary for 
+        # all versions.
         "borealis_git_hash": np.unicode_,
         # Number used to identify experiment.
         "experiment_id": np.int64,
@@ -611,9 +830,11 @@ class BorealisAntennasIqv0_4():
         "data_normalization_factor": np.float64,
         # number of beams to be calculated for the integration time.
         "num_beams": np.uint32
-    }
+        }
 
-    array_dtypes = {
+    @classmethod
+    def array_dtypes(cls): 
+        return {
         # The pulse sequence in multiples of the tau_spacing.
         "pulses": np.uint32,
         # For pulse encoding phase, in desgrees offset. Contains one phase
@@ -639,9 +860,11 @@ class BorealisAntennasIqv0_4():
         "data_dimensions": np.uint32,
         # A contiguous set of samples (complex float) at given sample rate
         "data": np.complex64
-    }
+        }
 
-    shared_fields = ['antenna_arrays_order',
+    @classmethod
+    def shared_fields(cls): 
+        return ['antenna_arrays_order',
                      'borealis_git_hash', 'data_descriptors',
                      'data_normalization_factor', 'experiment_comment',
                      'experiment_id', 'experiment_name', 'freq',
@@ -651,46 +874,76 @@ class BorealisAntennasIqv0_4():
                      'slice_comment', 'station', 'tau_spacing',
                      'tx_pulse_len']
 
-    unshared_fields = ['num_sequences', 'int_time', 'sqn_timestamps',
-                       'noise_at_freq', 'data', 'scan_start_marker',
-                       'beam_azms', 'beam_nums', 'num_slices']
+    @classmethod
+    def unshared_fields_dims(cls): 
+        return {
+        'num_sequences': [],
+        'int_time': [], 
+        'sqn_timestamps': [cls.find_max_sequences],
+        'noise_at_freq': [cls.find_max_sequences],
+        'data': [lambda record: record['data_dimensions'][0], # num_antennas
+                 cls.find_max_sequences,
+                 lambda record: record['data_dimensions'][2]], # num_samps
+        'scan_start_marker': [],
+        'beam_nums': [cls.find_max_beams],
+        'beam_azms': [cls.find_max_beams],
+        'num_slices': []
+        }
 
-    array_only_fields = ['num_beams'] # also unshared
+    @classmethod
+    def unshared_fields(cls): 
+        return list(cls.unshared_fields_dims().keys())
 
-    site_only_fields = ['data_dimensions']
+    @classmethod
+    def array_only_fields_dims(cls): 
+        return {'num_beams': []} # also unshared (array)
+
+    @classmethod
+    def array_only_fields_generate(cls): 
+        return {
+        'num_beams': lambda record: len(record['beam_nums'])
+        }
+
+    @classmethod
+    def array_only_fields(cls): 
+        return list(cls.array_only_fields_dims().keys())
+
+    @classmethod
+    def site_only_fields(cls): 
+        return ['data_dimensions']
 
     @classmethod
     def site_fields(cls):
         """ All site fields """
-        return cls.shared_fields + cls.unshared_fields + cls.site_only_fields
+        return cls.shared_fields() + cls.unshared_fields() + cls.site_only_fields()
 
     @classmethod
     def array_fields(cls):
         """ All array fields """
-        return cls.shared_fields + cls.unshared_fields + cls.array_only_fields
+        return cls.shared_fields() + cls.unshared_fields() + cls.array_only_fields()
 
     @classmethod
     def site_single_element_fields(cls):
         """ All site fields that are single element in a list """
         return [k for k in cls.site_fields() if k in
-            list(cls.single_element_types.keys())]
+            list(cls.single_element_types().keys())]
 
     @classmethod
     def site_single_element_types(cls):
         """ Dict of site single element field: type"""
-        return {k: cls.single_element_types[k]
+        return {k: cls.single_element_types()[k]
             for k in cls.site_single_element_fields()}
 
     @classmethod
     def site_array_dtypes_fields(cls):
         """ All site fields that are arrays in a list """
         return [k for k in cls.site_fields() if k in
-        list(cls.array_dtypes.keys())]
+        list(cls.array_dtypes().keys())]
 
     @classmethod
     def site_array_dtypes(cls):
         """ Dict of site array field : dtype """
-        return {k: cls.array_dtypes[k] for k in
+        return {k: cls.array_dtypes()[k] for k in
         cls.site_array_dtypes_fields()}
 
     # for single element fields in the array filetypes, they must
@@ -699,13 +952,13 @@ class BorealisAntennasIqv0_4():
     def array_single_element_fields(cls):
         """ List of array restructured single element fields """
         return [k for k in cls.array_fields() if
-        k in list(cls.single_element_types.keys()) and k in
-        cls.shared_fields]
+        k in list(cls.single_element_types().keys()) and k in
+        cls.shared_fields()]
 
     @classmethod
     def array_single_element_types(cls):
         """ Dict of array restructured single element field : type """
-        return {k: cls.single_element_types[k]
+        return {k: cls.single_element_types()[k]
         for k in cls.array_single_element_fields()}
 
     # for array filetypes, there are more array dtypes for any unshared
@@ -715,27 +968,27 @@ class BorealisAntennasIqv0_4():
     def array_array_dtypes_fields(cls):
         """ List of array restructured array fields """
         return [k for k in cls.array_fields() if
-        k in list(cls.array_dtypes.keys())] + \
+        k in list(cls.array_dtypes().keys())] + \
         [k for k in cls.array_fields() if k in
-        list(cls.single_element_types.keys()) and
-        ((k in cls.unshared_fields) or
-            (k in cls.array_only_fields))]
+        list(cls.single_element_types().keys()) and
+        ((k in cls.unshared_fields()) or
+            (k in cls.array_only_fields()))]
 
     @classmethod
     def array_array_dtypes(cls):
         """ Dict of array restructured array field : dtype """
-        array_array_dtypes = {k: cls.array_dtypes[k] for k in
+        array_array_dtypes = {k: cls.array_dtypes()[k] for k in
         cls.array_array_dtypes_fields() if k in
-        list(cls.array_dtypes.keys())}
+        list(cls.array_dtypes().keys())}
 
-        array_array_dtypes.update({k: cls.single_element_types[k] for
+        array_array_dtypes.update({k: cls.single_element_types()[k] for
             k in cls.array_array_dtypes_fields() if k in
-            list(cls.single_element_types.keys())})
+            list(cls.single_element_types().keys())})
 
         return array_array_dtypes
 
 
-class BorealisRawrfv0_4():
+class BorealisRawrfv0_4(BaseFormatClass):
     """
     Class containing Borealis Rawrf data fields and their types  for Borealis
     v0.4 and under.
@@ -757,8 +1010,11 @@ class BorealisRawrfv0_4():
         List of all fields that are in the site file type.
     """
 
-    single_element_types = {
-        # Identifies the version of Borealis that made this data.
+    @classmethod
+    def single_element_types(cls): 
+        return {
+        # Identifies the version of Borealis that made this data. Necessary 
+        # for all versions.
         "borealis_git_hash": np.unicode_,
         # Number used to identify experiment.
         "experiment_id": np.int64,
@@ -789,9 +1045,11 @@ class BorealisRawrfv0_4():
         "rx_center_freq": np.float64,
         # Number of samples in the sampling period.
         "num_samps": np.uint32
-    }
+        }
 
-    array_dtypes = {
+    @classmethod
+    def array_dtypes(cls): 
+        return {
         # A list of GPS timestamps of the beginning of transmission for each
         # sampling period in the integration time. Seconds since epoch.
         "sqn_timestamps": np.float64,
@@ -802,35 +1060,36 @@ class BorealisRawrfv0_4():
         "data_dimensions": np.uint32,
         # A contiguous set of samples (complex float) at given sample rate
         "data": np.complex64
-    }
+        }
 
     @classmethod
     def site_fields(cls):
         """ All site fields """
-        return cls.shared_fields + cls.unshared_fields + cls.site_only_fields
+        return list(cls.single_element_types().keys()) + \
+            list(cls.array_dtypes().keys())
 
     @classmethod
     def site_single_element_fields(cls):
         """ All site fields that are single element in a list """
         return [k for k in cls.site_fields() if k in
-            list(cls.single_element_types.keys())]
+            list(cls.single_element_types().keys())]
 
     @classmethod
     def site_single_element_types(cls):
         """ Dict of site single element field: type"""
-        return {k: cls.single_element_types[k]
+        return {k: cls.single_element_types()[k]
             for k in cls.site_single_element_fields()}
 
     @classmethod
     def site_array_dtypes_fields(cls):
         """ All site fields that are arrays in a list """
         return [k for k in cls.site_fields() if k in
-        list(cls.array_dtypes.keys())]
+        list(cls.array_dtypes().keys())]
 
     @classmethod
     def site_array_dtypes(cls):
         """ Dict of site array field : dtype """
-        return {k: cls.array_dtypes[k] for k in
+        return {k: cls.array_dtypes()[k] for k in
         cls.site_array_dtypes_fields()}
 
 
@@ -840,18 +1099,26 @@ class BorealisRawrfv0_4():
 class BorealisRawacf(BorealisRawacfv0_4):
     """
     Class containing Borealis Rawacf data fields and their types for the
-    current version of Borealis.
+    current version of Borealis (v0.5).
 
     Rawacf data has been mixed, filtered, and decimated; beamformed and
     combined into antenna arrays; then autocorrelated and correlated between
     antenna arrays to produce matrices of num_ranges x num_lags.
 
     See base class for description of attributes and notes.
+
+    In v0.5, the following fields were added:
+    slice_id, slice_interfacing, scheduling_mode, and averaging_method.
+    As well, blanked_samples was changed from shared to unshared in the array
+    restructuring.
     """
 
     # New fields added in v0.5 to shared fields:
 
-    cls.single_element_types.update({
+    @classmethod
+    def single_element_types(cls):
+        single_element_types = super(BorealisRawacf, cls).single_element_types()
+        single_element_types.update({
         # the slice id of the file and dataset.
         "slice_id" : np.uint32,
         # the interfacing of this slice to other slices.
@@ -861,18 +1128,29 @@ class BorealisRawacf(BorealisRawacfv0_4):
         # A string describing the averaging method, ex. mean, median
         "averaging_method" : np.unicode_
         })
+        return single_element_types
 
-    cls.shared_fields.append('slice_id')
-    cls.shared_fields.append('scheduling_mode')
-    cls.shared_fields.append('averaging_method')
+    @classmethod
+    def shared_fields(cls):
+        shared = super(BorealisRawacf, cls).shared_fields() + \
+            ['slice_id', 'scheduling_mode', 'averaging_method']
+        shared.remove('blanked_samples')
+        return shared
 
-    cls.unshared_fields.append('slice_interfacing')
+    @classmethod
+    def unshared_fields_dims(cls):
+        unshared_fields_dims = super(BorealisRawacf, cls).unshared_fields_dims()
+        unshared_fields_dims.update({
+        'blanked_samples': [cls.find_max_blanked_samples],
+        'slice_interfacing': []
+        })
+        return unshared_fields_dims
 
 
 class BorealisBfiq(BorealisBfiqv0_4):
     """
     Class containing Borealis Bfiq data fields and their types for the
-    current version of Borealis.
+    current version of Borealis (v0.5).
 
     Bfiq data is beamformed i and q data. It has been mixed, filtered,
     decimated to the final output receive rate, and it has been beamformed
@@ -880,11 +1158,19 @@ class BorealisBfiq(BorealisBfiqv0_4):
     or averaging has occurred.
 
     See base class for description of attributes and notes.
+
+    In v0.5, the following fields were added:
+    slice_id, slice_interfacing, and scheduling_mode.
+    As well, blanked_samples was changed from shared to unshared in the array
+    restructuring.
     """
 
     # New fields added in v0.5 to shared fields:
 
-    cls.single_element_types.update({
+    @classmethod
+    def single_element_types(cls):
+        single_element_types = super(BorealisBfiq, cls).single_element_types()
+        single_element_types.update({
         # the slice id of the file and dataset.
         "slice_id" : np.uint32,
         # the interfacing of this slice to other slices.
@@ -892,28 +1178,45 @@ class BorealisBfiq(BorealisBfiqv0_4):
         # A string describing the type of scheduling time at the time of this dataset.
         "scheduling_mode" : np.unicode_
         })
+        return single_element_types
 
-    cls.shared_fields.append('slice_id')
-    cls.shared_fields.append('scheduling_mode')
+    @classmethod
+    def shared_fields(cls):
+        shared = super(BorealisBfiq, cls).shared_fields() + \
+            ['slice_id', 'scheduling_mode']
+        shared.remove('blanked_samples')
+        return shared
 
-    cls.unshared_fields.append('slice_interfacing')
+    @classmethod
+    def unshared_fields_dims(cls):
+        unshared_fields_dims = super(BorealisBfiq, cls).unshared_fields_dims()
+        unshared_fields_dims.update({
+        'blanked_samples': [cls.find_max_blanked_samples],
+        'slice_interfacing': []
+        })
+        return unshared_fields_dims
 
 
 class BorealisAntennasIq(BorealisAntennasIqv0_4):
     """
     Class containing Borealis Antennas iq data fields and their types for
-    Borealis current version.
+    Borealis current version (v0.5).
 
     Antennas iq data is data with all channels separated. It has been mixed
     and filtered, but it has not been beamformed or combined into the
     entire antenna array data product.
 
     See base class for description of attributes and notes.
+    In v0.5, the following fields were added:
+    slice_id, slice_interfacing, scheduling_mode, and blanked_samples.
     """
 
     # New fields added in v0.5 to shared fields:
 
-    cls.single_element_types.update({
+    @classmethod
+    def single_element_types(cls):
+        single_element_types = super(BorealisAntennasIq, cls).single_element_types()
+        single_element_types.update({
         # the slice id of the file and dataset.
         "slice_id" : np.uint32,
         # the interfacing of this slice to other slices.
@@ -921,28 +1224,51 @@ class BorealisAntennasIq(BorealisAntennasIqv0_4):
         # A string describing the type of scheduling time at the time of this dataset.
         "scheduling_mode" : np.unicode_
         })
+        return single_element_types
 
-    cls.array_dtypes.update({
+    @classmethod
+    def array_dtypes(cls):
+        array_dtypes = super(BorealisAntennasIq, cls).array_dtypes()
+        array_dtypes.update({
         # Samples that occur during TR switching (transmission times)
         "blanked_samples" : np.uint32
         })
+        return array_dtypes
 
-    cls.shared_fields.append('slice_id')
-    cls.shared_fields.append('scheduling_mode')
+    @classmethod
+    def shared_fields(cls):
+        shared = super(BorealisAntennasIq, cls).shared_fields() + \
+            ['slice_id', 'scheduling_mode']
+        return shared
 
-    cls.unshared_fields.append('blanked_samples')
-    cls.unshared_fields.append('slice_interfacing')
+    @classmethod
+    def unshared_fields_dims(cls):
+        unshared_fields_dims = super(BorealisAntennasIq, 
+            cls).unshared_fields_dims()
+        unshared_fields_dims.update({
+        'blanked_samples': [cls.find_max_blanked_samples],
+        'slice_interfacing': []
+        })
+        return unshared_fields_dims
 
 
 class BorealisRawrf(BorealisRawrfv0_4):
     """
     Class containing Borealis Rawrf data fields and their types for current
-    Borealis version.
+    Borealis version (v0.5).
+
+    See base class for description of attributes and notes.
+    In v0.5, the following fields were added:
+    slice_id, slice_interfacing, scheduling_mode, and blanked_samples.
     """
 
     # New fields added in v0.5 to shared fields:
 
-    cls.single_element_types.update({
+    @classmethod
+    def single_element_types(cls):
+        single_element_types = super(BorealisRawrf, cls).single_element_types()
+        single_element_types.update({
+
         # the slice id of the file and dataset.
         "slice_id" : np.uint32,
         # the interfacing of this slice to other slices.
@@ -950,16 +1276,30 @@ class BorealisRawrf(BorealisRawrfv0_4):
         # A string describing the type of scheduling time at the time of this dataset.
         "scheduling_mode" : np.unicode_
         })
+        return single_element_types
 
-    cls.array_dtypes.update({
+    @classmethod
+    def array_dtypes(cls):
+        array_dtypes = super(BorealisRawrf, cls).array_dtypes()
+        array_dtypes.update({
         # Samples that occur during TR switching (transmission times)
         "blanked_samples" : np.uint32
         })
-
-    cls.shared_fields.append('slice_id')
-    cls.shared_fields.append('scheduling_mode')
-
-    cls.unshared_fields.append('blanked_samples')
-    cls.unshared_fields.append('slice_interfacing')
+        return array_dtypes
 
 
+# borealis versions
+borealis_versions = {
+    'v0.4' : {
+        'bfiq' : BorealisBfiqv0_4, 
+        'rawacf' : BorealisRawacfv0_4,
+        'antennas_iq' : BorealisAntennasIqv0_4,
+        'rawrf' : BorealisRawrfv0_4
+        },
+    'v0.5' : {
+        'bfiq' : BorealisBfiq, 
+        'rawacf' : BorealisRawacf,
+        'antennas_iq' : BorealisAntennasIq,
+        'rawrf' : BorealisRawrf
+    }
+}

@@ -2,7 +2,7 @@
 # Author: Marci Detwiller
 """
 This file contains several exception classes used by the pydarn io borealis
-module. 
+module.
 
 Classes
 -------
@@ -96,7 +96,7 @@ class BorealisExtraFieldError(Exception):
     """
     Raised on extra unknown field in the data.
 
-    Occurs when an extra field is in the data that is not included in 
+    Occurs when an extra field is in the data that is not included in
     the Borealis format file type fields
 
     Parameters
@@ -169,17 +169,17 @@ class BorealisDataFormatTypeError(Exception):
 
 class BorealisNumberOfRecordsError(Exception):
     """
-    Raised when the file is array structured and does not 
+    Raised when the file is array structured and does not
     have a consistent number of records across the unshared
     parameters (arrays).
 
     Parameters
     ----------
     array_types: dict
-        dictionary of unshared parameter keys to 
+        dictionary of unshared parameter keys to
         the first dimension of their array (indicating the number
         of records)
-    
+
     Attributes
     ----------
     message: str
@@ -220,7 +220,7 @@ class BorealisConversionTypesError(Exception):
         The message to display with the error
     """
 
-    def __init__(self, dmap_filename: str, origin_filetype: str, 
+    def __init__(self, dmap_filename: str, origin_filetype: str,
                  allowed_types: dict):
         self.message = "Records destined to be converted and written to "\
                        "{dmap_filename} cannot be converted from origin "\
@@ -263,7 +263,7 @@ class BorealisConvert2RawacfError(Exception):
     ----------
     error_str: str
         explanation for why the file cannot be converted to SDARN rawacf.
-    
+
     Attributes
     ----------
     message: str
@@ -279,14 +279,14 @@ class BorealisConvert2RawacfError(Exception):
 
 class BorealisRestructureError(Exception):
     """
-    Raised when the file cannot be restructured to or from site/array 
-    styles. 
+    Raised when the file cannot be restructured to or from site/array
+    styles.
 
     Parameters
     ----------
     error_str: str
         explanation for why the file cannot be restructured.
-    
+
     Attributes
     ----------
     message: str
@@ -313,7 +313,7 @@ class BorealisStructureError(Exception):
     ----------
     error_str: str
         explanation for why the file cannot be restructured.
-    
+
     Attributes
     ----------
     message: str
@@ -350,4 +350,32 @@ class ConvertFileOverWriteError(Exception):
     def __init__(self, filename: str):
         self.message = "Writing to {filename} not permitted while reading"\
             " the file as source.".format(filename=filename)
+        Exception.__init__(self, self.message)
+
+
+class BorealisVersionError(Exception):
+    """
+    The version is not found in the current list of versions
+    available in the borealis formats.
+
+    Parameters
+    ----------
+    filename: str
+        File attempted to read/write
+    file_version: str
+        SuperDARN Borealis version that is not implemented or correct
+
+    Attributes
+    ----------
+    message: str
+        The message to display with the error
+    """
+
+    def __init__(self, filename: str, file_version: str):
+        self.file_version = file_version
+        self.filename = filename
+        self.message = "Version {file_version} from the borealis_git_hash is not"\
+            " a recognized Borealis version or has not been implemented yet."\
+            " {filename} was not used.".format(file_version=self.file_version,
+                                   filename=self.filename)
         Exception.__init__(self, self.message)

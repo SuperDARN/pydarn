@@ -1,12 +1,12 @@
 # Copyright 2019 SuperDARN Canada, University of Saskatchewan
 # Author: Marci Detwiller
 """
-This file contains classes and functions for 
-converting of Borealis file types. 
+This file contains classes and functions for
+converting of Borealis file types.
 
 Classes
 -------
-BorealisRead: Uses BorealisSiteRead and BorealisArrayRead 
+BorealisRead: Uses BorealisSiteRead and BorealisArrayRead
     to read a Borealis HDF5 file
 BorealisWrite: Uses BorealisSiteWrite and BorealisArrayWrite
     to write a Borealis HDF5 file
@@ -33,8 +33,8 @@ BorealisArrayRead
 BorealisArrayWrite
 BorealisConvert
 
-For more information on Borealis data files and how they convert to SDARN 
-filetypes, see: https://borealis.readthedocs.io/en/latest/ 
+For more information on Borealis data files and how they convert to SDARN
+filetypes, see: https://borealis.readthedocs.io/en/latest/
 """
 
 import logging
@@ -94,7 +94,7 @@ class BorealisRead():
     record_names: list[str]
     """
 
-    def __init__(self, filename: str, borealis_filetype: str, 
+    def __init__(self, filename: str, borealis_filetype: str,
             borealis_file_structure: Union[str, None] = None):
         """
         Reads Borealis array file types into a dictionary.
@@ -148,7 +148,7 @@ class BorealisRead():
         # class and not the parent class
         return "{class_name}({filename}, {borealis_filetype})"\
             "".format(class_name=self.__class__.__name__,
-                      filename=self.filename, 
+                      filename=self.filename,
                       borealis_filetype=self.borealis_filetype)
 
     def __str__(self):
@@ -167,7 +167,7 @@ class BorealisRead():
     @property
     def record_names(self):
         """
-        A sorted list of the set of record names in the HDF5 file read. 
+        A sorted list of the set of record names in the HDF5 file read.
         These correspond to Borealis file record write times (in ms since
         epoch), and are equal to the group names in the site file types.
         """
@@ -176,18 +176,26 @@ class BorealisRead():
     @property
     def records(self):
         """
-        The Borealis data in a dictionary of records, according to the 
+        The Borealis data in a dictionary of records, according to the
         site file format.
         """
         return self._reader.records
 
-    @property 
+    @property
     def arrays(self):
         """
-        The Borealis data in a dictionary of arrays, according to the 
+        The Borealis data in a dictionary of arrays, according to the
         restructured array file format.
         """
         return self._reader.arrays
+
+    @property
+    def borealis_version(self):
+        """
+        The Borealis version that created this data. May impact the
+        fields included in the file.
+        """
+        return self._reader._borealis_version
 
     @staticmethod
     def return_reader(borealis_hdf5_file: str, borealis_filetype: str) -> \
@@ -201,7 +209,7 @@ class BorealisRead():
         borealis_hdf5_file
             Borealis file to read. Either array or site style.
         borealis_filetype
-            Borealis filetype. Possible types include antennas_iq, 
+            Borealis filetype. Possible types include antennas_iq,
             bfiq, rawacf.
 
         Returns
@@ -227,7 +235,7 @@ class BorealisRead():
         try:
             reader = BorealisArrayRead(borealis_hdf5_file, borealis_filetype)
             return reader, 'array'
-        except (borealis_exceptions.BorealisExtraFieldError, 
+        except (borealis_exceptions.BorealisExtraFieldError,
                borealis_exceptions.BorealisFieldMissingError,
                borealis_exceptions.BorealisStructureError):
             pydarn_log.info('{} is not array restructured. Attempting site'\
@@ -237,7 +245,7 @@ class BorealisRead():
                 return reader, 'site'
             except:
                 pydarn_log.info('{} is not site structured. Raising reader'\
-                    ' errors.'.format(borealis_hdf5_file))           
+                    ' errors.'.format(borealis_hdf5_file))
                 raise
 
 
@@ -286,12 +294,12 @@ class BorealisWrite():
         will have 'zlib' compression to enable a faster read time
         for downstream users.
     arrays: dict
-        The Borealis data in a dictionary of arrays, according to the 
+        The Borealis data in a dictionary of arrays, according to the
         restructured array file format.
     """
 
     def __init__(self, filename: str, borealis_data: Union[dict, OrderedDict],
-                 borealis_filetype: str, 
+                 borealis_filetype: str,
                  borealis_file_structure: Union[str, None] = None,
                  **kwargs):
         """
@@ -310,10 +318,10 @@ class BorealisWrite():
             'rawacf'
         borealis_file_structure: Union[str, None]
             The structure of the data provided. Possible types are
-            'site', 'array', or None. If None (default), array write will be 
-            attempted first followed by site. 
+            'site', 'array', or None. If None (default), array write will be
+            attempted first followed by site.
         hdf5_compression: str
-            A kwarg key name, giving a string representing compression type. 
+            A kwarg key name, giving a string representing compression type.
         """
         self.filename = filename
         self.data = borealis_data
@@ -321,15 +329,15 @@ class BorealisWrite():
 
         if borealis_file_structure == None:
             self._writer, self._borealis_file_structure = \
-                self.return_writer(self.filename, self.data, 
+                self.return_writer(self.filename, self.data,
                     self.borealis_filetype, **kwargs)
         elif borealis_file_structure == 'site':
             self._writer = BorealisSiteWrite(self.filename, self.data,
-                                             self.borealis_filetype, 
+                                             self.borealis_filetype,
                                              **kwargs)
             self._borealis_file_structure = 'site'
         elif borealis_file_structure == 'array':
-            self._writer = BorealisArrayWrite(self.filename, self.data, 
+            self._writer = BorealisArrayWrite(self.filename, self.data,
                                               self.borealis_filetype, **kwargs)
             self._borealis_file_structure = 'array'
         else: # unknown structure
@@ -370,11 +378,11 @@ class BorealisWrite():
         for downstream users.
         """
         return self._writer.compression
-    
+
     @property
     def record_names(self):
         """
-        A sorted list of the set of record names in the HDF5 file read. 
+        A sorted list of the set of record names in the HDF5 file read.
         These correspond to Borealis file record write times (in ms since
         epoch), and are equal to the group names in the site file types.
         """
@@ -383,15 +391,15 @@ class BorealisWrite():
     @property
     def records(self):
         """
-        The Borealis data in a dictionary of records, according to the 
+        The Borealis data in a dictionary of records, according to the
         site file format.
         """
         return self._writer.records
 
-    @property 
+    @property
     def arrays(self):
         """
-        The Borealis data in a dictionary of arrays, according to the 
+        The Borealis data in a dictionary of arrays, according to the
         restructured array file format.
         """
         return self._writer.arrays
@@ -409,13 +417,13 @@ class BorealisWrite():
         filename
             Filename to write to. Either array or site style.
         data
-            Data to write out. Can be arrays dictionary or OrderedDict of 
-            records. 
+            Data to write out. Can be arrays dictionary or OrderedDict of
+            records.
         borealis_filetype
-            Borealis filetype. Possible types include antennas_iq, 
+            Borealis filetype. Possible types include antennas_iq,
             bfiq, rawacf, rawrf (site only).
         kwargs:
-            keyword arguments for writer call. Only supported is 
+            keyword arguments for writer call. Only supported is
             'hdf5_compression'
 
         Returns
@@ -439,10 +447,10 @@ class BorealisWrite():
         BorealisRestructureUtilities
         """
         try:
-            writer = BorealisArrayWrite(filename, data, borealis_filetype, 
+            writer = BorealisArrayWrite(filename, data, borealis_filetype,
                 **kwargs)
             return writer, 'array'
-        except (borealis_exceptions.BorealisExtraFieldError, 
+        except (borealis_exceptions.BorealisExtraFieldError,
                borealis_exceptions.BorealisFieldMissingError,
                borealis_exceptions.BorealisStructureError):
             pydarn_log.info('Data provided is not array restructured. '\
@@ -453,5 +461,5 @@ class BorealisWrite():
                 return writer, 'site'
             except:
                 pydarn_log.info('Data provided is not site structured. '\
-                    'Raising writer error.')           
+                    'Raising writer error.')
                 raise
