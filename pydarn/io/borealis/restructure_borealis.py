@@ -92,7 +92,7 @@ class BorealisRestructureUtilities():
 
         # init the unshared fields arrays
         for field in format_class.unshared_fields():
-            dims = [dimension_function(data_dict[first_key]) for 
+            dims = [dimension_function(data_dict) for 
                     dimension_function in 
                     format_class.unshared_fields_dims()[field]]
             dims.insert(0, num_records)
@@ -115,7 +115,7 @@ class BorealisRestructureUtilities():
 
         # init the array only fields arrays
         for field in format_class.array_only_fields():
-            dims = [dimension_function(data_dict[first_key]) for 
+            dims = [dimension_function(data_dict) for 
                     dimension_function in 
                     format_class.array_only_fields_dims()[field]]
             dims.insert(0, num_records)
