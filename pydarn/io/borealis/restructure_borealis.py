@@ -98,41 +98,34 @@ class BorealisRestructureUtilities():
 
         temp_array_dict = dict()
 
-        # init the unshared fields arrays
+        # get dims of the unshared fields arrays
+        field_dimensions = {}
         for field in format_class.unshared_fields():
             dims = [dimension_function(data_dict) for 
                     dimension_function in 
                     format_class.unshared_fields_dims()[field]]
-            dims.insert(0, num_records)
-            dims = tuple(dims)
-            print(field)
-            # if np.dtype(data_dict[first_key][field]) == np.ndarray:
-            #     datatype = data_dict[first_key][field].dtype
-            # else:
-            #     datatype = np.dtype(data_dict[first_key][field])
-            if field in format_class.single_element_types():
-                datatype = format_class.single_element_types()[field]
-            else: # field in array_dtypes
-                datatype = format_class.array_dtypes()[field]  
-            empty_array = np.empty(dims, dtype=datatype)
-            # initialize all values to NaN; some indices may not be filled 
-            # do to dimensions that are max values (num sequences, etc can
-            # change between records)
-            empty_array[:] = np.NaN 
-            temp_array_dict[field] = empty_array
+            field_dimensions[field] = dims
 
-        # init the array only fields arrays
+        # get dims of the array only fields arrays
         for field in format_class.array_only_fields():
             dims = [dimension_function(data_dict) for 
                     dimension_function in 
                     format_class.array_only_fields_dims()[field]]
-            dims.insert(0, num_records)
-            dims = tuple(dims)
+            field_dimensions[field] = dims
+
+        # all fields to become arrays
+        for field, dims in field_dimensions.items():
+            array_dims = [num_records] + dims
+            array_dims = tuple(array_dims)
+
             if field in format_class.single_element_types():
                 datatype = format_class.single_element_types()[field]
             else: # field in array_dtypes
-                datatype = format_class.array_dtypes()[field]
-            empty_array = np.empty(dims, dtype=datatype)
+                datatype = format_class.array_dtypes()[field]  
+            empty_array = np.empty(array_dims, dtype=datatype)
+            # initialize all values to NaN; some indices may not be filled 
+            # do to dimensions that are max values (num sequences, etc can
+            # change between records)
             empty_array[:] = np.NaN 
             temp_array_dict[field] = empty_array
         
@@ -140,15 +133,21 @@ class BorealisRestructureUtilities():
         # fields
         for rec_idx, k in enumerate(data_dict.keys()):
             for field in format_class.unshared_fields():  # all unshared fields
+                print(field)
                 empty_array = temp_array_dict[field]
-                if np.dtype(data_dict[first_key][field]) == np.ndarray:
+                if type(data_dict[first_key][field]) == np.ndarray:
                     # only fill the correct length, appended NaNs occur for 
                     # dims with a determined max value
                     data_buffer = data_dict[k][field]
+                    # some fields are linear and need to be reshaped.
+                    data_buffer = data_buffer.reshape(tuple(field_dimensions[field]))
                     buffer_shape = data_buffer.shape 
+                    print('buffer shape' + str(buffer_shape))
                     index_slice = [slice(0,i) for i in buffer_shape]
                     # insert record index at start of array's slice list
                     index_slice.insert(0, rec_idx) 
+                    index_slice = tuple(index_slice)
+                    print(index_slice)
                     # place data buffer in the correct place
                     empty_array[index_slice] = data_buffer 
                 else: # not an array, num_records is the only dimension
@@ -159,19 +158,21 @@ class BorealisRestructureUtilities():
                 if len(empty_array.shape) == 1:
                     # num_records is the only dimension
                     # pass record to the generate function to fill the array.
-                    empty_array[rec_idx] = map(
-                        format_class.array_only_fields_generate()[field], 
-                        data_dict[rec_idx])
+                    empty_array[rec_idx] = \
+                        format_class.array_only_fields_generate()[field](
+                        data_dict[k])
                 else: # multi-dimensional
                     # only fill the correct length, appended NaNs occur for 
                     # dims with a determined max value
-                    data_buffer = map(
-                        format_class.array_only_fields_generate()[field], 
-                        data_dict[rec_idx])
+                    data_buffer = \
+                        format_class.array_only_fields_generate()[field](
+                        data_dict[k])
+
                     buffer_shape = data_buffer.shape 
                     index_slice = [slice(0,i) for i in buffer_shape]
                     # insert record index at start of array's slice list
                     index_slice.insert(0, rec_idx) 
+                    index_slice = tuple(index_slice)
                     # place data buffer in the correct place
                     empty_array[index_slice] = data_buffer 
 
