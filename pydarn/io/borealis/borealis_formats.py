@@ -43,23 +43,26 @@ class BaseFormatClass():
     """
     Static Methods
     --------------
-    find_max_sequences(data)
+    find_max_sequences(records)
         Find the max number of sequences between records in a site file, for
         restructuring to arrays.
-    find_max_beams(data)
+    find_max_beams(records)
         Find the max number of beams between records in a site file, for
         restructuring to arrays.
+    find_max_blanked_samples(records)
+        Find the max number of blanked samples between records in a site file,
+        for restructuring to arrays.
     """
     @staticmethod
-    def find_max_sequences(data: OrderedDict) -> int:
+    def find_max_sequences(records: OrderedDict) -> int:
         """
         Finds the maximum number of sequences between records in a Borealis
-        site style data file.
+        site style records file.
 
         Parameters
         ----------
-        data
-            Site formatted data from a Borealis file, organized as one
+        records
+            Site formatted records from a Borealis file, organized as one
             record for each slice
 
         Returns
@@ -69,21 +72,21 @@ class BaseFormatClass():
             file
         """
         max_seqs = 0
-        for k in data:
-            if max_seqs < data[k]["num_sequences"]:
-                max_seqs = data[k]["num_sequences"]
+        for k in records:
+            if max_seqs < records[k]["num_sequences"]:
+                max_seqs = records[k]["num_sequences"]
         return max_seqs
 
     @staticmethod
-    def find_max_beams(data: OrderedDict) -> int:
+    def find_max_beams(records: OrderedDict) -> int:
         """
         Finds the maximum number of beams between records in a Borealis
-        site style data file.
+        site style records file.
 
         Parameters
         ----------
-        data
-            Site formatted data from a Borealis file, organized as one
+        records
+            Site formatted records from a Borealis file, organized as one
             record for each slice
 
         Returns
@@ -93,21 +96,21 @@ class BaseFormatClass():
             file
         """
         max_beams = 0
-        for k in data:
-            if max_beams < len(data[k]["beam_nums"]):
-                max_beams = len(data[k]["beam_nums"])
+        for k in records:
+            if max_beams < len(records[k]["beam_nums"]):
+                max_beams = len(records[k]["beam_nums"])
         return max_beams
 
     @staticmethod
-    def find_max_blanked_samples(data: OrderedDict) -> int:
+    def find_max_blanked_samples(records: OrderedDict) -> int:
         """
         Finds the maximum number of blanked samples between records in a Borealis
-        site style data file.
+        site style records file.
 
         Parameters
         ----------
-        data
-            Site formatted data from a Borealis file, organized as one
+        records
+            Site formatted records from a Borealis file, organized as one
             record for each slice
 
         Returns
@@ -117,9 +120,9 @@ class BaseFormatClass():
             file
         """
         max_blanked_samples = 0
-        for k in data:
-            if max_blanked_samples < len(data[k]["blanked_samples"]):
-                max_blanked_samples = len(data[k]["blanked_samples"])
+        for k in records:
+            if max_blanked_samples < len(records[k]["blanked_samples"]):
+                max_blanked_samples = len(records[k]["blanked_samples"])
         return max_blanked_samples
 
 
@@ -149,7 +152,7 @@ class BorealisRawacfv0_4(BaseFormatClass):
         Dimensions of the unshared fields. Dimensions given are for site 
         structure. In array structure the first dimension will be num_records
         followed by these dimensions. Dimensions are provided as functions that 
-        will calculate the dimension given a single record (data dictionary)
+        will calculate the dimension given the records (data dictionary)
     unshared_fields: list
         List of the fields that are restructured to be an array. These fields are
         present in both array and site files but are not shared by all records 
@@ -196,6 +199,28 @@ class BorealisRawacfv0_4(BaseFormatClass):
     shared_fields + unshared_fields + array_only_fields = all fields in array file
     shared_fields + unshared_fields + site_only_fields = all fields in site file
     """
+
+    @staticmethod
+    def find_num_ranges(records: OrderedDict) -> int:
+        """
+        Find the number of ranges given the records dictionary, for 
+        restructuring to arrays.
+        Num_ranges is unique to a slice so cannot change inside file.
+        """
+        first_key = list(records.keys())[0]
+        num_ranges = records[first_key]['correlation_dimensions'][1]
+        return num_ranges
+
+    @staticmethod
+    def find_num_lags(records: OrderedDict) -> int:
+        """
+        Find the number of lags given the records dictionary, for 
+        restructuring to arrays.
+        Num_lags is unique to a slice so cannot change inside file.
+        """
+        first_key = list(records.keys())[0]
+        num_lags = records[first_key]['correlation_dimensions'][2]
+        return num_lags
 
     @classmethod
     def single_element_types(cls): 
@@ -304,15 +329,9 @@ class BorealisRawacfv0_4(BaseFormatClass):
         'int_time': [], 
         'sqn_timestamps': [cls.find_max_sequences],
         'noise_at_freq': [cls.find_max_sequences],
-        'main_acfs': [cls.find_max_beams, 
-                lambda record: record['correlation_dimensions'][1], # num_ranges
-                lambda record: record['correlation_dimensions'][2]], # num_lags
-        'intf_acfs': [cls.find_max_beams, 
-                lambda record: record['correlation_dimensions'][1], # num_ranges
-                lambda record: record['correlation_dimensions'][2]], # num_lags
-        'xcfs': [cls.find_max_beams, 
-                lambda record: record['correlation_dimensions'][1], # num_ranges
-                lambda record: record['correlation_dimensions'][2]], # num_lags
+        'main_acfs': [cls.find_max_beams, cls.find_num_ranges, cls.find_num_lags],
+        'intf_acfs': [cls.find_max_beams, cls.find_num_ranges, cls.find_num_lags],
+        'xcfs': [cls.find_max_beams, cls.find_num_ranges, cls.find_num_lags],
         'scan_start_marker': [],
         'beam_nums': [cls.find_max_beams],
         'beam_azms': [cls.find_max_beams],
@@ -443,7 +462,7 @@ class BorealisBfiqv0_4(BaseFormatClass):
         Dimensions of the unshared fields. Dimensions given are for site 
         structure. In array structure the first dimension will be num_records
         followed by these dimensions. Dimensions are provided as functions that 
-        will calculate the dimension given a single record (data dictionary)
+        will calculate the dimension given the records (data dictionary)
     unshared_fields: list
         List of the fields that are restructured to be an array. These fields are
         present in both array and site files but are not shared by all records 
@@ -490,6 +509,26 @@ class BorealisBfiqv0_4(BaseFormatClass):
     shared_fields + unshared_fields + array_only_fields = all fields in array file
     shared_fields + unshared_fields + site_only_fields = all fields in site file
     """
+
+    @staticmethod
+    def find_num_antenna_arrays(records: OrderedDict) -> int:
+        """
+        Find the number of antenna arrays given the records dictionary, for 
+        restructuring to arrays.
+        """
+        first_key = list(records.keys())[0]
+        num_arrays = records[first_key]['data_dimensions'][0]
+        return num_arrays
+
+    @staticmethod
+    def find_num_samps(records: OrderedDict) -> int:
+        """
+        Find the number of samples given the records dictionary, for 
+        restructuring to arrays.
+        """
+        first_key = list(records.keys())[0]
+        num_samps = records[first_key]['data_dimensions'][3]
+        return num_samps
 
     @classmethod
     def single_element_types(cls): 
@@ -603,9 +642,9 @@ class BorealisBfiqv0_4(BaseFormatClass):
         'int_time': [], 
         'sqn_timestamps': [cls.find_max_sequences],
         'noise_at_freq': [cls.find_max_sequences],
-        'data': [lambda record: record['data_dimensions'][0], # num_antenna_arrays
+        'data': [cls.find_num_antenna_arrays,
                  cls.find_max_sequences, cls.find_max_beams, 
-                 lambda record: record['data_dimensions'][3]], # num_samps
+                 cls.find_num_samps], 
         'scan_start_marker': [],
         'beam_nums': [cls.find_max_beams],
         'beam_azms': [cls.find_max_beams],
@@ -735,7 +774,7 @@ class BorealisAntennasIqv0_4(BaseFormatClass):
         Dimensions of the unshared fields. Dimensions given are for site 
         structure. In array structure the first dimension will be num_records
         followed by these dimensions. Dimensions are provided as functions that 
-        will calculate the dimension given a single record (data dictionary)
+        will calculate the dimension given the records (data dictionary)
     unshared_fields: list
         List of the fields that are restructured to be an array. These fields are
         present in both array and site files but are not shared by all records 
@@ -782,6 +821,26 @@ class BorealisAntennasIqv0_4(BaseFormatClass):
     shared_fields + unshared_fields + array_only_fields = all fields in array file
     shared_fields + unshared_fields + site_only_fields = all fields in site file
     """
+
+    @staticmethod
+    def find_num_antennas(records: OrderedDict) -> int:
+        """
+        Find the number of antennas given the records dictionary, for 
+        restructuring to arrays.
+        """
+        first_key = list(records.keys())[0]
+        num_antennas = records[first_key]['data_dimensions'][0]
+        return num_antennas
+
+    @staticmethod
+    def find_num_samps(records: OrderedDict) -> int:
+        """
+        Find the number of samples given the records dictionary, for 
+        restructuring to arrays.
+        """
+        first_key = list(records.keys())[0]
+        num_samps = records[first_key]['data_dimensions'][2]
+        return num_samps
 
     @classmethod
     def single_element_types(cls): 
@@ -881,9 +940,7 @@ class BorealisAntennasIqv0_4(BaseFormatClass):
         'int_time': [], 
         'sqn_timestamps': [cls.find_max_sequences],
         'noise_at_freq': [cls.find_max_sequences],
-        'data': [lambda record: record['data_dimensions'][0], # num_antennas
-                 cls.find_max_sequences,
-                 lambda record: record['data_dimensions'][2]], # num_samps
+        'data': [cls.find_num_antennas, cls.find_max_sequences, cls.find_num_samps], 
         'scan_start_marker': [],
         'beam_nums': [cls.find_max_beams],
         'beam_azms': [cls.find_max_beams],
