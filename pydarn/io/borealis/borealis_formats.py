@@ -43,16 +43,100 @@ class BaseFormatClass():
     """
     Static Methods
     --------------
-    find_max_sequences(records)
+    find_max_sequences(records): int
         Find the max number of sequences between records in a site file, for
         restructuring to arrays.
-    find_max_beams(records)
+    find_max_beams(records): int
         Find the max number of beams between records in a site file, for
         restructuring to arrays.
-    find_max_blanked_samples(records)
+    find_max_blanked_samples(records): int
         Find the max number of blanked samples between records in a site file,
         for restructuring to arrays.
+    reshape_site_arrays(records): OrderedDict
+        Returns the site data with the arrays reshaped. Some site data arrays
+        may be stored in linear dimensions, so this reshapes any if needed.
+        Should be overwritten by the child class. 
+
+
+    Class Methods
+    -------------
+    All classes built from this class should have these functions overwritten
+    according to their type:
+
+    single_element_types(): dict
+        Dictionary of data field name to type expected in that field for a
+        dictionary of Borealis data.
+    array_dtypes(): dict
+        Dictionary of data field name to array of given numpy dtype expected
+        in the field for a dictionary of Borealis data.
+    shared_fields(): list
+        List of the fields that are common (shared) across records. This 
+        means that they can be reduced to a single value/array per file when
+        they are array restructured.
+    unshared_fields_dims(): dict
+        Unshared field: dimensions of site structure.. Unshared fields are not common
+        across records. In array structure the first dimension will be num_records
+        followed by these dimensions. Dimensions are provided as functions that 
+        will calculate the dimension given the records (site data dictionary)
+    array_specific_fields_generate(): dict
+        Any fields that are array specific or require specific function to
+        generate. The values in the dictionary are the functions that take the 
+        records (site data dictionary) to generate.
+    site_specific_fields_generate(): dict
+        Any fields that are site specific or require specific function to
+        generate. The values in the dictionary are the functions that take the 
+        arrays (array data dictionary) and the record_num to generate.
+
+    These methods use the single_element_types, array_dtypes, shared_fields,
+    unshared_fields_dims, array_specific_fields_generate, and 
+    site_specific_fields_generate methods to generate their values:
+
+    unshared_fields: list
+        List of the fields that are not common across records.
+    array_specific_fields: list
+        List of fields that are only present in array files. 
+    site_specific_fields: list
+        List of fields that are only present in site files.
+    site_fields: list
+        List of all fields that are in the site file type.
+    array_fields: list
+        List of all fields that are in the array file type.
+    site_single_element_fields : list
+        List of fields in the site files that are single element types.4
+    site_single_element_types: dict
+        subset of single_element_types with only site keys.
+    site_array_dtypes_fields : list
+        List of fields in the site files that are made of numpy arrays.
+    site_array_dtypes: dict
+        subset of array_dtypes with only site keys.
+    array_single_element_fields : list
+        List of fields in the array files that are single element types
+        (unless unshared in which they are converted to the numpy array of
+        that type)
+    array_single_element_types: dict
+        subset of single_element_types with only array fields.
+    array_array_dtypes_fields : list
+        List of fields in the array files that are made of numpy arrays. 
+        Includes fields that are single element but are unshared so are 
+        converted to arrays in the array file.
+    array_array_dtypes: dict
+        fields in the array files that are made of numpy arrays, with their
+        given data type.
+
+    _site_to_array(data_dict): dict
+        Convert an OrderedDict of site data to array data using the information
+        provided for the data format. 
+    _array_to_site(data_dict): OrderedDict
+        Convert a dictionary of array data to site data using the information
+        provided for the data format.
+
+    Notes
+    -----
+    single_element_types.keys() + array_dtypes.keys() = all known fields
+    shared_fields + unshared_fields + array_only_fields = all fields in array file
+    shared_fields + unshared_fields + site_only_fields = all fields in site file
     """
+
     @staticmethod
     def find_max_sequences(records: OrderedDict) -> int:
         """
@@ -125,6 +209,238 @@ class BaseFormatClass():
                 max_blanked_samples = len(records[k]["blanked_samples"])
         return max_blanked_samples
 
+    @staticmethod
+    def reshape_site_arrays(records: OrderedDict) -> OrderedDict:
+        """
+        This is a necessary function for interpreting site data, as 
+        some arrays in site data have been converted to linear dimensions. 
+
+        This reshapes them to the correct dimensions. Some formats may not
+        have this issue, in which case this function does not need to be 
+        overwritten by the child class. 
+        """
+        return records
+
+    # initialize these methods, which should be rewritten by the format.
+    @classmethod
+    def single_element_types(cls): 
+        return {}
+
+    @classmethod
+    def array_dtypes(cls): 
+        return {}
+
+    @classmethod
+    def shared_fields(cls): 
+        return []
+
+    @classmethod
+    def unshared_fields_dims(cls): 
+        return {}
+
+    @classmethod
+    def array_specific_fields_generate(cls):
+        return {}
+
+    @classmethod
+    def site_specific_fields_generate(cls): 
+        return {}
+
+    #these methods build off of the above.
+    @classmethod
+    def unshared_fields(cls): 
+        return list(cls.unshared_fields_dims().keys())
+
+    @classmethod
+    def array_specific_fields(cls): 
+        return list(cls.array_specific_fields_generate().keys())
+
+    @classmethod
+    def site_specific_fields(cls): 
+        return list(cls.site_specific_fields_generate().keys())
+
+    @classmethod
+    def site_fields(cls):
+        """ All site fields """
+        return cls.shared_fields() + cls.unshared_fields() + cls.site_specific_fields()
+
+    @classmethod
+    def array_fields(cls):
+        """ All array fields """
+        return cls.shared_fields() + cls.unshared_fields() + cls.array_specific_fields()
+
+    @classmethod
+    def site_single_element_fields(cls):
+        """ All site fields that are single element in a list """
+        return [k for k in cls.site_fields() if k in
+            list(cls.single_element_types().keys())]
+
+    @classmethod
+    def site_single_element_types(cls):
+        """ Dict of site single element field: type"""
+        return {k: cls.single_element_types()[k]
+            for k in cls.site_single_element_fields()}
+
+    @classmethod
+    def site_array_dtypes_fields(cls):
+        """ All site fields that are arrays in a list """
+        return [k for k in cls.site_fields() if k in
+        list(cls.array_dtypes().keys())]
+
+    @classmethod
+    def site_array_dtypes(cls):
+        """ Dict of site array field : dtype """
+        return {k: cls.array_dtypes()[k] for k in
+        cls.site_array_dtypes_fields()}
+
+    # for single element fields in the array filetypes, they must
+    # be a shared field.
+    @classmethod
+    def array_single_element_fields(cls):
+        """ List of array restructured single element fields """
+        return [k for k in cls.array_fields() if
+        k in list(cls.single_element_types().keys()) and k in
+        cls.shared_fields()]
+
+    @classmethod
+    def array_single_element_types(cls):
+        """ Dict of array restructured single element field : type """
+        return {k: cls.single_element_types()[k]
+        for k in cls.array_single_element_fields()}
+
+    # for array filetypes, there are more array dtypes for any unshared
+    # fields. If the field was a single_element_type and is unshared,
+    # it is now an array of num_records length.
+    @classmethod
+    def array_array_dtypes_fields(cls):
+        """ List of array restructured array fields """
+        return [k for k in cls.array_fields() if
+        k in list(cls.array_dtypes().keys())] + \
+        [k for k in cls.array_fields() if k in
+        list(cls.single_element_types().keys()) and
+        ((k in cls.unshared_fields()) or
+            (k in cls.array_specific_fields()))]
+
+    @classmethod
+    def array_array_dtypes(cls):
+        """ Dict of array restructured array field : dtype """
+        array_array_dtypes = {k: cls.array_dtypes()[k] for k in
+        cls.array_array_dtypes_fields() if k in
+        list(cls.array_dtypes().keys())}
+
+        array_array_dtypes.update({k: cls.single_element_types()[k] for
+            k in cls.array_array_dtypes_fields() if k in
+            list(cls.single_element_types().keys())})
+
+        return array_array_dtypes
+
+    @classmethod
+    def _site_to_array(cls, data_dict: OrderedDict) -> dict:
+        """
+        Base function for converting site Borealis data to
+        restructured array format.
+
+        Parameters
+        ----------
+        data_dict: OrderedDict
+            a dict of timestamped records loaded from an hdf5 Borealis site file
+
+        Returns
+        -------
+        new_data_dict
+            A dictionary containing the data from data_dict
+            reformatted to be stored entirely as arrays, or as
+            one entry if the field does not change between records
+        """
+        new_data_dict = dict()
+        num_records = len(data_dict)
+        
+        # some fields are linear in site style and need to be reshaped.
+        data_dict = cls.reshape_site_arrays(data_dict)
+
+        # write shared fields to dictionary
+        first_key = list(data_dict.keys())[0]
+        for field in cls.shared_fields():
+            new_data_dict[field] = data_dict[first_key][field]
+
+        # write array specific fields using the given functions.
+        for field in cls.array_specific_fields():
+            new_data_dict[field] = cls.array_specific_fields_generate(
+                )[field](data_dict)
+
+        # write the unshared fields, initializing empty arrays to start.
+        temp_array_dict = dict()
+
+        # get dims of the unshared fields arrays
+        field_dimensions = {}
+        for field in cls.unshared_fields():
+            dims = [dimension_function(data_dict) for 
+                    dimension_function in 
+                    cls.unshared_fields_dims()[field]]
+            field_dimensions[field] = dims
+
+        # all fields to become arrays
+        for field, dims in field_dimensions.items():
+            array_dims = [num_records] + dims
+            array_dims = tuple(array_dims)
+
+            if field in cls.single_element_types():
+                datatype = cls.single_element_types()[field]
+            else: # field in array_dtypes
+                datatype = cls.array_dtypes()[field]
+            empty_array = np.empty(array_dims, dtype=datatype)
+            # initialize all values to NaN; some indices may not be filled 
+            # do to dimensions that are max values (num sequences, etc can
+            # change between records)
+            empty_array[:] = np.NaN 
+            temp_array_dict[field] = empty_array
+        
+        # iterate through the records, filling the unshared and array only 
+        # fields
+        for rec_idx, k in enumerate(data_dict.keys()):
+            for field in cls.unshared_fields():  # all unshared fields
+                print(field)
+                empty_array = temp_array_dict[field]
+                if type(data_dict[first_key][field]) == np.ndarray:
+                    # only fill the correct length, appended NaNs occur for 
+                    # dims with a determined max value
+                    data_buffer = data_dict[k][field]
+                    buffer_shape = data_buffer.shape 
+                    print('buffer shape' + str(buffer_shape))
+                    index_slice = [slice(0,i) for i in buffer_shape]
+                    # insert record index at start of array's slice list
+                    index_slice.insert(0, rec_idx) 
+                    index_slice = tuple(index_slice)
+                    print(index_slice)
+                    # place data buffer in the correct place
+                    empty_array[index_slice] = data_buffer 
+                else: # not an array, num_records is the only dimension
+                    empty_array[rec_idx] = data_dict[k][field]
+
+        new_data_dict.update(temp_array_dict)
+
+        return new_data_dict
+
+
+    @classmethod
+    def _array_to_site(cls, data_dict: dict) -> OrderedDict:
+        """
+        Base function for converting array Borealis data to
+        site format.
+
+        Parameters
+        ----------
+        data_dict: dictionary of array restructured Borealis data.
+
+        Returns
+        -------
+        new_data_dict
+            An OrderedDict of timestamped records as if loaded from
+            the original site file.
+        """
+        new_data_dict = dict()
+
+        return new_data_dict
 
 
 class BorealisRawacfv0_4(BaseFormatClass):
@@ -135,76 +451,21 @@ class BorealisRawacfv0_4(BaseFormatClass):
     combined into antenna arrays; then autocorrelated and correlated between
     antenna arrays to produce matrices of num_ranges x num_lags.
 
-    Attributes
-    ----------
-    single_element_types: dict
-        Dictionary of data field name to type expected in that field for a
-        dictionary of Borealis data.
-    array_dtypes: dict
-        Dictionary of data field name to array of given numpy dtype expected
-        in the field for a dictionary of Borealis data.
-    shared_fields: list
-        List of the fields that are restructured to a single value per
-        file in the Borealis array type files. These fields are present in both
-        array and site files.
-    unshared_fields_dims: dict
-        Dimensions of the unshared fields. Dimensions given are for site 
-        structure. In array structure the first dimension will be num_records
-        followed by these dimensions. Dimensions are provided as functions that 
-        will calculate the dimension given the records (data dictionary)
-    unshared_fields: list
-        List of the fields that are restructured to be an array. These fields are
-        present in both array and site files but are not shared by all records 
-        so they are formed into arrays with first dimension = num_records.
-    array_only_fields_dims: dict
-        Dimensions of the array only fields. Dimensions given are for site 
-        structure. In array structure the first dimension will be num_records
-        followed by these dimensions. 'max_??' strings indicate a maximum value 
-        has to be found for this dimension.
-    array_only_fields_generate: dict
-        The generated field for a given record (function to generate). Provide
-        the record to determine this value.
-    array_only_fields: list
-        List of fields that are only present in array files. Implicitly
-        also unshared between records.
-    site_only_fields: list
-        List of fields that are only present in site files.
-    site_fields: list
-        List of all fields that are in the site file type.
-    array_fields: list
-        List of all fields that are in the array file type.
-    site_single_element_fields : list
-        List of fields in the site files that are single element types.
-    site_single_element_types: dict
-        subset of single_element_types with only site keys.
-    site_array_dtypes_fields : list
-        List of fields in the site files that are made of numpy arrays.
-    site_array_dtypes: dict
-        subset of array_dtypes with only site keys.
-    array_single_element_fields : list
-        List of fields in the array files that are single element types
-        (unless unshared in which they are converted to the numpy array of
-        that type, with number of records elements)
-    array_single_element_types: dict
-        subset of single_element_types with only array keys.
-    array_array_dtypes_fields : list
-        List of fields in the array files that are made of numpy arrays.
-    array_array_dtypes: dict
-        subset of array_dtypes with only array keys.
-
-    Notes
-    -----
-    single_element_types.keys() + array_dtypes.keys() = all known fields
-    shared_fields + unshared_fields + array_only_fields =
-                                                all fields in array file
-    shared_fields + unshared_fields + site_only_fields =
-                                                all fields in site file
+    Static Methods
+    --------------
+    find_num_ranges(OrderedDict): int
+        Returns num ranges in the data for use in finding dimensions
+    find_num_lags(OrderedDict): int
+        Returns the num lags in the data for use in finding dimensions
+    reshape_site_arrays(OrderedDict): OrderedDict
+        Reshapes the main_acfs, intf_acfs, xcfs fields.
     """
 
     @staticmethod
     def find_num_ranges(records: OrderedDict) -> int:
         """
         Find the number of ranges given the records dictionary, for 
+
         restructuring to arrays.
         Num_ranges is unique to a slice so cannot change inside file.
         """
@@ -222,6 +483,25 @@ class BorealisRawacfv0_4(BaseFormatClass):
         first_key = list(records.keys())[0]
         num_lags = records[first_key]['correlation_dimensions'][2]
         return num_lags
+
+    @staticmethod
+    def reshape_site_arrays(records: OrderedDict) -> OrderedDict:
+        """
+        Sometimes arrays in the site style have been reduced to 
+        linear arrays with given dimensions. This function returns 
+        the site data with all arrays restructured correctly as 
+        per the format.
+        """
+
+        # main_acfs, intf_acfs, and xcfs to be reshaped.
+        # dimensions provided in correlation_dimensions field as num_beams,
+        # num_ranges, num_lags.
+        for key in list(records.keys()):
+            record_dimensions = records[key]['correlation_dimensions']
+            for field in ['main_acfs', 'intf_acfs', 'xcfs']:
+                records[key][field] = records[key][field].reshape(record_dimensions)
+
+        return records
 
     @classmethod
     def single_element_types(cls): 
@@ -314,7 +594,6 @@ class BorealisRawacfv0_4(BaseFormatClass):
     @classmethod
     def shared_fields(cls): 
         return ['blanked_samples', 'borealis_git_hash', 
-                     'correlation_descriptors',
                      'data_normalization_factor', 'experiment_comment',
                      'experiment_id', 'experiment_name', 'first_range',
                      'first_range_rtt', 'freq', 'intf_antenna_count', 'lags',
@@ -340,101 +619,24 @@ class BorealisRawacfv0_4(BaseFormatClass):
         }
 
     @classmethod
-    def unshared_fields(cls): 
-        return list(cls.unshared_fields_dims().keys())
-
-    @classmethod
-    def array_only_fields_dims(cls): 
-        return {'num_beams': []} # also unshared (array)
-    
-    @classmethod
-    def array_only_fields_generate(cls):
+    def array_specific_fields_generate(cls):
         return {
-        'num_beams': lambda record: len(record['beam_nums'])
+        'num_beams': lambda records: np.array([len(record['beam_nums']) 
+            for key, record in records.items()], dtype=np.uint32),
+        'correlation_descriptors': lambda records: np.array(
+            ['num_records'] + list(records[list(records.keys())[0]]
+                ['correlation_descriptors']))
         }
 
     @classmethod
-    def array_only_fields(cls): 
-        return list(cls.array_only_fields_dims().keys())
-
-    @classmethod
-    def site_only_fields(cls): 
-        return ['correlation_dimensions']
-
-    @classmethod
-    def site_fields(cls):
-        """ All site fields """
-        return cls.shared_fields() + cls.unshared_fields() + cls.site_only_fields()
-
-    @classmethod
-    def array_fields(cls):
-        """ All array fields """
-        return cls.shared_fields() + cls.unshared_fields() + cls.array_only_fields()
-
-    @classmethod
-    def site_single_element_fields(cls):
-        """ All site fields that are single element in a list """
-        return [k for k in cls.site_fields() if k in
-            list(cls.single_element_types().keys())]
-
-    @classmethod
-    def site_single_element_types(cls):
-        """ Dict of site single element field: type"""
-        return {k: cls.single_element_types()[k]
-            for k in cls.site_single_element_fields()}
-
-    @classmethod
-    def site_array_dtypes_fields(cls):
-        """ All site fields that are arrays in a list """
-        return [k for k in cls.site_fields() if k in
-        list(cls.array_dtypes().keys())]
-
-    @classmethod
-    def site_array_dtypes(cls):
-        """ Dict of site array field : dtype """
-        return {k: cls.array_dtypes()[k] for k in
-        cls.site_array_dtypes_fields()}
-
-    # for single element fields in the array filetypes, they must
-    # be a shared field.
-    @classmethod
-    def array_single_element_fields(cls):
-        """ List of array restructured single element fields """
-        return [k for k in cls.array_fields() if
-        k in list(cls.single_element_types().keys()) and k in
-        cls.shared_fields]
-
-    @classmethod
-    def array_single_element_types(cls):
-        """ Dict of array restructured single element field : type """
-        return {k: cls.single_element_types()[k]
-        for k in cls.array_single_element_fields()}
-
-    # for array filetypes, there are more array dtypes for any unshared
-    # fields. If the field was a single_element_type and is unshared,
-    # it is now an array of num_records length.
-    @classmethod
-    def array_array_dtypes_fields(cls):
-        """ List of array restructured array fields """
-        return [k for k in cls.array_fields() if
-        k in list(cls.array_dtypes().keys())] + \
-        [k for k in cls.array_fields() if k in
-        list(cls.single_element_types().keys()) and
-        ((k in cls.unshared_fields()) or
-            (k in cls.array_only_fields()))]
-
-    @classmethod
-    def array_array_dtypes(cls):
-        """ Dict of array restructured array field : dtype """
-        array_array_dtypes = {k: cls.array_dtypes()[k] for k in
-        cls.array_array_dtypes_fields() if k in
-        list(cls.array_dtypes().keys())}
-
-        array_array_dtypes.update({k: cls.single_element_types()[k] for
-            k in cls.array_array_dtypes_fields() if k in
-            list(cls.single_element_types().keys())})
-
-        return array_array_dtypes
+    def site_specific_fields_generate(cls): 
+        return {
+        'correlation_descriptors': lambda arrays, record_num: np.array(
+            list(arrays['correlation_descriptors'])[1:]),
+        'correlation_dimensions': lambda arrays, record_num: np.array(
+            [arrays['num_beams'][record_num], arrays['main_acfs'].shape[2], 
+            arrays['main_acfs'].shape[3]])
+        }
 
 
 class BorealisBfiqv0_4(BaseFormatClass):
@@ -446,70 +648,14 @@ class BorealisBfiqv0_4(BaseFormatClass):
     and all channels have been combined into their arrays. No correlation
     or averaging has occurred.
 
-    Attributes
-    ----------
-    single_element_types: dict
-        Dictionary of data field name to type expected in that field for a
-        dictionary of Borealis data.
-    array_dtypes: dict
-        Dictionary of data field name to array of given numpy dtype expected
-        in the field for a dictionary of Borealis data.
-    shared_fields: list
-        List of the fields that are restructured to a single value per
-        file in the Borealis array type files. These fields are present in both
-        array and site files.
-    unshared_fields_dims: dict
-        Dimensions of the unshared fields. Dimensions given are for site 
-        structure. In array structure the first dimension will be num_records
-        followed by these dimensions. Dimensions are provided as functions that 
-        will calculate the dimension given the records (data dictionary)
-    unshared_fields: list
-        List of the fields that are restructured to be an array. These fields are
-        present in both array and site files but are not shared by all records 
-        so they are formed into arrays with first dimension = num_records.
-    array_only_fields_dims: dict
-        Dimensions of the array only fields. Dimensions given are for site 
-        structure. In array structure the first dimension will be num_records
-        followed by these dimensions. 'max_??' strings indicate a maximum value 
-        has to be found for this dimension.
-    array_only_fields_generate: dict
-        The generated field for a given record (function to generate). Provide
-        the record to determine this value.
-    array_only_fields: list
-        List of fields that are only present in array files. Implicitly
-        also unshared between records.
-    site_only_fields: list
-        List of fields that are only present in site files.
-    site_fields: list
-        List of all fields that are in the site file type.
-    array_fields: list
-        List of all fields that are in the array file type.
-    site_single_element_fields : list
-        List of fields in the site files that are single element types.
-    site_single_element_types: dict
-        subset of single_element_types with only site keys.
-    site_array_dtypes_fields : list
-        List of fields in the site files that are made of numpy arrays.
-    site_array_dtypes: dict
-        subset of array_dtypes with only site keys.
-    array_single_element_fields : list
-        List of fields in the array files that are single element types
-        (unless unshared in which they are converted to the numpy array of
-        that type, with number of records elements)
-    array_single_element_types: dict
-        subset of single_element_types with only array keys.
-    array_array_dtypes_fields : list
-        List of fields in the array files that are made of numpy arrays.
-    array_array_dtypes: dict
-        subset of array_dtypes with only array keys.
-
-    Notes
-    -----
-    single_element_types.keys() + array_dtypes.keys() = all known fields
-    shared_fields + unshared_fields + array_only_fields =
-                                                all fields in array file
-    shared_fields + unshared_fields + site_only_fields =
-                                                all fields in site file
+    Static Methods
+    --------------
+    find_num_antenna_arrays(OrderedDict): int
+        Returns number of arrays in the data for use in finding dimensions
+    find_num_samps(OrderedDict): int
+        Returns the number of samples in the data for use in finding dimensions
+    reshape_site_arrays(OrderedDict): OrderedDict
+        Reshapes the data field according to data dimensions.
     """
 
     @staticmethod
@@ -531,6 +677,25 @@ class BorealisBfiqv0_4(BaseFormatClass):
         first_key = list(records.keys())[0]
         num_samps = records[first_key]['data_dimensions'][3]
         return num_samps
+
+    @staticmethod
+    def reshape_site_arrays(records: OrderedDict) -> OrderedDict:
+        """
+        Sometimes arrays in the site style have been reduced to 
+        linear arrays with given dimensions. This function returns 
+        the site data with all arrays reshaped correctly as 
+        per the format.
+        """
+
+        # main_acfs, intf_acfs, and xcfs to be reshaped.
+        # dimensions provided in correlation_dimensions field as num_beams,
+        # num_ranges, num_lags.
+        for key in list(records.keys()):
+            record_dimensions = records[key]['data_dimensions']
+            for field in ['data']:
+                records[key][field] = records[key][field].reshape(record_dimensions)
+
+        return records
 
     @classmethod
     def single_element_types(cls): 
@@ -627,7 +792,7 @@ class BorealisBfiqv0_4(BaseFormatClass):
     def shared_fields(cls): 
         return ['antenna_arrays_order', 'blanked_samples', 
                       'borealis_git_hash',
-                      'data_descriptors', 'data_normalization_factor',
+                      'data_normalization_factor',
                       'experiment_comment', 'experiment_id', 'experiment_name',
                       'first_range', 'first_range_rtt', 'freq',
                       'intf_antenna_count', 'lags', 'main_antenna_count',
@@ -654,101 +819,28 @@ class BorealisBfiqv0_4(BaseFormatClass):
         }
 
     @classmethod
-    def unshared_fields(cls): 
-        return list(cls.unshared_fields_dims().keys())
-
-    @classmethod
-    def array_only_fields_dims(cls): 
-        return {'num_beams': []} # also unshared (array)
-
-    @classmethod
-    def array_only_fields_generate(cls): 
+    def array_specific_fields_generate(cls): 
+        """
+        Functions that take a single record and generate 
+        the value for that record.
+        """
         return {
-        'num_beams': lambda record: len(record['beam_nums'])
+        'num_beams': lambda records: np.array([len(record['beam_nums']) 
+            for key, record in records.items()], dtype=np.uint32),
+        'data_descriptors': lambda records: np.array(
+            ['num_records'] + list(records[list(records.keys())[0]]
+                ['data_descriptors']))
         }
 
     @classmethod
-    def array_only_fields(cls): 
-        return list(cls.array_only_fields_dims().keys())
-
-    @classmethod
-    def site_only_fields(cls): 
-        return ['data_dimensions']
-
-    @classmethod
-    def site_fields(cls):
-        """ All site fields """
-        return cls.shared_fields() + cls.unshared_fields() + cls.site_only_fields()
-
-    @classmethod
-    def array_fields(cls):
-        """ All array fields """
-        return cls.shared_fields() + cls.unshared_fields() + cls.array_only_fields()
-
-    @classmethod
-    def site_single_element_fields(cls):
-        """ All site fields that are single element in a list """
-        return [k for k in cls.site_fields() if k in
-            list(cls.single_element_types().keys())]
-
-    @classmethod
-    def site_single_element_types(cls):
-        """ Dict of site single element field: type"""
-        return {k: cls.single_element_types()[k]
-            for k in cls.site_single_element_fields()}
-
-    @classmethod
-    def site_array_dtypes_fields(cls):
-        """ All site fields that are arrays in a list """
-        return [k for k in cls.site_fields() if k in
-        list(cls.array_dtypes().keys())]
-
-    @classmethod
-    def site_array_dtypes(cls):
-        """ Dict of site array field : dtype """
-        return {k: cls.array_dtypes()[k] for k in
-        cls.site_array_dtypes_fields()}
-
-    # for single element fields in the array filetypes, they must
-    # be a shared field.
-    @classmethod
-    def array_single_element_fields(cls):
-        """ List of array restructured single element fields """
-        return [k for k in cls.array_fields() if
-        k in list(cls.single_element_types().keys()) and k in
-        cls.shared_fields()]
-
-    @classmethod
-    def array_single_element_types(cls):
-        """ Dict of array restructured single element field : type """
-        return {k: cls.single_element_types()[k]
-        for k in cls.array_single_element_fields()}
-
-    # for array filetypes, there are more array dtypes for any unshared
-    # fields. If the field was a single_element_type and is unshared,
-    # it is now an array of num_records length.
-    @classmethod
-    def array_array_dtypes_fields(cls):
-        """ List of array restructured array fields """
-        return [k for k in cls.array_fields() if
-        k in list(cls.array_dtypes().keys())] + \
-        [k for k in cls.array_fields() if k in
-        list(cls.single_element_types().keys()) and
-        ((k in cls.unshared_fields()) or
-            (k in cls.array_only_fields()))]
-
-    @classmethod
-    def array_array_dtypes(cls):
-        """ Dict of array restructured array field : dtype """
-        array_array_dtypes = {k: cls.array_dtypes()[k] for k in
-        cls.array_array_dtypes_fields() if k in
-        list(cls.array_dtypes().keys())}
-
-        array_array_dtypes.update({k: cls.single_element_types()[k] for
-            k in cls.array_array_dtypes_fields() if k in
-            list(cls.single_element_types().keys())})
-
-        return array_array_dtypes
+    def site_specific_fields_generate(cls): 
+        return {
+        'data_descriptors': lambda arrays, record_num: np.array(
+            list(arrays['data_descriptors'])[1:]),
+        'data_dimensions': lambda arrays, record_num: np.array(
+            [arrays['data'].shape[1], arrays['num_sequences'][record_num], 
+            arrays['num_beams'][record_num], arrays['data'].shape[4]])
+        }
 
 
 class BorealisAntennasIqv0_4(BaseFormatClass):
@@ -759,70 +851,14 @@ class BorealisAntennasIqv0_4(BaseFormatClass):
     and filtered, but it has not been beamformed or combined into the
     entire antenna array data product.
 
-    Attributes
-    ----------
-    single_element_types: dict
-        Dictionary of data field name to type expected in that field for a
-        dictionary of Borealis data.
-    array_dtypes: dict
-        Dictionary of data field name to array of given numpy dtype expected
-        in the field for a dictionary of Borealis data.
-    shared_fields: list
-        List of the fields that are restructured to a single value per
-        file in the Borealis array type files. These fields are present in both
-        array and site files.
-    unshared_fields_dims: dict
-        Dimensions of the unshared fields. Dimensions given are for site 
-        structure. In array structure the first dimension will be num_records
-        followed by these dimensions. Dimensions are provided as functions that 
-        will calculate the dimension given the records (data dictionary)
-    unshared_fields: list
-        List of the fields that are restructured to be an array. These fields are
-        present in both array and site files but are not shared by all records 
-        so they are formed into arrays with first dimension = num_records.
-    array_only_fields_dims: dict
-        Dimensions of the array only fields. Dimensions given are for site 
-        structure. In array structure the first dimension will be num_records
-        followed by these dimensions. 'max_??' strings indicate a maximum value 
-        has to be found for this dimension.
-    array_only_fields_generate: dict
-        The generated field for a given record (function to generate). Provide
-        the record to determine this value.
-    array_only_fields: list
-        List of fields that are only present in array files. Implicitly
-        also unshared between records.
-    site_only_fields: list
-        List of fields that are only present in site files.
-    site_fields: list
-        List of all fields that are in the site file type.
-    array_fields: list
-        List of all fields that are in the array file type.
-    site_single_element_fields : list
-        List of fields in the site files that are single element types.
-    site_single_element_types: dict
-        subset of single_element_types with only site keys.
-    site_array_dtypes_fields : list
-        List of fields in the site files that are made of numpy arrays.
-    site_array_dtypes: dict
-        subset of array_dtypes with only site keys.
-    array_single_element_fields : list
-        List of fields in the array files that are single element types
-        (unless unshared in which they are converted to the numpy array of
-        that type, with number of records elements)
-    array_single_element_types: dict
-        subset of single_element_types with only array keys.
-    array_array_dtypes_fields : list
-        List of fields in the array files that are made of numpy arrays.
-    array_array_dtypes: dict
-        subset of array_dtypes with only array keys.
-
-    Notes
-    -----
-    single_element_types.keys() + array_dtypes.keys() = all known fields
-    shared_fields + unshared_fields + array_only_fields =
-                                            all fields in array file
-    shared_fields + unshared_fields + site_only_fields =
-                                            all fields in site file
+    Static Methods
+    --------------
+    find_num_antennas(OrderedDict): int
+        Returns number of antennas in the data for use in finding dimensions
+    find_num_samps(OrderedDict): int
+        Returns the number of samples in the data for use in finding dimensions
+    reshape_site_arrays(OrderedDict): OrderedDict
+        Reshapes the data field according to data dimensions.
     """
 
     @staticmethod
@@ -844,6 +880,25 @@ class BorealisAntennasIqv0_4(BaseFormatClass):
         first_key = list(records.keys())[0]
         num_samps = records[first_key]['data_dimensions'][2]
         return num_samps
+
+    @staticmethod
+    def reshape_site_arrays(records: OrderedDict) -> OrderedDict:
+        """
+        Sometimes arrays in the site style have been reduced to 
+        linear arrays with given dimensions. This function returns 
+        the site data with all arrays reshaped correctly as 
+        per the format.
+        """
+
+        # main_acfs, intf_acfs, and xcfs to be reshaped.
+        # dimensions provided in correlation_dimensions field as num_beams,
+        # num_ranges, num_lags.
+        for key in list(records.keys()):
+            record_dimensions = records[key]['data_dimensions']
+            for field in ['data']:
+                records[key][field] = records[key][field].reshape(record_dimensions)
+
+        return records
 
     @classmethod
     def single_element_types(cls): 
@@ -927,7 +982,7 @@ class BorealisAntennasIqv0_4(BaseFormatClass):
     @classmethod
     def shared_fields(cls): 
         return ['antenna_arrays_order',
-                     'borealis_git_hash', 'data_descriptors',
+                     'borealis_git_hash',
                      'data_normalization_factor', 'experiment_comment',
                      'experiment_id', 'experiment_name', 'freq',
                      'intf_antenna_count', 'main_antenna_count', 'num_samps',
@@ -951,101 +1006,28 @@ class BorealisAntennasIqv0_4(BaseFormatClass):
         }
 
     @classmethod
-    def unshared_fields(cls): 
-        return list(cls.unshared_fields_dims().keys())
-
-    @classmethod
-    def array_only_fields_dims(cls): 
-        return {'num_beams': []} # also unshared (array)
-
-    @classmethod
-    def array_only_fields_generate(cls): 
+    def array_specific_fields_generate(cls): 
+        """
+        Functions that take a single record and generate 
+        the value for that record.
+        """
         return {
-        'num_beams': lambda record: len(record['beam_nums'])
+        'num_beams': lambda records: np.array([len(record['beam_nums']) 
+            for key, record in records.items()], dtype=np.uint32),
+        'data_descriptors': lambda records: np.array(
+            ['num_records'] + list(records[list(records.keys())[0]]
+                ['data_descriptors']))
         }
 
     @classmethod
-    def array_only_fields(cls): 
-        return list(cls.array_only_fields_dims().keys())
-
-    @classmethod
-    def site_only_fields(cls): 
-        return ['data_dimensions']
-
-    @classmethod
-    def site_fields(cls):
-        """ All site fields """
-        return cls.shared_fields() + cls.unshared_fields() + cls.site_only_fields()
-
-    @classmethod
-    def array_fields(cls):
-        """ All array fields """
-        return cls.shared_fields() + cls.unshared_fields() + cls.array_only_fields()
-
-    @classmethod
-    def site_single_element_fields(cls):
-        """ All site fields that are single element in a list """
-        return [k for k in cls.site_fields() if k in
-            list(cls.single_element_types().keys())]
-
-    @classmethod
-    def site_single_element_types(cls):
-        """ Dict of site single element field: type"""
-        return {k: cls.single_element_types()[k]
-            for k in cls.site_single_element_fields()}
-
-    @classmethod
-    def site_array_dtypes_fields(cls):
-        """ All site fields that are arrays in a list """
-        return [k for k in cls.site_fields() if k in
-        list(cls.array_dtypes().keys())]
-
-    @classmethod
-    def site_array_dtypes(cls):
-        """ Dict of site array field : dtype """
-        return {k: cls.array_dtypes()[k] for k in
-        cls.site_array_dtypes_fields()}
-
-    # for single element fields in the array filetypes, they must
-    # be a shared field.
-    @classmethod
-    def array_single_element_fields(cls):
-        """ List of array restructured single element fields """
-        return [k for k in cls.array_fields() if
-        k in list(cls.single_element_types().keys()) and k in
-        cls.shared_fields()]
-
-    @classmethod
-    def array_single_element_types(cls):
-        """ Dict of array restructured single element field : type """
-        return {k: cls.single_element_types()[k]
-        for k in cls.array_single_element_fields()}
-
-    # for array filetypes, there are more array dtypes for any unshared
-    # fields. If the field was a single_element_type and is unshared,
-    # it is now an array of num_records length.
-    @classmethod
-    def array_array_dtypes_fields(cls):
-        """ List of array restructured array fields """
-        return [k for k in cls.array_fields() if
-        k in list(cls.array_dtypes().keys())] + \
-        [k for k in cls.array_fields() if k in
-        list(cls.single_element_types().keys()) and
-        ((k in cls.unshared_fields()) or
-            (k in cls.array_only_fields()))]
-
-    @classmethod
-    def array_array_dtypes(cls):
-        """ Dict of array restructured array field : dtype """
-        array_array_dtypes = {k: cls.array_dtypes()[k] for k in
-        cls.array_array_dtypes_fields() if k in
-        list(cls.array_dtypes().keys())}
-
-        array_array_dtypes.update({k: cls.single_element_types()[k] for
-            k in cls.array_array_dtypes_fields() if k in
-            list(cls.single_element_types().keys())})
-
-        return array_array_dtypes
+    def site_specific_fields_generate(cls): 
+        return {
+        'data_descriptors': lambda arrays, record_num: np.array(
+            list(arrays['data_descriptors'])[1:]),
+        'data_dimensions': lambda arrays, record_num: np.array(
+            [arrays['data'].shape[1], arrays['num_sequences'][record_num], 
+            arrays['data'].shape[3]])
+        }
 
 
 class BorealisRawrfv0_4(BaseFormatClass):
@@ -1057,17 +1039,30 @@ class BorealisRawrfv0_4(BaseFormatClass):
     Rawrf data is data that has been produced at the original receive bandwidth
     and has not been mixed, filtered, or decimated.
 
-    Attributes
-    ----------
-    single_element_types: dict
-        Dictionary of data field name to type expected in that field for a
-        dictionary of Borealis data.
-    array_dtypes: dict
-        Dictionary of data field name to array of given numpy dtype expected
-        in the field for a dictionary of Borealis data.
-    site_fields: list
-        List of all fields that are in the site file type.
+    Static Methods4
+    --------------
+    reshape_site_arrays(OrderedDict): OrderedDict
+        Reshapes the data field according to data dimensions.
     """
+
+    @staticmethod
+    def reshape_site_arrays(records: OrderedDict) -> OrderedDict:
+        """
+        Sometimes arrays in the site style have been reduced to 
+        linear arrays with given dimensions. This function returns 
+        the site data with all arrays reshaped correctly as 
+        per the format.
+        """
+
+        # main_acfs, intf_acfs, and xcfs to be reshaped.
+        # dimensions provided in correlation_dimensions field as num_beams,
+        # num_ranges, num_lags.
+        for key in list(records.keys()):
+            record_dimensions = records[key]['data_dimensions']
+            for field in ['data']:
+                records[key][field] = records[key][field].reshape(record_dimensions)
+
+        return records
 
     @classmethod
     def single_element_types(cls): 
@@ -1120,36 +1115,6 @@ class BorealisRawrfv0_4(BaseFormatClass):
         # A contiguous set of samples (complex float) at given sample rate
         "data": np.complex64
         }
-
-    @classmethod
-    def site_fields(cls):
-        """ All site fields """
-        return list(cls.single_element_types().keys()) + \
-            list(cls.array_dtypes().keys())
-
-    @classmethod
-    def site_single_element_fields(cls):
-        """ All site fields that are single element in a list """
-        return [k for k in cls.site_fields() if k in
-            list(cls.single_element_types().keys())]
-
-    @classmethod
-    def site_single_element_types(cls):
-        """ Dict of site single element field: type"""
-        return {k: cls.single_element_types()[k]
-            for k in cls.site_single_element_fields()}
-
-    @classmethod
-    def site_array_dtypes_fields(cls):
-        """ All site fields that are arrays in a list """
-        return [k for k in cls.site_fields() if k in
-        list(cls.array_dtypes().keys())]
-
-    @classmethod
-    def site_array_dtypes(cls):
-        """ Dict of site array field : dtype """
-        return {k: cls.array_dtypes()[k] for k in
-        cls.site_array_dtypes_fields()}
 
 
 # The following are the currently used classes, with additions according
