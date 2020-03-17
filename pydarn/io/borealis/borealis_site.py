@@ -364,7 +364,8 @@ class BorealisSiteWrite():
         """
         return BorealisRestructureUtilities.borealis_site_to_array_dict(
                                             self.filename, self.records,
-                                            self.borealis_filetype)
+                                            self.borealis_filetype, 
+                                            self.format_class)
 
     @property
     def borealis_version(self):
@@ -434,7 +435,7 @@ class BorealisSiteWrite():
                                         attribute_types, dataset_types)
 
         # use external h5copy utility to move new record into 2hr file.
-        cp_cmd = 'h5copy -i {newfile} -o {full_file} -s {dtstr} -d {dtstr}'
+
         warnings.filterwarnings("ignore")
         # Must use temporary file to append to a file; writing entire
         # dictionary at once also doesn't work so this is required.
@@ -443,8 +444,8 @@ class BorealisSiteWrite():
         for group_name, group_dict in self.records.items():
             dd.io.save(tmp_filename, {str(group_name): group_dict},
                 compression=self.compression)
+            cp_cmd = 'h5copy -i {newfile} -o {full_file} -s {dtstr} -d {dtstr}'
             cmd = cp_cmd.format(newfile=tmp_filename, full_file=self.filename,
                 dtstr='/'+str(group_name))
-
             sp.call(cmd.split())
             os.remove(tmp_filename)
