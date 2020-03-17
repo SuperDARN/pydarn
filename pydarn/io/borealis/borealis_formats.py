@@ -35,6 +35,7 @@ For more information on Borealis data files, see:
 https://borealis.readthedocs.io/en/latest/
 """
 
+import datetime
 import numpy as np
 
 from collections import OrderedDict
@@ -73,11 +74,15 @@ class BaseFormatClass():
         List of the fields that are common (shared) across records. This 
         means that they can be reduced to a single value/array per file when
         they are array restructured.
-    unshared_fields_dims(): dict
-        Unshared field: dimensions of site structure.. Unshared fields are not common
-        across records. In array structure the first dimension will be num_records
+    unshared_fields_dims_array(): dict
+        Unshared field: dimensions per record in array structure. Unshared fields are 
+        not common across records. In array structure the first dimension will be num_records
         followed by these dimensions. Dimensions are provided as functions that 
         will calculate the dimension given the records (site data dictionary)
+    unshared_fields_dims_site(): dict
+        Unshared field: dimensions per record in site structure. Unshared fields are 
+        not common across records. These dimensions can vary per record so the 
+        functions take the arrays data and the record number.
     array_specific_fields_generate(): dict
         Any fields that are array specific or require specific function to
         generate. The values in the dictionary are the functions that take the 
@@ -88,7 +93,7 @@ class BaseFormatClass():
         arrays (array data dictionary) and the record_num to generate.
 
     These methods use the single_element_types, array_dtypes, shared_fields,
-    unshared_fields_dims, array_specific_fields_generate, and 
+    unshared_fields_dims_array, unshared_fields_dims_site, array_specific_fields_generate, and 
     site_specific_fields_generate methods to generate their values:
 
     unshared_fields: list
@@ -221,21 +226,48 @@ class BaseFormatClass():
         """
         return records
 
+
+    @staticmethod
+    def flatten_site_arrays(records: OrderedDict) -> OrderedDict:
+        """
+        Sometimes arrays in the site style have been reduced to 
+        linear arrays with given dimensions. This function returns 
+        the site data with all arrays flattened as desired for 
+        storing in the site format. 
+        """
+        return records    
+
     # initialize these methods, which should be rewritten by the format.
     @classmethod
     def single_element_types(cls): 
-        return {}
+        return {
+        # Identifies the version of Borealis that made this data. 
+        # Necessary for all versions and formats.
+        "borealis_git_hash": np.unicode_,
+        }
 
     @classmethod
     def array_dtypes(cls): 
-        return {}
+        """
+        The following fields are necessary for ALL FORMATS.
+        """
+        return {
+        # A list of GPS timestamps of the beginning of transmission for each
+        # sampling period in the integration time. Seconds since epoch.
+        # Necessary for all formats.
+        "sqn_timestamps": np.float64,
+        }
 
     @classmethod
     def shared_fields(cls): 
         return []
 
     @classmethod
-    def unshared_fields_dims(cls): 
+    def unshared_fields_dims_array(cls): 
+        return {}
+
+    @classmethod
+    def unshared_fields_dims_site(cls): 
         return {}
 
     @classmethod
@@ -249,7 +281,7 @@ class BaseFormatClass():
     #these methods build off of the above.
     @classmethod
     def unshared_fields(cls): 
-        return list(cls.unshared_fields_dims().keys())
+        return list(cls.unshared_fields_dims_array().keys())
 
     @classmethod
     def array_specific_fields(cls): 
@@ -371,12 +403,12 @@ class BaseFormatClass():
         # write the unshared fields, initializing empty arrays to start.
         temp_array_dict = dict()
 
-        # get dims of the unshared fields arrays
+        # get array dims of the unshared fields arrays
         field_dimensions = {}
         for field in cls.unshared_fields():
             dims = [dimension_function(data_dict) for 
                     dimension_function in 
-                    cls.unshared_fields_dims()[field]]
+                    cls.unshared_fields_dims_array()[field]]
             field_dimensions[field] = dims
 
         # all fields to become arrays
@@ -399,19 +431,16 @@ class BaseFormatClass():
         # fields
         for rec_idx, k in enumerate(data_dict.keys()):
             for field in cls.unshared_fields():  # all unshared fields
-                print(field)
                 empty_array = temp_array_dict[field]
                 if type(data_dict[first_key][field]) == np.ndarray:
                     # only fill the correct length, appended NaNs occur for 
                     # dims with a determined max value
                     data_buffer = data_dict[k][field]
                     buffer_shape = data_buffer.shape 
-                    print('buffer shape' + str(buffer_shape))
                     index_slice = [slice(0,i) for i in buffer_shape]
                     # insert record index at start of array's slice list
                     index_slice.insert(0, rec_idx) 
                     index_slice = tuple(index_slice)
-                    print(index_slice)
                     # place data buffer in the correct place
                     empty_array[index_slice] = data_buffer 
                 else: # not an array, num_records is the only dimension
@@ -420,7 +449,6 @@ class BaseFormatClass():
         new_data_dict.update(temp_array_dict)
 
         return new_data_dict
-
 
     @classmethod
     def _array_to_site(cls, data_dict: dict) -> OrderedDict:
@@ -438,9 +466,45 @@ class BaseFormatClass():
             An OrderedDict of timestamped records as if loaded from
             the original site file.
         """
-        new_data_dict = dict()
+        timestamp_dict = OrderedDict()
+        for record_num, seq_timestamp in enumerate(data_dict["sqn_timestamps"]):
+            # format dictionary key in the same way it is done
+            # in datawrite on site
+            seq_datetime = datetime.datetime.utcfromtimestamp(seq_timestamp[0])
+            epoch = datetime.datetime.utcfromtimestamp(0)
+            key = str(int((seq_datetime - epoch).total_seconds() * 1000))
 
-        return new_data_dict
+            timestamp_dict[key] = dict()
+            # populate shared fields in each record, 
+            for field in cls.shared_fields():
+                timestamp_dict[key][field] = data_dict[field]
+
+            # populate site specific fields using given functions 
+            # that take both the arrays data and the record number
+            for field in cls.site_specific_fields():
+                timestamp_dict[key][field] = cls.site_specific_fields_generate(
+                    )[field](data_dict, record_num)
+
+            for field in cls.unshared_fields():
+                if field in cls.single_element_types():
+                    datatype = cls.single_element_types()[field]
+                    # field is not an array, single element per record. 
+                    # unshared_field_dims_site should give empty list.
+                    timestamp_dict[key][field] = datatype(data_dict[field][record_num])
+                else: # field in array_dtypes
+                    datatype = cls.array_dtypes()[field]
+                    # need to get the dims correct, not always equal to the max
+                    site_dims = [dimension_function(data_dict, record_num)
+                        for dimension_function in 
+                        cls.unshared_fields_dims_site()[field]]
+                    index_slice = [slice(0,i) for i in site_dims]
+                    index_slice.insert(0, record_num)
+                    index_slice = tuple(index_slice)
+                    timestamp_dict[key][field] = data_dict[field][index_slice]
+
+        timestamp_dict = cls.flatten_site_arrays(timestamp_dict)
+        
+        return timestamp_dict
 
 
 class BorealisRawacfv0_4(BaseFormatClass):
@@ -502,6 +566,21 @@ class BorealisRawacfv0_4(BaseFormatClass):
                 records[key][field] = records[key][field].reshape(record_dimensions)
 
         return records
+
+
+    @staticmethod
+    def flatten_site_arrays(records: OrderedDict) -> OrderedDict:
+        """
+        Sometimes arrays in the site style have been reduced to 
+        linear arrays with given dimensions. This function returns 
+        the site data with all arrays flattened as desired for 
+        storing in the site format. 
+        """
+        for key in list(records.keys()):
+            for field in ['main_acfs', 'intf_acfs', 'xcfs']:
+                records[key][field] = records[key][field].flatten()
+
+        return records    
 
     @classmethod
     def single_element_types(cls): 
@@ -603,19 +682,41 @@ class BorealisRawacfv0_4(BaseFormatClass):
                      'tx_pulse_len']
 
     @classmethod
-    def unshared_fields_dims(cls): 
-        return {
-        'num_sequences': [],
-        'int_time': [], 
-        'sqn_timestamps': [cls.find_max_sequences],
-        'noise_at_freq': [cls.find_max_sequences],
-        'main_acfs': [cls.find_max_beams, cls.find_num_ranges, cls.find_num_lags],
-        'intf_acfs': [cls.find_max_beams, cls.find_num_ranges, cls.find_num_lags],
-        'xcfs': [cls.find_max_beams, cls.find_num_ranges, cls.find_num_lags],
-        'scan_start_marker': [],
-        'beam_nums': [cls.find_max_beams],
-        'beam_azms': [cls.find_max_beams],
-        'num_slices': []
+    def unshared_fields_dims_array(cls): 
+        return { # functions take records dictionary
+            'num_sequences': [],
+            'int_time': [], 
+            'sqn_timestamps': [cls.find_max_sequences],
+            'noise_at_freq': [cls.find_max_sequences],
+            'main_acfs': [cls.find_max_beams, cls.find_num_ranges, cls.find_num_lags],
+            'intf_acfs': [cls.find_max_beams, cls.find_num_ranges, cls.find_num_lags],
+            'xcfs': [cls.find_max_beams, cls.find_num_ranges, cls.find_num_lags],
+            'scan_start_marker': [],
+            'beam_nums': [cls.find_max_beams],
+            'beam_azms': [cls.find_max_beams],
+            'num_slices': []
+        }
+
+    @classmethod
+    def unshared_fields_dims_site(cls): 
+        return { # functions take arrays dictionary and record_num
+            'num_sequences': [],
+            'int_time': [], 
+            'sqn_timestamps': [lambda arrays, record_num: arrays['num_sequences'][record_num]],
+            'noise_at_freq': [lambda arrays, record_num: arrays['num_sequences'][record_num]],
+            'main_acfs': [lambda arrays, record_num: arrays['num_beams'][record_num], 
+                lambda arrays, record_num: arrays['main_acfs'].shape[2], 
+                lambda arrays, record_num: arrays['main_acfs'].shape[3]],
+            'intf_acfs': [lambda arrays, record_num: arrays['num_beams'][record_num], 
+                lambda arrays, record_num: arrays['main_acfs'].shape[2], 
+                lambda arrays, record_num: arrays['main_acfs'].shape[3]],
+            'xcfs': [lambda arrays, record_num: arrays['num_beams'][record_num], 
+                lambda arrays, record_num: arrays['main_acfs'].shape[2], 
+                lambda arrays, record_num: arrays['main_acfs'].shape[3]],
+            'scan_start_marker': [],
+            'beam_nums': [lambda arrays, record_num: arrays['num_beams'][record_num]],
+            'beam_azms': [lambda arrays, record_num: arrays['num_beams'][record_num]],
+            'num_slices': []
         }
 
     @classmethod
@@ -624,18 +725,17 @@ class BorealisRawacfv0_4(BaseFormatClass):
         'num_beams': lambda records: np.array([len(record['beam_nums']) 
             for key, record in records.items()], dtype=np.uint32),
         'correlation_descriptors': lambda records: np.array(
-            ['num_records'] + list(records[list(records.keys())[0]]
-                ['correlation_descriptors']))
+            ['num_records', 'max_num_beams', 'num_ranges', 'num_lags'])
         }
 
     @classmethod
     def site_specific_fields_generate(cls): 
         return {
         'correlation_descriptors': lambda arrays, record_num: np.array(
-            list(arrays['correlation_descriptors'])[1:]),
+            ['num_beams', 'num_ranges', 'num_lags']),
         'correlation_dimensions': lambda arrays, record_num: np.array(
             [arrays['num_beams'][record_num], arrays['main_acfs'].shape[2], 
-            arrays['main_acfs'].shape[3]])
+            arrays['main_acfs'].shape[3]], dtype=np.uint32)
         }
 
 
@@ -686,16 +786,27 @@ class BorealisBfiqv0_4(BaseFormatClass):
         the site data with all arrays reshaped correctly as 
         per the format.
         """
-
-        # main_acfs, intf_acfs, and xcfs to be reshaped.
-        # dimensions provided in correlation_dimensions field as num_beams,
-        # num_ranges, num_lags.
         for key in list(records.keys()):
             record_dimensions = records[key]['data_dimensions']
             for field in ['data']:
                 records[key][field] = records[key][field].reshape(record_dimensions)
 
         return records
+
+
+    @staticmethod
+    def flatten_site_arrays(records: OrderedDict) -> OrderedDict:
+        """
+        Sometimes arrays in the site style have been reduced to 
+        linear arrays with given dimensions. This function returns 
+        the site data with all arrays flattened as desired for 
+        storing in the site format. 
+        """
+        for key in list(records.keys()):
+            for field in ['data']:
+                records[key][field] = records[key][field].flatten()
+
+        return records    
 
     @classmethod
     def single_element_types(cls): 
@@ -803,7 +914,7 @@ class BorealisBfiqv0_4(BaseFormatClass):
                       'tx_pulse_len']
 
     @classmethod
-    def unshared_fields_dims(cls): 
+    def unshared_fields_dims_array(cls): 
         return {
         'num_sequences': [],
         'int_time': [], 
@@ -819,6 +930,23 @@ class BorealisBfiqv0_4(BaseFormatClass):
         }
 
     @classmethod
+    def unshared_fields_dims_site(cls): 
+        return {
+        'num_sequences': [],
+        'int_time': [], 
+        'sqn_timestamps': [lambda arrays, record_num: arrays['num_sequences'][record_num]],
+        'noise_at_freq': [lambda arrays, record_num: arrays['num_sequences'][record_num]],
+        'data': [lambda arrays, record_num: arrays['data'].shape[1],
+                 lambda arrays, record_num: arrays['num_sequences'][record_num],
+                 lambda arrays, record_num: arrays['num_beams'][record_num], 
+                 lambda arrays, record_num: arrays['data'].shape[4]], 
+        'scan_start_marker': [],
+        'beam_nums': [lambda arrays, record_num: arrays['num_beams'][record_num]],
+        'beam_azms': [lambda arrays, record_num: arrays['num_beams'][record_num]],
+        'num_slices': []
+        }
+
+    @classmethod
     def array_specific_fields_generate(cls): 
         """
         Functions that take a single record and generate 
@@ -828,18 +956,20 @@ class BorealisBfiqv0_4(BaseFormatClass):
         'num_beams': lambda records: np.array([len(record['beam_nums']) 
             for key, record in records.items()], dtype=np.uint32),
         'data_descriptors': lambda records: np.array(
-            ['num_records'] + list(records[list(records.keys())[0]]
-                ['data_descriptors']))
+            ['num_records', 'num_antenna_arrays', 'max_num_sequences', 
+            'max_num_beams', 'num_samps'])
         }
 
     @classmethod
     def site_specific_fields_generate(cls): 
         return {
         'data_descriptors': lambda arrays, record_num: np.array(
-            list(arrays['data_descriptors'])[1:]),
+            ['num_antenna_arrays', 'num_sequences', 'num_beams', 
+            'num_samps']),
         'data_dimensions': lambda arrays, record_num: np.array(
             [arrays['data'].shape[1], arrays['num_sequences'][record_num], 
-            arrays['num_beams'][record_num], arrays['data'].shape[4]])
+            arrays['num_beams'][record_num], arrays['data'].shape[4]],
+            dtype=np.uint32)
         }
 
 
@@ -889,16 +1019,26 @@ class BorealisAntennasIqv0_4(BaseFormatClass):
         the site data with all arrays reshaped correctly as 
         per the format.
         """
-
-        # main_acfs, intf_acfs, and xcfs to be reshaped.
-        # dimensions provided in correlation_dimensions field as num_beams,
-        # num_ranges, num_lags.
         for key in list(records.keys()):
             record_dimensions = records[key]['data_dimensions']
             for field in ['data']:
                 records[key][field] = records[key][field].reshape(record_dimensions)
 
         return records
+
+    @staticmethod
+    def flatten_site_arrays(records: OrderedDict) -> OrderedDict:
+        """
+        Sometimes arrays in the site style have been reduced to 
+        linear arrays with given dimensions. This function returns 
+        the site data with all arrays flattened as desired for 
+        storing in the site format. 
+        """
+        for key in list(records.keys()):
+            for field in ['data']:
+                records[key][field] = records[key][field].flatten()
+
+        return records    
 
     @classmethod
     def single_element_types(cls): 
@@ -992,7 +1132,7 @@ class BorealisAntennasIqv0_4(BaseFormatClass):
                      'tx_pulse_len']
 
     @classmethod
-    def unshared_fields_dims(cls): 
+    def unshared_fields_dims_array(cls): 
         return {
         'num_sequences': [],
         'int_time': [], 
@@ -1006,6 +1146,23 @@ class BorealisAntennasIqv0_4(BaseFormatClass):
         }
 
     @classmethod
+    def unshared_fields_dims_site(cls): 
+        return {
+        'num_sequences': [],
+        'int_time': [], 
+        'sqn_timestamps': [lambda arrays, record_num: arrays['num_sequences'][record_num]],
+        'noise_at_freq': [lambda arrays, record_num: arrays['num_sequences'][record_num]],
+        'data': [lambda arrays, record_num: arrays['data'].shape[1],
+                 lambda arrays, record_num: arrays['num_sequences'][record_num],
+                 lambda arrays, record_num: arrays['data'].shape[3]], 
+        'scan_start_marker': [],
+        'beam_nums': [lambda arrays, record_num: arrays['num_beams'][record_num]],
+        'beam_azms': [lambda arrays, record_num: arrays['num_beams'][record_num]],
+        'num_slices': []
+        }
+
+
+    @classmethod
     def array_specific_fields_generate(cls): 
         """
         Functions that take a single record and generate 
@@ -1015,18 +1172,18 @@ class BorealisAntennasIqv0_4(BaseFormatClass):
         'num_beams': lambda records: np.array([len(record['beam_nums']) 
             for key, record in records.items()], dtype=np.uint32),
         'data_descriptors': lambda records: np.array(
-            ['num_records'] + list(records[list(records.keys())[0]]
-                ['data_descriptors']))
+            ['num_records', 'num_antennas', 'max_num_sequences', 
+            'num_samps'])
         }
 
     @classmethod
     def site_specific_fields_generate(cls): 
         return {
         'data_descriptors': lambda arrays, record_num: np.array(
-            list(arrays['data_descriptors'])[1:]),
+            ['num_antennas', 'num_sequences', 'num_samps']),
         'data_dimensions': lambda arrays, record_num: np.array(
             [arrays['data'].shape[1], arrays['num_sequences'][record_num], 
-            arrays['data'].shape[3]])
+            arrays['data'].shape[3]], dtype=np.uint32)
         }
 
 
@@ -1053,14 +1210,25 @@ class BorealisRawrfv0_4(BaseFormatClass):
         the site data with all arrays reshaped correctly as 
         per the format.
         """
-
-        # main_acfs, intf_acfs, and xcfs to be reshaped.
-        # dimensions provided in correlation_dimensions field as num_beams,
-        # num_ranges, num_lags.
         for key in list(records.keys()):
             record_dimensions = records[key]['data_dimensions']
             for field in ['data']:
                 records[key][field] = records[key][field].reshape(record_dimensions)
+
+        return records
+
+
+    @staticmethod
+    def flatten_site_arrays(records: OrderedDict) -> OrderedDict:
+        """
+        Sometimes arrays in the site style have been reduced to 
+        linear arrays with given dimensions. This function returns 
+        the site data with all arrays flattened as desired for 
+        storing in the site format. 
+        """
+        for key in list(records.keys()):
+            for field in ['data']:
+                records[key][field] = records[key][field].flatten()
 
         return records
 
@@ -1150,7 +1318,9 @@ class BorealisRawacf(BorealisRawacfv0_4):
         # A string describing the type of scheduling time at the time of this dataset.
         "scheduling_mode" : np.unicode_,
         # A string describing the averaging method, ex. mean, median
-        "averaging_method" : np.unicode_
+        "averaging_method" : np.unicode_,
+        # number of blanked samples in the sequence.
+        "num_blanked_samples": np.uint32
         })
         return single_element_types
 
@@ -1162,13 +1332,31 @@ class BorealisRawacf(BorealisRawacfv0_4):
         return shared
 
     @classmethod
-    def unshared_fields_dims(cls):
-        unshared_fields_dims = super(BorealisRawacf, cls).unshared_fields_dims()
+    def unshared_fields_dims_array(cls):
+        unshared_fields_dims = super(BorealisRawacf, cls).unshared_fields_dims_array()
         unshared_fields_dims.update({
         'blanked_samples': [cls.find_max_blanked_samples],
         'slice_interfacing': []
         })
         return unshared_fields_dims
+
+    @classmethod
+    def unshared_fields_dims_site(cls):
+        unshared_fields_dims = super(BorealisRawacf, cls).unshared_fields_dims_site()
+        unshared_fields_dims.update({
+        'blanked_samples': [lambda arrays, record_num: arrays['num_blanked_samples'][record_num]],
+        'slice_interfacing': []
+        })
+        return unshared_fields_dims
+
+    @classmethod
+    def array_specific_fields_generate(cls):
+        array_specific = super(BorealisRawacf, cls).array_specific_fields_generate()
+        array_specific.update({
+            'num_blanked_samples': lambda records: np.array([len(record['blanked_samples']) 
+            for key, record in records.items()], dtype=np.uint32)
+            })
+        return array_specific
 
 
 class BorealisBfiq(BorealisBfiqv0_4):
@@ -1200,7 +1388,9 @@ class BorealisBfiq(BorealisBfiqv0_4):
         # the interfacing of this slice to other slices.
         "slice_interfacing" : np.unicode_,
         # A string describing the type of scheduling time at the time of this dataset.
-        "scheduling_mode" : np.unicode_
+        "scheduling_mode" : np.unicode_,
+        # number of blanked samples in the sequence.
+        "num_blanked_samples": np.uint32
         })
         return single_element_types
 
@@ -1212,13 +1402,31 @@ class BorealisBfiq(BorealisBfiqv0_4):
         return shared
 
     @classmethod
-    def unshared_fields_dims(cls):
-        unshared_fields_dims = super(BorealisBfiq, cls).unshared_fields_dims()
+    def unshared_fields_dims_array(cls):
+        unshared_fields_dims = super(BorealisBfiq, cls).unshared_fields_dims_array()
         unshared_fields_dims.update({
         'blanked_samples': [cls.find_max_blanked_samples],
         'slice_interfacing': []
         })
         return unshared_fields_dims
+
+    @classmethod
+    def unshared_fields_dims_site(cls):
+        unshared_fields_dims = super(BorealisRawacf, cls).unshared_fields_dims_site()
+        unshared_fields_dims.update({
+        'blanked_samples': [lambda arrays, record_num: arrays['num_blanked_samples'][record_num]],
+        'slice_interfacing': []
+        })
+        return unshared_fields_dims
+
+    @classmethod
+    def array_specific_fields_generate(cls):
+        array_specific = super(BorealisRawacf, cls).array_specific_fields_generate()
+        array_specific.update({
+            'num_blanked_samples': lambda records: np.array([len(record['blanked_samples']) 
+            for key, record in records.items()], dtype=np.uint32)
+            })
+        return array_specific
 
 
 class BorealisAntennasIq(BorealisAntennasIqv0_4):
@@ -1246,7 +1454,9 @@ class BorealisAntennasIq(BorealisAntennasIqv0_4):
         # the interfacing of this slice to other slices.
         "slice_interfacing" : np.unicode_,
         # A string describing the type of scheduling time at the time of this dataset.
-        "scheduling_mode" : np.unicode_
+        "scheduling_mode" : np.unicode_,
+        # number of blanked samples in the sequence.
+        "num_blanked_samples": np.uint32
         })
         return single_element_types
 
@@ -1266,14 +1476,32 @@ class BorealisAntennasIq(BorealisAntennasIqv0_4):
         return shared
 
     @classmethod
-    def unshared_fields_dims(cls):
+    def unshared_fields_dims_array(cls):
         unshared_fields_dims = super(BorealisAntennasIq, 
-            cls).unshared_fields_dims()
+            cls).unshared_fields_dims_array()
         unshared_fields_dims.update({
         'blanked_samples': [cls.find_max_blanked_samples],
         'slice_interfacing': []
         })
         return unshared_fields_dims
+
+    @classmethod
+    def unshared_fields_dims_site(cls):
+        unshared_fields_dims = super(BorealisRawacf, cls).unshared_fields_dims_site()
+        unshared_fields_dims.update({
+        'blanked_samples': [lambda arrays, record_num: arrays['num_blanked_samples'][record_num]],
+        'slice_interfacing': []
+        })
+        return unshared_fields_dims
+
+    @classmethod
+    def array_specific_fields_generate(cls):
+        array_specific = super(BorealisRawacf, cls).array_specific_fields_generate()
+        array_specific.update({
+            'num_blanked_samples': lambda records: np.array([len(record['blanked_samples']) 
+            for key, record in records.items()], dtype=np.uint32)
+            })
+        return array_specific
 
 
 class BorealisRawrf(BorealisRawrfv0_4):

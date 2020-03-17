@@ -152,7 +152,8 @@ class BorealisArrayRead():
         """
         return BorealisRestructureUtilities.borealis_array_to_site_dict(
                                             self.filename, self.arrays,
-                                            self.borealis_filetype)
+                                            self.borealis_filetype,
+                                            self.format_class)
 
     @property
     def arrays(self):
@@ -199,7 +200,7 @@ class BorealisArrayRead():
         dataset_types = self.format_class.array_array_dtypes()   
         unshared_fields = self.format_class.unshared_fields() 
 
-        self._read_borealis_records(attribute_types, dataset_types, 
+        self._read_borealis_arrays(attribute_types, dataset_types, 
             unshared_fields)
         return self._arrays
 
@@ -345,9 +346,10 @@ class BorealisArrayWrite():
         The Borealis data in a dictionary of records, according to the
         site file format.
         """
-        return BorealisRestructureUtilities.\
-            borealis_array_to_site_dict(self.filename, self.arrays,
-                                        self.borealis_filetype)
+        return BorealisRestructureUtilities.borealis_array_to_site_dict(
+                                            self.filename, self.arrays,
+                                            self.borealis_filetype, 
+                                            self.format_class)
 
     @property
     def arrays(self):
