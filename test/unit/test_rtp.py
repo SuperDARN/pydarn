@@ -2,6 +2,7 @@
 # Authors: Marina Schmidt
 
 import matplotlib.pyplot as plt
+import pytest
 import unittest
 
 from datetime import datetime
@@ -9,6 +10,7 @@ from datetime import datetime
 import pydarn
 
 # TODO: discuss show vs. save image? Also how does this fit in python test?
+@pytest.mark.skip
 class TestRTP(unittest.TestCase):
     """
     Testing class RTP, due to the plotting nature all plots will be saved

@@ -1,6 +1,7 @@
 # Copyright (C) SuperDARN Canada, University of Saskatchewan
 # Author(s): Marina Schmidt
 import logging
+import pytest
 import unittest
 
 import pydarn
@@ -8,7 +9,6 @@ import pydarn
 from datetime import datetime
 
 pydarn_logger = logging.getLogger('pydarn')
-
 
 class TestSuperDarnRadars(unittest.TestCase):
     """
