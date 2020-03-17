@@ -201,10 +201,9 @@ class BorealisArrayRead():
                          "".format(self.borealis_version, 
                             self.borealis_filetype, self.filename))
 
-        attribute_types = self.format_class.site_single_element_types()
-        dataset_types = self.format_class.site_array_dtypes()   
-        unshared_fields = self.format_class.unshared_fields + \
-            self.format_class.array_only_fields
+        attribute_types = self.format_class.array_single_element_types()
+        dataset_types = self.format_class.array_array_dtypes()   
+        unshared_fields = self.format_class.unshared_fields() 
 
         self._read_borealis_records(attribute_types, dataset_types, 
             unshared_fields)
@@ -390,10 +389,9 @@ class BorealisArrayWrite():
                          "".format(self.borealis_version, 
                             self.borealis_filetype, self.filename))
 
-        attribute_types = self.format_class.site_single_element_types()
-        dataset_types = self.format_class.site_array_dtypes()   
-        unshared_fields = self.format_class.unshared_fields + \
-            self.format_class.array_only_fields
+        attribute_types = self.format_class.array_single_element_types()
+        dataset_types = self.format_class.array_array_dtypes()   
+        unshared_fields = self.format_class.unshared_fields() 
 
         self._write_borealis_arrays(attribute_types, dataset_types,
             unshared_fields)
