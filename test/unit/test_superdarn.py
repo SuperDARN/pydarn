@@ -19,6 +19,7 @@ import collections
 import logging
 import numpy as np
 import os
+import pytest
 import unittest
 
 import pydarn
@@ -42,7 +43,7 @@ grid_file = "../testfiles/20180220.C0.rkn.grid"
 corrupt_file1 = "../testfiles/20070117.1001.00.han.rawacf"
 corrupt_file2 = "../testfiles/20090320.1601.00.pgr.rawacf"
 
-
+@pytest.mark.skip
 class TestSDarnRead(unittest.TestCase):
     """
     Testing class for SDarnRead class
@@ -320,6 +321,7 @@ class TestSDarnRead(unittest.TestCase):
             dmap.read_rawacf()
 
 
+@pytest.mark.skip
 class TestDarnUtilities(unittest.TestCase):
     """
     Testing DarnUtilities class.
@@ -573,6 +575,7 @@ class TestDarnUtilities(unittest.TestCase):
             self.assertEqual(err.incorrect_params, {'fitacf': 'f'})
 
 
+@pytest.mark.skip
 class TestSDarnWrite(unittest.TestCase):
     """
     Tests SDarnWrite class
