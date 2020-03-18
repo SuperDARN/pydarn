@@ -518,6 +518,8 @@ class BorealisRawacfv0_4(BaseFormatClass):
 
     Static Methods
     --------------
+    is_restructureable: bool
+        Returns True, this format can be restructured to arrays.
     find_num_ranges(OrderedDict): int
         Returns num ranges in the data for use in finding dimensions
     find_num_lags(OrderedDict): int
@@ -525,6 +527,10 @@ class BorealisRawacfv0_4(BaseFormatClass):
     reshape_site_arrays(OrderedDict): OrderedDict
         Reshapes the main_acfs, intf_acfs, xcfs fields.
     """
+
+    @staticmethod 
+    def is_restructureable() -> bool:
+        return True
 
     @staticmethod
     def find_num_ranges(records: OrderedDict) -> int:
@@ -752,6 +758,8 @@ class BorealisBfiqv0_4(BaseFormatClass):
 
     Static Methods
     --------------
+    is_restructureable: bool
+        Returns True, this format can be restructured to arrays.
     find_num_antenna_arrays(OrderedDict): int
         Returns number of arrays in the data for use in finding dimensions
     find_num_samps(OrderedDict): int
@@ -759,6 +767,10 @@ class BorealisBfiqv0_4(BaseFormatClass):
     reshape_site_arrays(OrderedDict): OrderedDict
         Reshapes the data field according to data dimensions.
     """
+
+    @staticmethod 
+    def is_restructureable() -> bool:
+        return True
 
     @staticmethod
     def find_num_antenna_arrays(records: OrderedDict) -> int:
@@ -986,6 +998,8 @@ class BorealisAntennasIqv0_4(BaseFormatClass):
 
     Static Methods
     --------------
+    is_restructureable: bool
+        Returns True, this format can be restructured to arrays.
     find_num_antennas(OrderedDict): int
         Returns number of antennas in the data for use in finding dimensions
     find_num_samps(OrderedDict): int
@@ -993,6 +1007,10 @@ class BorealisAntennasIqv0_4(BaseFormatClass):
     reshape_site_arrays(OrderedDict): OrderedDict
         Reshapes the data field according to data dimensions.
     """
+
+    @staticmethod 
+    def is_restructureable() -> bool:
+        return True
 
     @staticmethod
     def find_num_antennas(records: OrderedDict) -> int:
@@ -1200,11 +1218,17 @@ class BorealisRawrfv0_4(BaseFormatClass):
     Rawrf data is data that has been produced at the original receive bandwidth
     and has not been mixed, filtered, or decimated.
 
-    Static Methods4
+    Static Methods
     --------------
+    is_restructureable: bool
+        Returns False, this format cannot be restructured.
     reshape_site_arrays(OrderedDict): OrderedDict
         Reshapes the data field according to data dimensions.
     """
+
+    @staticmethod 
+    def is_restructureable() -> bool:
+        return False
 
     @staticmethod
     def reshape_site_arrays(records: OrderedDict) -> OrderedDict:
@@ -1416,7 +1440,7 @@ class BorealisBfiq(BorealisBfiqv0_4):
 
     @classmethod
     def unshared_fields_dims_site(cls):
-        unshared_fields_dims = super(BorealisRawacf, cls).unshared_fields_dims_site()
+        unshared_fields_dims = super(BorealisBfiq, cls).unshared_fields_dims_site()
         unshared_fields_dims.update({
         'blanked_samples': [lambda arrays, record_num: arrays['num_blanked_samples'][record_num]],
         'slice_interfacing': []
@@ -1425,7 +1449,7 @@ class BorealisBfiq(BorealisBfiqv0_4):
 
     @classmethod
     def array_specific_fields_generate(cls):
-        array_specific = super(BorealisRawacf, cls).array_specific_fields_generate()
+        array_specific = super(BorealisBfiq, cls).array_specific_fields_generate()
         array_specific.update({
             'num_blanked_samples': lambda records: np.array([len(record['blanked_samples']) 
             for key, record in records.items()], dtype=np.uint32)
@@ -1491,7 +1515,7 @@ class BorealisAntennasIq(BorealisAntennasIqv0_4):
 
     @classmethod
     def unshared_fields_dims_site(cls):
-        unshared_fields_dims = super(BorealisRawacf, cls).unshared_fields_dims_site()
+        unshared_fields_dims = super(BorealisAntennasIq, cls).unshared_fields_dims_site()
         unshared_fields_dims.update({
         'blanked_samples': [lambda arrays, record_num: arrays['num_blanked_samples'][record_num]],
         'slice_interfacing': []
@@ -1500,7 +1524,7 @@ class BorealisAntennasIq(BorealisAntennasIqv0_4):
 
     @classmethod
     def array_specific_fields_generate(cls):
-        array_specific = super(BorealisRawacf, cls).array_specific_fields_generate()
+        array_specific = super(BorealisAntennasIq, cls).array_specific_fields_generate()
         array_specific.update({
             'num_blanked_samples': lambda records: np.array([len(record['blanked_samples']) 
             for key, record in records.items()], dtype=np.uint32)

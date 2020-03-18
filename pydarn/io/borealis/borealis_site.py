@@ -50,7 +50,6 @@ from typing import Union, List
 from pydarn import borealis_exceptions, borealis_formats, dict2dmap
 
 from .borealis_utilities import BorealisUtilities
-from .restructure_borealis import BorealisRestructureUtilities
 
 pydarn_log = logging.getLogger('pydarn')
 
@@ -170,10 +169,24 @@ class BorealisSiteRead():
         The Borealis data in a dictionary of arrays, according to the
         restructured array file format.
         """
-        return BorealisRestructureUtilities.borealis_site_to_array_dict(
-                                            self.filename, self.records,
-                                            self.borealis_filetype, 
-                                            self.format_class)
+
+        if self.format_class.is_restructureable():
+            try:
+                arrays = self.format_class._site_to_array(self.records)
+                BorealisUtilities.check_arrays(self.filename, arrays,
+                    self.format_class.array_single_element_types(),
+                    self.format_class.array_array_dtypes(),
+                    self.format_class.unshared_fields())
+            except Exception as e:
+                raise borealis_exceptions.BorealisRestructureError(''\
+                    'Records from {}: Error restructuring {} from site to array style:'\
+                    '{}'.format(self.filename, self.format_class.__name__, e)) from e
+        else:
+            raise borealis_exceptions.BorealisRestructureError('Records from {}: '\
+                'File format {} not recognized as restructureable from site to '\
+                'array style'.format(self.filename, self.format_class.__name__))
+
+        return arrays
 
     @property
     def borealis_version(self):
@@ -362,10 +375,24 @@ class BorealisSiteWrite():
         The Borealis data in a dictionary of arrays, according to the
         restructured array file format.
         """
-        return BorealisRestructureUtilities.borealis_site_to_array_dict(
-                                            self.filename, self.records,
-                                            self.borealis_filetype, 
-                                            self.format_class)
+
+        if self.format_class.is_restructureable():
+            try:
+                arrays = self.format_class._site_to_array(self.records)
+                BorealisUtilities.check_arrays(self.filename, arrays,
+                    self.format_class.array_single_element_types(),
+                    self.format_class.array_array_dtypes(),
+                    self.format_class.unshared_fields())
+            except Exception as e:
+                raise borealis_exceptions.BorealisRestructureError(''\
+                    'Records for {}: Error restructuring {} from site to array style:'\
+                    '{}'.format(self.filename, self.format_class.__name__, e)) from e
+        else:
+            raise borealis_exceptions.BorealisRestructureError('Records for {}: '\
+                'File format {} not recognized as restructureable from site to '\
+                'array style'.format(self.filename, self.format_class.__name__))
+
+        return arrays
 
     @property
     def borealis_version(self):

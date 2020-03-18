@@ -48,7 +48,6 @@ from typing import Union, List
 from pydarn import borealis_exceptions
 from .borealis_site import BorealisSiteRead, BorealisSiteWrite
 from .borealis_array import BorealisArrayRead, BorealisArrayWrite
-from .restructure_borealis import BorealisRestructureUtilities
 
 pydarn_log = logging.getLogger('pydarn')
 
