@@ -6,30 +6,42 @@ language: python
 python: 
 - 3.7 
 - 3.6
+os:
+-linux
+-osx
+-windows
 
-matrix: 
+jobs: 
     include:
-    - os: linux
-      name: PEP8 MyPy Testing 
-      python: 3.7 
+    - name: ubuntu 14.04 
+      os: linux
+      dist: trusty
+    - name: ubuntu 16.04
+      os: linux
+      dist: xenial
+    - name: ubuntu 18.04 
+      os: linux
+      dist: bionic
+    - name: PEP8 
+      os: linux
       script: 
       - flake8
       - mypy . 
-      # - pytest --cov
-      # after_success:
-      # - coveralls
-    - os: osx 
-      langugage: minimal 
-    - os: windows
-      language: minimal 
-      before_install:
-      - choco install python3
-      - export PATH="/c/Python37:/c/Python37/Scripts:$PATH"
+    - name: MacOS
+      os: osx
+      language: generic
+    - name: Windows
+      os: windows
+      language: generic
+
+before_install:
+    - if [ "$TRAVIS_OS_NAME" = 'linux' ]; then pip3 install -U pip; fi
+    - if [ "$TRAVIS_OS_NAME" = 'linus' ]; then pip3 install codecov flake8 mypy; fi
+    - if [ "$TRAVIS_OS_NAME" = 'osx' ]; then pip3 install -U pip; fi
+    - if [ "$TRAVIS_OS_NAME" = 'windows']; then  choco install python3; fi
+    - if [ "$TRAVIS_OS_NAME" = 'windows']; then  export PATH="/c/Python37:/c/Python37/Scripts:$PATH"; fi
 
 install:
-    - pip3 install -U pip
     - pip3 install .
-    - pip3 install codecov flake8 mypy pytest
+    - pip3 install  pytest
 script: pytest --ignore=test/performance --ignore=test/integration 
-# adter_success:
-#   - codecov 
