@@ -6,40 +6,41 @@ language: python
 python: 
 - 3.7 
 - 3.6
-os:
--linux
--osx
--windows
 
 matrix: 
     include:
-    - name: ubuntu 14.04 
-      os: linux
+    - os: linux
       dist: trusty
-    - name: ubuntu 16.04
-      os: linux
+      name: ubuntu 14.04 
+    - os: linux
       dist: xenial
+      name: ubuntu 16.04
+      before_install:
+          - pip3 install -U pip
     - name: ubuntu 18.04 
       os: linux
       dist: bionic
+      before_install:
+          - pip3 install -U pip
     - name: PEP8 
       os: linux
+      python: 3.7
+      before_install:
+          pip3 install -U pip
       script: 
       - flake8
       - mypy . 
     - name: MacOS
       os: osx
-      language: generic
+      language: minimal
+      before_install:
+          - pip3 install -U pip
     - name: Windows
       os: windows
-      language: generic
-
-before_install:
-    - if [ "$TRAVIS_OS_NAME" = 'linux' ]; then pip3 install -U pip; fi
-    - if [ "$TRAVIS_OS_NAME" = 'linus' ]; then pip3 install codecov flake8 mypy; fi
-    - if [ "$TRAVIS_OS_NAME" = 'osx' ]; then pip3 install -U pip; fi
-    - if [ "$TRAVIS_OS_NAME" = 'windows']; then  choco install python3; fi
-    - if [ "$TRAVIS_OS_NAME" = 'windows']; then  export PATH="/c/Python37:/c/Python37/Scripts:$PATH"; fi
+      language: minimal
+      before_install:
+          - choco install python3
+          - export PATH="/c/Python37:/c/Python37/Scripts:$PATH"
 
 install:
     - pip3 install .
