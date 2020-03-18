@@ -1337,7 +1337,8 @@ class BorealisRawacf(BorealisRawacfv0_4):
 
     @classmethod
     def single_element_types(cls):
-        single_element_types = super(BorealisRawacf, cls).single_element_types()
+        single_element_types = super(BorealisRawacf, 
+            cls).single_element_types()
         single_element_types.update({
         # the slice id of the file and dataset.
         "slice_id" : np.uint32,
@@ -1361,7 +1362,8 @@ class BorealisRawacf(BorealisRawacfv0_4):
 
     @classmethod
     def unshared_fields_dims_array(cls):
-        unshared_fields_dims = super(BorealisRawacf, cls).unshared_fields_dims_array()
+        unshared_fields_dims = super(BorealisRawacf, 
+            cls).unshared_fields_dims_array()
         unshared_fields_dims.update({
         'blanked_samples': [cls.find_max_blanked_samples],
         'slice_interfacing': []
@@ -1370,19 +1372,23 @@ class BorealisRawacf(BorealisRawacfv0_4):
 
     @classmethod
     def unshared_fields_dims_site(cls):
-        unshared_fields_dims = super(BorealisRawacf, cls).unshared_fields_dims_site()
+        unshared_fields_dims = super(BorealisRawacf, 
+            cls).unshared_fields_dims_site()
         unshared_fields_dims.update({
-        'blanked_samples': [lambda arrays, record_num: arrays['num_blanked_samples'][record_num]],
+        'blanked_samples': [lambda arrays, record_num: 
+            arrays['num_blanked_samples'][record_num]],
         'slice_interfacing': []
         })
         return unshared_fields_dims
 
     @classmethod
     def array_specific_fields_generate(cls):
-        array_specific = super(BorealisRawacf, cls).array_specific_fields_generate()
+        array_specific = super(BorealisRawacf, 
+            cls).array_specific_fields_generate()
         array_specific.update({
-            'num_blanked_samples': lambda records: np.array([len(record['blanked_samples']) 
-            for key, record in records.items()], dtype=np.uint32)
+            'num_blanked_samples': lambda records: np.array(
+                [len(record['blanked_samples']) for key, record in 
+                records.items()], dtype=np.uint32)
             })
         return array_specific
 
@@ -1409,7 +1415,8 @@ class BorealisBfiq(BorealisBfiqv0_4):
 
     @classmethod
     def single_element_types(cls):
-        single_element_types = super(BorealisBfiq, cls).single_element_types()
+        single_element_types = super(BorealisBfiq, 
+            cls).single_element_types()
         single_element_types.update({
         # the slice id of the file and dataset.
         "slice_id" : np.uint32,
@@ -1431,7 +1438,8 @@ class BorealisBfiq(BorealisBfiqv0_4):
 
     @classmethod
     def unshared_fields_dims_array(cls):
-        unshared_fields_dims = super(BorealisBfiq, cls).unshared_fields_dims_array()
+        unshared_fields_dims = super(BorealisBfiq, 
+            cls).unshared_fields_dims_array()
         unshared_fields_dims.update({
         'blanked_samples': [cls.find_max_blanked_samples],
         'slice_interfacing': []
@@ -1442,7 +1450,8 @@ class BorealisBfiq(BorealisBfiqv0_4):
     def unshared_fields_dims_site(cls):
         unshared_fields_dims = super(BorealisBfiq, cls).unshared_fields_dims_site()
         unshared_fields_dims.update({
-        'blanked_samples': [lambda arrays, record_num: arrays['num_blanked_samples'][record_num]],
+        'blanked_samples': [lambda arrays, record_num: 
+            arrays['num_blanked_samples'][record_num]],
         'slice_interfacing': []
         })
         return unshared_fields_dims
@@ -1451,8 +1460,9 @@ class BorealisBfiq(BorealisBfiqv0_4):
     def array_specific_fields_generate(cls):
         array_specific = super(BorealisBfiq, cls).array_specific_fields_generate()
         array_specific.update({
-            'num_blanked_samples': lambda records: np.array([len(record['blanked_samples']) 
-            for key, record in records.items()], dtype=np.uint32)
+            'num_blanked_samples': lambda records: np.array(
+                [len(record['blanked_samples']) for key, record in 
+                records.items()], dtype=np.uint32)
             })
         return array_specific
 
@@ -1475,7 +1485,8 @@ class BorealisAntennasIq(BorealisAntennasIqv0_4):
 
     @classmethod
     def single_element_types(cls):
-        single_element_types = super(BorealisAntennasIq, cls).single_element_types()
+        single_element_types = super(BorealisAntennasIq, 
+            cls).single_element_types()
         single_element_types.update({
         # the slice id of the file and dataset.
         "slice_id" : np.uint32,
@@ -1515,19 +1526,23 @@ class BorealisAntennasIq(BorealisAntennasIqv0_4):
 
     @classmethod
     def unshared_fields_dims_site(cls):
-        unshared_fields_dims = super(BorealisAntennasIq, cls).unshared_fields_dims_site()
+        unshared_fields_dims = super(BorealisAntennasIq, 
+            cls).unshared_fields_dims_site()
         unshared_fields_dims.update({
-        'blanked_samples': [lambda arrays, record_num: arrays['num_blanked_samples'][record_num]],
+        'blanked_samples': [lambda arrays, record_num: 
+            arrays['num_blanked_samples'][record_num]],
         'slice_interfacing': []
         })
         return unshared_fields_dims
 
     @classmethod
     def array_specific_fields_generate(cls):
-        array_specific = super(BorealisAntennasIq, cls).array_specific_fields_generate()
+        array_specific = super(BorealisAntennasIq, 
+            cls).array_specific_fields_generate()
         array_specific.update({
-            'num_blanked_samples': lambda records: np.array([len(record['blanked_samples']) 
-            for key, record in records.items()], dtype=np.uint32)
+            'num_blanked_samples': lambda records: np.array(
+                [len(record['blanked_samples']) for key, record in 
+                records.items()], dtype=np.uint32)
             })
         return array_specific
 
@@ -1546,7 +1561,8 @@ class BorealisRawrf(BorealisRawrfv0_4):
 
     @classmethod
     def single_element_types(cls):
-        single_element_types = super(BorealisRawrf, cls).single_element_types()
+        single_element_types = super(BorealisRawrf, 
+            cls).single_element_types()
         single_element_types.update({
 
         # the slice id of the file and dataset.
