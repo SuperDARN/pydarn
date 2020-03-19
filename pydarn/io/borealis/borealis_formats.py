@@ -1581,6 +1581,18 @@ class BorealisRawrf(BorealisRawrfv0_4):
 
 # borealis versions
 borealis_versions = {
+    'v0.2' : {
+        'bfiq' : BorealisBfiqv0_4, 
+        'rawacf' : BorealisRawacfv0_4,
+        'antennas_iq' : BorealisAntennasIqv0_4,
+        'rawrf' : BorealisRawrfv0_4
+        },
+    'v0.3' : {
+        'bfiq' : BorealisBfiqv0_4, 
+        'rawacf' : BorealisRawacfv0_4,
+        'antennas_iq' : BorealisAntennasIqv0_4,
+        'rawrf' : BorealisRawrfv0_4
+        },
     'v0.4' : {
         'bfiq' : BorealisBfiqv0_4, 
         'rawacf' : BorealisRawacfv0_4,

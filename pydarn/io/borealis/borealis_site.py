@@ -111,8 +111,17 @@ class BorealisSiteRead():
 
         # get the version of the file - split by the dash, first part should be
         # 'vX.X'
-        version = dd.io.load(self.filename, group='/'+self._record_names[0]
+
+        try:
+            version = dd.io.load(self.filename, group='/'+self._record_names[0]
                              )['borealis_git_hash'].split('-')[0]
+        except (IndexError, ValueError) as e:
+            # if this is an array style file, it will raise IndexError on the array.
+            raise borealis_exceptions.BorealisStructureError(' {} '\
+                'Could not find the borealis_git_hash required to determine:'\
+                'read version (file may be array style): {}'.format(self.filename, e)
+                ) from e
+
         if version not in borealis_formats.borealis_versions:
             raise borealis_exceptions.BorealisVersionError(self.filename,
                 version)
@@ -322,7 +331,17 @@ class BorealisSiteWrite():
 
         # get the version of the file - split by the dash, first part should be
         # 'vX.X'
-        version = self._records[self.record_names[0]]['borealis_git_hash'].split('-')[0]
+        try:
+            version = self._records[self.record_names[0]][
+                'borealis_git_hash'].split('-')[0]
+        except (IndexError, ValueError) as e:
+            # if this is an array style file, it will raise IndexError on the array.
+            raise borealis_exceptions.BorealisStructureError(' {} '\
+                'Could not find the borealis_git_hash required to determine:'\
+                'read version (data may be array style) {}'.format(self.filename, e)
+                ) from e
+
+        
         if version not in borealis_formats.borealis_versions:
             raise borealis_exceptions.BorealisVersionError(self.filename,
                 version)

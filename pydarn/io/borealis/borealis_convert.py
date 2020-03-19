@@ -37,8 +37,6 @@ see: https://borealis.readthedocs.io/en/latest/
 
 Future Work
 -----------
-Remove requirement for hdf5 filename by fixing Borealis datawrite so that
-    slice_id is written. This must be fixed in the Borealis code.
 Update noise values in SDarn fields when these can be calculated.
 
 """
@@ -157,8 +155,8 @@ class BorealisConvert(BorealisRead):
 
     __allowed_conversions = {'rawacf': 'rawacf', 'bfiq': 'iqdat'}
 
-    def __init__(self, borealis_filename: str, borealis_filetype: str,
-                 sdarn_filename: str, borealis_slice_id: int,
+    def __init__(self, borealis_filename: str, borealis_filetype: str, 
+                 sdarn_filename: str, borealis_slice_id: int = None,
                  borealis_file_structure: Union[str, None] = None):
         """
         Convert HDF5 Borealis records to a given SDARN file with DMap format.
@@ -175,7 +173,8 @@ class BorealisConvert(BorealisRead):
         sdarn_filename: str
             The filename of the SDARN DMap file to be written.
         borealis_slice_id: int
-            The slice id of the file being converted.
+            The slice id of the file being converted. Only necessary for 
+            files produced by Borealis versions before v0.5
         borealis_file_structure: Union[str, None]
             The write structure of the file provided. Possible types are
             'site', 'array', or None. If None (default), array read will be
@@ -202,7 +201,18 @@ class BorealisConvert(BorealisRead):
         self.borealis_records = self.records
         self.sdarn_filename = sdarn_filename
         self.borealis_filename = self.filename
-        self._borealis_slice_id = borealis_slice_id
+        if borealis_slice_id is not None:
+            self._borealis_slice_id = borealis_slice_id
+        else:
+            try:
+                first_key = list(self.records.keys())[0]
+                self._borealis_slice_id = self.records[first_key]['slice_id']
+            except KeyError as e:
+                raise borealis_exceptions.BorealisStructureError('The slice_'\
+                    'id could not be found in the file: Borealis files produced '\
+                    'before Borealis v0.5 must provide the slice_id value to the '\
+                    'BorealisConvert class.')
+
         self._sdarn_dmap_records = {}
         self._sdarn_dict = {}
         try:
