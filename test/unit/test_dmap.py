@@ -7,6 +7,7 @@ import copy
 import logging
 import numpy as np
 import os
+import pytest
 import unittest
 
 import pydarn
@@ -27,6 +28,7 @@ corrupt_file1 = "../testfiles/20070117.1001.00.han.rawacf"
 corrupt_file2 = "../testfiles/20090320.1601.00.pgr.rawacf"
 
 
+@pytest.mark.skip
 class TestDmapRead(unittest.TestCase):
     """
     Testing class for DmapRead class
@@ -195,7 +197,7 @@ class TestDmapRead(unittest.TestCase):
         with self.assertRaises(pydarn.dmap_exceptions.DmapDataError):
             dmap.read_records()
 
-
+@pytest.mark.skip
 class TestDmapWrite(unittest.TestCase):
     """ Testing DmapWrite class"""
     def setUp(self):
