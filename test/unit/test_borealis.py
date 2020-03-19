@@ -793,13 +793,6 @@ class TestBorealisConvert(unittest.TestCase):
         os.remove("test_bfiq.bfiq.dmap")
 
     def test_borealis_convert_to_rawacfv05(self):
-        """
-        Tests BorealisConvert to rawacf
-
-        Expected behaviour
-        ------------------
-        write a SDARN DMap rawacf
-        """
         _ = pydarn.BorealisConvert(self.rawacfv05_test_file, "rawacf", 
                                    "test_rawacf.rawacf.dmap", 
                                    borealis_file_structure='site')
