@@ -77,6 +77,7 @@ class Rawacf():
             'xcfd': 'f'
             }
 
+
 class Fitacf():
     """
     Class containing Fitacf fields
@@ -159,7 +160,6 @@ class Fitacf():
         'sd_l': 'f',
         'sd_s': 'f',
         'sd_phi': 'f'}
-
 
     elevation_fields = {
         'x_qflg': 'c',
@@ -354,7 +354,7 @@ class Iqdat():
     """
     Class contains Iqdat fields
     """
-    #Standard Iqdat fields
+    # Standard Iqdat fields
     types = {
         'radar.revision.major': 'c',
         'radar.revision.minor': 'c',

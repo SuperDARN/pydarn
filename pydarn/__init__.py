@@ -1,5 +1,8 @@
 """
-Copyright 2018 SuperDARN
+Copyright 2018 SuperDARN Canada, Univeristy Saskatchewan
+Author(s): Marina Schmidt
+
+Licensed under GNU v3.0
 
 __init__.py
 2018-11-05
@@ -55,8 +58,8 @@ from .plotting.color_maps import PyDARNColormaps
 from .plotting.rtp import RTP
 
 """
-pyDARN uses yaml for logging configuration because its legibility makes it the preferred configuration file format.
-
+pyDARN uses yaml for logging configuration because its legibility
+makes it the preferred configuration file format.
 """
 # real path is needed because path imports from where it is ran and the
 # logging config will not be in the users current path.

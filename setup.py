@@ -1,5 +1,5 @@
 """
-Copyright 2018 SuperDARN
+Copyright 2018 SuperDARN Canada, University of Saskatchewan
 
 setup.py
 2018-11-05
@@ -16,22 +16,20 @@ import sys
 from subprocess import check_call
 from setuptools.command.install import install, orig
 
-# TODO: currently not implemented due to some challenges
-# with C API and memory leaks.
-#rstmodule = Extension('dmap',
-#                      sources= ['dmap.c'])
 
+# This class and function overrides the install python
+# setup method to add an extra git command in to install
+# the submodule
 class initialize_submodules(install):
     def run(self):
         if path.exists('.git'):
             check_call(['git', 'submodule', 'update', '--init', '--recursive'])
         if self.old_and_unmanageable or self.single_version_externally_managed:
             return orig.install.run(self)
-        #install.run(self)
         caller = sys._getframe(2)
-        caller_module = caller.f_globals.get('__name__','')
+        caller_module = caller.f_globals.get('__name__', '')
         caller_name = caller.f_code.co_name
-        if caller_module != 'distutils.dist' or caller_name!='run_commands':
+        if caller_module != 'distutils.dist' or caller_name != 'run_commands':
             # We weren't called from the command line or setup(), so we
             # should run in b`ackward-compatibility mode to support bdist_*
             # commands.
@@ -39,9 +37,10 @@ class initialize_submodules(install):
         else:
             self.do_egg_install()
 
+
 # Setup information
 setup(
-    cmdclass = {'install': initialize_submodules},
+    cmdclass={'install': initialize_submodules},
     name="pydarn",
     version="0.1.dev",
     description="Data visualization library for SuperDARN data",
@@ -56,11 +55,9 @@ setup(
     author="SuperDARN",
     # used to import the logging config file into pydarn.
     include_package_data=True,
-    setup_requires=['pyyaml','numpy','matplotlib',
-                      'h5py', 'deepdish', 'pathlib2'],
+    setup_requires=['pyyaml', 'numpy', 'matplotlib',
+                    'h5py', 'deepdish', 'pathlib2'],
     # pyyaml library install
-    install_requires=['pyyaml','numpy','matplotlib',
+    install_requires=['pyyaml', 'numpy', 'matplotlib',
                       'h5py', 'deepdish', 'pathlib2']
-    # commented out due to not implemented yet.
-    #ext_modules = [rstmodule]
 )

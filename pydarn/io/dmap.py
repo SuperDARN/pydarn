@@ -45,7 +45,8 @@ from pydarn import dmap_exceptions, DmapArray, DmapScalar, dmap2dict, dict2dmap
 # Keeping these global definitions for readability purposes
 # Data types use in s
 DMAP = 0
-CHAR = 1  # CHAR is defined as an int8 in RST rtypes.h https://github.com/SuperDARN/rst
+# CHAR is defined as an int8 in RST rtypes.h https://github.com/SuperDARN/rst
+CHAR = 1
 SHORT = 2
 INT = 3
 FLOAT = 4
@@ -61,14 +62,14 @@ ULONG = 19
 # (value-tuple)
 # DMap stands for DataMap documented in:
 # https://superdarn.github.io/rst/superdarn/src.doc/rfc/0006.html
-# https://radar-software-toolkit-rst.readthedocs.io/en/latest/ (In developement)
+# https://radar-software-toolkit-rst.readthedocs.io/en/latest/
 DMAP_DATA_TYPES = {DMAP: ('', 0),
-                   CHAR: ('c', 1),  # CHAR is defined as an int8 in RST rtypes.h
+                   CHAR: ('c', 1),  # CHAR is defined as an int8 in RST
                    SHORT: ('h', 2),  # defined as int16
                    INT: ('i', 4),  # defined as int32
                    FLOAT: ('f', 4),  # defined as float32
                    DOUBLE: ('d', 8),  # equavalece to float64
-                   STRING: ('s', 1),  # strings are an array of characters 1 byte bit
+                   STRING: ('s', 1),  # strings - array of 1 byte characters
                    LONG: ('q', 8),  # defined as int64
                    UCHAR: ('B', 1),  # unsigned int8
                    USHORT: ('H', 2),  # unsigned int16
@@ -86,7 +87,7 @@ class DmapRead():
     Reading and testing the integrity of s/stream.
     DMap is describe in the RST documentation:
     - https://superdarn.github.io/rst/superdarn/src.doc/rfc/0006.html
-    - https://radar-software-toolkit-rst.readthedocs.io/en/latest/ (In developement)
+    - https://radar-software-toolkit-rst.readthedocs.io/en/latest/
     ...
 
     Attributes
@@ -190,12 +191,11 @@ class DmapRead():
         # when a class inherits this one, the class name will be the child
         # class and not the parent class (dmap classes)
         return "{class_name}({filename}, {cursor}, {rec_num}, {total})"\
-                "".format(class_name=self.__class__.__name__,
-                          filename=self.dmap_file,
-                          cursor=self.cursor,
-                          total=self.dmap_end_bytes,
-                          rec_num=self.rec_num)
-
+               "".format(class_name=self.__class__.__name__,
+                         filename=self.dmap_file,
+                         cursor=self.cursor,
+                         total=self.dmap_end_bytes,
+                         rec_num=self.rec_num)
 
     def __str__(self):
         """ for printing of the class object"""
@@ -203,12 +203,12 @@ class DmapRead():
         # when a class inherits this one, the class name will be the child
         # class and not the parent class (dmap classes)
         return "Reading from {filename} at cursor: {cursor} "\
-                "record number: {rec_num} with"\
-                " a total number of bytes: {total_bytes}"\
-                "".format(filename=self.dmap_file,
-                          cursor=self.cursor,
-                          rec_num=self.rec_num,
-                          total_bytes=self.dmap_end_bytes)
+               "record number: {rec_num} with"\
+               " a total number of bytes: {total_bytes}"\
+               "".format(filename=self.dmap_file,
+                         cursor=self.cursor,
+                         rec_num=self.rec_num,
+                         total_bytes=self.dmap_end_bytes)
 
     @property
     def get_dmap_records(self):
@@ -440,7 +440,7 @@ class DmapRead():
         block_size = self.read_data('i', 4)
 
         pydarn_log.debug("Reading Record {record}"
-                            .format(record=len(self._dmap_records)))
+                         .format(record=len(self._dmap_records)))
 
         # adding 8 bytes because code+size are part of the record.
         # 4 is the number bytes for int format
@@ -1037,8 +1037,8 @@ class DmapWrite(object):
         Might be useful to return bytes of records for potential
         writing into a data stream or real-time stream
         """
-
-        encoding_identifier = 65537  # TODO: determine where this is documented for reference
+        # DaVitpy reference, still unclear of meaning of the numeber
+        encoding_identifier = 65537
         num_scalars = 0
         num_arrays = 0
         data_bytearray = bytearray()
@@ -1096,7 +1096,6 @@ class DmapWrite(object):
                                             scalar_data.encode('utf-8'))
         elif scalar.data_type_fmt == 'c':
             # char is defined as int8 by RST
-            # TODO: test performance on just writing an int8 instead of encoding
             if isinstance(scalar.value, str):
                 raise dmap_exceptions.DmapCharError(scalar.name, self.rec_num)
             # scalar_data_bytes = scalar.value

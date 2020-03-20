@@ -39,7 +39,8 @@ import logging
 
 from typing import Union, List
 
-from pydarn import DmapRead, DmapWrite, superdarn_exceptions, superdarn_formats, dmap2dict
+from pydarn import (DmapRead, DmapWrite, superdarn_exceptions,
+                    superdarn_formats, dmap2dict)
 
 pydarn_log = logging.getLogger('pydarn')
 
@@ -116,11 +117,14 @@ class SDarnUtilities():
             set containing all dictionary key from the list of dicts
         """
         # convert dictionaries to set to do some set magic
-        sets = [set(dic) for dic in dict_list]  # TODO: if data types don't matter in the structure format then they can become sets instead of dictionaries.
+        sets = [set(dic) for dic in dict_list]
+        # TODO: if data types don't matter in the structure format then
+        # they can become sets instead of dictionaries.
         # create a complete set list
         # * - expands the list out into multiple set arguments
         # then the union operator creates it into a full unique set
-        # example: s = [{'a','v'}, {'v','x'}] => set.union(*s) = {'a', 'v', 'x'}
+        # example: s = [{'a','v'}, {'v','x'}] => set.union(*s)
+        # = {'a', 'v', 'x'}
         complete_set = set.union(*sets)
         return complete_set
 
@@ -161,7 +165,7 @@ class SDarnUtilities():
         for file_struct in file_struct_list:
             diff_fields = \
                 SDarnUtilities.dict_key_diff(file_struct,
-                                            record)
+                                             record)
             # If 0 nothing missing, if len(file_struct) then
             # that subset is missing only meaning that command option was
             # not used, not necessarily meaning that it is a record.
@@ -344,7 +348,8 @@ class SDarnRead(DmapRead):
         record = self.read_record()
         SDarnUtilities.missing_field_check(format_fields, record, self.rec_num)
         SDarnUtilities.extra_field_check(format_fields, record, self.rec_num)
-        SDarnUtilities.incorrect_types_check(format_fields, record, self.rec_num)
+        SDarnUtilities.incorrect_types_check(format_fields, record,
+                                             self.rec_num)
         self._dmap_records.append(record)
 
     def _read_darn_records(self, format_fields: List[dict]):
@@ -611,7 +616,7 @@ class SDarnWrite(DmapWrite):
         self._filename_check(filename)
         self._empty_record_check()
         file_struct_list = [superdarn_formats.Rawacf.types,
-                            superdarn_formats.Rawacf.extra_fields, 
+                            superdarn_formats.Rawacf.extra_fields,
                             superdarn_formats.Rawacf.cross_correlation_field]
         self.superDARN_file_structure_to_bytes(file_struct_list)
         with open(self.filename, 'wb') as f:
@@ -779,10 +784,10 @@ class SDarnWrite(DmapWrite):
             record = self.dmap_records[self.rec_num]
             # field checks
             SDarnUtilities.extra_field_check(file_struct_list, record,
-                                            self.rec_num)
+                                             self.rec_num)
             SDarnUtilities.missing_field_check(file_struct_list, record,
-                                              self.rec_num)
+                                               self.rec_num)
             SDarnUtilities.incorrect_types_check(file_struct_list, record,
-                                                self.rec_num)
+                                                 self.rec_num)
             # start converting
             self._dmap_record_to_bytes(record)
