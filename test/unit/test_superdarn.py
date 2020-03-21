@@ -1,4 +1,4 @@
-# Copyright (C) 2019 SuperDARN
+# Copyright (C) 2019 SuperDARN Canada, University of Saskatchewan
 # Author: Marina Schmidt
 """
 This test suite is to test the implementation for the following classes:
@@ -42,6 +42,7 @@ grid_file = "../testfiles/20180220.C0.rkn.grid"
 # Black listed files
 corrupt_file1 = "../testfiles/20070117.1001.00.han.rawacf"
 corrupt_file2 = "../testfiles/20090320.1601.00.pgr.rawacf"
+
 
 @pytest.mark.skip
 class TestSDarnRead(unittest.TestCase):
@@ -162,7 +163,7 @@ class TestSDarnRead(unittest.TestCase):
         """
         file_path = iqdat_file
         dm = pydarn.SDarnRead(file_path)
-        dm_data = dm.read_iqdat()
+        _ = dm.read_iqdat()
         dm_records = dm.get_dmap_records
         self.assertIsInstance(dm_records, collections.deque)
         self.assertIsInstance(dm_records[0], collections.OrderedDict)
@@ -223,7 +224,7 @@ class TestSDarnRead(unittest.TestCase):
         """
         file_path = grid_file
         dm = pydarn.SDarnRead(file_path)
-        data = dm.read_grid()
+        _ = dm.read_grid()
         dm_records = dm.get_dmap_records
         self.assertIsInstance(dm_records, collections.deque)
         self.assertIsInstance(dm_records[0], collections.OrderedDict)
@@ -243,7 +244,7 @@ class TestSDarnRead(unittest.TestCase):
         """
         file_path = map_file
         dm = pydarn.SDarnRead(file_path)
-        data = dm.read_map()
+        _ = dm.read_map()
         dm_records = dm.get_dmap_records
         self.assertIsInstance(dm_records, collections.deque)
         self.assertIsInstance(dm_records[0], collections.OrderedDict)
@@ -253,7 +254,8 @@ class TestSDarnRead(unittest.TestCase):
         self.assertIsInstance(dm_records[8]['IMF.flag'].value, int)
         self.assertIsInstance(dm_records[10]['stid'].value, np.ndarray)
         self.assertEqual(dm_records[3]['stid'].dimension, 1)
-        self.assertEqual(dm_records[0]['stid'].shape[0], 14)  # this will be file dependent... future working test project.
+        # this will be file dependent... future working test project.
+        self.assertEqual(dm_records[0]['stid'].shape[0], 14)
 
     def test_read_corrupt_file1(self):
         """
@@ -387,7 +389,7 @@ class TestDarnUtilities(unittest.TestCase):
         dict3 = {'fitacf': 'f', 'rawacf': 's', 'map': 'm'}
         test_dict = {'a': 3, 'b': 3, 'c': 3, 'rst': 1, 'vel': 'd'}
         pydarn.SDarnUtilities.extra_field_check([dict1, dict2, dict3],
-                                               test_dict, 1)
+                                                test_dict, 1)
 
     def test_extra_field_check_fail(self):
         """
@@ -408,7 +410,7 @@ class TestDarnUtilities(unittest.TestCase):
         test_dict = {'a': 3, 'b': 3, 'c': 2, 'd': 3, 'rst': 1, 'vel': 'd'}
         try:
             pydarn.SDarnUtilities.extra_field_check([dict1, dict2, dict3],
-                                                   test_dict, 1)
+                                                    test_dict, 1)
         except pydarn.superdarn_exceptions.SuperDARNExtraFieldError as err:
             self.assertEqual(err.fields, {'d'})
 
@@ -430,7 +432,7 @@ class TestDarnUtilities(unittest.TestCase):
         test_dict.update(dict3)
         pydarn.SDarnUtilities.missing_field_check([dict1, dict2,
                                                   dict3],
-                                                 test_dict, 1)
+                                                  test_dict, 1)
 
     def test_missing_field_check_pass_mixed_subset(self):
         """
@@ -455,12 +457,12 @@ class TestDarnUtilities(unittest.TestCase):
                      'stid': 's', 'rst': 1, 'vel': 'd'}
 
         pydarn.SDarnUtilities.missing_field_check([dict1, dict2, dict3],
-                                                 test_dict, 1)
+                                                  test_dict, 1)
         test_dict = {}
         test_dict.update(dict1)
         test_dict.update(dict3)
         pydarn.SDarnUtilities.missing_field_check([dict1, dict2, dict3],
-                                                 test_dict, 1)
+                                                  test_dict, 1)
 
     def test_missing_field_check_fail2(self):
         """
@@ -484,10 +486,9 @@ class TestDarnUtilities(unittest.TestCase):
 
         try:
             pydarn.SDarnUtilities.missing_field_check([dict1, dict2, dict3],
-                                                     test_dict, 1)
+                                                      test_dict, 1)
         except pydarn.superdarn_exceptions.SuperDARNFieldMissingError as err:
             self.assertEqual(err.fields, {'c', 'rst', 'rawacf'})
-
 
     def test_missing_field_check_fail(self):
         """
@@ -511,7 +512,7 @@ class TestDarnUtilities(unittest.TestCase):
 
         try:
             pydarn.SDarnUtilities.missing_field_check([dict1, dict2, dict3],
-                                                     test_dict, 1)
+                                                      test_dict, 1)
         except pydarn.superdarn_exceptions.SuperDARNFieldMissingError as err:
             self.assertEqual(err.fields, {'c', 'rawacf'})
 
@@ -541,7 +542,7 @@ class TestDarnUtilities(unittest.TestCase):
                      'map': pydarn.DmapScalar('a', 1, 1, 'm')}
 
         pydarn.SDarnUtilities.incorrect_types_check([dict1, dict3],
-                                                   test_dict, 1)
+                                                    test_dict, 1)
 
     def test_incorrect_types_check_fail(self):
         """
@@ -570,7 +571,7 @@ class TestDarnUtilities(unittest.TestCase):
                      'map': pydarn.DmapScalar('a', 1, 1, 'm')}
         try:
             pydarn.SDarnUtilities.incorrect_types_check([dict1, dict3],
-                                                       test_dict, 1)
+                                                        test_dict, 1)
         except pydarn.superdarn_exceptions.SuperDARNDataFormatTypeError as err:
             self.assertEqual(err.incorrect_params, {'fitacf': 'f'})
 
@@ -614,7 +615,7 @@ class TestSDarnWrite(unittest.TestCase):
         Expected behaviour
         ------------------
         All should raise a FilenameRequiredError - if no file name is given
-        what do we write to ¯\_(ツ)_/¯
+        what do we write to.
         """
         rawacf_data = copy.deepcopy(rawacf_data_sets.rawacf_data)
         dmap_data = pydarn.SDarnWrite(rawacf_data)

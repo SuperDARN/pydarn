@@ -1,7 +1,7 @@
 # copyright (C) SuperDARN Canada, University of Saskatchewan
 # Author(s): Marina Schmidt
 #
-# Modifications: <year>-<month>-<day> <full name> <institution/facility affiliation> <short description of the change>
+# Modifications:
 #
 # Disclaimer: pyDARN is licensed under the GPL v 3.0 found in LICENSE
 #
@@ -33,9 +33,10 @@ def standard_warning_format(message: str, category: str, filename: str,
     """
     return "{filename}: {linenum}: {category}:"\
            " {message}\n".format(filename=filename,
-                               linenum=lineno,
-                               category=category.__name__,
-                               message=message)
+                                 linenum=lineno,
+                                 category=category.__name__,
+                                 message=message)
+
 
 def only_message_warning_format(message: str, category: str, filename: str,
                                 lineno: int, file: str = None,
@@ -62,6 +63,6 @@ def only_message_warning_format(message: str, category: str, filename: str,
         formatted warning message to be printed to the console
     """
     return "{category}: {message}\n".format(filename=filename,
-                                          linenum=lineno,
-                                          category=category.__name__,
-                                          message=message)
+                                            linenum=lineno,
+                                            category=category.__name__,
+                                            message=message)

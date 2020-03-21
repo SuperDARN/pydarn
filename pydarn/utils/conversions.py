@@ -1,4 +1,4 @@
-# Copyright 2019 SuperDARN
+# Copyright 2019 SuperDARN Canada, University of Saskatchewan
 # Author: Marina Schmidt
 
 """
@@ -13,7 +13,8 @@ from collections import OrderedDict
 
 from pydarn import DmapArray, DmapScalar
 
-# key is the format char type defined by python, item is the DMAP int value for the type
+# key is the format char type defined by python,
+# item is the DMAP int value for the type
 DMAP_FORMAT_TYPES = {'c': 1,  # char = int8 by RST rtypes.h definition
                      'h': 2,  # short integer
                      'i': 3,  # integer (int)

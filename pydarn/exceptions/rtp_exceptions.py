@@ -1,3 +1,4 @@
+# Copyright (C) SuperDARN Canada, Universtiy of Saskatchewan
 # Authors: Marina Schmidt
 import logging
 import datetime
@@ -74,7 +75,7 @@ class RTPZeroError(Exception):
             " something different. To resolve this error, please set the "\
             "zmin or zmax parameter or try another normalization"\
             " method.".format(zmin=zmin, zmax=zmax, norm=norm,
-                             num=beam_num, param=parameter)
+                              num=beam_num, param=parameter)
         super().__init__(self.message)
         pydarn_log.error(self.message)
 

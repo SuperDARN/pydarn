@@ -1,4 +1,4 @@
-# Copyright (C) 2019 SuperDARN
+# Copyright (C) 2019 SuperDARN Canada, University of Saskatchewan
 # Author: Marina Schmidt
 
 import bz2
@@ -197,6 +197,7 @@ class TestDmapRead(unittest.TestCase):
         with self.assertRaises(pydarn.dmap_exceptions.DmapDataError):
             dmap.read_records()
 
+
 @pytest.mark.skip
 class TestDmapWrite(unittest.TestCase):
     """ Testing DmapWrite class"""
@@ -224,7 +225,6 @@ class TestDmapWrite(unittest.TestCase):
         Expected behaviour
         ------------------
         Raise DmapDataError - no data is given to write
-        ¯\_(ツ)_/¯
         """
         with self.assertRaises(pydarn.dmap_exceptions.DmapDataError):
             dmap_write = pydarn.DmapWrite(filename="test.test")
@@ -273,7 +273,7 @@ class TestDmapWrite(unittest.TestCase):
                                  9, 's', 1, [3])
         dmap_write = pydarn.DmapWrite([{'xcf': array}])
         with self.assertRaises(pydarn.dmap_exceptions.DmapDataError):
-                dmap_write.dmap_array_to_bytes(array)
+            dmap_write.dmap_array_to_bytes(array)
 
     def test_character_array(self):
         """

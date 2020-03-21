@@ -1,4 +1,4 @@
-# Copyright (C) SuperDARN Canada, University of Saskatchewan
+# Copyright (C) 2020 SuperDARN Canada, University of Saskatchewan
 # Authors: Marina Schmidt and Danno Peters
 
 """
@@ -51,43 +51,57 @@ def read_hdw_file(abbrv, date: datetime = None):
                     """
                     hdw_line_date = datetime(year=int(hdw_data[1]), month=1,
                                              day=1) +\
-                            timedelta(seconds=int(hdw_data[2]))
+                        timedelta(seconds=int(hdw_data[2]))
                     if hdw_line_date > date:
                         """
                         Hardware data array positions definitions:
                             0: station id - stid
                             1: last year that the parameter string is valid.
-                            Note: currently updated line will have a year of 2999
+                            Note: currently updated line will
+                            have a year of 2999
                             meaning it is currently still up to date.
-                            2: last second of year that parameter string is valid.
+                            2: last second of year that parameter
+                            string is valid.
                             3: Geographic latitude of radar site
                             4: Geographic longitude of radar site
                             Note: southern lat and long are negative
                             5: Altitude of the radar site (meters)
-                            6: Scanning boresight - direction of the centre beam,
+                            6: Scanning boresight - direction of
+                            the centre beam,
                             measured in degrees relative to geographic north.
                             Counter clockwise rotations are negative.
                             7: Beam separation (Angular seperation in degrees)
-                            8: velocity sign - at radar level, backscattered signal with
-                            frequencies above the transmitted frequency are assigned positive
-                            Doppler velocities while backscattered signals with frequencies
-                            below the transmitted frequency are assigned negative Doppler
+                            8: velocity sign - at radar level,
+                            backscattered signal with
+                            frequencies above the transmitted frequency
+                            are assigned positive
+                            Doppler velocities while backscattered signals
+                            with frequencies
+                            below the transmitted frequency are assigned
+                            negative Doppler
                             velocity. Can be changed in receiver design.
                             9: Analog Rx attenuator step (dB)
-                            10: Tdiff - propagation time from interferometer array antenna
-                            to phasing matrix input miunus propagation time from main array
-                            antenna through transmitter to phasing matrix input.
+                            10: Tdiff - propagation time from
+                            interferometer array antenna
+                            to phasing matrix input miunus propagation
+                            time from main array
+                            antenna through transmitter to phasing
+                            matrix input.
                             (microseconds)
                             11: phase sign - to account for any cable errors
                             Interferometer offset - displacement of midpoint
-                            interferometer array from midpoint main array (meters).
-                            12: x direction - along the line of antennas with +X toward
+                            interferometer array from midpoint main
+                            array (meters).
+                            12: x direction - along the line of antennas
+                            with +X toward
                             higher antenna number
-                            13: y direction - along the array normal with +Y in the
+                            13: y direction - along the array normal
+                            with +Y in the
                             direction of the array normal
                             14: z direction - is the altitude difference, +Z up
                             15: Analog Rx rise time (microseconds)
-                            16: Analog Attenuation stages - gain control of an analog
+                            16: Analog Attenuation stages - gain control of
+                            an analog
                             receiver or front-end
                             17: maximum range gates
                             18: maximum number of beams
@@ -98,11 +112,13 @@ def read_hdw_file(abbrv, date: datetime = None):
                                                float(hdw_data[5])),
                                         float(hdw_data[6]), float(hdw_data[7]),
                                         float(hdw_data[8]), float(hdw_data[9]),
-                                        float(hdw_data[10]), float(hdw_data[11]),
+                                        float(hdw_data[10]),
+                                        float(hdw_data[11]),
                                         _InterferometerOffset(float(hdw_data[12]),
                                                               float(hdw_data[13]),
                                                               float(hdw_data[14])),
-                                        float(hdw_data[15]), float(hdw_data[16]),
+                                        float(hdw_data[15]),
+                                        float(hdw_data[16]),
                                         int(hdw_data[17]), int(hdw_data[18]))
     except FileNotFoundError:
         raise radar_exceptions.HardwareFileNotFoundError(abbrv)
@@ -269,7 +285,8 @@ class SuperDARNRadars():
         _Radar : radar object containing radar information
         read_hdw_file : function to read hardware information for a given radar
     """
-    # Information obtained from http://vt.superdarn.org/tiki-index.php?page=Radar+Overview
+    # Information obtained from
+    # http://vt.superdarn.org/tiki-index.php?page=Radar+Overview
     radars = {209: _Radar('Adak Island East',
                           'University of Alaska Fairbanks', Hemisphere.North,
                           read_hdw_file('ade')),

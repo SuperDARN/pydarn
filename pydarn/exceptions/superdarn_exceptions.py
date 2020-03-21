@@ -1,3 +1,4 @@
+# Copyright (C) SuperDARN Canada, University of Saskatchewan
 # Authors: Keith Kotyk and Marina Schmidt
 import logging
 pydarn_logger = logging.getLogger('pydarn')
@@ -17,7 +18,8 @@ class SuperDARNFileTypeError(Exception):
     def __init__(self, filename: str, file_type: str):
         self.filename = filename
         self.file_type = file_type
-        self.message = "Error: {file_type} is not a SuperDARN file format type."\
+        self.message = "Error: {file_type} is not a SuperDARN file "\
+            "format type."\
             "{filename} was not created. Please check the spelling of"\
             " the file type is correct or is"\
             " implemented.".format(file_type=self.file_type,
@@ -41,7 +43,8 @@ class SuperDARNFieldMissingError(Exception):
     def __init__(self, record_num: int, fields: set):
         self.record_number = record_num
         self.fields = fields
-        self.message = "Error: The following fields in record {num} are missing:"\
+        self.message = "Error: The following fields in record {num} "\
+            "are missing:"\
             " {fields}".format(num=self.record_number,
                                fields=self.fields)
         super().__init__(self.message)
@@ -63,7 +66,8 @@ class SuperDARNExtraFieldError(Exception):
     def __init__(self, record_num, fields):
         self.record_number = record_num
         self.fields = fields
-        self.message = "Error: The following fields in record {num} are not allowed:"\
+        self.message = "Error: The following fields in record {num} are"\
+            " not allowed:"\
             " {fields}".format(num=self.record_number,
                                fields=self.fields)
         super().__init__(self.message)

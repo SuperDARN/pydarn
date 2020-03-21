@@ -27,7 +27,6 @@ from .exceptions.warning_formatting import only_message_warning_format
 # Importing pydarn pydmap data structure classes
 from .io.datastructures import DmapScalar
 from .io.datastructures import DmapArray
-from .io.datastructures import DmapRecord
 from .io import superdarn_formats
 
 # importing utils

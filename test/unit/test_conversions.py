@@ -1,4 +1,4 @@
-# Copyright (C) 2016  SuperDARN Canada
+# Copyright (C) 2019 SuperDARN Canada, University of Saskatchewan
 # Author: Marina Schmidt
 
 
@@ -25,9 +25,10 @@ class Test_Conversions(unittest.TestCase):
             List of ordered dictionaries containing dmap data structure
             DmapScalar and DmapArray
         """
-        self.dmap_list = [{'stid': 1, 'channel': 0, 'ptab': np.array([0, 9, 12,
-                                                                      20, 22,
-                                                                      26, 27])},
+        self.dmap_list = [{'stid': 1, 'channel': 0,
+                           'ptab': np.array([0, 9, 12,
+                                             20, 22,
+                                             26, 27])},
                           {'bmnum': np.int16(15), 'combf': "$Id: twofsound",
                            'pwr0': np.array([58.081821, 52.241421, 32.936508,
                                              35.562561, 35.344330, 31.501854,
@@ -78,7 +79,8 @@ class Test_Conversions(unittest.TestCase):
                                                              dtype=np.float32),
                                                     4, 'f', 1, [12]))]),
              OrderedDict([('radar.revision.major',
-                           pydarn.DmapScalar('radar.revision.major', np.int8(1),
+                           pydarn.DmapScalar('radar.revision.major',
+                                             np.int8(1),
                                              1, 'c')),
                           ('radar.revision.minor',
                            pydarn.DmapScalar('radar.revision.minor',

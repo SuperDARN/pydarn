@@ -1,4 +1,4 @@
-# Copyright 2019 SuperDARN
+# Copyright 2019 SuperDARN Canada, University of Saskatchewan
 # Authors: Marina Schmidt
 
 import matplotlib.pyplot as plt
@@ -8,6 +8,7 @@ import unittest
 from datetime import datetime
 
 import pydarn
+
 
 # TODO: discuss show vs. save image? Also how does this fit in python test?
 @pytest.mark.skip
@@ -22,7 +23,7 @@ class TestRTP(unittest.TestCase):
         Runs once before all tests are ran. Loads and reads in the
         fitacf file that will be used in all the unit tests.
         """
-        #fitacf_file = "../testfiles/20190203.0001.00.fhw.fitacf3"
+        # fitacf_file = "../testfiles/20190203.0001.00.fhw.fitacf3"
         fitacf_file = "../testfiles/20180220.C0.rkn.fitacf"
         darn_read = pydarn.DarnRead(fitacf_file)
         cls.fitacf_data = darn_read.read_fitacf()
@@ -53,7 +54,8 @@ class TestRTP(unittest.TestCase):
         Trying to plot a rang-time plot using the time-series plot method
         Expected behaviour is a raised exception for Incorrect plotting method
         """
-        with self.assertRaises(pydarn.rtp_exceptions.RTPIncorrectPlotMethodError):
+        with self.assertRaises(pydarn.rtp_exceptions.
+                               RTPIncorrectPlotMethodError):
             pydarn.RTP.plot_time_series(self.fitacf_data,
                                         parameter='v_e',
                                         beam_num=7)
@@ -63,7 +65,8 @@ class TestRTP(unittest.TestCase):
         Trying to plot a rang-time plot using the time-series plot method
         Expected behaviour is a raised exception for Incorrect plotting method
         """
-        with self.assertRaises(pydarn.rtp_exceptions.RTPIncorrectPlotMethodError):
+        with self.assertRaises(pydarn.rtp_exceptions.
+                               RTPIncorrectPlotMethodError):
             pydarn.RTP.plot_time_series(self.fitacf_data,
                                         parameter='elv',
                                         beam_num=7)
@@ -76,11 +79,11 @@ class TestRTP(unittest.TestCase):
         plt.title("Multi subplot time-series plot for "
                   "sky noise and search noise")
         pydarn.RTP.plot_time_series(self.fitacf_data, parameter='noise.sky',
-                                   beam_num=7, linestyle='--')
+                                    beam_num=7, linestyle='--')
         plt.ylabel("Sky Noise")
         plt.subplot(2, 1, 2)
         pydarn.RTP.plot_time_series(self.fitacf_data, parameter='noise.search',
-                                   beam_num=7, color='red')
+                                    beam_num=7, color='red')
         plt.ylabel("search Noise")
         plt.show()
 
@@ -90,7 +93,7 @@ class TestRTP(unittest.TestCase):
         """
         fig, ax = plt.subplots()
         pydarn.RTP.plot_time_series(self.fitacf_data, parameter='nave',
-                                   beam_num=7, ax=ax)
+                                    beam_num=7, ax=ax)
         ax.set_xlabel("Date (UTC)")
         fig.suptitle("Time sereies nace plot using axes object")
         plt.show()
@@ -147,7 +150,6 @@ class TestRTP(unittest.TestCase):
         plt.title("Simple cp ID plot for beam 7 with names")
         plt.show()
 
-
     def test_cp_no_names_time_series_plot(self):
         """
         plots a simple elevation time-series plot for beam 7
@@ -164,9 +166,9 @@ class TestRTP(unittest.TestCase):
         """
         with self.assertRaises(pydarn.rtp_exceptions.RTPNoDataFoundError):
             pydarn.RTP.plot_time_series(self.fitacf_data, parameter='cp',
-                                       beam_num=7,
-                                       start_time=datetime(2016, 12, 8, 0, 0),
-                                       end_time=datetime(2016, 12, 8, 8, 0))
+                                        beam_num=7,
+                                        start_time=datetime(2016, 12, 8, 0, 0),
+                                        end_time=datetime(2016, 12, 8, 8, 0))
 
     def test_no_data_time_series_plot(self):
         """
@@ -175,9 +177,9 @@ class TestRTP(unittest.TestCase):
         """
         with self.assertRaises(pydarn.rtp_exceptions.RTPNoDataFoundError):
             pydarn.RTP.plot_time_series(self.fitacf_data, parameter='tfreq',
-                                       beam_num=7,
-                                       start_time=datetime(2018, 12, 8, 0, 0),
-                                       end_time=datetime(2018, 12, 8, 8, 0))
+                                        beam_num=7,
+                                        start_time=datetime(2018, 12, 8, 0, 0),
+                                        end_time=datetime(2018, 12, 8, 8, 0))
 
     def test_simple_range_time_plot(self):
         """
@@ -195,15 +197,6 @@ class TestRTP(unittest.TestCase):
         """
         pydarn.RTP.plot_range_time(self.fitacf_data, parameter='elv',
                                    beam_num=7, groundscatter=True)
-        plt.title("Elevation with Ground Scatter with beam 7")
-        plt.show()
-
-    def test_groundscatter_color_range_time_plot(self):
-        """
-        plots a simple elevation rang-time plot with ground scatter
-        """
-        pydarn.RTP.plot_range_time(self.fitacf_data, parameter='p_l',
-                                   beam_num=7, groundscatter='r')
         plt.title("Elevation with Ground Scatter with beam 7")
         plt.show()
 
@@ -420,7 +413,8 @@ class TestRTP(unittest.TestCase):
         Raises an incorrect plot error because a scalar parameter is selected
         for a range-time plot
         """
-        with self.assertRaises(pydarn.rtp_exceptions.RTPIncorrectPlotMethodError):
+        with self.assertRaises(pydarn.rtp_exceptions.
+                               RTPIncorrectPlotMethodError):
             pydarn.RTP.plot_range_time(self.fitacf_data, parameter='stid',
                                        beam_num="all")
 
@@ -433,7 +427,7 @@ class TestRTP(unittest.TestCase):
             pydarn.RTP.plot_range_time(self.fitacf_data, parameter='dummy',
                                        beam_num="all")
 
-    def test_simple_time_series_plot(self):
+    def test_time_series_plot(self):
         """
         plots a simple time series plot
         """
@@ -464,7 +458,7 @@ class TestRTP(unittest.TestCase):
         plot a summary plot with a different figure size
         """
         pydarn.RTP.plot_summary(self.fitacf_data, beam_num=8,
-                                figsize=(14,8))
+                                figsize=(14, 8))
         plt.show()
 
     def test_boundary_wtih_summary_plot(self):
@@ -473,7 +467,7 @@ class TestRTP(unittest.TestCase):
         and nave
         """
 
-        boundary = {'v': (-100,100),
+        boundary = {'v': (-100, 100),
                     'nave': (0, 100)}
         pydarn.RTP.plot_summary(self.fitacf_data, beam_num=7,
                                 boundary=boundary)
@@ -501,7 +495,8 @@ class TestRTP(unittest.TestCase):
         plot summary plot with a custom title
         """
         pydarn.RTP.plot_summary(self.fitacf_data, beam_num=8,
-                                title="Summary plot of Rankin Inlet on Feb 22nd, 2018 for beam 8")
+                                title="Summary plot of Rankin Inlet on Feb "
+                                "22nd, 2018 for beam 8")
         plt.show()
 
 

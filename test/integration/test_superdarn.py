@@ -1,6 +1,5 @@
 # Copyright (C) 2019 SuperDARN
 # Author: Marina Schmidt
-
 import bz2
 import copy
 import logging
@@ -10,7 +9,6 @@ import unittest
 
 import pydarn
 
-import dmap_data_sets
 import fitacf_data_sets
 import grid_data_sets
 import iqdat_data_sets
@@ -55,7 +53,8 @@ class IntegrationSuperdarnio(unittest.TestCase):
                     self.compare_dmap_array(record2[field], val_obj)
                 elif isinstance(val_obj, np.ndarray):
                     if np.array_equal(record2[field], val_obj):
-                        self.assertTrue(np.array_equal(record2[field], val_obj))
+                        self.assertTrue(np.array_equal(record2[field],
+                                                       val_obj))
                     else:
                         self.assertTrue(np.allclose(record2[field], val_obj,
                                                     equal_nan=True))
@@ -116,7 +115,7 @@ class IntegrationSuperdarnio(unittest.TestCase):
         dmap_write = pydarn.SDarnWrite(stream_data)
         dmap_write.write_rawacf("test_rawacf.rawacf")
         dmap_read = pydarn.SDarnRead("test_rawacf.rawacf")
-        dmap_read_data = dmap_read.read_records()
+        _ = dmap_read.read_records()
         dmap_data = dmap_read.get_dmap_records
         self.dmap_compare(dmap_stream_data, dmap_data)
         os.remove("test_rawacf.rawacf")
@@ -189,7 +188,8 @@ class IntegrationSuperdarnio(unittest.TestCase):
         rawacf_dict_data[0]['stid'] = np.int8(rawacf_dict_data[0]['stid'])
         dmap_rawacf = pydarn.dict2dmap(rawacf_dict_data)
         darn_write = pydarn.SDarnWrite(dmap_rawacf)
-        with self.assertRaises(pydarn.superdarn_exceptions.SuperDARNDataFormatTypeError):
+        with self.assertRaises(pydarn.superdarn_exceptions.
+                               SuperDARNDataFormatTypeError):
             darn_write.write_rawacf("test_rawacf.rawacf")
 
     def test_DmapWrite_incorrect_SDarnRead_rawacf_from_dict(self):
@@ -206,7 +206,8 @@ class IntegrationSuperdarnio(unittest.TestCase):
         dmap_write.write_dmap("test_incorrect_rawacf.rawacf")
 
         darn_read = pydarn.SDarnRead("test_incorrect_rawacf.rawacf")
-        with self.assertRaises(pydarn.superdarn_exceptions.SuperDARNDataFormatTypeError):
+        with self.assertRaises(pydarn.superdarn_exceptions.
+                               SuperDARNDataFormatTypeError):
             darn_read.read_rawacf()
 
     def test_SDarnRead_SDarnWrite_fitacf(self):
@@ -250,7 +251,7 @@ class IntegrationSuperdarnio(unittest.TestCase):
         dmap_write.write_fitacf("test_fitacf.fitacf")
         self.assertTrue(os.path.isfile("test_fitacf.fitacf"))
         dmap = pydarn.SDarnRead("test_fitacf.fitacf")
-        dmap_data = dmap.read_fitacf()
+        _ = dmap.read_fitacf()
         dmap_read_data = dmap.get_dmap_records
         self.dmap_compare(dmap_stream_data, dmap_read_data)
 
@@ -429,7 +430,7 @@ class IntegrationSuperdarnio(unittest.TestCase):
         dmap_write.write_iqdat("test_iqdat.iqdat")
         self.assertTrue(os.path.isfile("test_iqdat.iqdat"))
         dmap = pydarn.SDarnRead("test_iqdat.iqdat")
-        dmap_data = dmap.read_iqdat()
+        _ = dmap.read_iqdat()
         dmap_read_data = dmap.get_dmap_records
         self.dmap_compare(dmap_stream_data, dmap_read_data)
 
@@ -861,7 +862,6 @@ class IntegrationSuperdarnio(unittest.TestCase):
 
         map_read = pydarn.SDarnRead(map_stream, True)
         map_read_data = map_read.read_map()
-        #map_read_data = map_read.get_dmap_records
         self.dmap_compare(map_read_data, map_data)
 
     def test_DmapWrite_missing_SDarnRead_map(self):

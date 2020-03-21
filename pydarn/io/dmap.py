@@ -385,12 +385,11 @@ class DmapRead():
 
         See Also
         --------
-        DmapRecord : DMap record's data structure
         DmapScalar : DMap record's scalar data structure
         DmapArray  : DMap record's array data structure
 
         See DEVELOPER_README.md for more information on
-        DmapRecords data structure.
+        Dmap data structure.
         """
 
         # read bytes until end of byte array
@@ -460,9 +459,6 @@ class DmapRead():
                          block_size, "block size")
 
         pydarn_log.debug("Reading record: reading scalars\n")
-        # originally called DmapRecord but then was just returning the ordered
-        # dict thus I am constructing it here instead
-        # for better speed performance.
         record = collections.OrderedDict()
         for i in range(num_scalars):
             scalar = self.read_scalar()

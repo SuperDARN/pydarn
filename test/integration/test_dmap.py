@@ -7,8 +7,6 @@ import numpy as np
 import os
 import unittest
 
-from collections import OrderedDict
-
 import pydarn
 
 import rawacf_data_sets
@@ -71,7 +69,8 @@ class IntegrationDmap(unittest.TestCase):
                     self.compare_dmap_array(record2[field], val_obj)
                 elif isinstance(val_obj, np.ndarray):
                     if np.array_equal(record2[field], val_obj):
-                        self.assertTrue(np.array_equal(record2[field], val_obj))
+                        self.assertTrue(np.array_equal(record2[field],
+                                                       val_obj))
                     else:
                         self.assertTrue(np.allclose(record2[field], val_obj))
                 else:
@@ -166,8 +165,8 @@ class IntegrationDmap(unittest.TestCase):
         dmap_write.write_dmap("test_rawacf.rawacf")
 
         dmap_read = pydarn.DmapRead("test_rawacf.rawacf")
-        data = dmap_read.read_records()
-        dmap_read_data = dmap_read.get_dmap_records
+        _ = dmap_read.read_records()
+        _ = dmap_read.get_dmap_records
         os.remove("test_rawacf.rawacf")
 
     def test_DmapWrite_DmapRead_dmap_file(self):
@@ -212,7 +211,7 @@ class IntegrationDmap(unittest.TestCase):
         self.assertTrue(os.path.isfile("test_rawacf.rawacf"))
 
         dmap = pydarn.DmapRead("test_rawacf.rawacf")
-        dmap_data = dmap.read_records()
+        _ = dmap.read_records()
         dmap_read_data = dmap.get_dmap_records
         self.dmap_compare(dmap_stream_data, dmap_read_data)
 
@@ -240,16 +239,16 @@ class IntegrationDmap(unittest.TestCase):
 
     def test_DmapWrite_DmapRead_dict2dmap_dict2dmap(self):
         """
-        Test Convert dictionary to dmap from dict2dmap then write with DmapWrite
-        to be read in with DmapRead and converted back to a dictionary with
-        dmap2dict.
+        Test Convert dictionary to dmap from dict2dmap then
+        write with DmapWrite to be read in with DmapRead and
+        converted back to a dictionary with dmap2dict.
         """
         dmap_dict = [{'stid': 56,
-                     'channel': 0,
-                     'software': 'RST',
-                     'xcf': np.array([2.5, 3.456, 34.56, -4.5],
-                                     dtype=np.float32),
-                     'gflg': np.array([1, 0, 4, 2], np.int8)}]
+                      'channel': 0,
+                      'software': 'RST',
+                      'xcf': np.array([2.5, 3.456, 34.56, -4.5],
+                                      dtype=np.float32),
+                      'gflg': np.array([1, 0, 4, 2], np.int8)}]
         dmap_records = pydarn.dict2dmap(dmap_dict)
         dmap_write = pydarn.DmapWrite(dmap_records, 'test_dmap.dmap')
         dmap_write.write_dmap()
@@ -262,15 +261,16 @@ class IntegrationDmap(unittest.TestCase):
     def test_dict2dmap_DmapWrite_DmapRead_stream_dmap2dict(self):
         """
         Test convert dict to dmap with dict2dmap then DmapWrite to write
-        to a stream to be read in by DmapRead and converted back to a dictionary
+        to a stream to be read in by
+        DmapRead and converted back to a dictionary
         with dict2dmap
         """
         dmap_dict = [{'stid': 56,
-                     'channel': 0,
-                     'software': 'RST',
-                     'xcf': np.array([2.5, 3.456, 34.56, -4.5],
-                                     dtype=np.float32),
-                     'gflg': np.array([1, 0, 4, 2], np.int8)}]
+                      'channel': 0,
+                      'software': 'RST',
+                      'xcf': np.array([2.5, 3.456, 34.56, -4.5],
+                                      dtype=np.float32),
+                      'gflg': np.array([1, 0, 4, 2], np.int8)}]
         dmap_records = pydarn.dict2dmap(dmap_dict)
         dmap_write = pydarn.DmapWrite(dmap_records)
         dmap_stream = dmap_write.write_dmap_stream()

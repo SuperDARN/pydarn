@@ -2,7 +2,7 @@
 # Author: Marci Detwiller
 """
 This file contains several exception classes used by the pydarn io borealis
-module. 
+module.
 
 Classes
 -------
@@ -51,7 +51,7 @@ class BorealisFileTypeError(Exception):
         self.message = "{file_type} is not a Borealis file format or has"\
             " not been implemented yet. {filename} was not used. Please check"\
             " the spelling of {file_type}.".format(file_type=self.file_type,
-                                   filename=self.filename)
+                                                   filename=self.filename)
         Exception.__init__(self, self.message)
 
 
@@ -96,7 +96,7 @@ class BorealisExtraFieldError(Exception):
     """
     Raised on extra unknown field in the data.
 
-    Occurs when an extra field is in the data that is not included in 
+    Occurs when an extra field is in the data that is not included in
     the Borealis format file type fields
 
     Parameters
@@ -169,17 +169,17 @@ class BorealisDataFormatTypeError(Exception):
 
 class BorealisNumberOfRecordsError(Exception):
     """
-    Raised when the file is array structured and does not 
+    Raised when the file is array structured and does not
     have a consistent number of records across the unshared
     parameters (arrays).
 
     Parameters
     ----------
     array_types: dict
-        dictionary of unshared parameter keys to 
+        dictionary of unshared parameter keys to
         the first dimension of their array (indicating the number
         of records)
-    
+
     Attributes
     ----------
     message: str
@@ -197,7 +197,8 @@ class BorealisNumberOfRecordsError(Exception):
             "be determined due to varying shapes of arrays for the unshared "\
             "parameters. All arrays of the unshared parameters should "\
             "have the same first dimension size equal to number of records: "\
-            "{array_types}".format(filename=self.filename, array_types=self.array_types)
+            "{array_types}".format(filename=self.filename,
+                                   array_types=self.array_types)
         Exception.__init__(self, self.message)
 
 
@@ -220,7 +221,7 @@ class BorealisConversionTypesError(Exception):
         The message to display with the error
     """
 
-    def __init__(self, dmap_filename: str, origin_filetype: str, 
+    def __init__(self, dmap_filename: str, origin_filetype: str,
                  allowed_types: dict):
         self.message = "Records destined to be converted and written to "\
                        "{dmap_filename} cannot be converted from origin "\
@@ -228,8 +229,8 @@ class BorealisConversionTypesError(Exception):
                        "filetype because origin filetype does not map "\
                        "to any currently available dmap filetypes: "\
                        "{allowed_types}".format(dmap_filename=dmap_filename,
-                                 origin_filetype=origin_filetype,
-                                 allowed_types=allowed_types)
+                                                origin_filetype=origin_filetype,
+                                                allowed_types=allowed_types)
         Exception.__init__(self, self.message)
 
 
@@ -263,7 +264,7 @@ class BorealisConvert2RawacfError(Exception):
     ----------
     error_str: str
         explanation for why the file cannot be converted to SDARN rawacf.
-    
+
     Attributes
     ----------
     message: str
@@ -279,14 +280,14 @@ class BorealisConvert2RawacfError(Exception):
 
 class BorealisRestructureError(Exception):
     """
-    Raised when the file cannot be restructured to or from site/array 
-    styles. 
+    Raised when the file cannot be restructured to or from site/array
+    styles.
 
     Parameters
     ----------
     error_str: str
         explanation for why the file cannot be restructured.
-    
+
     Attributes
     ----------
     message: str
@@ -313,7 +314,7 @@ class BorealisStructureError(Exception):
     ----------
     error_str: str
         explanation for why the file cannot be restructured.
-    
+
     Attributes
     ----------
     message: str
@@ -326,9 +327,11 @@ class BorealisStructureError(Exception):
 
     def __init__(self, error_str: str):
         self.message = "Structural errors found. You may be"\
-            " attempting to use the file as the wrong structure ('site' or 'array'"\
-            " supported). Please check if you are interested in records or arrays."\
-            "{error_str}".format(error_str=error_str)
+                " attempting to use the file as the wrong"\
+                " structure ('site' or 'array'"\
+                " supported). Please check if you are interested"\
+                " in records or arrays."\
+                "{error_str}".format(error_str=error_str)
         Exception.__init__(self, self.message)
 
 

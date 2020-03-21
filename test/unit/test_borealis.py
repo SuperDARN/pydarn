@@ -14,10 +14,8 @@ And supports conversion of the following Borealis -> SDARN DMap types:
     bfiq -> iqdat
     rawacf -> rawacf
 """
-import bz2
 import collections
 import copy
-import filecmp
 import logging
 import numpy as np
 import os
@@ -39,14 +37,17 @@ pydarn_logger = logging.getLogger('pydarn')
 
 # Site Test files
 borealis_site_bfiq_file = "../test_files/20190909.2200.02.sas.0.bfiq.hdf5.site"
-borealis_site_rawacf_file = "../test_files/20190909.2200.02.sas.0.rawacf.hdf5.site"
-borealis_site_antennas_iq_file = "../test_files/20190909.2200.02.sas.0.antennas_iq.hdf5.site"
+borealis_site_rawacf_file =\
+        "../test_files/20190909.2200.02.sas.0.rawacf.hdf5.site"
+borealis_site_antennas_iq_file =\
+        "../test_files/20190909.2200.02.sas.0.antennas_iq.hdf5.site"
 borealis_site_rawrf_file = ""
 
 # Array Test files
 borealis_array_bfiq_file = "../test_files/20190909.2200.02.sas.0.bfiq.hdf5"
 borealis_array_rawacf_file = "../test_files/20190909.2200.02.sas.0.rawacf.hdf5"
-borealis_array_antennas_iq_file = "../test_files/20190909.2200.02.sas.0.antennas_iq.hdf5"
+borealis_array_antennas_iq_file =\
+        "../test_files/20190909.2200.02.sas.0.antennas_iq.hdf5"
 
 # Problem files TODO
 borealis_site_extra_field_file = ""
@@ -294,25 +295,23 @@ class TestBorealisRead(unittest.TestCase):
         Provide the wrong filetype.
         """
         wrong_filetype_exceptions = \
-                (pydarn.borealis_exceptions.BorealisExtraFieldError,
-                 pydarn.borealis_exceptions.BorealisFieldMissingError,
-                 pydarn.borealis_exceptions.BorealisDataFormatTypeError)
-        self.assertRaises(wrong_filetype_exceptions,
-                  pydarn.BorealisRead, self.bfiq_site_file_path, 'antennas_iq',
-                  'site')
+            (pydarn.borealis_exceptions.BorealisExtraFieldError,
+             pydarn.borealis_exceptions.BorealisFieldMissingError,
+             pydarn.borealis_exceptions.BorealisDataFormatTypeError)
+        self.assertRaises(wrong_filetype_exceptions, pydarn.BorealisRead,
+                          self.bfiq_site_file_path, 'antennas_iq', 'site')
 
     def test_wrong_borealis_file_structure(self):
         """
         Provide the wrong file structure.
         """
         wrong_file_structure_exceptions = \
-                (pydarn.borealis_exceptions.BorealisStructureError)
-        self.assertRaises(wrong_file_structure_exceptions,
-                  pydarn.BorealisRead, self.bfiq_site_file_path, 'bfiq',
-                  'array')
-        self.assertRaises(wrong_file_structure_exceptions,
-                  pydarn.BorealisRead, self.bfiq_array_file_path, 'bfiq',
-                  'site')
+            (pydarn.borealis_exceptions.BorealisStructureError)
+        self.assertRaises(wrong_file_structure_exceptions, pydarn.BorealisRead,
+                          self.bfiq_site_file_path, 'bfiq', 'array')
+        self.assertRaises(wrong_file_structure_exceptions, pydarn.BorealisRead,
+                          self.bfiq_array_file_path, 'bfiq', 'site')
+
 
 @pytest.mark.skip
 class TestBorealisWrite(unittest.TestCase):
@@ -358,7 +357,8 @@ class TestBorealisWrite(unittest.TestCase):
     # Read/write tests to check input vs output
     def check_dictionaries_are_same(self, dict1, dict2):
 
-        self.assertEqual(sorted(list(dict1.keys())), sorted(list(dict2.keys())))
+        self.assertEqual(sorted(list(dict1.keys())),
+                         sorted(list(dict2.keys())))
         for key1, value1 in dict1.items():
             if isinstance(value1, dict) or isinstance(value1, OrderedDict):
                 self.check_dictionaries_are_same(value1, dict2[key1])
@@ -378,8 +378,8 @@ class TestBorealisWrite(unittest.TestCase):
         Rawacf file is produced
         """
         test_file = "./test_rawacf.rawacf.hdf5"
-        writer = pydarn.BorealisWrite(test_file,
-                                      self.rawacf_site_data, 'rawacf', 'site')
+        pydarn.BorealisWrite(test_file, self.rawacf_site_data,
+                             'rawacf', 'site')
         # only testing the file is created since it should only be created
         # at the last step after all checks have passed
         # Testing the integrity of the insides of the file will be part of
@@ -387,8 +387,8 @@ class TestBorealisWrite(unittest.TestCase):
         self.assertTrue(os.path.isfile(test_file))
         reader = pydarn.BorealisRead(test_file, 'rawacf', 'site')
         records = reader.records
-        dictionaries_are_same = self.check_dictionaries_are_same(records,
-                                    self.rawacf_site_data)
+        dictionaries_are_same =\
+            self.check_dictionaries_are_same(records, self.rawacf_site_data)
         self.assertTrue(dictionaries_are_same)
         os.remove(test_file)
 
@@ -407,8 +407,9 @@ class TestBorealisWrite(unittest.TestCase):
         del self.rawacf_site_missing_field[keys[0]]['num_sequences']
 
         try:
-            writer = pydarn.BorealisWrite("test_rawacf.rawacf.hdf5",
-                self.rawacf_site_missing_field, 'rawacf', 'site')
+            pydarn.BorealisWrite("test_rawacf.rawacf.hdf5",
+                                 self.rawacf_site_missing_field,
+                                 'rawacf', 'site')
         except pydarn.borealis_exceptions.BorealisFieldMissingError as err:
             self.assertEqual(err.fields, {'num_sequences'})
             self.assertEqual(err.record_name, keys[0])
@@ -426,8 +427,9 @@ class TestBorealisWrite(unittest.TestCase):
         keys = sorted(list(self.rawacf_site_extra_field.keys()))
         self.rawacf_site_extra_field[keys[0]]['dummy'] = 'dummy'
         try:
-            writer = pydarn.BorealisWrite("test_rawacf.rawacf.hdf5",
-                self.rawacf_site_extra_field, 'rawacf', 'site')
+            pydarn.BorealisWrite("test_rawacf.rawacf.hdf5",
+                                 self.rawacf_site_extra_field,
+                                 'rawacf', 'site')
         except pydarn.borealis_exceptions.BorealisExtraFieldError as err:
             self.assertEqual(err.fields, {'dummy'})
             self.assertEqual(err.record_name, keys[0])
@@ -446,11 +448,13 @@ class TestBorealisWrite(unittest.TestCase):
         self.rawacf_site_incorrect_fmt[keys[0]]['scan_start_marker'] = 1
 
         try:
-            writer = pydarn.BorealisWrite("test_rawacf.rawacf.hdf5",
-                self.rawacf_site_incorrect_fmt, 'rawacf', 'site')
+            pydarn.BorealisWrite("test_rawacf.rawacf.hdf5",
+                                 self.rawacf_site_incorrect_fmt,
+                                 'rawacf', 'site')
         except pydarn.borealis_exceptions.BorealisDataFormatTypeError as err:
             self.assertEqual(
-                err.incorrect_types['scan_start_marker'], "<class 'numpy.bool_'>")
+                err.incorrect_types['scan_start_marker'],
+                "<class 'numpy.bool_'>")
             self.assertEqual(err.record_name, keys[0])
 
     def test_writing_site_bfiq(self):
@@ -462,8 +466,7 @@ class TestBorealisWrite(unittest.TestCase):
         bfiq file is produced
         """
         test_file = "./test_bfiq.bfiq.hdf5"
-        writer = pydarn.BorealisWrite(test_file,
-                                      self.bfiq_site_data, 'bfiq', 'site')
+        pydarn.BorealisWrite(test_file, self.bfiq_site_data, 'bfiq', 'site')
         # only testing the file is created since it should only be created
         # at the last step after all checks have passed
         # Testing the integrity of the insides of the file will be part of
@@ -471,8 +474,8 @@ class TestBorealisWrite(unittest.TestCase):
         self.assertTrue(os.path.isfile(test_file))
         reader = pydarn.BorealisRead(test_file, 'bfiq', 'site')
         records = reader.records
-        dictionaries_are_same = self.check_dictionaries_are_same(records,
-                                     self.bfiq_site_data)
+        dictionaries_are_same = \
+            self.check_dictionaries_are_same(records, self.bfiq_site_data)
         self.assertTrue(dictionaries_are_same)
         os.remove(test_file)
 
@@ -490,8 +493,9 @@ class TestBorealisWrite(unittest.TestCase):
         del self.bfiq_site_missing_field[keys[0]]['antenna_arrays_order']
 
         try:
-            writer = pydarn.BorealisWrite("test_bfiq.bfiq.hdf5",
-                self.bfiq_site_missing_field, 'bfiq', 'site')
+            _ = pydarn.BorealisWrite("test_bfiq.bfiq.hdf5",
+                                     self.bfiq_site_missing_field,
+                                     'bfiq', 'site')
         except pydarn.borealis_exceptions.BorealisFieldMissingError as err:
             self.assertEqual(err.fields, {'antenna_arrays_order'})
             self.assertEqual(err.record_name, keys[0])
@@ -510,8 +514,9 @@ class TestBorealisWrite(unittest.TestCase):
         self.bfiq_site_extra_field[keys[0]]['dummy'] = 'dummy'
 
         try:
-            writer = pydarn.BorealisWrite("test_bfiq.bfiq.hdf5",
-                self.bfiq_site_extra_field, 'bfiq', 'site')
+            _ = pydarn.BorealisWrite("test_bfiq.bfiq.hdf5",
+                                     self.bfiq_site_extra_field,
+                                     'bfiq', 'site')
         except pydarn.borealis_exceptions.BorealisExtraFieldError as err:
             self.assertEqual(err.fields, {'dummy'})
             self.assertEqual(err.record_name, keys[0])
@@ -529,13 +534,14 @@ class TestBorealisWrite(unittest.TestCase):
         keys = sorted(list(self.bfiq_site_incorrect_fmt.keys()))
         self.bfiq_site_incorrect_fmt[keys[0]]['first_range_rtt'] = 5
 
-
         try:
-            writer = pydarn.BorealisWrite("test_bfiq.bfiq.hdf5",
-                self.bfiq_site_incorrect_fmt, 'bfiq', 'site')
+            _ = pydarn.BorealisWrite("test_bfiq.bfiq.hdf5",
+                                     self.bfiq_site_incorrect_fmt,
+                                     'bfiq', 'site')
         except pydarn.borealis_exceptions.BorealisDataFormatTypeError as err:
             self.assertEqual(
-                err.incorrect_types['first_range_rtt'], "<class 'numpy.float32'>")
+                err.incorrect_types['first_range_rtt'],
+                "<class 'numpy.float32'>")
             self.assertEqual(err.record_name, keys[0])
 
     def test_writing_array_rawacf(self):
@@ -547,14 +553,14 @@ class TestBorealisWrite(unittest.TestCase):
         Rawacf file is produced
         """
         test_file = "test_rawacf.rawacf.hdf5"
-        writer = pydarn.BorealisWrite(test_file,
-                                      self.rawacf_array_data, 'rawacf',
-                                      'array')
+        _ = pydarn.BorealisWrite(test_file,
+                                 self.rawacf_array_data, 'rawacf',
+                                 'array')
         self.assertTrue(os.path.isfile(test_file))
         reader = pydarn.BorealisRead(test_file, 'rawacf', 'array')
         data = reader.arrays
-        dictionaries_are_same = self.check_dictionaries_are_same(data,
-                                        self.rawacf_array_data)
+        dictionaries_are_same =\
+            self.check_dictionaries_are_same(data, self.rawacf_array_data)
         self.assertTrue(dictionaries_are_same)
         os.remove(test_file)
 
@@ -572,8 +578,9 @@ class TestBorealisWrite(unittest.TestCase):
         del self.rawacf_array_missing_field['num_sequences']
 
         try:
-            writer = pydarn.BorealisWrite("test_rawacf.rawacf.hdf5",
-                self.rawacf_array_missing_field, 'rawacf', 'array')
+            _ = pydarn.BorealisWrite("test_rawacf.rawacf.hdf5",
+                                     self.rawacf_array_missing_field,
+                                     'rawacf', 'array')
         except pydarn.borealis_exceptions.BorealisFieldMissingError as err:
             self.assertEqual(err.fields, {'num_sequences'})
 
@@ -589,8 +596,9 @@ class TestBorealisWrite(unittest.TestCase):
         """
         self.rawacf_array_extra_field['dummy'] = 'dummy'
         try:
-            writer = pydarn.BorealisWrite("test_rawacf.rawacf.hdf5",
-                self.rawacf_array_extra_field, 'rawacf', 'array')
+            _ = pydarn.BorealisWrite("test_rawacf.rawacf.hdf5",
+                                     self.rawacf_array_extra_field,
+                                     'rawacf', 'array')
         except pydarn.borealis_exceptions.BorealisExtraFieldError as err:
             self.assertEqual(err.fields, {'dummy'})
 
@@ -604,17 +612,18 @@ class TestBorealisWrite(unittest.TestCase):
         Raises BorealisDataFormatTypeError because the rawacf data has the
         wrong type for the scan_start_marker field
         """
-        num_records = self.rawacf_array_incorrect_fmt['scan_start_marker'].shape[0]
+        num_records =\
+            self.rawacf_array_incorrect_fmt['scan_start_marker'].shape[0]
         self.rawacf_array_incorrect_fmt['scan_start_marker'] = \
-            np.array([1]  * num_records)
+            np.array([1] * num_records)
 
         try:
-            writer = pydarn.BorealisWrite("test_rawacf.rawacf.hdf5",
-                self.rawacf_array_incorrect_fmt, 'rawacf', 'array')
+            _ = pydarn.BorealisWrite("test_rawacf.rawacf.hdf5",
+                                     self.rawacf_array_incorrect_fmt,
+                                     'rawacf', 'array')
         except pydarn.borealis_exceptions.BorealisDataFormatTypeError as err:
-            self.assertEqual(
-                err.incorrect_types['scan_start_marker'], "np.ndarray of "\
-                "<class 'numpy.bool_'>")
+            self.assertEqual(err.incorrect_types['scan_start_marker'],
+                             "np.ndarray of <class 'numpy.bool_'>")
 
     def test_writing_array_bfiq(self):
         """
@@ -625,13 +634,14 @@ class TestBorealisWrite(unittest.TestCase):
         bfiq file is produced
         """
         test_file = "test_bfiq.bfiq.hdf5"
-        writer = pydarn.BorealisWrite(test_file,
-                                      self.bfiq_array_data, 'bfiq', 'array')
+        _ = pydarn.BorealisWrite(test_file, self.bfiq_array_data,
+                                 'bfiq', 'array')
         self.assertTrue(os.path.isfile(test_file))
         reader = pydarn.BorealisRead(test_file, 'bfiq', 'array')
         data = reader.arrays
-        dictionaries_are_same = self.check_dictionaries_are_same(data,
-                                        self.bfiq_array_data)
+        dictionaries_are_same = \
+            self.check_dictionaries_are_same(data,
+                                             self.bfiq_array_data)
         self.assertTrue(dictionaries_are_same)
         os.remove(test_file)
 
@@ -648,8 +658,9 @@ class TestBorealisWrite(unittest.TestCase):
         del self.bfiq_array_missing_field['antenna_arrays_order']
 
         try:
-            writer = pydarn.BorealisWrite("test_bfiq.bfiq.hdf5",
-                self.bfiq_array_missing_field, 'bfiq', 'array')
+            _ = pydarn.BorealisWrite("test_bfiq.bfiq.hdf5",
+                                     self.bfiq_array_missing_field,
+                                     'bfiq', 'array')
         except pydarn.borealis_exceptions.BorealisFieldMissingError as err:
             self.assertEqual(err.fields, {'antenna_arrays_order'})
 
@@ -666,8 +677,9 @@ class TestBorealisWrite(unittest.TestCase):
         self.bfiq_array_extra_field['dummy'] = 'dummy'
 
         try:
-            writer = pydarn.BorealisWrite("test_bfiq.bfiq.hdf5",
-                self.bfiq_array_extra_field, 'bfiq', 'array')
+            _ = pydarn.BorealisWrite("test_bfiq.bfiq.hdf5",
+                                     self.bfiq_array_extra_field,
+                                     'bfiq', 'array')
         except pydarn.borealis_exceptions.BorealisExtraFieldError as err:
             self.assertEqual(err.fields, {'dummy'})
 
@@ -684,11 +696,13 @@ class TestBorealisWrite(unittest.TestCase):
         self.bfiq_array_incorrect_fmt['first_range_rtt'] = 5
 
         try:
-            writer = pydarn.BorealisWrite("test_bfiq.bfiq.hdf5",
-                self.bfiq_array_incorrect_fmt, 'bfiq', 'array')
+            _ = pydarn.BorealisWrite("test_bfiq.bfiq.hdf5",
+                                     self.bfiq_array_incorrect_fmt,
+                                     'bfiq', 'array')
         except pydarn.borealis_exceptions.BorealisDataFormatTypeError as err:
             self.assertEqual(
-                err.incorrect_types['first_range_rtt'], "<class 'numpy.float32'>")
+                err.incorrect_types['first_range_rtt'],
+                "<class 'numpy.float32'>")
 
     # # WRITE FAILURE TESTS
 
@@ -697,23 +711,25 @@ class TestBorealisWrite(unittest.TestCase):
         Provide the wrong filetype.
         """
         wrong_filetype_exceptions = \
-                (pydarn.borealis_exceptions.BorealisExtraFieldError,
-                 pydarn.borealis_exceptions.BorealisFieldMissingError,
-                 pydarn.borealis_exceptions.BorealisDataFormatTypeError)
-        self.assertRaises(wrong_filetype_exceptions,
-                  pydarn.BorealisWrite, 'test_write_borealis_file.bfiq.hdf5',
-                  self.bfiq_site_data, 'antennas_iq', 'site')
+            (pydarn.borealis_exceptions.BorealisExtraFieldError,
+             pydarn.borealis_exceptions.BorealisFieldMissingError,
+             pydarn.borealis_exceptions.BorealisDataFormatTypeError)
+        self.assertRaises(wrong_filetype_exceptions, pydarn.BorealisWrite,
+                          'test_write_borealis_file.bfiq.hdf5',
+                          self.bfiq_site_data, 'antennas_iq', 'site')
 
     def test_wrong_borealis_file_structure(self):
         """
         Provide the wrong file structure.
         """
         self.assertRaises(pydarn.borealis_exceptions.BorealisStructureError,
-            pydarn.BorealisWrite, 'test_write_borealis_file.bfiq.hdf5',
-            self.bfiq_site_data,  'rawacf', 'array')
+                          pydarn.BorealisWrite,
+                          'test_write_borealis_file.bfiq.hdf5',
+                          self.bfiq_site_data,  'rawacf', 'array')
         self.assertRaises(pydarn.borealis_exceptions.BorealisStructureError,
-            pydarn.BorealisWrite, 'test_write_borealis_file.bfiq.hdf5',
-            self.bfiq_array_data, 'rawacf', 'site')
+                          pydarn.BorealisWrite,
+                          'test_write_borealis_file.bfiq.hdf5',
+                          self.bfiq_array_data, 'rawacf', 'site')
 
 
 @pytest.mark.skip
@@ -723,17 +739,16 @@ class TestBorealisConvert(unittest.TestCase):
     """
 
     def setUp(self):
-        self.rawacf_array_data = copy.deepcopy(
-            borealis_array_rawacf_data)
-        self.bfiq_array_data = copy.deepcopy(
-            borealis_array_bfiq_data)
+        self.rawacf_array_data = copy.deepcopy(borealis_array_rawacf_data)
+        self.bfiq_array_data = copy.deepcopy(borealis_array_bfiq_data)
 
         self.bfiq_test_file = "test_bfiq.bfiq.hdf5"
-        writer = pydarn.BorealisWrite(self.bfiq_test_file,
-                                      self.bfiq_array_data, 'bfiq', 'array')
+        _ = pydarn.BorealisWrite(self.bfiq_test_file,
+                                 self.bfiq_array_data, 'bfiq', 'array')
         self.rawacf_test_file = "test_rawacf.rawacf.hdf5"
-        writer = pydarn.BorealisWrite(self.rawacf_test_file,
-                                      self.rawacf_array_data, 'rawacf', 'array')
+        _ = pydarn.BorealisWrite(self.rawacf_test_file,
+                                 self.rawacf_array_data,
+                                 'rawacf', 'array')
 
     def test_borealis_convert_to_rawacf(self):
         """
@@ -743,8 +758,9 @@ class TestBorealisConvert(unittest.TestCase):
         ------------------
         write a SDARN DMap rawacf
         """
-        converter = pydarn.BorealisConvert(self.rawacf_test_file, "rawacf",
-            "test_rawacf.rawacf.dmap", 0, borealis_file_structure='array')
+        _ = pydarn.BorealisConvert(self.rawacf_test_file, "rawacf",
+                                   "test_rawacf.rawacf.dmap", 0,
+                                   borealis_file_structure='array')
         self.assertTrue(os.path.isfile("test_rawacf.rawacf.dmap"))
         os.remove("test_rawacf.rawacf.dmap")
 
@@ -756,8 +772,9 @@ class TestBorealisConvert(unittest.TestCase):
         ------------------
         write a SDARN DMap iqdat
         """
-        converter = pydarn.BorealisConvert(self.bfiq_test_file, "bfiq",
-            "test_bfiq.bfiq.dmap", 0, borealis_file_structure='array')
+        _ = pydarn.BorealisConvert(self.bfiq_test_file, "bfiq",
+                                   "test_bfiq.bfiq.dmap", 0,
+                                   borealis_file_structure='array')
         self.assertTrue(os.path.isfile("test_bfiq.bfiq.dmap"))
         os.remove("test_bfiq.bfiq.dmap")
 

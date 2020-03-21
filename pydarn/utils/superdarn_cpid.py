@@ -1,4 +1,4 @@
-# Copyright (C) 2019 SuperDARN
+# Copyright (C) 2019 SuperDARN Canada, University Saskatchewan
 # Author: Marina Schmidt
 
 """
@@ -6,8 +6,8 @@ This module contains SuperDARN radar modes classified by cpid number
 Current documentation on modes:
     http://superdarn.thayer.dartmouth.edu/info/modes.html
 """
+# TODO: find/create better radar mode/frequency bands documentation
 
-#TODO: find/create better radar mode/frequency bands documentation
 
 class SuperDARNCpids():
 

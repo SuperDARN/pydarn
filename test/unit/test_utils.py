@@ -1,7 +1,6 @@
-# Copyright (C) SuperDARN Canada, University of Saskatchewan
+# Copyright (C) 2019 SuperDARN Canada, University of Saskatchewan
 # Author(s): Marina Schmidt
 import logging
-import pytest
 import unittest
 
 import pydarn
@@ -9,6 +8,7 @@ import pydarn
 from datetime import datetime
 
 pydarn_logger = logging.getLogger('pydarn')
+
 
 class TestSuperDarnRadars(unittest.TestCase):
     """
@@ -70,7 +70,8 @@ class TestSuperDarnRadars(unittest.TestCase):
         Test if it raises an error for an non-existing
         hardware file
         """
-        with self.assertRaises(pydarn.radar_exceptions.HardwareFileNotFoundError):
+        with self.assertRaises(pydarn.
+                               radar_exceptions.HardwareFileNotFoundError):
             pydarn.read_hdw_file('dog')
 
     def test_SuperDarn_class_dict(self):
@@ -100,6 +101,7 @@ class TestSuperDarnRadars(unittest.TestCase):
         """
         with self.assertRaises(KeyError):
             pydarn.SuperDARNRadars.radars[100]
+
 
 if __name__ == '__main__':
 

@@ -1,3 +1,4 @@
+# Copyright (C) SuperDARN Canada, University of Saskatchewan
 # Authors: Keith Kotyk and Marina Schmidt
 import logging
 pydarn_logger = logging.getLogger('pydarn')
@@ -19,12 +20,14 @@ class CursorError(Exception):
         on the cursor error.
         Default empty.
     """
-    def __init__(self, cursor: int, expected_value: int = 0, rec_num: int = 0, message=''):
+    def __init__(self, cursor: int, expected_value: int = 0,
+                 rec_num: int = 0, message=''):
         self.cursor = cursor
         if message == '':
             self.message = "Error: Cursor is at {cursor} and"\
-                    "it needs to be {expected}. Failed at record {rec}".format(cursor=cursor,
-                                                       expected=expected_value, rec=rec_num)
+                    "it needs to be {expected}. Failed at record {rec}"\
+                    "".format(cursor=cursor, expected=expected_value,
+                              rec=rec_num)
         else:
             self.message = message
         super().__init__(self.message)
@@ -47,6 +50,7 @@ class EmptyFileError(Exception):
         super().__init__(self.message)
         pydarn_logger.error(self.message)
 
+
 class DmapCharError(Exception):
     """
     Raised if a char type is str
@@ -63,11 +67,12 @@ class DmapCharError(Exception):
     def __init__(self, data_name: str, rec_num: int):
         self.data_name = data_name,
         self.rec_num = rec_num
-        self.message = "Error: For field {field} at record number {rec_num} is"\
-                " a string type trying to be written in as a char."\
-                " DMAP treats char as int8. Please revise this field"\
-                " type".format(field=self.data_name,
-                               rec_num=self.rec_num)
+        self.message = "Error: For field {field} at record number"\
+            " {rec_num} is"\
+            " a string type trying to be written in as a char."\
+            " DMAP treats char as int8. Please revise this field"\
+            " type".format(field=self.data_name,
+                           rec_num=self.rec_num)
         super().__init__(self.message)
         pydarn_logger.error(self.message)
 
@@ -93,9 +98,9 @@ class DmapDataTypeError(Exception):
         self.message = "Error: Dmap data type {data_type} for {name}"\
             " at record {rec} does not exist in dmap data types."\
             " Filename: {filename}".format(name=data_name,
-                                          data_type=data_type,
-                                          filename=filename,
-                                          rec=rec_num)
+                                           data_type=data_type,
+                                           filename=filename,
+                                           rec=rec_num)
         super().__init__(self.message)
         pydarn_logger.error(self.message)
 
@@ -206,7 +211,7 @@ class DmapTypeError(Exception):
         self.data_type = data_type
         self.rec_num = rec_num
         self.message = "Error: {data_type} does not match the DMAP data type"\
-            " structures: DmapRecord, DmapScalar, DmapArray."\
+            " structures: DmapScalar, DmapArray."\
             " Please make sure you have the correct"\
             " Data Structure. Failed at record "\
             "{rec}".format(data_type=self.data_type,

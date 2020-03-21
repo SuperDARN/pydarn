@@ -1,12 +1,10 @@
-# Copyright (C) 2019 SuperDARN
+# Copyright (C) 2019 SuperDARN Canada, University of Saskatchewan
 # Author: Marina Schmidt
-
 import matplotlib.pyplot as plt
 import unittest
 
-from datetime import datetime
-
 import pydarn
+
 
 class TestRTP(unittest.TestCase):
     """
@@ -63,6 +61,7 @@ class TestRTP(unittest.TestCase):
                                    beam_num=7)
 
         plt.show()
+
 
 if __name__ == '__main__':
     unittest.main()
