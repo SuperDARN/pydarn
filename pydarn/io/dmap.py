@@ -278,10 +278,10 @@ class DmapRead():
         """
         if element > byte_check:
             element_info = "{name} {size} >"\
-                    " {check_name} {check}".format(name=element_name,
-                                                   size=element,
-                                                   check_name=byte_check_name,
-                                                   check=byte_check)
+                " {check_name} {check}".format(name=element_name,
+                                               size=element,
+                                               check_name=byte_check_name,
+                                               check=byte_check)
             raise dmap_exceptions.MismatchByteError(self.dmap_file,
                                                     element_info,
                                                     self.rec_num)
@@ -363,11 +363,11 @@ class DmapRead():
 
         if total_block_size != self.dmap_end_bytes:
             message = "Error: Initial integrity check shows"\
-                    " total block size: {total_size} < end bytes {end_bytes}."\
-                    " Failed at record {rec}."\
-                    "".format(total_size=total_block_size,
-                              end_bytes=self.dmap_end_bytes,
-                              rec=self.rec_num)
+                " total block size: {total_size} < end bytes {end_bytes}."\
+                " Failed at record {rec}."\
+                "".format(total_size=total_block_size,
+                          end_bytes=self.dmap_end_bytes,
+                          rec=self.rec_num)
             raise dmap_exceptions.DmapDataError(self.data_file, message)
         self.cursor = 0
 
@@ -513,7 +513,7 @@ class DmapRead():
             scalar_value = self.read_data(scalar_type_fmt, scalar_fmt_byte)
         else:
             message = "Error: Trying to read DMap data type for a scalar."\
-                    " Failed at record {}".format(self.rec_num)
+                " Failed at record {}".format(self.rec_num)
             # Not sure when this is used in a
             # so better to raise an error if used re-access the code.
             raise dmap_exceptions.DmapDataError(self.dmap_file, message)
@@ -568,20 +568,20 @@ class DmapRead():
         # when qflg is 1
         if any(x <= 0 for x in array_shape) and array_name != "slist":
             message = "Error: Array shape {shape} contains "\
-                    "dimension size <= 0."\
-                    " Failed at record {rec}".format(shape=array_shape,
-                                                     rec=self.rec_num)
+                "dimension size <= 0."\
+                " Failed at record {rec}".format(shape=array_shape,
+                                                 rec=self.rec_num)
             raise dmap_exceptions.DmapDataError(self.dmap_file, message)
 
         for i in range(array_dimension):
             if array_shape[i] >= record_size:
                 message = "Error: Array {index}-dimension size {size}"\
-                        " exceeds record size: {rec_size}. "\
-                        "Failed at record {rec}"\
-                        "".format(index=i,
-                                  size=array_shape[i],
-                                  rec_size=record_size,
-                                  rec=self.rec_num)
+                    " exceeds record size: {rec_size}. "\
+                    "Failed at record {rec}"\
+                    "".format(index=i,
+                              size=array_shape[i],
+                              rec_size=record_size,
+                              rec=self.rec_num)
                 raise dmap_exceptions.DmapDataError(self.dmap_file, message)
 
         # We could use np.prod(array_shape) but the for loop has a better
@@ -608,8 +608,8 @@ class DmapRead():
 
         if array_type_fmt == 's':
             message = "Error: Trying to read array of strings."\
-                    " Currently not implemented."\
-                    " Failed at record {}".format(self.rec_num)
+                " Currently not implemented."\
+                " Failed at record {}".format(self.rec_num)
             # Not sure when this is used in a
             # so better to raise an error if used re-access the code.
             raise dmap_exceptions.DmapDataError(self.dmap_file, message)
@@ -619,7 +619,7 @@ class DmapRead():
             #                                     array_fmt_bytes)
         elif array_type == DMAP:
             message = "Trying to read DMap array data type."\
-                    " Failed at record {}".format(self.rec_num)
+                " Failed at record {}".format(self.rec_num)
             # Not sure when this is used in a
             # so better to raise an error if used re-access the code.
             raise dmap_exceptions.DmapDataError(self.dmap_file, message)
@@ -665,20 +665,20 @@ class DmapRead():
         """
         if self.cursor >= self.dmap_end_bytes:
             message = "Error: Cursor {cursor} extends"\
-                    " out of buffer {end_bytes}. "\
-                    "Fails at record {rec}"\
-                    "".format(cursor=self.cursor,
-                              end_bytes=self.dmap_end_bytes,
-                              rec=self.rec_num)
+                " out of buffer {end_bytes}. "\
+                "Fails at record {rec}"\
+                "".format(cursor=self.cursor,
+                          end_bytes=self.dmap_end_bytes,
+                          rec=self.rec_num)
             raise dmap_exceptions.CursorError(self.cursor, message=message)
 
         cursor_offset = self.dmap_end_bytes - self.cursor
         if cursor_offset < data_fmt_bytes:
             message = "Error: Byte offsets {offset} into buffer {fmt}"\
-                    " are not aligned. Failed at record "\
-                    "{rec}".format(offset=cursor_offset,
-                                   fmt=data_fmt_bytes,
-                                   rec=self.rec_num)
+                " are not aligned. Failed at record "\
+                "{rec}".format(offset=cursor_offset,
+                               fmt=data_fmt_bytes,
+                               rec=self.rec_num)
             raise dmap_exceptions.CursorError(self.cursor, message=message)
 
         # struct.unpack is a python method the converts C struct
@@ -701,7 +701,7 @@ class DmapRead():
                 # a string is a list of chars
                 byte_counter += 1  # 1 is the number of bytes of a char
 
-            self.bytes_check(self.cursor+byte_counter, 'cursor',
+            self.bytes_check(self.cursor + byte_counter, 'cursor',
                              self.dmap_end_bytes, 'Total number of Bytes')
 
             # format byte counter to a string format for unpacking
@@ -1129,8 +1129,8 @@ class DmapWrite(object):
             raise dmap_exceptions.DmapCharError(array.name, self.rec_num)
         elif array.data_type_fmt == 's':
             message = "Error: Trying to read array of strings."\
-                    " Currently not implemented."\
-                    " Failed at record {}".format(self.rec_num)
+                " Currently not implemented."\
+                " Failed at record {}".format(self.rec_num)
             raise dmap_exceptions.DmapDataError(self.filename, message)
 
         array_value = array.value.flatten()

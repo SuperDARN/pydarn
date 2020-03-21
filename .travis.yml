@@ -30,7 +30,7 @@ matrix:
           - pip3 install -U pip
           - pip3 install flake8 mypy
       script: 
-      - flake8 --ignore=ES01
+      - flake8 --ignore=E501,F401
       - mypy . 
     - name: MacOS
       os: osx
@@ -42,7 +42,6 @@ matrix:
       language: shell
       before_install:
           - choco install python3
-          - python3 -m pip install -U pip
       env: export PATH="/c/Python37:/c/Python37/Scripts:$PATH"
           
 

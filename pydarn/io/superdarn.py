@@ -173,8 +173,8 @@ class SDarnUtilities():
                 missing_fields = missing_fields.union(diff_fields)
 
         if len(missing_fields) > 0:
-            raise superdarn_exceptions.SuperDARNFieldMissingError(rec_num,
-                                                                  missing_fields)
+            raise superdarn_exceptions.\
+                SuperDARNFieldMissingError(rec_num, missing_fields)
 
     @staticmethod
     def extra_field_check(file_struct_list: List[dict],
@@ -233,11 +233,10 @@ class SDarnUtilities():
             complete_dict.update(file_struct)
         incorrect_types_check = {param: complete_dict[param]
                                  for param in record.keys()
-                                 if record[param].data_type_fmt
-                                 != complete_dict[param]}
+                                 if record[param].data_type_fmt != complete_dict[param]}
         if len(incorrect_types_check) > 0:
-            raise superdarn_exceptions.SuperDARNDataFormatTypeError(incorrect_types_check,
-                                                                    rec_num)
+            raise superdarn_exceptions.\
+                SuperDARNDataFormatTypeError(incorrect_types_check, rec_num)
 
 
 class SDarnRead(DmapRead):
