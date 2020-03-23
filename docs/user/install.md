@@ -92,4 +92,26 @@ To install:
     
 ## Troubleshooting
 
+### Pip3 installation with Ubuntu 20.4/python 3.8.4
+
+Issue: `pip3 install --user git+https://github.com/superdarn/pydarn@develop` not working
+
+Solution:
+1. check git is installed `apt install git` (for ubuntu)
+2. Check pip version `pip --version` - with newer distros of Linux/Virtual machines `pip` may point to pyhon3 and you will not need pip3. 
+3. Alternative virtual environment steps for getting python 3.8 working
+
+```bash 
+$ sudo apt-get update
+$ sudo apt-get install python3-virtualenv python3-pip
+$ cd ~/
+$ mkdir venvs
+$ virtualenv -p python3.8 ~/venvs/py38
+$ echo "source $HOME/venvs/py38/bin/activate" >> ~/.bashrc
+```
+Then open a new terminal and you should see `(pyy38)` in the prompt. 
+
+Credit to this solution is Ashton Remier, more details on the [issue #37](https://github.com/SuperDARN/pydarn/issues/37)
+
+
 > If you find any problems/solutions, please make a [github issue](https://github.com/superdarn/pydarn/issues/new) so the community can help you or add it to the documentation
