@@ -50,15 +50,16 @@ class Test_Conversions(unittest.TestCase):
                            'unsigned short': np.uint16(45),
                            'unsigned int': np.uint32(100),
                            'unsigned long': np.uint64(1250000000000),
-                           'list test': [1, 2, 34, 45]}]
+                           'list test': [np.int64(1), np.int64(2),
+                                         np.int64(34), np.int64(45)]}]
         self.dmap_records = \
             [OrderedDict([('stid', pydarn.DmapScalar('stid', 1, 3, 'i')),
                           ('channel', pydarn.DmapScalar('channel', 0, 3, 'i')),
-                          ('ptab', pydarn.DmapArray('ptab', np.array([0, 9,
-                                                                      12, 20,
-                                                                      22, 26,
-                                                                      27]), 10,
-                                                    'q', 1, [7]))]),
+                          ('ptab', pydarn.DmapArray('ptab',
+                                                    np.array([0, 9, 12, 20, 22,
+                                                              26, 27],
+                                                             dtype=np.int64),
+                                                    10, 'q', 1, [7]))]),
              OrderedDict([('bmnum', pydarn.DmapScalar('bmnum', 15, 2, 'h')),
                           ('combf', pydarn.DmapScalar('combf',
                                                       "$Id: twofsound", 9,
@@ -80,8 +81,7 @@ class Test_Conversions(unittest.TestCase):
                                                     4, 'f', 1, [12]))]),
              OrderedDict([('radar.revision.major',
                            pydarn.DmapScalar('radar.revision.major',
-                                             np.int8(1),
-                                             1, 'c')),
+                                             np.int8(1), 1, 'c')),
                           ('radar.revision.minor',
                            pydarn.DmapScalar('radar.revision.minor',
                                              np.int8(18), 1, 'c')),
@@ -90,8 +90,8 @@ class Test_Conversions(unittest.TestCase):
                                              float(3.5), 4, 'f')),
                           ('float2 test',
                            pydarn.DmapScalar('float2 test', 3.65, 4, 'f')),
-                          ('channel', pydarn.DmapScalar('channel',
-                                                        'a', 9, 's')),
+                          ('channel', pydarn.DmapScalar('channel', 'a', 9,
+                                                        's')),
                           ('double test',
                            pydarn.DmapArray('double test',
                                             np.array([[2.305015, 2.0251],
@@ -121,7 +121,8 @@ class Test_Conversions(unittest.TestCase):
                                              19, 'Q')),
                           ('list test',
                            pydarn.DmapArray('list test',
-                                            np.array([1, 2, 34, 45]),
+                                            np.array([1, 2, 34, 45],
+                                                     dtype=np.int64),
                                             10, 'q', 1, [4]))])]
 
     def dmap_compare(self, dmap1: list, dmap2: list):
