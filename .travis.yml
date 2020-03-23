@@ -30,7 +30,7 @@ matrix:
           - pip3 install -U pip
           - pip3 install flake8 mypy
       script: 
-      - flake8 --ignore=E501,F401
+      - flake8 --exit-zero --ignore=E501,F401
       - mypy . 
     - name: MacOS
       os: osx
