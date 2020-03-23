@@ -31,7 +31,6 @@ matrix:
           - pip3 install flake8 mypy
       script: 
       - flake8 --exit-zero --ignore=E501,F401
-      - mypy . 
     - name: MacOS
       os: osx
       language: minimal
@@ -48,5 +47,5 @@ matrix:
 
 install:
     - pip3 install .
-    - pip3 install  pytest
+    - pip3 install pytest
 script: pytest --ignore=test/performance --ignore=test/integration 
