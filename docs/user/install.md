@@ -1,3 +1,5 @@
+<!--Copyright (C) SuperDARN Canada, University of Saskatchewan 
+author(s) Marina Schmidt-->
 # Installing pyDARN 
 ---
 
@@ -20,6 +22,8 @@ You can check your python version with
 
 pyDARN's setup will download the following dependencies: 
 
+- [Git](https://git-scm.com/)
+- [pip3](https://help.dreamhost.com/hc/en-us/articles/115000699011-Using-pip3-to-install-Python3-modules)
 - [NumPy](https://numpy.org/)
 - [matplotlib](https://matplotlib.org/)
 - [deepdish](https://deepdish.readthedocs.io/en/latest/api_io.html)
@@ -78,12 +82,14 @@ Change directories to pydarn
 
 To install: 
 
-`$ python setup.py --user install`
+`$ pip3 install . --user`
 
-or 
+!!! Note
+    If `pip --version` is pointing to python 3.6+ then you can use `pip install . --user` instead. 
 
-`pip install --user .`
-
+!!! Warning
+    Do not install pydarn with `python setup.py install` as this may install other libraries pydarn requires in a local directory causing issues down the road.
+    
 ## Troubleshooting
 
 > If you find any problems/solutions, please make a [github issue](https://github.com/superdarn/pydarn/issues/new) so the community can help you or add it to the documentation
