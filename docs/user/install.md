@@ -111,7 +111,7 @@ $ echo "source $HOME/venvs/py38/bin/activate" >> ~/.bashrc
 ```
 Then open a new terminal and you should see `(pyy38)` in the prompt. 
 
-Credit to this solution is Ashton Remier, more details on the [issue #37](https://github.com/SuperDARN/pydarn/issues/37)
+Credit to this solution is Ashton Reimer, more details on the [issue #37](https://github.com/SuperDARN/pydarn/issues/37)
 
 
 > If you find any problems/solutions, please make a [github issue](https://github.com/superdarn/pydarn/issues/new) so the community can help you or add it to the documentation
