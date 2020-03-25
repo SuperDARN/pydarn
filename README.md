@@ -1,4 +1,4 @@
-![pydarn](docs/imgs/pydarn_logo.png)
+![pydarn](https://raw.githubusercontent.com/SuperDARN/pydarn/master/docs/imgs/pydarn_logo.png)
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) [![Python 3.6](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/downloads/release/python-360/) [![GitHub version](https://badge.fury.io/gh/boennemann%2Fbadges.svg)](http://badge.fury.io/gh/boennemann%2Fbadges)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3727270.svg)](https://doi.org/10.5281/zenodo.3727270)
@@ -22,7 +22,10 @@ pyDARN's documentation can found [here](https://pydarn.readthedocs.io/en/latest)
 
 ## Getting Started
 
-To install and use pyDARN please read the [installation guide](https://pydarn.readthedocs.io/en/latest/user/install/).
+
+`pip install pydarn`
+
+Or read the [installation guide](https://pydarn.readthedocs.io/en/latest/user/install/).
 
 If wish to get access to SuperDARN data please read the [SuperDARN data access documentation](https://pydarn.readthedocs.io/en/latest/user/superdarn_data/).
 Please make sure to also read the documentation on [**citing superDARN and pydarn**](https://pydarn.readthedocs.io/en/latest/user/citing/). 

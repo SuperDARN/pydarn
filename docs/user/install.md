@@ -22,7 +22,7 @@ You can check your python version with
 
 pyDARN's setup will download the following dependencies: 
 
-- [Git](https://git-scm.com/)
+- [Git](https://git-scm.com/) (For developers)
 - [pip3](https://help.dreamhost.com/hc/en-us/articles/115000699011-Using-pip3-to-install-Python3-modules)
 - [NumPy](https://numpy.org/)
 - [matplotlib](https://matplotlib.org/)
@@ -42,7 +42,7 @@ Instructions can be found here [virtual environment](https://packaging.python.or
 1. `$ python3 -m pip install --user virtualenv`  
 2. `$ python3 -m virtualenv <environment name>`  
 * `$ source <environment name>/bin/activate`
-* `$ pip install git+https://github.com/superdarn/pydarn@develop`
+* `$ pip install pydarn`
 
 !!! Note
     If you have multiple versions of python 3 on your machine, you can access a specific version by: `python<version number>`. 
@@ -53,7 +53,7 @@ Instructions can be found here [conda environment](https://uoa-eresearch.github.
 
 1. `$ conda create -n yourenvname python=3.7 anaconda`
 2. `$ conda activate yourenvname`
-* `$ pip install git+https://github.com/superdarn/pydarn@develop
+* `$ pip install pydarn`
 
 #### Adding the environment to PyCharm
 
@@ -68,10 +68,10 @@ To set the project interpreter to the anaconda environment:
 ## Local Install
 **pip3 install**
 
-`pip3 install --user git+https://github.com/superdarn/pydarn@develop`
+`pip3 install --user pydarn`
 
 ## System Install 
-`sudo pip3 install git+https://github.com/supdarn/pydarn@develop`
+`sudo pip3 install pydarn`
 
 ## Installing for Development 
 `$ git clone https://github.com/superdarn/pydarn`
