@@ -42,7 +42,7 @@ class initialize_submodules(install):
 setup(
     cmdclass={'install': initialize_submodules},
     name="pydarn",
-    version="0.1.dev",
+    version="1.0.0",
     description="Data visualization library for SuperDARN data",
     url='https://github.com/SuperDARN/pydarn.git',
     classifiers=[
