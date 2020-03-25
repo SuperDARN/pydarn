@@ -46,8 +46,8 @@ setup(
     description="Data visualization library for SuperDARN data",
     url='https://github.com/SuperDARN/pydarn.git',
     classifiers=[
-        'Development status :: 3 - Alpha',
-        'LICENSE :: GNU license',
+        'Development Status :: 5 - Production/Stable'
+        'LICENSE :: GNU v3.0 license',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7'],
     python_requires='>=3.6',
