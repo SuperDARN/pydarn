@@ -23,7 +23,6 @@ See Also
 BorealisUtilities
 BorealisArrayRead
 BorealisArrayWrite
-BorealisRestructureUtilities
 
 For more information on Borealis data files and how they convert to SDARN
 files, see: https://borealis.readthedocs.io/en/latest/

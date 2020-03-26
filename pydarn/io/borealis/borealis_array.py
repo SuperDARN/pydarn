@@ -30,7 +30,6 @@ See Also
 BorealisUtilities
 BorealisSiteRead
 BorealisSiteWrite
-BorealisRestructureUtilities
 
 For more information on Borealis data files and how they convert to SDarn
 files, see: https://borealis.readthedocs.io/en/latest/
