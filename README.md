@@ -18,17 +18,17 @@ pyDARN is released! Included are the following features:
 
 ## Documentation
 
-pyDARN's documentation can found [here](https://pydarn.readthedocs.io/en/latest)
+pyDARN's documentation can found [here](https://pydarn.readthedocs.io/en/master)
 
 ## Getting Started
 
 
 `pip install pydarn`
 
-Or read the [installation guide](https://pydarn.readthedocs.io/en/latest/user/install/).
+Or read the [installation guide](https://pydarn.readthedocs.io/en/master/user/install/).
 
-If wish to get access to SuperDARN data please read the [SuperDARN data access documentation](https://pydarn.readthedocs.io/en/latest/user/superdarn_data/).
-Please make sure to also read the documentation on [**citing superDARN and pydarn**](https://pydarn.readthedocs.io/en/latest/user/citing/). 
+If wish to get access to SuperDARN data please read the [SuperDARN data access documentation](https://pydarn.readthedocs.io/en/master/user/superdarn_data/).
+Please make sure to also read the documentation on [**citing superDARN and pydarn**](https://pydarn.readthedocs.io/en/master/user/citing/). 
 
 As a quick tutorial on using pydarn to read a non-compressed file: 
 ```python
@@ -57,7 +57,7 @@ reader = pydarn.SDarnRead(fitacf_stream, True)
 records = reader.read_fitacf()
 ```
 
-For more information and tutorials on pyDARN please see the [tutorial section](https://pydarn.readthedocs.io/en/latest/)
+For more information and tutorials on pyDARN please see the [tutorial section](https://pydarn.readthedocs.io/en/master/)
 
 ## Getting involved
 
