@@ -39,7 +39,7 @@ class RTP():
     plot_scalar
     plot_summary
     """
-    
+
     def __str__(self):
         return "This class is static class that provides"\
                 " the following methods: \n"\
