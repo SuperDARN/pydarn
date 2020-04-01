@@ -39,13 +39,7 @@ class RTP():
     plot_scalar
     plot_summary
     """
-    def __str__(self):
-        return "This class is static class that provides"\
-                " the following methods: \n"\
-                "   - plot_rang_time()\n"\
-                "   - plot_time_series()\n"\
-                "   - plot_summary()\n"
-
+    
     def __str__(self):
         return "This class is static class that provides"\
                 " the following methods: \n"\
