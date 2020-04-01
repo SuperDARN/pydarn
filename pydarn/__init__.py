@@ -55,20 +55,3 @@ from .io.borealis.borealis_convert import BorealisConvert
 # import plotting
 from .plotting.color_maps import PyDARNColormaps
 from .plotting.rtp import RTP
-
-"""
-pyDARN uses yaml for logging configuration because its legibility
-makes it the preferred configuration file format.
-=======
-
-# Importing pydarn exception classes
-from .exceptions.pydmap_exceptions import EmptyFileError
-from .exceptions.pydmap_exceptions import DmapDataError
-
-# Importing pydarn pydmap classes
-from .io.pydmap.dmap import RawDmapRead
-from .io.pydmap.dmap import parse_dmap_format_from_file
-
-"""
-Pydarn uses yaml for logging configuration because it is the
-preferred configuration file format because of its readability.
