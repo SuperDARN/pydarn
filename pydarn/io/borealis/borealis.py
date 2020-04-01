@@ -136,10 +136,9 @@ class BorealisRead():
                                              self.borealis_filetype)
             self._borealis_file_structure = 'array'
         else:  # unknown structure
-            raise borealis_exceptions.BorealisStructureError("Unknown"
-                                                             " structure"
-                                                             " type: {}"
-                                                             "".format(borealis_file_structure))
+            raise borealis_exceptions.\
+                BorealisStructureError("Unknown structure type: {}"
+                                       "".format(borealis_file_structure))
 
     def __repr__(self):
         """ for representation of the class object"""
@@ -341,9 +340,9 @@ class BorealisWrite():
                                               self.borealis_filetype, **kwargs)
             self._borealis_file_structure = 'array'
         else:  # unknown structure
-            raise borealis_exceptions.BorealisStructureError('Unknown '
-                                                             'structure '
-                                                             'type: {}'.format(borealis_file_structure))
+            raise borealis_exceptions.\
+                BorealisStructureError('Unknown structure type: {}'
+                                       ''.format(borealis_file_structure))
 
     def __repr__(self):
         """For representation of the class object"""
@@ -357,8 +356,9 @@ class BorealisWrite():
         """For printing of the class object"""
 
         return "Writing to filename: {filename} at record name: "\
-               "{current_record_name}".format(filename=self.filename,
-                                              current_record_name=self.current_record_name)
+               "{current_record_name}"\
+               "".format(filename=self.filename,
+                         current_record_name=self.current_record_name)
 
     @property
     def borealis_file_structure(self):

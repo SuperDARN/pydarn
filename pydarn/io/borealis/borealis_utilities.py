@@ -181,9 +181,9 @@ class BorealisUtilities():
 
         if len(missing_fields) > 0:
             if 'record_name' in kwargs.keys():
-                raise borealis_exceptions.\
-                        BorealisFieldMissingError(filename, missing_fields,
-                                                  record_name=kwargs['record_name'])
+                raise borealis_exceptions.BorealisFieldMissingError(
+                    filename, missing_fields,
+                    record_name=kwargs['record_name'])
             else:
                 raise borealis_exceptions.\
                         BorealisFieldMissingError(filename,
@@ -221,10 +221,9 @@ class BorealisUtilities():
 
         if len(extra_fields) > 0:
             if 'record_name' in kwargs.keys():
-                raise borealis_exceptions.\
-                        BorealisExtraFieldError(filename,
-                                                extra_fields,
-                                                record_name=kwargs['record_name'])
+                raise borealis_exceptions.BorealisExtraFieldError(
+                    filename, extra_fields,
+                    record_name=kwargs['record_name'])
             else:
                 raise borealis_exceptions.\
                         BorealisExtraFieldError(filename, extra_fields)

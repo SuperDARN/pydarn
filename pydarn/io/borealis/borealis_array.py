@@ -97,22 +97,24 @@ class BorealisArrayRead():
         self.filename = filename
 
         if borealis_filetype not in ['bfiq', 'antennas_iq', 'rawacf', 'rawrf']:
-            raise borealis_exceptions.BorealisFileTypeError(
-                self.filename, borealis_filetype)
+            raise borealis_exceptions.\
+                BorealisFileTypeError(self.filename, borealis_filetype)
         self.borealis_filetype = borealis_filetype
 
         # get the version of the file - split by the dash, first part should be
         # 'vX.X'
         try:
-            version = dd.io.load(self.filename, group='/borealis_git_hash').split('-')[0]
+            version = dd.io.load(self.filename,
+                                 group='/borealis_git_hash').split('-')[0]
         except ValueError as e:
-            raise borealis_exceptions.BorealisStructureError(' {} '\
-                'Could not find the borealis_git_hash required to determine:'\
-                'read version (file may be site style) {}'.format(self.filename, e)) from e
+            raise borealis_exceptions.BorealisStructureError(
+                ' {} Could not find the borealis_git_hash required to '
+                'determine read version (file may be site style) {}'
+                ''.format(self.filename, e)) from e
 
         if version not in borealis_formats.borealis_versions:
             raise borealis_exceptions.BorealisVersionError(self.filename,
-                version)
+                                                           version)
         else:
             self._borealis_version = version
 
@@ -157,17 +159,20 @@ class BorealisArrayRead():
         if self.format_class.is_restructureable():
             try:
                 records = self.format_class._array_to_site(self.arrays)
-                BorealisUtilities.check_records(self.filename, records,
+                BorealisUtilities.check_records(
+                    self.filename, records,
                     self.format_class.site_single_element_types(),
                     self.format_class.site_array_dtypes())
             except Exception as e:
-                raise borealis_exceptions.BorealisRestructureError(''\
-                    'Arrays from {}: Error restructuring {} from array to site style:'\
-                    '{}'.format(self.filename, self.format_class.__name__, e)) from e
+                raise borealis_exceptions.BorealisRestructureError(
+                    'Arrays from {}: Error restructuring {} from array to site'
+                    ' style: {}'.format(self.filename,
+                                        self.format_class.__name__, e)) from e
         else:
-            raise borealis_exceptions.BorealisRestructureError('Arrays from {}: '\
-                'File format {} not recognized as restructureable from site to '\
-                'array style or vice versa.'.format(self.filename, self.format_class.__name__))
+            raise borealis_exceptions.BorealisRestructureError(
+                'Arrays from {}: File format {} not recognized as '
+                'restructureable from site to array style or vice versa.'
+                ''.format(self.filename, self.format_class.__name__))
 
         return records
 
@@ -209,17 +214,16 @@ class BorealisArrayRead():
             in the file.
         """
         pydarn_log.info("Reading Borealis {} {} file: {}"
-                         "".format(self.borealis_version, 
-                            self.borealis_filetype, self.filename))
+                        "".format(self.borealis_version,
+                                  self.borealis_filetype, self.filename))
 
         attribute_types = self.format_class.array_single_element_types()
-        dataset_types = self.format_class.array_array_dtypes()   
-        unshared_fields = self.format_class.unshared_fields() 
+        dataset_types = self.format_class.array_array_dtypes()
+        unshared_fields = self.format_class.unshared_fields()
 
-        self._read_borealis_arrays(attribute_types, dataset_types, 
-            unshared_fields)
+        self._read_borealis_arrays(attribute_types, dataset_types,
+                                   unshared_fields)
         return self._arrays
-
 
     def _read_borealis_arrays(self, attribute_types: dict,
                               dataset_types: dict,
@@ -322,14 +326,14 @@ class BorealisArrayWrite():
         try:
             version = self._arrays['borealis_git_hash'].split('-')[0]
         except KeyError as e:
-            raise borealis_exceptions.BorealisStructureError(' {} '\
-                'Could not find the borealis_git_hash required to determine:'\
-                'write version (data may be site style): {}'.format(self.filename, e)
-                ) from e
+            raise borealis_exceptions.BorealisStructureError(
+                ' {} Could not find the borealis_git_hash required to '
+                'determine write version (data may be site style): {}'
+                ''.format(self.filename, e)) from e
 
         if version not in borealis_formats.borealis_versions:
             raise borealis_exceptions.BorealisVersionError(self.filename,
-                version)
+                                                           version)
         else:
             self._borealis_version = version
 
@@ -372,17 +376,20 @@ class BorealisArrayWrite():
         if self.format_class.is_restructureable():
             try:
                 records = self.format_class._array_to_site(self.arrays)
-                BorealisUtilities.check_records(self.filename, records,
+                BorealisUtilities.check_records(
+                    self.filename, records,
                     self.format_class.site_single_element_types(),
                     self.format_class.site_array_dtypes())
             except Exception as e:
-                raise borealis_exceptions.BorealisRestructureError(''\
-                    'Arrays for {}: Error restructuring {} from array to site style:'\
-                    '{}'.format(self.filename, self.format_class.__name__, e)) from e
+                raise borealis_exceptions.BorealisRestructureError(
+                    'Arrays for {}: Error restructuring {} from array to site'
+                    ' style: {}'.format(self.filename,
+                                        self.format_class.__name__, e)) from e
         else:
-            raise borealis_exceptions.BorealisRestructureError('Arrays for {}: '\
-                'File format {} not recognized as restructureable from site to '\
-                'array style or vice versa.'.format(self.filename, self.format_class.__name__))
+            raise borealis_exceptions.BorealisRestructureError(
+                'Arrays for {}: File format {} not recognized as '
+                'restructureable from site to array style or vice versa.'
+                ''.format(self.filename, self.format_class.__name__))
 
         return records
 
@@ -419,12 +426,12 @@ class BorealisArrayWrite():
         """
 
         pydarn_log.info("Writing Borealis {} {} file: {}"
-                         "".format(self.borealis_version, 
-                            self.borealis_filetype, self.filename))
+                        "".format(self.borealis_version,
+                                  self.borealis_filetype, self.filename))
 
         attribute_types = self.format_class.array_single_element_types()
-        dataset_types = self.format_class.array_array_dtypes()   
-        unshared_fields = self.format_class.unshared_fields() 
+        dataset_types = self.format_class.array_array_dtypes()
+        unshared_fields = self.format_class.unshared_fields()
 
         self._write_borealis_arrays(attribute_types, dataset_types,
                                     unshared_fields)

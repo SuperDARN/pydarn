@@ -155,7 +155,7 @@ class BorealisConvert(BorealisRead):
 
     __allowed_conversions = {'rawacf': 'rawacf', 'bfiq': 'iqdat'}
 
-    def __init__(self, borealis_filename: str, borealis_filetype: str, 
+    def __init__(self, borealis_filename: str, borealis_filetype: str,
                  sdarn_filename: str, borealis_slice_id: int = None,
                  borealis_file_structure: Union[str, None] = None):
         """
@@ -173,7 +173,7 @@ class BorealisConvert(BorealisRead):
         sdarn_filename: str
             The filename of the SDARN DMap file to be written.
         borealis_slice_id: int
-            The slice id of the file being converted. Only necessary for 
+            The slice id of the file being converted. Only necessary for
             files produced by Borealis versions before v0.5.
         borealis_file_structure: Union[str, None]
             The write structure of the file provided. Possible types are
@@ -209,10 +209,10 @@ class BorealisConvert(BorealisRead):
             if borealis_slice_id is not None:
                 self._borealis_slice_id = int(borealis_slice_id)
             else:
-                raise borealis_exceptions.BorealisStructureError('The slice_'\
-                    'id could not be found in the file: Borealis files '\
-                    'produced before Borealis v0.5 must provide the slice_id '\
-                    'value to the BorealisConvert class.')
+                raise borealis_exceptions.BorealisStructureError(
+                    'The slice_id could not be found in the file: Borealis '
+                    'files produced before Borealis v0.5 must provide the '
+                    'slice_id value to the BorealisConvert class.') from e
 
         self._sdarn_dmap_records = {}
         self._sdarn_dict = {}
@@ -344,25 +344,19 @@ class BorealisConvert(BorealisRead):
                                       v['pulses'] *
                                       int(v['tau_spacing']/v['tx_pulse_len'])):
                     raise borealis_exceptions.\
-                            BorealisConvert2IqdatError('Increased complexity:'
-                                                       ' Borealis bfiq file'
-                                                       ' record {}'
-                                                       ' blanked_samples {}'
-                                                       ' does not equal pulses'
-                                                       ' array {}'
-                                                       ''.format(k,
-                                                                 v['blanked_samples'],
-                                                                 v['pulses']))
+                            BorealisConvert2IqdatError(
+                                'Increased complexity: Borealis bfiq file '
+                                'record {} blanked_samples {} does not equal '
+                                'pulses array {}'.format(k,
+                                                         v['blanked_samples'],
+                                                         v['pulses']))
                 if not all([x == 0 for x in v['pulse_phase_offset']]):
                     raise borealis_exceptions.\
-                            BorealisConvert2IqdatError('Increased complexity:'
-                                                       ' Borealis bfiq file'
-                                                       ' record {}'
-                                                       ' pulse_phase_offset {}'
-                                                       ' contains non-zero'
-                                                       ' values.'
-                                                       ''.format(k,
-                                                                 v['pulse_phase_offset']))
+                            BorealisConvert2IqdatError(
+                                'Increased complexity: Borealis bfiq file '
+                                'record {} pulse_phase_offset {} contains '
+                                'non-zero values.'.format(
+                                    k, v['pulse_phase_offset']))
         return True
 
     def _is_convertible_to_rawacf(self) -> bool:
@@ -399,15 +393,12 @@ class BorealisConvert(BorealisRead):
                                       v['pulses'] *
                                       int(v['tau_spacing']/v['tx_pulse_len'])):
                     raise borealis_exceptions.\
-                            BorealisConvert2RawacfError('Increased complexity:'
-                                                        ' Borealis rawacf file'
-                                                        ' record {}'
-                                                        ' blanked_samples {}'
-                                                        'does not equal'
-                                                        ' pulses array {}'
-                                                        ''.format(k,
-                                                                  v['blanked_samples'],
-                                                                  v['pulses']))
+                            BorealisConvert2RawacfError(
+                                'Increased complexity: Borealis rawacf file '
+                                'record {} blanked_samples {} does not equal '
+                                'pulses array {}'.format(k,
+                                                         v['blanked_samples'],
+                                                         v['pulses']))
 
         return True
 
@@ -471,7 +462,7 @@ class BorealisConvert(BorealisRead):
         # num_sequences, num_beams, num_samps
         # scale by normalization and then scale to integer max as per
         # dmap style
-        data = v['data'].reshape(v['data_dimensions']).astype(np.complex128) / \
+        data = v['data'].reshape(v['data_dimensions']).astype(np.complex128) /\
             v['data_normalization_factor'] * np.iinfo(np.int16).max
 
         # Borealis git tag version numbers. If not a tagged version,
@@ -827,7 +818,8 @@ class BorealisConvert(BorealisRead):
                 'pwr0': lag_zero_power.astype(np.float32),
                 # list from 0 to num_ranges
                 'slist': np.array(list(range(0,
-                                             v['correlation_dimensions'][1]))).astype(np.int16),
+                                             v['correlation_dimensions'][1]))
+                                  ).astype(np.int16),
                 'acfd': correlation_dict['main_acfs'],
                 'xcfd': correlation_dict['xcfs']
             }
