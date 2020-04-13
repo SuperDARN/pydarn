@@ -72,6 +72,7 @@ class BorealisArrayRead():
     records: dict
     arrays: dict
     borealis_version : str
+    format: subclass of borealis_formats.BaseFormatClass
     """
 
     def __init__(self, filename: str, borealis_filetype: str):
@@ -118,7 +119,7 @@ class BorealisArrayRead():
         else:
             self._borealis_version = version
 
-        self._format_class = borealis_formats.borealis_versions[
+        self._format = borealis_formats.borealis_versions[
                 self.borealis_version][self.borealis_filetype]
 
         # Records are private to avoid tampering.
@@ -156,23 +157,23 @@ class BorealisArrayRead():
         The Borealis data in a dictionary of records, according to the
         site file format.
         """
-        if self.format_class.is_restructureable():
+        if self.format.is_restructureable():
             try:
-                records = self.format_class._array_to_site(self.arrays)
+                records = self.format._array_to_site(self.arrays)
                 BorealisUtilities.check_records(
                     self.filename, records,
-                    self.format_class.site_single_element_types(),
-                    self.format_class.site_array_dtypes())
+                    self.format.site_single_element_types(),
+                    self.format.site_array_dtypes())
             except Exception as e:
                 raise borealis_exceptions.BorealisRestructureError(
                     'Arrays from {}: Error restructuring {} from array to site'
                     ' style: {}'.format(self.filename,
-                                        self.format_class.__name__, e)) from e
+                                        self.format.__name__, e)) from e
         else:
             raise borealis_exceptions.BorealisRestructureError(
                 'Arrays from {}: File format {} not recognized as '
                 'restructureable from site to array style or vice versa.'
-                ''.format(self.filename, self.format_class.__name__))
+                ''.format(self.filename, self.format.__name__))
 
         return records
 
@@ -193,11 +194,11 @@ class BorealisArrayRead():
         return self._borealis_version
 
     @property
-    def format_class(self):
+    def format(self):
         """
         The format class used for the file, from the borealis_formats module.
         """
-        return self._format_class
+        return self._format
 
     def read_file(self) -> dict:
         """
@@ -209,7 +210,7 @@ class BorealisArrayRead():
         Returns
         -------
         arrays: dict
-            borealis data dictionary of arrays. Keys are data field names and
+            Borealis data dictionary of arrays. Keys are data field names and
             unshared fields have a first dimension = number of records
             in the file.
         """
@@ -217,9 +218,9 @@ class BorealisArrayRead():
                         "".format(self.borealis_version,
                                   self.borealis_filetype, self.filename))
 
-        attribute_types = self.format_class.array_single_element_types()
-        dataset_types = self.format_class.array_array_dtypes()
-        unshared_fields = self.format_class.unshared_fields()
+        attribute_types = self.format.array_single_element_types()
+        dataset_types = self.format.array_array_dtypes()
+        unshared_fields = self.format.unshared_fields()
 
         self._read_borealis_arrays(attribute_types, dataset_types,
                                    unshared_fields)
@@ -290,6 +291,8 @@ class BorealisArrayWrite():
     record_names: list(str)
     records: dict
     arrays: dict
+    borealis_version: str
+    format: subclass of borealis_formats.BaseFormatClass
     compression: str
         The type of compression to write the file as. Default zlib.
         zlib is hdf5 default compression for fast reading. We want
@@ -300,14 +303,14 @@ class BorealisArrayWrite():
     def __init__(self, filename: str, borealis_arrays: dict,
                  borealis_filetype: str, hdf5_compression: str = 'zlib'):
         """
-        Write borealis arrays to an array restructured file.
+        Write Borealis arrays to an array restructured file.
 
         Parameters
         ----------
         filename: str
             Name of the file the user wants to write to
         borealis_arrays: dict
-            borealis data dictionary. Keys are data field names and
+            Borealis data dictionary. Keys are data field names and
             unshared fields have a first dimension = number of records
             in the file.
         borealis_filetype: str
@@ -337,7 +340,7 @@ class BorealisArrayWrite():
         else:
             self._borealis_version = version
 
-        self._format_class = borealis_formats.borealis_versions[
+        self._format = borealis_formats.borealis_versions[
                 self.borealis_version][self.borealis_filetype]
         self.compression = hdf5_compression
         self.write_file()
@@ -373,23 +376,23 @@ class BorealisArrayWrite():
         The Borealis data in a dictionary of records, according to the
         site file format.
         """
-        if self.format_class.is_restructureable():
+        if self.format.is_restructureable():
             try:
-                records = self.format_class._array_to_site(self.arrays)
+                records = self.format._array_to_site(self.arrays)
                 BorealisUtilities.check_records(
                     self.filename, records,
-                    self.format_class.site_single_element_types(),
-                    self.format_class.site_array_dtypes())
+                    self.format.site_single_element_types(),
+                    self.format.site_array_dtypes())
             except Exception as e:
                 raise borealis_exceptions.BorealisRestructureError(
                     'Arrays for {}: Error restructuring {} from array to site'
                     ' style: {}'.format(self.filename,
-                                        self.format_class.__name__, e)) from e
+                                        self.format.__name__, e)) from e
         else:
             raise borealis_exceptions.BorealisRestructureError(
                 'Arrays for {}: File format {} not recognized as '
                 'restructureable from site to array style or vice versa.'
-                ''.format(self.filename, self.format_class.__name__))
+                ''.format(self.filename, self.format.__name__))
 
         return records
 
@@ -410,11 +413,11 @@ class BorealisArrayWrite():
         return self._borealis_version
 
     @property
-    def format_class(self):
+    def format(self):
         """
         The format class used for the file, from the borealis_formats module.
         """
-        return self._format_class
+        return self._format
 
     def write_file(self) -> str:
         """
@@ -429,9 +432,9 @@ class BorealisArrayWrite():
                         "".format(self.borealis_version,
                                   self.borealis_filetype, self.filename))
 
-        attribute_types = self.format_class.array_single_element_types()
-        dataset_types = self.format_class.array_array_dtypes()
-        unshared_fields = self.format_class.unshared_fields()
+        attribute_types = self.format.array_single_element_types()
+        dataset_types = self.format.array_array_dtypes()
+        unshared_fields = self.format.unshared_fields()
 
         self._write_borealis_arrays(attribute_types, dataset_types,
                                     unshared_fields)

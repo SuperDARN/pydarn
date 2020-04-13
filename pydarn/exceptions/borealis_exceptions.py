@@ -359,7 +359,7 @@ class ConvertFileOverWriteError(Exception):
 class BorealisVersionError(Exception):
     """
     The version is not found in the current list of versions
-    available in the borealis formats.
+    available in the Borealis formats.
 
     Parameters
     ----------
