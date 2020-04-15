@@ -358,15 +358,17 @@ class ConvertFileOverWriteError(Exception):
 
 class BorealisVersionError(Exception):
     """
-    The version is not found in the current list of versions
-    available in the Borealis formats.
+    The Borealis software version of the file is not found in the current
+    list of versions pydarn can read, which is found in the borealis_formats
+    module.
 
     Parameters
     ----------
     filename: str
         File attempted to read/write
     file_version: str
-        SuperDARN Borealis version that is not implemented or correct
+        SuperDARN Borealis software version that is not implemented in
+        pydarn or is incorrect
 
     Attributes
     ----------

@@ -6,16 +6,16 @@ SuperDARN Borealis HDF5 files.
 
 Classes
 -------
-BaseFormatClass
+BaseFormat
 BorealisRawacf
 BorealisBfiq
 BorealisAntennasIq
 BorealisRawrf
 as well as previous versions of these classes.
 
-Variables
----------
-borealis_versions
+Globals
+-------
+borealis_version_dict
     A lookup table for [version][filetype] that provides the appropriate class.
 
 Notes
@@ -35,13 +35,13 @@ For more information on Borealis data files, see:
 https://borealis.readthedocs.io/en/latest/
 """
 
-import datetime
+from datetime import datetime
 import numpy as np
 
 from collections import OrderedDict
 
 
-class BaseFormatClass():
+class BaseFormat():
     """
     Static Methods
     --------------
@@ -479,8 +479,8 @@ class BaseFormatClass():
                 enumerate(data_dict["sqn_timestamps"]):
             # format dictionary key in the same way it is done
             # in datawrite on site
-            seq_datetime = datetime.datetime.utcfromtimestamp(seq_timestamp[0])
-            epoch = datetime.datetime.utcfromtimestamp(0)
+            seq_datetime = datetime.utcfromtimestamp(seq_timestamp[0])
+            epoch = datetime.utcfromtimestamp(0)
             key = str(int((seq_datetime - epoch).total_seconds() * 1000))
 
             timestamp_dict[key] = dict()
@@ -517,7 +517,7 @@ class BaseFormatClass():
         return timestamp_dict
 
 
-class BorealisRawacfv0_4(BaseFormatClass):
+class BorealisRawacfv0_4(BaseFormat):
     """
     Class containing Borealis Rawacf data fields and their types.
 
@@ -774,7 +774,7 @@ class BorealisRawacfv0_4(BaseFormatClass):
             }
 
 
-class BorealisBfiqv0_4(BaseFormatClass):
+class BorealisBfiqv0_4(BaseFormat):
     """
     Class containing Borealis Bfiq data fields and their types.
 
@@ -1023,7 +1023,7 @@ class BorealisBfiqv0_4(BaseFormatClass):
             }
 
 
-class BorealisAntennasIqv0_4(BaseFormatClass):
+class BorealisAntennasIqv0_4(BaseFormat):
     """
     Class containing Borealis Antennas iq data fields and their types.
 
@@ -1251,7 +1251,7 @@ class BorealisAntennasIqv0_4(BaseFormatClass):
             }
 
 
-class BorealisRawrfv0_4(BaseFormatClass):
+class BorealisRawrfv0_4(BaseFormat):
     """
     Class containing Borealis Rawrf data fields and their types.
 
@@ -1633,7 +1633,7 @@ class BorealisRawrf(BorealisRawrfv0_4):
 
 
 # borealis versions
-borealis_versions = {
+borealis_version_dict = {
     'v0.2': {
         'bfiq': BorealisBfiqv0_4,
         'rawacf': BorealisRawacfv0_4,

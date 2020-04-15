@@ -59,6 +59,7 @@ class BorealisRead():
     --------
     BorealisSiteRead
     BorealisArrayRead
+    BaseFormat
     BorealisRawacf
     BorealisBfiq
     BorealisAntennasIq
@@ -88,9 +89,9 @@ class BorealisRead():
     records: dict
     arrays: dict
     record_names: list[str]
-    borealis_version : str
+    software_version : str
         The Borealis software version that created the file.
-    format: subclass of borealis_formats.BaseFormatClass
+    format: subclass of borealis_formats.BaseFormat
         The format class used to read/write the file.
     """
 
@@ -193,7 +194,7 @@ class BorealisRead():
         return self.__reader.arrays
 
     @property
-    def borealis_version(self):
+    def software_version(self):
         """
         The Borealis software version that created the data.
 
@@ -201,7 +202,7 @@ class BorealisRead():
             May impact the fields included in the file
             as each version has a different field structure/format
         """
-        return self.__reader.borealis_version
+        return self.__reader.software_version
 
     @property
     def format(self):
@@ -272,6 +273,7 @@ class BorealisWrite():
     --------
     BorealisSiteWrite
     BorealisArrayWrite
+    BaseFormat
     BorealisRawacf
     BorealisBfiq
     BorealisAntennasIq
@@ -309,9 +311,9 @@ class BorealisWrite():
     arrays: dict
         The Borealis data in a dictionary of arrays, according to the
         restructured array file format.
-    borealis_version : str
+    software_version : str
         The Borealis software version that created the file.
-    format: subclass of borealis_formats.BaseFormatClass
+    format: subclass of borealis_formats.BaseFormat
         The format class used to read/write the file.
     """
 
@@ -424,7 +426,7 @@ class BorealisWrite():
         return self.__writer.arrays
 
     @property
-    def borealis_version(self):
+    def software_version(self):
         """
         The Borealis software version that created the data.
 
@@ -432,7 +434,7 @@ class BorealisWrite():
             May impact the fields included in the file
             as each version has a different field structure/format
         """
-        return self.__writer.borealis_version
+        return self.__writer.software_version
 
     @property
     def format(self):
