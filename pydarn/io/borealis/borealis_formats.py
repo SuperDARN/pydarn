@@ -59,7 +59,6 @@ class BaseFormat():
         may be stored in linear dimensions, so this reshapes any if needed.
         Should be overwritten by the child class.
 
-
     Class Methods
     -------------
     All classes built from this class should have these functions overwritten
@@ -223,21 +222,56 @@ class BaseFormat():
     def reshape_site_arrays(records: OrderedDict) -> OrderedDict:
         """
         This is a necessary function for interpreting site data, as
-        some arrays in site data have been converted to linear dimensions.
+        some arrays in site data have been flattened in the file and
+        need to be reshaped to be interpreted correctly.
 
         This reshapes them to the correct dimensions. Some formats may not
         have this issue, in which case this function does not need to be
-        overwritten by the child class.
+        updated by the child class.
+
+        This function is used in the _site_to_array restructuring which
+        is common to all formats.
+
+        Parameters
+        ----------
+        records
+            site-style records dictionary.
+
+        Returns
+        -------
+        records
+            site-style records dictionary with any data field arrays reshaped
+            as required by the format. The BaseFormat does not contain
+            any fields that need to be reshaped but some child classes do.
         """
         return records
 
     @staticmethod
     def flatten_site_arrays(records: OrderedDict) -> OrderedDict:
         """
-        Sometimes arrays in the site style have been reduced to
-        linear arrays with given dimensions. This function returns
-        the site data with all arrays flattened as desired for
-        storing in the site format.
+        This is a necessary function for writing site data, as
+        some arrays in site data are flattened in the file and
+        have been reshaped to be interpreted correctly.
+
+        This flattens the data correctly for the file. Some formats may not
+        have this issue, in which case this function does not need to be
+        updated by the child class.
+
+        This function is used in the _array_to_site restructuring which
+        is common to all formats.
+
+        Parameters
+        ----------
+        records
+            site-style records dictionary.
+
+        Returns
+        -------
+        records
+            site-style records dictionary with any data field arrays flattened
+            as required by the format to be written to file. The BaseFormat
+            does not contain any fields that need to be flattened for writing
+            but some child classes do.
         """
         return records
 
@@ -389,8 +423,13 @@ class BaseFormat():
         -------
         new_data_dict
             A dictionary containing the data from data_dict
-            reformatted to be stored entirely as arrays, or as
-            one entry if the field does not change between records
+            reformatted to be stored entirely in array style, or as
+            one entry if the field does not change between records.
+            This means that for fields that change between records,
+            the first dimension in the array will equal num_records
+            (these are called unshared_fields). For fields common to all
+            records, there will only be the one value that applies (these
+            are known as shared_fields).
         """
         new_data_dict = dict()
         num_records = len(data_dict)
@@ -600,6 +639,7 @@ class BorealisRawacfv0_4(BaseFormat):
 
     @classmethod
     def single_element_types(cls):
+        """ See BaseFormat class for description. """
         return {
             # Identifies the version of Borealis that made this data. Necessary
             # for all versions.
@@ -653,6 +693,7 @@ class BorealisRawacfv0_4(BaseFormat):
 
     @classmethod
     def array_dtypes(cls):
+        """ See BaseFormat class for description. """
         return {
             # The pulse sequence in multiples of the tau_spacing.
             "pulses": np.uint32,
@@ -690,6 +731,7 @@ class BorealisRawacfv0_4(BaseFormat):
     # will be the same for site and restructured files.
     @classmethod
     def shared_fields(cls):
+        """ See BaseFormat class for description. """
         return ['blanked_samples', 'borealis_git_hash',
                 'data_normalization_factor', 'experiment_comment',
                 'experiment_id', 'experiment_name', 'first_range',
@@ -701,6 +743,7 @@ class BorealisRawacfv0_4(BaseFormat):
 
     @classmethod
     def unshared_fields_dims_array(cls):
+        """ See BaseFormat class for description. """
         return {  # functions take records dictionary
             'num_sequences': [],
             'int_time': [],
@@ -720,6 +763,7 @@ class BorealisRawacfv0_4(BaseFormat):
 
     @classmethod
     def unshared_fields_dims_site(cls):
+        """ See BaseFormat class for description. """
         return {  # functions take arrays dictionary and record_num
             'num_sequences': [],
             'int_time': [],
@@ -755,6 +799,7 @@ class BorealisRawacfv0_4(BaseFormat):
 
     @classmethod
     def array_specific_fields_generate(cls):
+        """ See BaseFormat class for description. """
         return {
             'num_beams': lambda records: np.array(
                 [len(record['beam_nums']) for key, record in records.items()],
@@ -765,6 +810,7 @@ class BorealisRawacfv0_4(BaseFormat):
 
     @classmethod
     def site_specific_fields_generate(cls):
+        """ See BaseFormat class for description. """
         return {
             'correlation_descriptors': lambda arrays, record_num: np.array(
                 ['num_beams', 'num_ranges', 'num_lags']),
@@ -851,6 +897,7 @@ class BorealisBfiqv0_4(BaseFormat):
 
     @classmethod
     def single_element_types(cls):
+        """ See BaseFormat class for description. """
         return {
             # Identifies the version of Borealis that made this data. Necessary
             # for all versions.
@@ -908,6 +955,7 @@ class BorealisBfiqv0_4(BaseFormat):
 
     @classmethod
     def array_dtypes(cls):
+        """ See BaseFormat class for description. """
         return {
             # The pulse sequence in multiples of the tau_spacing.
             "pulses": np.uint32,
@@ -944,6 +992,7 @@ class BorealisBfiqv0_4(BaseFormat):
 
     @classmethod
     def shared_fields(cls):
+        """ See BaseFormat class for description. """
         return ['antenna_arrays_order', 'blanked_samples',
                 'borealis_git_hash',
                 'data_normalization_factor',
@@ -958,6 +1007,7 @@ class BorealisBfiqv0_4(BaseFormat):
 
     @classmethod
     def unshared_fields_dims_array(cls):
+        """ See BaseFormat class for description. """
         return {
             'num_sequences': [],
             'int_time': [],
@@ -974,6 +1024,7 @@ class BorealisBfiqv0_4(BaseFormat):
 
     @classmethod
     def unshared_fields_dims_site(cls):
+        """ See BaseFormat class for description. """
         return {
             'num_sequences': [],
             'int_time': [],
@@ -997,10 +1048,7 @@ class BorealisBfiqv0_4(BaseFormat):
 
     @classmethod
     def array_specific_fields_generate(cls):
-        """
-        Functions that take a single record and generate
-        the value for that record.
-        """
+        """ See BaseFormat class for description. """
         return {
             'num_beams': lambda records: np.array(
                 [len(record['beam_nums']) for key, record in records.items()],
@@ -1012,6 +1060,7 @@ class BorealisBfiqv0_4(BaseFormat):
 
     @classmethod
     def site_specific_fields_generate(cls):
+        """ See BaseFormat class for description. """
         return {
             'data_descriptors': lambda arrays, record_num: np.array(
                 ['num_antenna_arrays', 'num_sequences', 'num_beams',
@@ -1099,6 +1148,7 @@ class BorealisAntennasIqv0_4(BaseFormat):
 
     @classmethod
     def single_element_types(cls):
+        """ See BaseFormat class for description. """
         return {
             # Identifies the version of Borealis that made this data. Necessary
             # for all versions.
@@ -1148,6 +1198,7 @@ class BorealisAntennasIqv0_4(BaseFormat):
 
     @classmethod
     def array_dtypes(cls):
+        """ See BaseFormat class for description. """
         return {
             # The pulse sequence in multiples of the tau_spacing.
             "pulses": np.uint32,
@@ -1179,6 +1230,7 @@ class BorealisAntennasIqv0_4(BaseFormat):
 
     @classmethod
     def shared_fields(cls):
+        """ See BaseFormat class for description. """
         return ['antenna_arrays_order',
                 'borealis_git_hash',
                 'data_normalization_factor', 'experiment_comment',
@@ -1191,6 +1243,7 @@ class BorealisAntennasIqv0_4(BaseFormat):
 
     @classmethod
     def unshared_fields_dims_array(cls):
+        """ See BaseFormat class for description. """
         return {
             'num_sequences': [],
             'int_time': [],
@@ -1206,6 +1259,7 @@ class BorealisAntennasIqv0_4(BaseFormat):
 
     @classmethod
     def unshared_fields_dims_site(cls):
+        """ See BaseFormat class for description. """
         return {
             'num_sequences': [],
             'int_time': [],
@@ -1227,10 +1281,7 @@ class BorealisAntennasIqv0_4(BaseFormat):
 
     @classmethod
     def array_specific_fields_generate(cls):
-        """
-        Functions that take a single record and generate
-        the value for that record.
-        """
+        """ See BaseFormat class for description. """
         return {
             'num_beams': lambda records: np.array(
                 [len(record['beam_nums']) for key, record in records.items()],
@@ -1242,6 +1293,7 @@ class BorealisAntennasIqv0_4(BaseFormat):
 
     @classmethod
     def site_specific_fields_generate(cls):
+        """ See BaseFormat class for description. """
         return {
             'data_descriptors': lambda arrays, record_num: np.array(
                 ['num_antennas', 'num_sequences', 'num_samps']),
@@ -1304,6 +1356,7 @@ class BorealisRawrfv0_4(BaseFormat):
 
     @classmethod
     def single_element_types(cls):
+        """ See BaseFormat class for description. """
         return {
             # Identifies the version of Borealis that made this data. Necessary
             # for all versions.
@@ -1341,6 +1394,7 @@ class BorealisRawrfv0_4(BaseFormat):
 
     @classmethod
     def array_dtypes(cls):
+        """ See BaseFormat class for description. """
         return {
             # A list of GPS timestamps of the beginning of transmission for
             # each sampling period in the integration time. Seconds since
@@ -1364,11 +1418,20 @@ class BorealisRawacf(BorealisRawacfv0_4):
     Class containing Borealis Rawacf data fields and their types for the
     current version of Borealis (v0.5).
 
+    See Also
+    --------
+    BaseFormat
+    BorealisRawacfv0_4
+
+    Notes
+    -----
     Rawacf data has been mixed, filtered, and decimated; beamformed and
     combined into antenna arrays; then autocorrelated and correlated between
     antenna arrays to produce matrices of num_ranges x num_lags.
 
-    See base class for description of attributes and notes.
+    See BaseFormat for description of classmethods and how they
+    are used to verify format files and restructure Borealis files to
+    array and site formats.
 
     In v0.5, the following fields were added:
     slice_id, slice_interfacing, scheduling_mode, and averaging_method.
@@ -1380,6 +1443,7 @@ class BorealisRawacf(BorealisRawacfv0_4):
 
     @classmethod
     def single_element_types(cls):
+        """ See BaseFormat class for description. """
         single_element_types = super(BorealisRawacf,
                                      cls).single_element_types()
         single_element_types.update({
@@ -1399,6 +1463,7 @@ class BorealisRawacf(BorealisRawacfv0_4):
 
     @classmethod
     def shared_fields(cls):
+        """ See BaseFormat class for description. """
         shared = super(BorealisRawacf, cls).shared_fields() + \
             ['slice_id', 'scheduling_mode', 'averaging_method']
         shared.remove('blanked_samples')
@@ -1406,6 +1471,7 @@ class BorealisRawacf(BorealisRawacfv0_4):
 
     @classmethod
     def unshared_fields_dims_array(cls):
+        """ See BaseFormat class for description. """
         unshared_fields_dims = super(BorealisRawacf,
                                      cls).unshared_fields_dims_array()
         unshared_fields_dims.update({
@@ -1416,6 +1482,7 @@ class BorealisRawacf(BorealisRawacfv0_4):
 
     @classmethod
     def unshared_fields_dims_site(cls):
+        """ See BaseFormat class for description. """
         unshared_fields_dims = super(BorealisRawacf,
                                      cls).unshared_fields_dims_site()
         unshared_fields_dims.update({
@@ -1427,6 +1494,7 @@ class BorealisRawacf(BorealisRawacfv0_4):
 
     @classmethod
     def array_specific_fields_generate(cls):
+        """ See BaseFormat class for description. """
         array_specific = super(BorealisRawacf,
                                cls).array_specific_fields_generate()
         array_specific.update({
@@ -1459,6 +1527,7 @@ class BorealisBfiq(BorealisBfiqv0_4):
 
     @classmethod
     def single_element_types(cls):
+        """ See BaseFormat class for description. """
         single_element_types = super(BorealisBfiq,
                                      cls).single_element_types()
         single_element_types.update({
@@ -1476,6 +1545,7 @@ class BorealisBfiq(BorealisBfiqv0_4):
 
     @classmethod
     def shared_fields(cls):
+        """ See BaseFormat class for description. """
         shared = super(BorealisBfiq, cls).shared_fields() + \
             ['slice_id', 'scheduling_mode']
         shared.remove('blanked_samples')
@@ -1483,6 +1553,7 @@ class BorealisBfiq(BorealisBfiqv0_4):
 
     @classmethod
     def unshared_fields_dims_array(cls):
+        """ See BaseFormat class for description. """
         unshared_fields_dims = super(BorealisBfiq,
                                      cls).unshared_fields_dims_array()
         unshared_fields_dims.update({
@@ -1493,6 +1564,7 @@ class BorealisBfiq(BorealisBfiqv0_4):
 
     @classmethod
     def unshared_fields_dims_site(cls):
+        """ See BaseFormat class for description. """
         unshared_fields_dims = super(BorealisBfiq,
                                      cls).unshared_fields_dims_site()
         unshared_fields_dims.update({
@@ -1504,6 +1576,7 @@ class BorealisBfiq(BorealisBfiqv0_4):
 
     @classmethod
     def array_specific_fields_generate(cls):
+        """ See BaseFormat class for description. """
         array_specific = super(BorealisBfiq,
                                cls).array_specific_fields_generate()
         array_specific.update({
@@ -1532,6 +1605,7 @@ class BorealisAntennasIq(BorealisAntennasIqv0_4):
 
     @classmethod
     def single_element_types(cls):
+        """ See BaseFormat class for description. """
         single_element_types = super(BorealisAntennasIq,
                                      cls).single_element_types()
         single_element_types.update({
@@ -1549,6 +1623,7 @@ class BorealisAntennasIq(BorealisAntennasIqv0_4):
 
     @classmethod
     def array_dtypes(cls):
+        """ See BaseFormat class for description. """
         array_dtypes = super(BorealisAntennasIq, cls).array_dtypes()
         array_dtypes.update({
             # Samples that occur during TR switching (transmission times)
@@ -1558,12 +1633,14 @@ class BorealisAntennasIq(BorealisAntennasIqv0_4):
 
     @classmethod
     def shared_fields(cls):
+        """ See BaseFormat class for description. """
         shared = super(BorealisAntennasIq, cls).shared_fields() + \
             ['slice_id', 'scheduling_mode']
         return shared
 
     @classmethod
     def unshared_fields_dims_array(cls):
+        """ See BaseFormat class for description. """
         unshared_fields_dims = super(BorealisAntennasIq,
                                      cls).unshared_fields_dims_array()
         unshared_fields_dims.update({
@@ -1574,6 +1651,7 @@ class BorealisAntennasIq(BorealisAntennasIqv0_4):
 
     @classmethod
     def unshared_fields_dims_site(cls):
+        """ See BaseFormat class for description. """
         unshared_fields_dims = super(BorealisAntennasIq,
                                      cls).unshared_fields_dims_site()
         unshared_fields_dims.update({
@@ -1585,6 +1663,7 @@ class BorealisAntennasIq(BorealisAntennasIqv0_4):
 
     @classmethod
     def array_specific_fields_generate(cls):
+        """ See BaseFormat class for description. """
         array_specific = super(BorealisAntennasIq,
                                cls).array_specific_fields_generate()
         array_specific.update({
@@ -1609,6 +1688,7 @@ class BorealisRawrf(BorealisRawrfv0_4):
 
     @classmethod
     def single_element_types(cls):
+        """ See BaseFormat class for description. """
         single_element_types = super(BorealisRawrf,
                                      cls).single_element_types()
         single_element_types.update({
@@ -1620,6 +1700,7 @@ class BorealisRawrf(BorealisRawrfv0_4):
 
     @classmethod
     def array_dtypes(cls):
+        """ See BaseFormat class for description. """
         array_dtypes = super(BorealisRawrf, cls).array_dtypes()
         array_dtypes.update({
             # Samples that occur during TR switching (transmission times)
