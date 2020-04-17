@@ -1612,10 +1612,6 @@ class BorealisRawrf(BorealisRawrfv0_4):
         single_element_types = super(BorealisRawrf,
                                      cls).single_element_types()
         single_element_types.update({
-            # the slice id of the file and dataset.
-            "slice_id": np.uint32,
-            # the interfacing of this slice to other slices.
-            "slice_interfacing": np.unicode_,
             # A string describing the type of scheduling time at the time of
             # this dataset.
             "scheduling_mode": np.unicode_
