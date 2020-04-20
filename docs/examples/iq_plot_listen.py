@@ -8,11 +8,24 @@ Exceptions
 
 Functions
 ---------
-plot_iq
+iq_to_wav: Create a WAV file out of all records in the input iqdat file.
+Optionally use the I and Q signals to make a stereo WAV file (note: doubles the file size).
+The --play flag will call this if executing the script directly. The --stereo flag enables stereo.
 
-iq_to_wav
+plot_iq: Create a plot of I and Q vs sample number for every record in the input iqdat file.
+The --plot flag will call this if executing the script directly.
+NOTE: This method takes a long time.  # TODO: HOW LONG?
+
+get_stats_from_record: Print out some useful stats about the input iqdat file. The --debug
+flag will call this if executing the script directly.
+
+open_compressed_file: General function that takes an input filename, and determines how to open
+it by reading the first few 'magic bytes' from the file. Returns a file stream acceptable to use
+with: pydarn.SDarnRead(filestream, True). The input iqdat file is opened with this method
+if executing this script directly.
 
 References: https://www.garykessler.net/library/file_sigs.html
+            https://superdarn.github.io/rst/superdarn/src.doc/rfc/0027.html
 """
 import pydarn
 import binascii
@@ -24,18 +37,21 @@ import argparse as ap
 import os
 
 
-def iq_to_wav(records, save_directory, sequences_to_play=None):
+def iq_to_wav(records, save_directory, sequences_to_play=None, stereo=False):
     """
-    Create one wav file for all records.
+    Create one wav file containing all records.
 
     This should plot the real and imag (I and Q) data in the left
-    and right channels so you can listen in stereo (not yet implemented)!
-    The sampling rate is currently hard-coded at 3333Hz,
-    this should be fixed to play at the actual sampling rate, for most files it will be correct.
+    and right channels so you can listen in stereo!
+
+    If an iqdat file contained both main array samples and interferometer array samples,
+    then a stereo file can be created with main array samples in one channel and the interferometer
+    samples in the other. # TODO: Future feature - plot stereo with main and interferometer channels
+
     :param records: pydarn iqdat records, as returned from read_iqdat()
     :param save_directory: Filepath to save the wav files to
-    :param sequences_to_play: up to how many sequences should be written to wav file for each record?
-    :return:
+    :param sequences_to_play: up to this # of sequences will be written to WAV file for each record
+    :param stereo: If True, then create a stereo WAV file with I and Q signals in separate channels.
     """
     first = records[0]
     stid = first['stid']
@@ -45,27 +61,44 @@ def iq_to_wav(records, save_directory, sequences_to_play=None):
     wav_filename = save_directory + '/' + record_datetime + '.' + radar_abbrev + \
                    '.bm' + str(first['bmnum']) + '.wav'
 
-    # Signals will contain the actual wav file samples
-    signals = []
+    # Signals will contain the actual WAV file samples. Depending upon the user's input, we will put
+    # stereo audio into the second WAV file channel using the Q (imag) component of the main array
+    signals_real = []
+    if stereo:
+        signals_imag = []
+
     for record in records:
         if sequences_to_play is None:
             # All of them!
             sequences_to_play = int(record['seqnum'])
         if not isinstance(sequences_to_play, int):
-            print("Need to specify an integer for sequences_to_play, plotting all.")
+            print("Need to specify an integer for sequences_to_play, using all sequences.")
             sequences_to_play = record['seqnum']
-        sequences_to_play = max(sequences_to_play, record['seqnum'])
+        sequences_to_play = min(sequences_to_play, record['seqnum'])
 
         data = np.copy(record['data'])
-        data = data.reshape((int(record['seqnum']), int(record['chnnum']), int(record['smpnum']), 2))
+        data = data.reshape((int(record['seqnum']), int(record['chnnum']),
+                             int(record['smpnum']), 2))
+        if sequences_to_play > np.size(data, 0):
+            # mismatch between the 'seqnum' variable and the data array length... happens sometimes
+            sequences_to_play = np.size(data, 0)
+
+        # Go through each sequence to play, grabbing the iq samples (real, imag)
         for sequence in range(sequences_to_play):
             iq_real = np.array([x[0] for x in data[sequence][0]])
-            iq_imag = np.array([x[1] for x in data[sequence][0]])
-            # TODO: Stereo sound with real and imag in the two channels
-            signals.extend(iq_real)
+            signals_real.extend(iq_real)
+            if stereo:
+                iq_imag = np.array([x[1] for x in data[sequence][0]])
+                signals_imag.extend(iq_imag)
 
-    # TODO: Don't hardcode the sampling rate at 3333
-    soundfile.write(wav_filename, signals, 3333, 'PCM_16')
+    signals_real = np.array(signals_real)
+    sample_rate_hz = int(1e6 / float(first['smsep']))
+    if stereo:
+        signals_imag = np.array(signals_imag)
+        soundfile.write(wav_filename, np.transpose([signals_real, signals_imag]),
+                        sample_rate_hz, 'PCM_16')
+    else:
+        soundfile.write(wav_filename, signals_real, sample_rate_hz, 'PCM_16')
 
 
 def plot_iq(records, save_directory, sequences_to_plot=None):
@@ -78,10 +111,10 @@ def plot_iq(records, save_directory, sequences_to_plot=None):
     :param records: pydarn iqdat records, as returned from read_iqdat()
     :param save_directory: Filepath to save the plots to
     :param sequences_to_plot: up to how many sequences should be plotted for each record?
-    :return:
     """
-    # TODO: Print out progress bar, because this is slow.
-    for record in records:
+    # Used for printout of progress along with the record_num, because this is slow.
+    num_records = len(records)
+    for record_num, record in enumerate(records):
         stid = record['stid']
         radar_abbrev = pydarn.SuperDARNRadars.radars[stid].hardware_info.abbrev
         record_datetime = dt.datetime.strptime(record['origin.time'], "%a %b %d %H:%M:%S %Y")
@@ -95,7 +128,7 @@ def plot_iq(records, save_directory, sequences_to_plot=None):
         if not isinstance(sequences_to_plot, int):
             print("Need to specify an integer for sequences_to_plot, plotting all.")
             sequences_to_plot = record['seqnum']
-        sequences_to_plot = max(sequences_to_plot, record['seqnum'])
+        sequences_to_plot = min(sequences_to_plot, record['seqnum'])
 
         # Need to know how many samples per tau (what samples could contain a tx pulse?)
         samps_per_tau = record['mpinc'] / record['smsep']
@@ -107,16 +140,20 @@ def plot_iq(records, save_directory, sequences_to_plot=None):
         figheight = 0.82 / sequences_to_plot
         data = np.copy(record['data'])
 
-        data = data.reshape((int(record['seqnum']), int(record['chnnum']), int(record['smpnum']), 2))
+        data = data.reshape((int(record['seqnum']), int(record['chnnum']),
+                             int(record['smpnum']), 2))
+        if sequences_to_plot > np.size(data, 0):
+            # mismatch between the 'seqnum' variable and the data array length... happens sometimes
+            sequences_to_plot = np.size(data, 0)
 
         for sequence in range(sequences_to_plot):
             # Calculate positions of the data axis and colorbar axis for the current parameter
-            # and then add them to the figure. position is [left, bottom, width, height] in fractions
+            # and then add them to the figure. position is [left, bot, width, height] in fractions
             # of figure width and height
             position = [0.1, figtop - figheight * (sequence + 1) + 0.05, 0.8, figheight]
             ax = fig.add_axes(position)
 
-            if sequence is 0:
+            if sequence == 0:
                 title = 'Pulse Sequence IQ Data ' + radar_abbrev + ' Beam ' + \
                         str(record['bmnum']) + ' Tx Freq: ' + str(record['tfreq']) + \
                         'kHz  Time: ' + record_datetime
@@ -133,7 +170,8 @@ def plot_iq(records, save_directory, sequences_to_plot=None):
             ax.plot(sample_numbers, iq_real, 'k')
             ax.plot(sample_numbers, iq_imag, 'r')
             ax.set_xlim([0, record['smpnum']])
-            ax.set_ylim([-300, 300])  # TODO: Get rid of magic numbers... maybe auto range for entire plot
+            # TODO: Get rid of magic numbers... auto range for entire plot, use stats to find limit
+            ax.set_ylim([-300, 300])
             ax.set_ylabel(str(sequence))
 
         position = [0.1, figtop - figheight * sequences_to_plot + 0.02, 0.8, 0.03]
@@ -148,6 +186,13 @@ def plot_iq(records, save_directory, sequences_to_plot=None):
             ax.set_xlim([0, record['smpnum']])
             ax.set_ylabel('TX')
             ax.set_yticklabels([])
+
+        # This if statement will execute at every 'percent_update' percent
+        percent_update = 5
+        if record_num % int((num_records / percent_update)) == 0:
+            print("Finished record {}/{}".format(record_num + 1, num_records))
+        elif record_num == num_records - 1:
+            print("Finished record {}/{}".format(record_num + 1, num_records))
 
         fig = plt.gcf()
         fig.savefig(plot_filename)
@@ -166,13 +211,14 @@ def get_stats_from_records(pydarn_records):
     hw_info = pydarn.SuperDARNRadars.radars[stid].hardware_info
     stats = "Number of records: {}\r\n".format(len(pydarn_records))
     stats += "Radar: {} Station ID: {}\r\n".format(hw_info.abbrev, first['stid'])
+    stats += "Channels: {}\r\n".format(first['chnnum'])
     stats += "Start time: {}, end time: {}".format(first['origin.time'], last['origin.time'])
     return stats
 
 
 def open_compressed_file(input_filename):
     """
-    Check the input filename for compression style and return an uncompressed file handle
+    Check the input filename for compression style and return an uncompressed filestream
     This method uses magic numbers inherent to various file types, and imports what it needs,
     when it needs it. The result is a filestream ready for pydarn.SDarnRead(returnval, True).
     Note that SDarnRead takes a boolean value True if the first argument is a filestream.
@@ -216,6 +262,9 @@ if __name__ == "__main__":
                         action='store', default='iq_plots')
     parser.add_argument('--wav-dir', help='Output directory to store WAV files',
                         action='store', default='iq_wav')
+    parser.add_argument('--stereo', help='Add stereo data to the WAV files using I and Q data. '
+                                         'Doubles file size',
+                        action='store_true')
     parser.add_argument('input_file', help='Input IQ file to plot or listen to')
     args = parser.parse_args()
 
@@ -240,7 +289,6 @@ if __name__ == "__main__":
         start_time = dt.datetime.strptime(records[0]['origin.time'], "%a %b %d %H:%M:%S %Y")
         print("Start time: {}".format(start_time.strftime("%Y%m%d.%H%M.%S")))
 
-    # TODO:  Try to calculate size of outputs/length of time it may take, and print it out.
     if args.plot:
         print("Plotting each IQ record from {}".format(args.input_file))
         print(" ** NOTE ** This takes a long time, go for a walk and stretch")
@@ -256,4 +304,4 @@ if __name__ == "__main__":
             # Create the directory
             os.makedirs(args.wav_dir)
         # Make WAV files!
-        iq_to_wav(records, args.wav_dir)
+        iq_to_wav(records, args.wav_dir, stereo=args.stereo)
