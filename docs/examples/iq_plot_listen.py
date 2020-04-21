@@ -1,20 +1,18 @@
 # Copyright 2020 SuperDARN Canada, University of Saskatchewan
 # Author: Kevin Krieger & Ashton Reimer
+# DISCLAIMER: This code is licensed under GPL v3.0 which can be located in LICENSE.md in the root directory
 """
 Utilities for plotting and listening to DMAP IQ files
 
-Exceptions
-----------
-
-Functions
----------
+Methods
+-------
 iq_to_wav: Create a WAV file out of all records in the input iqdat file.
 Optionally use the I and Q signals to make a stereo WAV file (note: doubles the file size).
 The --play flag will call this if executing the script directly. The --stereo flag enables stereo.
 
 plot_iq: Create a plot of I and Q vs sample number for every record in the input iqdat file.
 The --plot flag will call this if executing the script directly.
-NOTE: This method takes a long time.  # TODO: HOW LONG?
+NOTE: This method takes a long time.
 
 get_stats_from_record: Print out some useful stats about the input iqdat file. The --debug
 flag will call this if executing the script directly.
@@ -24,8 +22,11 @@ it by reading the first few 'magic bytes' from the file. Returns a file stream a
 with: pydarn.SDarnRead(filestream, True). The input iqdat file is opened with this method
 if executing this script directly.
 
-References: https://www.garykessler.net/library/file_sigs.html
-            https://superdarn.github.io/rst/superdarn/src.doc/rfc/0027.html
+References
+----------
+https://www.garykessler.net/library/file_sigs.html
+https://superdarn.github.io/rst/superdarn/src.doc/rfc/0027.html
+
 """
 import pydarn
 import binascii
@@ -44,14 +45,29 @@ def iq_to_wav(records, save_directory, sequences_to_play=None, stereo=False):
     This should plot the real and imag (I and Q) data in the left
     and right channels so you can listen in stereo!
 
+    Future Work
+    -----------
     If an iqdat file contained both main array samples and interferometer array samples,
     then a stereo file can be created with main array samples in one channel and the interferometer
-    samples in the other. # TODO: Future feature - plot stereo with main and interferometer channels
+    samples in the other. Future feature - plot stereo with main and interferometer channels
 
-    :param records: pydarn iqdat records, as returned from read_iqdat()
-    :param save_directory: Filepath to save the wav files to
-    :param sequences_to_play: up to this # of sequences will be written to WAV file for each record
-    :param stereo: If True, then create a stereo WAV file with I and Q signals in separate channels.
+    Parameters
+    ----------
+    records: List[dict]
+        pydarn iqdat records, as returned from read_iqdat()
+    save_directory: str
+        Filepath to save the wav files to
+    sequences_to_play: int
+        up to this # of sequences will be written to WAV file for each record
+        Default : None
+    stereo: boolean
+        If True, then create a stereo WAV file with I and Q signals in separate channels.
+        Default : False
+
+    See Also
+    --------
+    https://superdarn.github.io/rst/superdarn/src.doc/rfc/0027.html
+    https://pysoundfile.readthedocs.io/en/latest/
     """
     first = records[0]
     stid = first['stid']
@@ -103,14 +119,29 @@ def iq_to_wav(records, save_directory, sequences_to_play=None, stereo=False):
 
 def plot_iq(records, save_directory, sequences_to_plot=None):
     """
-    Plot the records in a nice way.
+    This method will create a plot for each record in the list of records.
+    The plot contains subplots for each sequence, up to a maximum of sequences_to_plot.
+    It plots I and Q samples. The Y axis is the amplitude of the sample, the X axis is
+    the sample number. I (real) is plotted in black, Q (imag) is plotted in red.
+    Additionally, the pulse sequence is plotted in a subplot on the bottom, and a vertical
+    black bar will be plotted for each sample that contains a transmit pulse.
 
-    That's nice. Optionally specify up to how many sequences
-    to plot for each record. It will plot them in order up to the number specified or all
-    of the sequences, whichever is less.
-    :param records: pydarn iqdat records, as returned from read_iqdat()
-    :param save_directory: Filepath to save the plots to
-    :param sequences_to_plot: up to how many sequences should be plotted for each record?
+    You can optionally specify up to how many sequences to plot for each record.
+    It will plot them in order up to the number specified or all sequences, whichever is less.
+
+    Future Work
+    -----------
+    The scale of the y axis should be auto-scaled depending upon the I and Q amplitudes
+
+    Parameters
+    ----------
+    records: List[dict]
+        pydarn iqdat records, as returned from read_iqdat()
+    save_directory: str
+        Filepath to save the plots to
+    sequences_to_plot: int
+        up to how many sequences should be plotted for each record?
+        Default : None
     """
     # Used for printout of progress along with the record_num, because this is slow.
     num_records = len(records)
@@ -199,17 +230,24 @@ def plot_iq(records, save_directory, sequences_to_plot=None):
         plt.close(fig)
 
 
-def get_stats_from_records(pydarn_records):
+def get_stats_from_records(records):
     """
     Return a string of various important or nice to know info from the pydarn records
-    :param pydarn_records: pydarn records from a call to pydarn.SDarnRead(...).read_iqdat()
-    :return: String of various stats
+
+    Parameters
+    ----------
+    records: List[dict]
+        pydarn iqdat records, as returned from read_iqdat()
+
+    Returns
+    -------
+    A string representing various stats and information about the IQDAT file.
     """
-    first = pydarn_records[0]
-    last = pydarn_records[-1]
+    first = records[0]
+    last = records[-1]
     stid = first['stid']
     hw_info = pydarn.SuperDARNRadars.radars[stid].hardware_info
-    stats = "Number of records: {}\r\n".format(len(pydarn_records))
+    stats = "Number of records: {}\r\n".format(len(records))
     stats += "Radar: {} Station ID: {}\r\n".format(hw_info.abbrev, first['stid'])
     stats += "Channels: {}\r\n".format(first['chnnum'])
     stats += "Start time: {}, end time: {}".format(first['origin.time'], last['origin.time'])
@@ -222,8 +260,23 @@ def open_compressed_file(input_filename):
     This method uses magic numbers inherent to various file types, and imports what it needs,
     when it needs it. The result is a filestream ready for pydarn.SDarnRead(returnval, True).
     Note that SDarnRead takes a boolean value True if the first argument is a filestream.
-    :param input_filename: Path to a file to test and uncompress
-    :return: File stream for the uncompressed file
+
+    Future Work
+    -----------
+    Support other possible compression types
+
+    Parameters
+    ----------
+    input_filename: str
+        A possibly compressed file to open
+
+    Returns
+    -------
+    A filestream object from the opened input_filename
+
+    See Also
+    --------
+    https://www.garykessler.net/library/file_sigs.html
     """
     # Normally, IQ files are gzip compressed, try that first.
     # Note that there are other ways to do this, but they rely on python versions >= 3.7
