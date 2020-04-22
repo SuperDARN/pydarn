@@ -340,18 +340,15 @@ class BorealisConvert(BorealisRead):
                                 '{} * {}'.format(k,
                                                  v['blanked_samples'],
                                                  v['pulses'],
-                                                 int(v['tau_spacing']/
+                                                 int(v['tau_spacing'] /
                                                      v['tx_pulse_len'])))
                 if not all([x == 0 for x in v['pulse_phase_offset']]):
                     raise borealis_exceptions.\
-                            BorealisConvert2IqdatError('Increased complexity:'
-                                                       ' Borealis bfiq file'
-                                                       ' record {}'
-                                                       ' pulse_phase_offset {}'
-                                                       ' contains non-zero'
-                                                       ' values.'
-                                                       ''.format(k,
-                                                                 v['pulse_phase_offset']))
+                            BorealisConvert2IqdatError(
+                                'Increased complexity: Borealis bfiq file'
+                                ' record {} pulse_phase_offset {}'
+                                ' contains non-zero values.'
+                                ''.format(k, v['pulse_phase_offset']))
         return True
 
     def _is_convertible_to_rawacf(self) -> bool:
@@ -395,7 +392,7 @@ class BorealisConvert(BorealisRead):
                                 '{} * {}'.format(k,
                                                  v['blanked_samples'],
                                                  v['pulses'],
-                                                 int(v['tau_spacing']/
+                                                 int(v['tau_spacing'] /
                                                      v['tx_pulse_len'])))
 
         return True
