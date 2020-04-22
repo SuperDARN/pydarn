@@ -11,12 +11,21 @@ BorealisRawacf
 BorealisBfiq
 BorealisAntennasIq
 BorealisRawrf
-as well as previous versions of these classes.
+as well as previous versions of these classes, currently including
+BorealisRawacfv0_4
+BorealisBfiqv0_4
+BorealisAntennasIqv0_4
+BorealisRawrfv0_4
 
 Globals
 -------
 borealis_version_dict
-    A lookup table for [version][filetype] that provides the appropriate class.
+    A lookup table for [version][filetype] that provides the appropriate class
+    given the version and filetype strings.
+
+Design Concept
+--------------
+
 
 Notes
 -----
@@ -25,8 +34,10 @@ Notes
   progression from rawrf to output ptrs iq files) will not be included here.
   This is a debug format only and should not be used for higher level
   data products.
-- 'borealis_git_hash' is a necessary field for all versions, as its use is
-  hardcoded into the code in order to determine the format version to use.
+- 'borealis_git_hash' and 'sqn_timestamps' are necessary fields for all
+  versions. 'borealis_git_hash' is necessary as its use is hardcoded into
+  the code in order to determine the format version to use. 'sqn_timestamps'
+  is necessary as all formats use this field to restructure.
 
 
 See Also
@@ -43,6 +54,8 @@ from collections import OrderedDict
 
 class BaseFormat():
     """
+    The base format of all Borealis format classes.
+
     Static Methods
     --------------
     find_max_sequences(records): int
