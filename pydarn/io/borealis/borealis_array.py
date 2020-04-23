@@ -222,6 +222,10 @@ class BorealisArrayRead():
 
         Reads the entire file.
 
+        See Also
+        --------
+        BaseFormat
+
         Returns
         -------
         arrays: dict
@@ -456,6 +460,10 @@ class BorealisArrayWrite():
     def write_file(self) -> str:
         """
         Write Borealis records to a file given filetype.
+
+        See Also
+        --------
+        BaseFormat
 
         Raises
         ------

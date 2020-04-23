@@ -235,9 +235,11 @@ class BorealisSiteRead():
     def read_file(self) -> dict:
         """
         Reads the specified Borealis file using the other functions for
-        the proper file type.
+        the proper file type. Reads the entire file.
 
-        Reads the entire file.
+        See Also
+        --------
+        BaseFormat
 
         Returns
         -------
@@ -476,6 +478,10 @@ class BorealisSiteWrite():
     def write_file(self) -> str:
         """
         Write Borealis records to a file given filetype.
+
+        See Also
+        --------
+        BaseFormat
 
         Returns
         -------

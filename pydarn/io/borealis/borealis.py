@@ -130,14 +130,14 @@ class BorealisRead():
         self.borealis_filetype = borealis_filetype
 
         if borealis_file_structure is None:
-            self.__reader, self._borealis_file_structure = \
+            self._reader, self._borealis_file_structure = \
                 self.return_reader(self.filename, self.borealis_filetype)
         elif borealis_file_structure == 'site':
-            self.__reader = BorealisSiteRead(self.filename,
+            self._reader = BorealisSiteRead(self.filename,
                                             self.borealis_filetype)
             self._borealis_file_structure = 'site'
         elif borealis_file_structure == 'array':
-            self.__reader = BorealisArrayRead(self.filename,
+            self._reader = BorealisArrayRead(self.filename,
                                              self.borealis_filetype)
             self._borealis_file_structure = 'array'
         else:  # unknown structure
@@ -175,7 +175,7 @@ class BorealisRead():
         These correspond to Borealis file record write times (in ms since
         epoch), and are equal to the group names in the site file types.
         """
-        return self.__reader.record_names
+        return self._reader.record_names
 
     @property
     def records(self):
@@ -183,7 +183,7 @@ class BorealisRead():
         The Borealis data in a dictionary of records, according to the
         site file format.
         """
-        return self.__reader.records
+        return self._reader.records
 
     @property
     def arrays(self):
@@ -191,7 +191,7 @@ class BorealisRead():
         The Borealis data in a dictionary of arrays, according to the
         restructured array file format.
         """
-        return self.__reader.arrays
+        return self._reader.arrays
 
     @property
     def software_version(self):
@@ -202,14 +202,14 @@ class BorealisRead():
             May impact the fields included in the file
             as each version has a different field structure/format
         """
-        return self.__reader.software_version
+        return self._reader.software_version
 
     @property
     def format(self):
         """
         The format class used for the file, from the borealis_formats module.
         """
-        return self.__reader.format
+        return self._reader.format
 
     @staticmethod
     def return_reader(borealis_hdf5_file: str, borealis_filetype: str) -> \
@@ -347,16 +347,16 @@ class BorealisWrite():
         self.borealis_filetype = borealis_filetype
 
         if borealis_file_structure is None:
-            self.__writer, self._borealis_file_structure = \
+            self._writer, self._borealis_file_structure = \
                 self.return_writer(self.filename, self.data,
                                    self.borealis_filetype, **kwargs)
         elif borealis_file_structure == 'site':
-            self.__writer = BorealisSiteWrite(self.filename, self.data,
+            self._writer = BorealisSiteWrite(self.filename, self.data,
                                              self.borealis_filetype,
                                              **kwargs)
             self._borealis_file_structure = 'site'
         elif borealis_file_structure == 'array':
-            self.__writer = BorealisArrayWrite(self.filename, self.data,
+            self._writer = BorealisArrayWrite(self.filename, self.data,
                                               self.borealis_filetype, **kwargs)
             self._borealis_file_structure = 'array'
         else:  # unknown structure
@@ -398,7 +398,7 @@ class BorealisWrite():
         will have 'zlib' compression to enable a faster read time
         for downstream users.
         """
-        return self.__writer.compression
+        return self._writer.compression
 
     @property
     def record_names(self):
@@ -407,7 +407,7 @@ class BorealisWrite():
         These correspond to Borealis file record write times (in ms since
         epoch), and are equal to the group names in the site file types.
         """
-        return self.__writer.record_names
+        return self._writer.record_names
 
     @property
     def records(self):
@@ -415,7 +415,7 @@ class BorealisWrite():
         The Borealis data in a dictionary of records, according to the
         site file format.
         """
-        return self.__writer.records
+        return self._writer.records
 
     @property
     def arrays(self):
@@ -423,7 +423,7 @@ class BorealisWrite():
         The Borealis data in a dictionary of arrays, according to the
         restructured array file format.
         """
-        return self.__writer.arrays
+        return self._writer.arrays
 
     @property
     def software_version(self):
@@ -434,14 +434,14 @@ class BorealisWrite():
             May impact the fields included in the file
             as each version has a different field structure/format
         """
-        return self.__writer.software_version
+        return self._writer.software_version
 
     @property
     def format(self):
         """
         The format class used for the file, from the borealis_formats module.
         """
-        return self.__writer.format
+        return self._writer.format
 
     @staticmethod
     def return_writer(filename: str, data: Union[dict, OrderedDict],
