@@ -25,7 +25,12 @@ borealis_version_dict
 
 Design Concept
 --------------
-
+All borealis format classes inherit from BaseFormat. All borealis format
+classes must contain specific methods that define the fields within
+that format. BaseFormat contains additional class methods that return useful
+information for restructuring all formats to array and site structure.
+The BaseFormat methods build off of the overwritten methods in each
+Borealis format class. See the BaseFormat docs for more information.
 
 Notes
 -----
@@ -37,8 +42,8 @@ Notes
 - 'borealis_git_hash' and 'sqn_timestamps' are necessary fields for all
   versions. 'borealis_git_hash' is necessary as its use is hardcoded into
   the code in order to determine the format version to use. 'sqn_timestamps'
-  is necessary as all formats use this field to restructure.
-
+  is necessary as all formats use this field to restructure from site to array
+  and vice versa.
 
 See Also
 --------
@@ -56,6 +61,95 @@ class BaseFormat():
     """
     The base format of all Borealis format classes.
 
+    Class Methods
+    -------------
+    All Borealis formats should inherit from this class. The following class
+    methods should be specific to the format and therefore should be
+    overwritten by the format.
+
+    single_element_types(): dict
+        Dictionary of data field name to type for the format. This
+        dictionary should contain all fields in a record
+        that are not numpy arrays.
+    array_dtypes(): dict
+        Dictionary of data field names where numpy arrays are expected,
+        to numpy dtype for the format. This dictionary should contain all
+        fields that would be an array per record.
+    shared_fields(): list
+        List of the fields that are common (shared) across records. This
+        means that they can be reduced to a single value/array per file when
+        they are array restructured.
+    unshared_fields_dims_array(): dict
+        Unshared field: dimensions per record in array structure. Unshared
+        fields are not common across records. In array structure the first
+        dimension will be num_records followed by these dimensions. Dimensions
+        are provided as functions that will calculate the dimension given the
+        records or site data dictionary. This class method is used to convert
+        from site structure to array structure.
+    unshared_fields_dims_site(): dict
+        Unshared field: dimensions per record in site structure. Unshared
+        fields are not common across records. These dimensions can vary per
+        record so the functions take the arrays data dictionary and the
+        record number. This class method is used to convert from array
+        structure to site structure.
+    array_specific_fields_generate(): dict
+        Any fields that are array specific or require specific function to
+        generate. The key is the name of the array specific field and the
+        value in the dictionary is the function that takes the
+        records (site data dictionary) to generate the value for that field.
+        This class method is used when restructuring from site to array style.
+    site_specific_fields_generate(): dict
+        Any fields that are site specific or require specific function to
+        generate. The key is the name of the site specific field and the
+        value in the dictionary is the function that takes the arrays
+        (array data dictionary) and the record_num to generate the value for
+        that field at that record number. This class method is used when
+        restructuring from array to site style.
+
+    These following methods use the format-specific methods above to generate
+    their values and therefore should not be overwritten by the format class:
+
+    unshared_fields: list
+        List of the fields that are not common across records and therefore
+        must be stored as an array with first dimension = num_records in the
+        array structure.
+    array_specific_fields: list
+        List of fields that are only present in array files.
+    site_specific_fields: list
+        List of fields that are only present in site files.
+    site_fields: list
+        List of all fields that are in the site file type.
+    array_fields: list
+        List of all fields that are in the array file type.
+    site_single_element_fields : list
+        List of fields in the site files that are single element types.
+    site_single_element_types: dict
+        subset of single_element_types with only site keys.
+    site_array_dtypes_fields : list
+        List of fields in the site files that are made of numpy arrays.
+    site_array_dtypes: dict
+        subset of array_dtypes with only site keys.
+    array_single_element_fields : list
+        List of fields in the array files that are single element types.
+        Note that if the field is unshared it will appear as an
+        array of the type in the arrays data dictionary so no unshared fields
+        will appear in this list.
+    array_single_element_types: dict
+        subset of single_element_types with only array fields.
+    array_array_dtypes_fields : list
+        List of fields in the array files that are made of numpy arrays.
+        Includes fields that are single element but are unshared so are
+        converted to arrays in the array file.
+    array_array_dtypes: dict
+        fields in the array files that are made of numpy arrays, with their
+        given data type.
+    _site_to_array(data_dict): dict
+        Convert an OrderedDict of site data to array data using the information
+        provided for the specific data format.
+    _array_to_site(data_dict): OrderedDict
+        Convert a dictionary of array data to site data using the information
+        provided for the specific data format.
+
     Static Methods
     --------------
     find_max_sequences(records): int
@@ -71,84 +165,6 @@ class BaseFormat():
         Returns the site data with the arrays reshaped. Some site data arrays
         may be stored in linear dimensions, so this reshapes any if needed.
         Should be overwritten by the child class.
-
-    Class Methods
-    -------------
-    All classes built from this class should have these functions overwritten
-    according to their type:
-
-    single_element_types(): dict
-        Dictionary of data field name to type expected in that field for a
-        dictionary of Borealis data.
-    array_dtypes(): dict
-        Dictionary of data field name to array of given numpy dtype expected
-        in the field for a dictionary of Borealis data.
-    shared_fields(): list
-        List of the fields that are common (shared) across records. This
-        means that they can be reduced to a single value/array per file when
-        they are array restructured.
-    unshared_fields_dims_array(): dict
-        Unshared field: dimensions per record in array structure. Unshared
-        fields are not common across records. In array structure the first
-        dimension will be num_records followed by these dimensions. Dimensions
-        are provided as functions that will calculate the dimension given the
-        records (site data dictionary)
-    unshared_fields_dims_site(): dict
-        Unshared field: dimensions per record in site structure. Unshared
-        fields are not common across records. These dimensions can vary per
-        record so the functions take the arrays data and the record number.
-    array_specific_fields_generate(): dict
-        Any fields that are array specific or require specific function to
-        generate. The values in the dictionary are the functions that take the
-        records (site data dictionary) to generate.
-    site_specific_fields_generate(): dict
-        Any fields that are site specific or require specific function to
-        generate. The values in the dictionary are the functions that take the
-        arrays (array data dictionary) and the record_num to generate.
-
-    These methods use the single_element_types, array_dtypes, shared_fields,
-    unshared_fields_dims_array, unshared_fields_dims_site,
-    array_specific_fields_generate, and
-    site_specific_fields_generate methods to generate their values:
-
-    unshared_fields: list
-        List of the fields that are not common across records.
-    array_specific_fields: list
-        List of fields that are only present in array files.
-    site_specific_fields: list
-        List of fields that are only present in site files.
-    site_fields: list
-        List of all fields that are in the site file type.
-    array_fields: list
-        List of all fields that are in the array file type.
-    site_single_element_fields : list
-        List of fields in the site files that are single element types.4
-    site_single_element_types: dict
-        subset of single_element_types with only site keys.
-    site_array_dtypes_fields : list
-        List of fields in the site files that are made of numpy arrays.
-    site_array_dtypes: dict
-        subset of array_dtypes with only site keys.
-    array_single_element_fields : list
-        List of fields in the array files that are single element types
-        (unless unshared in which they are converted to the numpy array of
-        that type)
-    array_single_element_types: dict
-        subset of single_element_types with only array fields.
-    array_array_dtypes_fields : list
-        List of fields in the array files that are made of numpy arrays.
-        Includes fields that are single element but are unshared so are
-        converted to arrays in the array file.
-    array_array_dtypes: dict
-        fields in the array files that are made of numpy arrays, with their
-        given data type.
-
-    _site_to_array(data_dict): dict
-        Convert an OrderedDict of site data to array data using the information
-        provided for the data format.
-    _array_to_site(data_dict): OrderedDict
-        Convert a dictionary of array data to site data using the information
-        provided for the data format.
 
     Notes
     -----
