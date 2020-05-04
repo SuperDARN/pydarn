@@ -48,6 +48,58 @@ class RTP():
                 "   - plot_summary()\n"
 
     @classmethod
+    def plot_acf(cls, dmap_data: List[dict], beam_num: int = 0,
+                 gate_num: int = 15, parameter: str = 'acfd', ax=None,
+                 **kwargs):
+        """
+        plots the acfd field from superDARN file, typically RAWACF format
+        for a given beam and gate number
+
+        Parameters
+        ----------
+        dmap_data : list[dict]
+            records from a dmap file
+        beam_num : int
+            the beam number to plot, default: 0
+        gate_num : int
+            the gate number to plot, default: 15
+        parameter : str
+            the parameter to plot, default: acfd
+        ax: matplotlib.axes
+            axes object for another way of plotting
+            Default: None
+
+        Raises
+        ------
+
+        Returns
+        -------
+
+        """
+        # If an axes object is not passed in then store
+        # the equivalent object in matplotlib. This allows
+        # for variant matplotlib plotting styles.
+        if not ax:
+            ax = plt.gca()
+         # Determine if a DmapRecord was passed in, instead of a list
+        try:
+            # because of partial records we need to find the first
+            # record that has that parameter
+            index_first_match = next(i for i, d in enumerate(dmap_data)
+                                     if parameter in d)
+            if isinstance(dmap_data[index_first_match][parameter],
+                          DmapArray) or\
+               isinstance(dmap_data[index_first_match][parameter],
+                          DmapScalar):
+                dmap_data = dmap2dict(dmap_data)
+        except StopIteration:
+            raise rtp_exceptions.RTPUnknownParameterError(parameter)
+
+        cls.dmap_data = dmap_data
+        cls.__check_data_type(parameter, 'array', index_first_match)
+
+
+    @classmethod
     def plot_range_time(cls, dmap_data: List[dict], parameter: str = 'v',
                         beam_num: int = 0, channel: int = 'all', ax=None,
                         background: str = 'w', groundscatter: bool = False,
