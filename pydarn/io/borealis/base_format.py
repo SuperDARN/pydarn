@@ -10,12 +10,22 @@ BaseFormat
 
 Design Concept for Borealis Format Classes
 ------------------------------------------
-All borealis format classes inherit from BaseFormat. All borealis format
-classes must contain specific methods that define the fields within
-that format. BaseFormat contains additional class methods that return useful
-information for restructuring all formats to array and site structure.
-The BaseFormat methods build off of the overwritten methods in each
-Borealis format class. See the BaseFormat docs for more information.
+In using formats as static classes without instantiation, the
+Borealis formats have been developed with inheritance in mind. This
+allows restructuring of the formats to be set up within the
+BaseFormat parent class, as well as some other basic class methods,
+while allowing the format to specify its unique characteristics
+(fields and their types) in specified classmethods and staticmethods
+which should be rewritten by the class.
+
+All borealis format classes inherit from BaseFormat to make use
+of the BaseFormat internal methods used for restructuring.
+
+See Also
+--------
+- borealis_formats module, where the current formats are set up.
+- The Borealis documentation on formats is at
+  https://borealis.readthedocs.io/en/latest/borealis_data.html
 
 Notes
 -----
@@ -36,11 +46,29 @@ class BaseFormat():
     """
     The base format of all Borealis format classes.
 
-    Class Methods
-    -------------
+    Class Methods that Vary with Format
+    -----------------------------------
     All Borealis formats should inherit from this class. The following class
     methods should be specific to the format and therefore should be
-    overwritten by the format.
+    overwritten by the format. These methods classify the fields in
+    a format and how they are used in restructuring.
+
+    All fields possible = single_element_types + array_dtypes
+    All fields are then also classified into four types to determine
+    how to restructure: shared_fields (all records have the same value),
+    unshared_fields (all records have unique value/array),
+    array_specific_fields (used mainly where dimensions
+    may vary between records so the number to parse needs to be stored),
+    and site_specific_fields (used mainly where dimensions of
+    flattened arrays need to be stored).
+
+    unshared_fields require dimensions to be generated when structuring
+    from the opposite type (array/site), and array specific and site specific
+    formats require generator functions when converting from the opposite
+    type.
+
+    The following class methods classify the field types and provide
+    generation information when restructuring from the opposite structure.
 
     single_element_types(): dict
         Dictionary of data field name to type for the format. This
@@ -81,6 +109,23 @@ class BaseFormat():
         that field at that record number. This class method is used when
         restructuring from array to site style.
 
+    Static Methods that Vary with Format
+    ------------------------------------
+    The following static methods should be specific to the format and
+    can be overwritten by the format.
+
+    reshape_site_arrays(records): OrderedDict
+        A function to reshape a record field if it has been flattened
+        for storage in the site file (a common convention). The
+        fields for reshaping and their dimensions are specific to the
+        format. This is a necessary function for interpreting site data.
+    flatten_site_arrays(records): OrderedDict
+        A function to flatten record fields if needed for storing in the
+        site structure. The fields for flattening are specific to the
+        format.
+
+    Class Methods Common Across Formats
+    -----------------------------------
     These following methods use the format-specific methods above to generate
     their values and therefore should not be overwritten by the format class:
 
@@ -125,8 +170,8 @@ class BaseFormat():
         Convert a dictionary of array data to site data using the information
         provided for the specific data format.
 
-    Static Methods
-    --------------
+    Static Methods Common Across Formats
+    ------------------------------------
     find_max_sequences(records): int
         Find the max number of sequences between records in a site file, for
         restructuring to arrays.
@@ -136,153 +181,19 @@ class BaseFormat():
     find_max_blanked_samples(records): int
         Find the max number of blanked samples between records in a site file,
         for restructuring to arrays.
-    reshape_site_arrays(records): OrderedDict
-        Returns the site data with the arrays reshaped. Some site data arrays
-        may be stored in linear dimensions, so this reshapes any if needed.
-        Should be overwritten by the child class.
 
     Notes
     -----
     single_element_types.keys() + array_dtypes.keys() = all known fields
-    shared_fields + unshared_fields + array_only_fields = all fields in
+    shared_fields + unshared_fields + array_specific_fields = all fields in
         array file
-    shared_fields + unshared_fields + site_only_fields = all fields in
+    shared_fields + unshared_fields + site_specific_fields = all fields in
         site file
     """
 
-    @staticmethod
-    def find_max_sequences(records: OrderedDict) -> int:
-        """
-        Finds the maximum number of sequences between records in a Borealis
-        site style records file.
+    # CLASS METHODS THAT VARY BY FORMAT
+    # i.e. class methods that classify fields in the format.
 
-        Parameters
-        ----------
-        records
-            Site formatted records from a Borealis file, organized as one
-            record for each slice
-
-        Returns
-        -------
-        max_seqs
-            The largest number of sequences found in one record from the
-            file
-        """
-        max_seqs = 0
-        for k in records:
-            if max_seqs < records[k]["num_sequences"]:
-                max_seqs = records[k]["num_sequences"]
-        return max_seqs
-
-    @staticmethod
-    def find_max_beams(records: OrderedDict) -> int:
-        """
-        Finds the maximum number of beams between records in a Borealis
-        site style records file.
-
-        Parameters
-        ----------
-        records
-            Site formatted records from a Borealis file, organized as one
-            record for each slice
-
-        Returns
-        -------
-        max_beams
-            The largest number of beams found in one record from the
-            file
-        """
-        max_beams = 0
-        for k in records:
-            if max_beams < len(records[k]["beam_nums"]):
-                max_beams = len(records[k]["beam_nums"])
-        return max_beams
-
-    @staticmethod
-    def find_max_blanked_samples(records: OrderedDict) -> int:
-        """
-        Finds the maximum number of blanked samples between records in a
-        Borealis site style records file.
-
-        Parameters
-        ----------
-        records
-            Site formatted records from a Borealis file, organized as one
-            record for each slice
-
-        Returns
-        -------
-        max_beams
-            The largest number of beams found in one record from the
-            file
-        """
-        max_blanked_samples = 0
-        for k in records:
-            if max_blanked_samples < len(records[k]["blanked_samples"]):
-                max_blanked_samples = len(records[k]["blanked_samples"])
-        return max_blanked_samples
-
-    @staticmethod
-    def reshape_site_arrays(records: OrderedDict) -> OrderedDict:
-        """
-        This is a necessary function for interpreting site data, as
-        some arrays in site data have been flattened in the file and
-        need to be reshaped to be interpreted correctly.
-
-        This reshapes them to the correct dimensions. Some formats may not
-        have this issue, in which case this function does not need to be
-        updated by the child class.
-
-        This function is used in the _site_to_array restructuring which
-        is common to all formats.
-
-        Parameters
-        ----------
-        records
-            site-style records dictionary.
-
-        Returns
-        -------
-        records
-            site-style records dictionary with any data field arrays reshaped
-            as required by the format. The BaseFormat does not contain
-            any fields that need to be reshaped but some child classes do.
-        """
-        return records
-
-    @staticmethod
-    def flatten_site_arrays(records: OrderedDict) -> OrderedDict:
-        """
-        A function to flatten record fields if needed for storing in the
-        site structure. The fields for flattening are specific to the
-        format.
-
-        Parameters
-        ----------
-        records
-            An OrderedDict of the site style data, organized by record.
-            Records are stored with timestamps as the keys and the data for
-            that timestamp stored as a dictionary.
-
-        Returns
-        -------
-        records
-            An OrderedDict of the site style data, with any fields
-            necessary in all records flattened as may be the convention
-            in site structured files of that format.
-
-        Notes
-        -----
-        This function is used by the _arrays_to_site class method
-        in restructuring files. That method is common to all formats.
-
-        This flattens the data correctly for the file format. Some formats
-        may not have this issue, in which case this function does not need to
-        be updated by the child class.
-        """
-        return records
-
-    # initialize these methods, which should be rewritten by the format.
     @classmethod
     def single_element_types(cls):
         """
@@ -332,94 +243,504 @@ class BaseFormat():
 
     @classmethod
     def shared_fields(cls):
+        """
+        Retrieve the fields of the format that belong in both site
+        and array structured files as the same value (the value is
+        shared across records).
+
+        Returns
+        -------
+        List of the fields that are common (shared) across records. This
+        means that they can be reduced to a single value/array per file when
+        they are array restructured. This is unique to the format so should
+        be overwritten by the child class.
+
+        Notes
+        -----
+        All fields possible = single_element_types + array_dtypes
+        Fields are then classified into four types to determine
+        how to restructure: shared_fields (all records have the same value),
+        unshared_fields (all records have unique value/array),
+        array_specific_fields (used mainly where dimensions
+        may vary between records so the number to parse needs to be stored),
+        and site_specific_fields (used mainly where dimensions of
+        flattened arrays need to be stored).
+        """
         return []
 
     @classmethod
     def unshared_fields_dims_array(cls):
+        """
+        Retrieve the fields of the format that belong in both site
+        and array structured files as values that vary with record number.
+        For every field, a function is given that calculates the
+        dimensions for the array structured format.
+
+        Returns
+        -------
+        A dictionary of the unshared field: dimensions per record
+        in array structure. Unshared fields are not common across records.
+        In array structure the first dimension will be num_records followed
+        by these dimensions. Dimensions are provided as functions that will
+        calculate the dimension given the records (site data) dictionary. This
+        class method is used to convert from site structure to array structure.
+        The unshared fields and the functions to generate their dimensions
+        are unique to the format so should be overwritten by the child class.
+
+        Notes
+        -----
+        All fields possible = single_element_types + array_dtypes
+        Fields are then classified into four types to determine
+        how to restructure: shared_fields (all records have the same value),
+        unshared_fields (all records have unique value/array),
+        array_specific_fields (used mainly where dimensions
+        may vary between records so the number to parse needs to be stored),
+        and site_specific_fields (used mainly where dimensions of
+        flattened arrays need to be stored).
+        """
         return {}
 
     @classmethod
     def unshared_fields_dims_site(cls):
+        """
+        Retrieve the fields of the format that belong in both site
+        and array structured files as values that vary with record number.
+        For every field, a function is given that calculates the
+        dimensions for the site structured format.
+
+        Returns
+        -------
+        Returns dictionary of Unshared field: dimensions per record in site
+        structure. Unshared fields are not common across records. These
+        dimensions can vary per record so the functions take the arrays data
+        dictionary and the record number. This class method is used to convert
+        from array structure to site structure.
+        The unshared fields and the functions to generate their dimensions
+        are unique to the format so should be overwritten by the child class.
+
+        Notes
+        -----
+        All fields possible = single_element_types + array_dtypes
+        Fields are then classified into four types to determine
+        how to restructure: shared_fields (all records have the same value),
+        unshared_fields (all records have unique value/array),
+        array_specific_fields (used mainly where dimensions
+        may vary between records so the number to parse needs to be stored),
+        and site_specific_fields (used mainly where dimensions of
+        flattened arrays need to be stored).
+        """
         return {}
 
     @classmethod
     def array_specific_fields_generate(cls):
+        """
+        Retrieve the fields of the format that belong only in the array
+        structured files. For every array specific field, a function
+        is given that calculates the value for the array field.
+
+        Returns
+        -------
+        A dictionary of any fields that are array specific or require
+        specific function to generate. The key is the name of the array
+        specific field and the value in the dictionary is the function that
+        takes the records (site data dictionary) to generate the value for that
+        field in the arrays format. This class method is used when
+        restructuring from site to array style.
+        The array specific fields and the functions to generate them are
+        unique to the format so should be overwritten by the child class.
+
+        Notes
+        -----
+        All fields possible = single_element_types + array_dtypes
+        Fields are then classified into four types to determine
+        how to restructure: shared_fields (all records have the same value),
+        unshared_fields (all records have unique value/array),
+        array_specific_fields (used mainly where dimensions
+        may vary between records so the number to parse needs to be stored),
+        and site_specific_fields (used mainly where dimensions of
+        flattened arrays need to be stored).
+        """
         return {}
 
     @classmethod
     def site_specific_fields_generate(cls):
-        return {}
+        """
+        Retrieve the fields of the format that belong only in the site
+        structured files. For every site specific field, a function
+        is given that calculates the value for the site field.
 
-    # these methods build off of the above.
+        Returns
+        -------
+        A dictionary of any fields that are site specific or require
+        specific function to generate. The key is the name of the site
+        specific field and the value in the dictionary is the function that
+        takes the arrays (array data dictionary) and the record_num to
+        generate the value for that field at that record number. This class
+        method is used when restructuring from array to site style.
+        The site specific fields and the functions to generate them are
+        unique to the format so should be overwritten by the child class.
+
+        Notes
+        -----
+        All fields possible = single_element_types + array_dtypes
+        Fields are then classified into four types to determine
+        how to restructure: shared_fields (all records have the same value),
+        unshared_fields (all records have unique value/array),
+        array_specific_fields (used mainly where dimensions
+        may vary between records so the number to parse needs to be stored),
+        and site_specific_fields (used mainly where dimensions of
+        flattened arrays need to be stored).
+        return {}
+        """
+
+    # STATIC METHODS THAT VARY BY FORMAT
+    # i.e. methods used in restructuring that the format to/from site
+    # structure for interpreting site data. These formats
+    # exist blank here because the BaseFormat does not have any
+    # fields that are flattened in the site array.
+
+    @staticmethod
+    def reshape_site_arrays(records: OrderedDict) -> OrderedDict:
+        """
+        A function to reshape a record field if it has been flattened
+        for storage in the site file (a common convention). The
+        fields for reshaping and their dimensions are specific to the
+        format. This is a necessary function for interpreting site data.
+
+        Parameters
+        ----------
+        records
+            site-style records dictionary.
+
+        Returns
+        -------
+        records
+            site-style records dictionary with any data field arrays reshaped
+            as required by the format. The BaseFormat does not contain
+            any fields that need to be reshaped but some child classes do.
+
+        Notes
+        -----
+        This function is used in the _site_to_array restructuring which
+        is common to all Borealis formats (a method of the BaseFormat).
+
+        This reshapes them to the correct dimensions. Some formats may not
+        have this issue, in which case this function does not need to be
+        updated by the child class.
+        """
+        return records
+
+    @staticmethod
+    def flatten_site_arrays(records: OrderedDict) -> OrderedDict:
+        """
+        A function to flatten record fields if needed for storing in the
+        site structure. The fields for flattening are specific to the
+        format.
+
+        Parameters
+        ----------
+        records
+            An OrderedDict of the site style data, organized by record.
+            Records are stored with timestamps as the keys and the data for
+            that timestamp stored as a dictionary.
+
+        Returns
+        -------
+        records
+            An OrderedDict of the site style data, with any fields
+            necessary in all records flattened as may be the convention
+            in site structured files of that format.
+
+        Notes
+        -----
+        This function is used by the _array_to_site class method
+        in restructuring files. That method is common to all formats.
+
+        This flattens the data correctly for the file format. Some formats
+        may not have this issue, in which case this function does not need to
+        be updated by the child class.
+        """
+        return records
+
+    # CLASS METHODS COMMON ACROSS FORMATS
+    # i.e. class methods that build off the other class methods so generally
+    # do not need to be overwritten by the formats.
+
     @classmethod
     def unshared_fields(cls):
+        """
+        Compute the unshared field names.
+
+        Returns
+        -------
+        A list of the unshared fields built from the
+        unshared_fields_dims_array method which should specify all
+        unshared fields.
+
+        Notes
+        -----
+        All fields possible = single_element_types + array_dtypes
+        Fields are then classified into four types to determine
+        how to restructure: shared_fields (all records have the same value),
+        unshared_fields (all records have unique value/array),
+        array_specific_fields (used mainly where dimensions
+        may vary between records so the number to parse needs to be stored),
+        and site_specific_fields (used mainly where dimensions of
+        flattened arrays need to be stored).
+        """
         return list(cls.unshared_fields_dims_array().keys())
 
     @classmethod
     def array_specific_fields(cls):
+        """
+        Compute the array specific field names.
+
+        Returns
+        -------
+        A list of the array specific fields built from the
+        array_specific_fields_generate dictionary which should
+        specify all array specific fields as keys.
+
+        Notes
+        -----
+        All fields possible = single_element_types + array_dtypes
+        Fields are then classified into four types to determine
+        how to restructure: shared_fields (all records have the same value),
+        unshared_fields (all records have unique value/array),
+        array_specific_fields (used mainly where dimensions
+        may vary between records so the number to parse needs to be stored),
+        and site_specific_fields (used mainly where dimensions of
+        flattened arrays need to be stored).
+        """
         return list(cls.array_specific_fields_generate().keys())
 
     @classmethod
     def site_specific_fields(cls):
+        """
+        Compute the site specific field names.
+
+        Returns
+        -------
+        A list of the site specific fields built from the
+        array_specific_fields_generate dictionary which should
+        specify all site specific fields as keys.
+
+        Notes
+        -----
+        All fields possible = single_element_types + array_dtypes
+        Fields are then classified into four types to determine
+        how to restructure: shared_fields (all records have the same value),
+        unshared_fields (all records have unique value/array),
+        array_specific_fields (used mainly where dimensions
+        may vary between records so the number to parse needs to be stored),
+        and site_specific_fields (used mainly where dimensions of
+        flattened arrays need to be stored).
+        """
         return list(cls.site_specific_fields_generate().keys())
 
     @classmethod
     def site_fields(cls):
-        """ All site fields """
+        """
+        Compute all fields that belong in a site structured file.
+
+        Returns
+        -------
+        A list of the field names that go into a site file of the format.
+        This list is built from the shared_fields, unshared_fields, and
+        site_specific fields. Together this should be all fields in a
+        site structured file.
+
+        Notes
+        -----
+        All fields possible = single_element_types + array_dtypes
+        Fields are then classified into four types to determine
+        how to restructure: shared_fields (all records have the same value),
+        unshared_fields (all records have unique value/array),
+        array_specific_fields (used mainly where dimensions
+        may vary between records so the number to parse needs to be stored),
+        and site_specific_fields (used mainly where dimensions of
+        flattened arrays need to be stored).
+        """
         return cls.shared_fields() + cls.unshared_fields() + \
             cls.site_specific_fields()
 
     @classmethod
     def array_fields(cls):
-        """ All array fields """
+        """
+        Compute all fields that belong in an array structured file.
+
+        Returns
+        -------
+        A list of the field names that go into a array file of the format.
+        This list is built from the shared_fields, unshared_fields, and
+        array_specific fields. Together this should be all fields in a
+        array structured file.
+
+        Notes
+        -----
+        All fields possible = single_element_types + array_dtypes
+        Fields are then classified into four types to determine
+        how to restructure: shared_fields (all records have the same value),
+        unshared_fields (all records have unique value/array),
+        array_specific_fields (used mainly where dimensions
+        may vary between records so the number to parse needs to be stored),
+        and site_specific_fields (used mainly where dimensions of
+        flattened arrays need to be stored).
+        """
         return cls.shared_fields() + cls.unshared_fields() + \
             cls.array_specific_fields()
 
     @classmethod
     def site_single_element_fields(cls):
-        """ All site fields that are single element in a list """
+        """
+        Compute the single element fields in the site structure.
+
+        Returns
+        -------
+        A list of the site fields that should contain only a single
+        element (versus an array).
+
+        See Also
+        --------
+        site_fields
+        single_element_types
+        """
         return [k for k in cls.site_fields() if k in
                 list(cls.single_element_types().keys())]
 
     @classmethod
     def site_single_element_types(cls):
-        """ Dict of site single element field: type"""
+        """
+        Compute the single element fields and their types for site structure.
+
+        Returns
+        -------
+        A dict of the site fields that should contain only a single
+        element (versus an array), with their type.
+
+        See Also
+        --------
+        site_fields
+        single_element_types
+        """
         return {k: cls.single_element_types()[k]
                 for k in cls.site_single_element_fields()}
 
     @classmethod
     def site_array_dtypes_fields(cls):
-        """ All site fields that are arrays in a list """
+        """
+        Compute the fields in the site structure that should contain a numpy
+        array.
+
+        Returns
+        -------
+        A list of the site fields that should contain a numpy array of
+        values in the record.
+
+        See Also
+        --------
+        site_fields
+        array_dtypes
+        """
         return [k for k in cls.site_fields() if k in
                 list(cls.array_dtypes().keys())]
 
     @classmethod
     def site_array_dtypes(cls):
-        """ Dict of site array field : dtype """
+        """
+        Compute the fields in the site structure that should contain a numpy
+        array and give the dtype for the array.
+
+        Returns
+        -------
+        A dictionary of the site fields that should contain a numpy array of
+        values in the record, and the dtype that should be in the array.
+
+        See Also
+        --------
+        site_fields
+        array_dtypes
+        """
         return {k: cls.array_dtypes()[k] for k in
                 cls.site_array_dtypes_fields()}
 
-    # for single element fields in the array filetypes, they must
-    # be a shared field.
     @classmethod
     def array_single_element_fields(cls):
-        """ List of array restructured single element fields """
+        """
+        Compute the single element fields in the array structure.
+
+        Returns
+        -------
+        A list of the array fields that should contain only a single
+        element (versus an array).
+
+        Notes
+        -----
+        Any single element field present in the array structured
+        files must be a shared_field, otherwise it would be an array
+        of dimension num_records and belong in the
+        array_array_dtypes.
+
+        See Also
+        --------
+        array_fields
+        single_element_types
+        """
         return [k for k in cls.array_fields() if
                 k in list(cls.single_element_types().keys()) and k in
                 cls.shared_fields()]
 
     @classmethod
     def array_single_element_types(cls):
-        """ Dict of array restructured single element field : type """
+        """
+        Compute the single element fields and their types for array structure.
+
+        Returns
+        -------
+        A dict of the array fields that should contain only a single
+        element (versus an array), with their type.
+
+        Notes
+        -----
+        Any single element field present in the array structured
+        files must be a shared_field, otherwise it would be an array
+        of dimension num_records and belong in the
+        array_array_dtypes.
+
+        See Also
+        --------
+        array_fields
+        single_element_types
+        """
         return {k: cls.single_element_types()[k]
                 for k in cls.array_single_element_fields()}
 
-    # for array filetypes, there are more array dtypes for any unshared
-    # fields. If the field was a single_element_type and is unshared,
-    # it is now an array of num_records length.
     @classmethod
     def array_array_dtypes_fields(cls):
-        """ List of array restructured array fields """
+        """
+        Compute the fields in the array structure that should contain a numpy
+        array.
+
+        Returns
+        -------
+        A list of the array fields that should contain a numpy array of
+        values.
+
+        Notes
+        -----
+        These fields can be from the single_element_types because those
+        are listed per record. The array fields are given for all records,
+        so any unshared field should be included here as it will be a numpy
+        array with first dimension = num_records.
+
+        See Also
+        --------
+        array_fields
+        array_dtypes
+        unshared_fields
+        single_element_types
+        array_specific_fields
+        """
         return [k for k in cls.array_fields() if
                 k in list(cls.array_dtypes().keys())] + \
                [k for k in cls.array_fields() if k in
@@ -429,7 +750,30 @@ class BaseFormat():
 
     @classmethod
     def array_array_dtypes(cls):
-        """ Dict of array restructured array field : dtype """
+        """
+        Compute the fields in the array structure that should contain a numpy
+        array, and their dtype.
+
+        Returns
+        -------
+        A dictionary of the array fields that should contain a numpy array of
+        values, and the dtype of those values.
+
+        Notes
+        -----
+        These fields can be from the single_element_types because those
+        are listed per record. The array fields are given for all records,
+        so any unshared field should be included here as it will be a numpy
+        array with first dimension = num_records.
+
+        See Also
+        --------
+        array_fields
+        array_dtypes
+        unshared_fields
+        single_element_types
+        array_specific_fields
+        """
         array_array_dtypes = {k: cls.array_dtypes()[k] for k in
                               cls.array_array_dtypes_fields() if k in
                               list(cls.array_dtypes().keys())}
@@ -588,3 +932,94 @@ class BaseFormat():
         timestamp_dict = cls.flatten_site_arrays(timestamp_dict)
 
         return timestamp_dict
+
+    # STATIC METHODS COMMON ACROSS FORMATS
+    # i.e. common methods that can be used by multiple formats in restructuring
+    # (generally these will be used in the unshared fields dims for arrays)
+
+    @staticmethod
+    def find_max_sequences(records: OrderedDict) -> int:
+        """
+        Finds the maximum number of sequences between records in a Borealis
+        site style records file.
+
+        Parameters
+        ----------
+        records
+            Site formatted records from a Borealis file, organized as one
+            record for each slice
+
+        Returns
+        -------
+        max_seqs
+            The largest number of sequences found in one record from the
+            file
+
+        Notes
+        -----
+        Used by unshared_fields_array_dims functions if the number of
+        sequences is a dimension of the per-record array.
+        """
+        max_seqs = 0
+        for k in records:
+            if max_seqs < records[k]["num_sequences"]:
+                max_seqs = records[k]["num_sequences"]
+        return max_seqs
+
+    @staticmethod
+    def find_max_beams(records: OrderedDict) -> int:
+        """
+        Finds the maximum number of beams between records in a Borealis
+        site style records file.
+
+        Parameters
+        ----------
+        records
+            Site formatted records from a Borealis file, organized as one
+            record for each slice
+
+        Returns
+        -------
+        max_beams
+            The largest number of beams found in one record from the
+            file
+
+        Notes
+        -----
+        Used by unshared_fields_array_dims functions if the number of
+        beams is a dimension of the per-record array.
+        """
+        max_beams = 0
+        for k in records:
+            if max_beams < len(records[k]["beam_nums"]):
+                max_beams = len(records[k]["beam_nums"])
+        return max_beams
+
+    @staticmethod
+    def find_max_blanked_samples(records: OrderedDict) -> int:
+        """
+        Finds the maximum number of blanked samples between records in a
+        Borealis site style records file.
+
+        Parameters
+        ----------
+        records
+            Site formatted records from a Borealis file, organized as one
+            record for each slice
+
+        Returns
+        -------
+        max_beams
+            The largest number of beams found in one record from the
+            file
+
+        Notes
+        -----
+        Used by unshared_fields_array_dims functions if the number of
+        blanked_samples is a dimension of the per-record array.
+        """
+        max_blanked_samples = 0
+        for k in records:
+            if max_blanked_samples < len(records[k]["blanked_samples"]):
+                max_blanked_samples = len(records[k]["blanked_samples"])
+        return max_blanked_samples
