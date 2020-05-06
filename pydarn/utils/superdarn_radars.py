@@ -314,6 +314,9 @@ class SuperDARNRadars():
                          Hemisphere.North, read_hdw_file('hkw')),
               64: _Radar('Inuvik', 'University of Saskatchewan',
                          Hemisphere.North, read_hdw_file('inv')),
+              50: _Radar('Jiamusi East radar', 
+                         'National Space Science Center, Chinese Academy of Sciences', 
+                         Hemisphere.North, read_hdw_file('jme'))
               3: _Radar('Kapuskasing', 'Virginia Tech', Hemisphere.North,
                         read_hdw_file('kap')),
               16: _Radar('King Salmon',
