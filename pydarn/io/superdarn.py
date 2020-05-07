@@ -414,7 +414,7 @@ class SDarnRead(DmapRead):
         pydarn_log.debug("Reading Rawacf file: {}".format(self.dmap_file))
 
         file_struct_list = [superdarn_formats.Rawacf.types,
-                            superdarn_formats.Rawacf.correaltation_field,
+                            superdarn_formats.Rawacf.correlation_field,
                             superdarn_formats.Rawacf.cross_correlation_field,
                             superdarn_formats.Rawacf.digitizing_field,
                             superdarn_formats.Rawacf.fittex_field]
