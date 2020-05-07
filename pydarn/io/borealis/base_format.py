@@ -41,6 +41,7 @@ import numpy as np
 
 from collections import OrderedDict
 
+from pydarn import borealis_exceptions
 
 class BaseFormat():
     """
@@ -70,6 +71,12 @@ class BaseFormat():
     The following class methods classify the field types and provide
     generation information when restructuring from the opposite structure.
 
+    is_restructureable(): bool
+        A boolean setting whether the format is restructureable.
+        If the format is restructureable, the shared_fields and
+        unshared_fields_dims_array and unshared_fields_dims_site
+        are necessary to restructure using the
+        _site_to_array and _array_to_site class methods.
     single_element_types(): dict
         Dictionary of data field name to type for the format. This
         dictionary should contain all fields in a record
@@ -193,6 +200,32 @@ class BaseFormat():
 
     # CLASS METHODS THAT VARY BY FORMAT
     # i.e. class methods that classify fields in the format.
+
+    @classmethod
+    def is_restructureable(cls):
+        """
+        Return whether the format is restructureable.
+
+        Returns
+        -------
+        is_restructureable
+            boolean; True if restructureable using _site_to_array
+            and _array_to_site defined here in the BaseFormat.
+
+        See Also
+        --------
+        _site_to_array
+        _array_to_site
+
+        Notes
+        -----
+        Default is False; this should only be set to True if the format has
+        shared_fields and unshared_fields properly set up. While most
+        distributed formats have been designed to be restructureable, some
+        formats, such as BorealisRawrf, have not been. BorealisRawrf
+        is a less common format for high bandwidth samples.
+        """
+        return False
 
     @classmethod
     def single_element_types(cls):
@@ -808,7 +841,30 @@ class BaseFormat():
             (these are called unshared_fields). For fields common to all
             records, there will only be the one value that applies (these
             are known as shared_fields).
+
+        See Also
+        --------
+        is_restructureable
+        reshape_site_arrays
+        shared_fields
+        array_specific_fields_generate
+        unshared_fields_dims_array
+
+        Notes
+        -----
+        The results will differ based on the format class, as many of the
+        class methods used inside this method should be specific
+        to the format and updated in the child class. However, this is the
+        process required for any restructuring, so this method itself should
+        not be updated by the child class.
         """
+
+        if not cls.is_restructureable():
+            raise borealis_exceptions.BorealisRestructureError(
+                'File format {} not recognized as '
+                'restructureable from site to array style or vice versa.'
+                ''.format(cls.__name__))
+
         new_data_dict = dict()
         num_records = len(data_dict)
 
@@ -890,7 +946,30 @@ class BaseFormat():
         new_data_dict
             An OrderedDict of timestamped records as if loaded from
             the original site file.
+
+        See Also
+        --------
+        is_restructureable
+        flatten_site_arrays
+        shared_fields
+        site_specific_fields_generate
+        unshared_fields_dims_site
+
+        Notes
+        -----
+        The results will differ based on the format class, as many of the
+        class methods used inside this method should be specific
+        to the format and updated in the child class. However, this is the
+        process required for any restructuring, so this method itself should
+        not be updated by the child class.
         """
+
+        if not cls.is_restructureable():
+            raise borealis_exceptions.BorealisRestructureError(
+                'File format {} not recognized as '
+                'restructureable from site to array style or vice versa.'
+                ''.format(cls.__name__))
+
         timestamp_dict = OrderedDict()
         for record_num, seq_timestamp in \
                 enumerate(data_dict["sqn_timestamps"]):
