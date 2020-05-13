@@ -1287,7 +1287,7 @@ class BorealisRawacf(BorealisRawacfv0_4):
     In v0.5, the following fields were added:
     slice_id, slice_interfacing, scheduling_mode, and averaging_method.
     As well, blanked_samples was changed from shared to unshared in the array
-    restructuring, which necessitates an array-specific field, 
+    restructuring, which necessitates an array-specific field,
     num_blanked_samples, to specify how much data to read in the blanked_samples
     array in the array style file.
     """
@@ -1337,9 +1337,9 @@ class BorealisRawacf(BorealisRawacfv0_4):
         -----
         In Borealis v0.5, slice_id, scheduling_mode, and
         averaging_method were added and these will be shared fields. These
-        fields will not change from record to record. Blanked samples may 
-        change from record to record if a new slice is added and interfaced 
-        within the sequence. Therefore, this bug was fixed by changing 
+        fields will not change from record to record. Blanked samples may
+        change from record to record if a new slice is added and interfaced
+        within the sequence. Therefore, this bug was fixed by changing
         blanked_samples to an unshared field in Borealis v0.5.
         """
         shared = super(BorealisRawacf, cls).shared_fields() + \
@@ -1355,9 +1355,9 @@ class BorealisRawacf(BorealisRawacfv0_4):
         Notes
         -----
         In Borealis v0.5, blanked samples was changed to an unshared field.
-        This was a bug in earlier versions. 'slice_interfacing' was a new 
-        field added in Borealis v0.5. It is an unshared field because 
-        new slices may be added and interfaced to this slice and therefore 
+        This was a bug in earlier versions. 'slice_interfacing' was a new
+        field added in Borealis v0.5. It is an unshared field because
+        new slices may be added and interfaced to this slice and therefore
         slice_interfacing may not be the same from record to record.
         """
         unshared_fields_dims = super(BorealisRawacf,
@@ -1421,7 +1421,7 @@ class BorealisBfiq(BorealisBfiqv0_4):
     In v0.5, the following fields were added:
     slice_id, slice_interfacing, and scheduling_mode.
     As well, blanked_samples was changed from shared to unshared in the array
-    restructuring, which necessitates an array-specific field, 
+    restructuring, which necessitates an array-specific field,
     num_blanked_samples, to specify how much data to read in the blanked_samples
     array in the array style file.
     """
@@ -1470,11 +1470,11 @@ class BorealisBfiq(BorealisBfiqv0_4):
 
         Notes
         -----
-        In Borealis v0.5, slice_id and scheduling_mode were added and these 
-        will be shared fields. These fields will not change from record to 
-        record. Blanked samples may  change from record to record if a new 
-        slice is added and interfaced within the sequence. Therefore, this bug 
-        was fixed by changing blanked_samples to an unshared field in Borealis 
+        In Borealis v0.5, slice_id and scheduling_mode were added and these
+        will be shared fields. These fields will not change from record to
+        record. Blanked samples may  change from record to record if a new
+        slice is added and interfaced within the sequence. Therefore, this bug
+        was fixed by changing blanked_samples to an unshared field in Borealis
         v0.5.
         """
         shared = super(BorealisBfiq, cls).shared_fields() + \
@@ -1490,9 +1490,9 @@ class BorealisBfiq(BorealisBfiqv0_4):
         Notes
         -----
         In Borealis v0.5, blanked samples was changed to an unshared field.
-        This was a bug in earlier versions. 'slice_interfacing' was a new 
-        field added in Borealis v0.5. It is an unshared field because 
-        new slices may be added and interfaced to this slice and therefore 
+        This was a bug in earlier versions. 'slice_interfacing' was a new
+        field added in Borealis v0.5. It is an unshared field because
+        new slices may be added and interfaced to this slice and therefore
         slice_interfacing may not be the same from record to record.
         """
         unshared_fields_dims = super(BorealisBfiq,
@@ -1555,8 +1555,8 @@ class BorealisAntennasIq(BorealisAntennasIqv0_4):
     In v0.5, the following fields were added to the Borealis-produced
     site structured files:
     slice_id, slice_interfacing, scheduling_mode, and blanked_samples.
-    blanked_samples is unshared in the array restructuring, which necessitates 
-    an array-specific field, num_blanked_samples, to specify how much data to 
+    blanked_samples is unshared in the array restructuring, which necessitates
+    an array-specific field, num_blanked_samples, to specify how much data to
     read in the blanked_samples array in the array style file.
     """
 
@@ -1623,8 +1623,8 @@ class BorealisAntennasIq(BorealisAntennasIqv0_4):
 
         Notes
         -----
-        In Borealis v0.5, slice_id and scheduling_mode were added and these 
-        will be shared fields. 
+        In Borealis v0.5, slice_id and scheduling_mode were added and these
+        will be shared fields.
         """
         shared = super(BorealisAntennasIq, cls).shared_fields() + \
             ['slice_id', 'scheduling_mode']
@@ -1638,9 +1638,9 @@ class BorealisAntennasIq(BorealisAntennasIqv0_4):
         Notes
         -----
         In Borealis v0.5, blanked samples was added to the antennas_iq.
-        This was a bug in earlier versions. 'slice_interfacing' was a new 
+        This was a bug in earlier versions. 'slice_interfacing' was a new
         field as well. Both are unshared fields because
-        new slices may be added and interfaced to this slice and therefore 
+        new slices may be added and interfaced to this slice and therefore
         the field may not be the same from record to record.
         """
         unshared_fields_dims = super(BorealisAntennasIq,
@@ -1697,7 +1697,7 @@ class BorealisRawrf(BorealisRawrfv0_4):
     array and site structure.
 
     In v0.5, the following fields were added to BorealisRawrf:
-    scheduling_mode and blanked_samples. 
+    scheduling_mode and blanked_samples.
     """
 
     @classmethod
