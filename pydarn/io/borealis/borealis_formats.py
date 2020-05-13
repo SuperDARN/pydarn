@@ -32,8 +32,13 @@ Notes
 
 See Also
 --------
-For more information on Borealis data files, see:
-https://borealis.readthedocs.io/en/latest/
+- BaseFormat
+    It is critical to understand the BaseFormat methods and design concept
+    to understand how each of the format class' methods work, and how they
+    are used in restructuring from site to array structure (and vice versa)
+    for each format.
+- The Borealis documentation on formats is at
+  https://borealis.readthedocs.io/en/latest/borealis_data.html
 """
 
 import numpy as np
@@ -58,9 +63,9 @@ class BorealisRawacfv0_4(BaseFormat):
     combined into antenna arrays; then autocorrelated and correlated between
     antenna arrays to produce matrices of num_ranges x num_lags.
 
-    See BaseFormat for description of classmethods and how they
-    are used to verify format files and restructure Borealis files to
-    array and site structure.
+    See BaseFormat for description of classmethods and some staticmethods
+    and how they are used to verify format files and restructure Borealis
+    files to array and site structure.
 
     Static Methods
     --------------
@@ -68,18 +73,26 @@ class BorealisRawacfv0_4(BaseFormat):
         Returns num ranges in the data for use in finding dimensions
     find_num_lags(OrderedDict): int
         Returns the num lags in the data for use in finding dimensions
-    reshape_site_arrays(OrderedDict): OrderedDict
-        Reshapes the main_acfs, intf_acfs, xcfs fields.
-    flatten_site_arrays(OrderedDict): OrderedDict
-        Flattens the main_acfs, intf_acfs, xcfs fields.
     """
 
     @staticmethod
     def find_num_ranges(records: OrderedDict) -> int:
         """
         Find the number of ranges given the records dictionary, for
-
         restructuring to arrays.
+
+        Parameters
+        ----------
+        records
+            The records dictionary from a site-style file.
+
+        Returns
+        -------
+        num_ranges
+            The number of ranges being calculated in the acfs.
+
+        Notes
+        -----
         Num_ranges is unique to a slice so cannot change inside file.
         """
         first_key = list(records.keys())[0]
@@ -91,6 +104,19 @@ class BorealisRawacfv0_4(BaseFormat):
         """
         Find the number of lags given the records dictionary, for
         restructuring to arrays.
+
+        Parameters
+        ----------
+        records
+            The records dictionary from a site-style file.
+
+        Returns
+        -------
+        num_lags
+            The number of lags being calculated in the acfs.
+
+        Notes
+        -----
         Num_lags is unique to a slice so cannot change inside file.
         """
         first_key = list(records.keys())[0]
@@ -100,15 +126,31 @@ class BorealisRawacfv0_4(BaseFormat):
     @staticmethod
     def reshape_site_arrays(records: OrderedDict) -> OrderedDict:
         """
-        Sometimes arrays in the site style have been reduced to
-        linear arrays with given dimensions. This function returns
-        the site data with all arrays restructured correctly as
-        per the format.
+        See BaseFormat class for description and use of this method.
+
+        Parameters
+        ----------
+        records
+            An OrderedDict of the site style data, organized
+            by record. Records are stored with timestamps
+            as the keys and the data for that timestamp
+            stored as a dictionary.
+
+        Returns
+        -------
+        records
+            An OrderedDict of the site style data, with the main_acfs,
+            intf_acfs, and xcfs fields in all records reshaped to the correct
+            dimensions.
+
+        Notes
+        -----
+        BorealisRawacf has the correlation fields flattened in the
+        site structured files, so this field is reshaped in here.
         """
 
-        # main_acfs, intf_acfs, and xcfs to be reshaped.
         # dimensions provided in correlation_dimensions field as num_beams,
-        # num_ranges, num_lags.
+        # num_ranges, num_lags for the rawacf format.
         for key in list(records.keys()):
             record_dimensions = records[key]['correlation_dimensions']
             for field in ['main_acfs', 'intf_acfs', 'xcfs']:
@@ -120,10 +162,27 @@ class BorealisRawacfv0_4(BaseFormat):
     @staticmethod
     def flatten_site_arrays(records: OrderedDict) -> OrderedDict:
         """
-        Sometimes arrays in the site style have been reduced to
-        linear arrays with given dimensions. This function returns
-        the site data with all arrays flattened as desired for
-        storing in the site format.
+        See BaseFormat class for description and use of this method.
+
+        Parameters
+        ----------
+        records
+            An OrderedDict of the site style data, organized
+            by record. Records are stored with timestamps
+            as the keys and the data for that timestamp
+            stored as a dictionary.
+
+        Returns
+        -------
+        records
+            An OrderedDict of the site style data, with the correlation
+            fields in all records flattened as is the convention
+            in site structured files.
+
+        Notes
+        -----
+        BorealisRawacf has the main_acfs, intf_acfs, and xcfs fields flattened
+        in the site structured files.
         """
         for key in list(records.keys()):
             for field in ['main_acfs', 'intf_acfs', 'xcfs']:
@@ -244,11 +303,16 @@ class BorealisRawacfv0_4(BaseFormat):
             "xcfs": np.complex64
             }
 
-    # we don't need to know dimension info for these fields because dims
-    # will be the same for site and restructured files.
     @classmethod
     def shared_fields(cls):
-        """ See BaseFormat class for description. """
+        """
+        See BaseFormat class for description and use of this method.
+
+        Notes
+        -----
+        The dimension info for shared_fields is not necessary because the
+        dimensions will be the same for site and restructured files.
+        """
         return ['blanked_samples', 'borealis_git_hash',
                 'data_normalization_factor', 'experiment_comment',
                 'experiment_id', 'experiment_name', 'first_range',
@@ -260,7 +324,9 @@ class BorealisRawacfv0_4(BaseFormat):
 
     @classmethod
     def unshared_fields_dims_array(cls):
-        """ See BaseFormat class for description. """
+        """
+        See BaseFormat class for description and use of this method.
+        """
         return {  # functions take records dictionary
             'num_sequences': [],
             'int_time': [],
@@ -280,7 +346,9 @@ class BorealisRawacfv0_4(BaseFormat):
 
     @classmethod
     def unshared_fields_dims_site(cls):
-        """ See BaseFormat class for description. """
+        """
+        See BaseFormat class for description and use of this method.
+        """
         return {  # functions take arrays dictionary and record_num
             'num_sequences': [],
             'int_time': [],
@@ -316,7 +384,9 @@ class BorealisRawacfv0_4(BaseFormat):
 
     @classmethod
     def array_specific_fields_generate(cls):
-        """ See BaseFormat class for description. """
+        """
+        See BaseFormat class for description and use of this method.
+        """
         return {
             'num_beams': lambda records: np.array(
                 [len(record['beam_nums']) for key, record in records.items()],
@@ -327,7 +397,9 @@ class BorealisRawacfv0_4(BaseFormat):
 
     @classmethod
     def site_specific_fields_generate(cls):
-        """ See BaseFormat class for description. """
+        """
+        See BaseFormat class for description and use of this method.
+        """
         return {
             'correlation_descriptors': lambda arrays, record_num: np.array(
                 ['num_beams', 'num_ranges', 'num_lags']),
@@ -353,8 +425,8 @@ class BorealisBfiqv0_4(BaseFormat):
     and all channels have been combined into their arrays. No correlation
     or averaging has occurred.
 
-    See BaseFormat for description of classmethods and how they
-    are used to verify format files and restructure Borealis files to
+    See BaseFormat for description of classmethods and some staticmethods and
+    how they are used to verify format files and restructure Borealis files to
     array and site structure.
 
     Static Methods
@@ -363,8 +435,6 @@ class BorealisBfiqv0_4(BaseFormat):
         Returns number of arrays in the data for use in finding dimensions
     find_num_samps(OrderedDict): int
         Returns the number of samples in the data for use in finding dimensions
-    reshape_site_arrays(OrderedDict): OrderedDict
-        Reshapes the data field according to data dimensions.
     """
 
     @staticmethod
@@ -372,6 +442,21 @@ class BorealisBfiqv0_4(BaseFormat):
         """
         Find the number of antenna arrays given the records dictionary, for
         restructuring to arrays.
+
+        Parameters
+        ----------
+        records
+            The records dictionary from a site-style file.
+
+        Returns
+        -------
+        num_arrays
+            The number of arrays that have been beamformed and combined in
+            the file. Typically 2; main and one interferometer.
+
+        Notes
+        -----
+        Num_arrays is unique to a slice so cannot change inside file.
         """
         first_key = list(records.keys())[0]
         num_arrays = records[first_key]['data_dimensions'][0]
@@ -382,6 +467,21 @@ class BorealisBfiqv0_4(BaseFormat):
         """
         Find the number of samples given the records dictionary, for
         restructuring to arrays.
+
+        Parameters
+        ----------
+        records
+            The records dictionary from a site-style file.
+
+        Returns
+        -------
+        num_samps
+            The number of samples that have been recorded in a sequence.
+
+        Notes
+        -----
+        The num_ranges/first_range and sampling rates that determine this
+        value cannot change within a slice, therefore it is one value per file.
         """
         first_key = list(records.keys())[0]
         num_samps = records[first_key]['data_dimensions'][3]
@@ -390,10 +490,27 @@ class BorealisBfiqv0_4(BaseFormat):
     @staticmethod
     def reshape_site_arrays(records: OrderedDict) -> OrderedDict:
         """
-        Sometimes arrays in the site style have been reduced to
-        linear arrays with given dimensions. This function returns
-        the site data with all arrays reshaped correctly as
-        per the format.
+        See BaseFormat class for description and use of this method.
+
+        Parameters
+        ----------
+        records
+            An OrderedDict of the site style data, organized
+            by record. Records are stored with timestamps
+            as the keys and the data for that timestamp
+            stored as a dictionary.
+
+        Returns
+        -------
+        records
+            An OrderedDict of the site style data, with the data
+            field in all records reshaped to the correct dimensions.
+
+        Notes
+        -----
+        BorealisBfiq has the data field flattened in the
+        site structured files, so this field is reshaped here to the
+        correct dimensions given in data_dimensions.
         """
         for key in list(records.keys()):
             record_dimensions = records[key]['data_dimensions']
@@ -406,10 +523,27 @@ class BorealisBfiqv0_4(BaseFormat):
     @staticmethod
     def flatten_site_arrays(records: OrderedDict) -> OrderedDict:
         """
-        Sometimes arrays in the site style have been reduced to
-        linear arrays with given dimensions. This function returns
-        the site data with all arrays flattened as desired for
-        storing in the site format.
+        See BaseFormat class for description and use of this method.
+
+        Parameters
+        ----------
+        records
+            An OrderedDict of the site style data, organized
+            by record. Records are stored with timestamps
+            as the keys and the data for that timestamp
+            stored as a dictionary.
+
+        Returns
+        -------
+        records
+            An OrderedDict of the site style data, with the data
+            field in all records flattened as is the convention
+            in site structured files.
+
+        Notes
+        -----
+        BorealisBfiq has the data field flattened in the
+        site structured files.
         """
         for key in list(records.keys()):
             for field in ['data']:
@@ -537,7 +671,9 @@ class BorealisBfiqv0_4(BaseFormat):
 
     @classmethod
     def shared_fields(cls):
-        """ See BaseFormat class for description. """
+        """
+        See BaseFormat class for description and use of this method.
+        """
         return ['antenna_arrays_order', 'blanked_samples',
                 'borealis_git_hash',
                 'data_normalization_factor',
@@ -552,7 +688,9 @@ class BorealisBfiqv0_4(BaseFormat):
 
     @classmethod
     def unshared_fields_dims_array(cls):
-        """ See BaseFormat class for description. """
+        """
+        See BaseFormat class for description and use of this method.
+        """
         return {
             'num_sequences': [],
             'int_time': [],
@@ -569,7 +707,9 @@ class BorealisBfiqv0_4(BaseFormat):
 
     @classmethod
     def unshared_fields_dims_site(cls):
-        """ See BaseFormat class for description. """
+        """
+        See BaseFormat class for description and use of this method.
+        """
         return {
             'num_sequences': [],
             'int_time': [],
@@ -593,7 +733,9 @@ class BorealisBfiqv0_4(BaseFormat):
 
     @classmethod
     def array_specific_fields_generate(cls):
-        """ See BaseFormat class for description. """
+        """
+        See BaseFormat class for description and use of this method.
+        """
         return {
             'num_beams': lambda records: np.array(
                 [len(record['beam_nums']) for key, record in records.items()],
@@ -605,7 +747,9 @@ class BorealisBfiqv0_4(BaseFormat):
 
     @classmethod
     def site_specific_fields_generate(cls):
-        """ See BaseFormat class for description. """
+        """
+        See BaseFormat class for description and use of this method.
+        """
         return {
             'data_descriptors': lambda arrays, record_num: np.array(
                 ['num_antenna_arrays', 'num_sequences', 'num_beams',
@@ -632,8 +776,8 @@ class BorealisAntennasIqv0_4(BaseFormat):
     and filtered, but it has not been beamformed or combined into the
     entire antenna array data product.
 
-    See BaseFormat for description of classmethods and how they
-    are used to verify format files and restructure Borealis files to
+    See BaseFormat for description of classmethods and some staticmethods and
+    how they are used to verify format files and restructure Borealis files to
     array and site structure.
 
     Static Methods
@@ -642,8 +786,6 @@ class BorealisAntennasIqv0_4(BaseFormat):
         Returns number of antennas in the data for use in finding dimensions
     find_num_samps(OrderedDict): int
         Returns the number of samples in the data for use in finding dimensions
-    reshape_site_arrays(OrderedDict): OrderedDict
-        Reshapes the data field according to data dimensions.
     """
 
     @staticmethod
@@ -651,6 +793,21 @@ class BorealisAntennasIqv0_4(BaseFormat):
         """
         Find the number of antennas given the records dictionary, for
         restructuring to arrays.
+
+        Parameters
+        ----------
+        records
+            The records dictionary from a site-style file.
+
+        Returns
+        -------
+        num_antennas
+            The number of antennas that have been recorded and stored in the
+            file.
+
+        Notes
+        -----
+        Num_antennas is unique to a slice so cannot change inside file.
         """
         first_key = list(records.keys())[0]
         num_antennas = records[first_key]['data_dimensions'][0]
@@ -661,6 +818,21 @@ class BorealisAntennasIqv0_4(BaseFormat):
         """
         Find the number of samples given the records dictionary, for
         restructuring to arrays.
+
+        Parameters
+        ----------
+        records
+            The records dictionary from a site-style file.
+
+        Returns
+        -------
+        num_samps
+            The number of samples that have been recorded in a sequence.
+
+        Notes
+        -----
+        The num_ranges/first_range and sampling rates that determine this
+        value cannot change within a slice, therefore it is one value per file.
         """
         first_key = list(records.keys())[0]
         num_samps = records[first_key]['data_dimensions'][2]
@@ -669,10 +841,27 @@ class BorealisAntennasIqv0_4(BaseFormat):
     @staticmethod
     def reshape_site_arrays(records: OrderedDict) -> OrderedDict:
         """
-        Sometimes arrays in the site style have been reduced to
-        linear arrays with given dimensions. This function returns
-        the site data with all arrays reshaped correctly as
-        per the format.
+        See BaseFormat class for description and use of this method.
+
+        Parameters
+        ----------
+        records
+            An OrderedDict of the site style data, organized
+            by record. Records are stored with timestamps
+            as the keys and the data for that timestamp
+            stored as a dictionary.
+
+        Returns
+        -------
+        records
+            An OrderedDict of the site style data, with the data
+            field in all records reshaped to the correct dimensions.
+
+        Notes
+        -----
+        BorealisAntennasIq has the data field flattened in the
+        site structured files, so this field is reshaped here to the correct
+        data_dimensions given in the file.
         """
         for key in list(records.keys()):
             record_dimensions = records[key]['data_dimensions']
@@ -685,9 +874,7 @@ class BorealisAntennasIqv0_4(BaseFormat):
     @staticmethod
     def flatten_site_arrays(records: OrderedDict) -> OrderedDict:
         """
-        A function to flatten record fields if needed for storing in the
-        site structure. The fields for flattening are specific to the
-        format.
+        See BaseFormat class for description and use of this method.
 
         Parameters
         ----------
@@ -706,9 +893,6 @@ class BorealisAntennasIqv0_4(BaseFormat):
 
         Notes
         -----
-        This function is used by the _arrays_to_site class method
-        in restructuring files.
-
         BorealisAntennasIq has the data field flattened in the
         site structured files.
         """
@@ -825,7 +1009,9 @@ class BorealisAntennasIqv0_4(BaseFormat):
 
     @classmethod
     def shared_fields(cls):
-        """ See BaseFormat class for description. """
+        """
+        See BaseFormat class for description and use of this method.
+        """
         return ['antenna_arrays_order',
                 'borealis_git_hash',
                 'data_normalization_factor', 'experiment_comment',
@@ -838,7 +1024,9 @@ class BorealisAntennasIqv0_4(BaseFormat):
 
     @classmethod
     def unshared_fields_dims_array(cls):
-        """ See BaseFormat class for description. """
+        """
+        See BaseFormat class for description and use of this method.
+        """
         return {
             'num_sequences': [],
             'int_time': [],
@@ -854,7 +1042,9 @@ class BorealisAntennasIqv0_4(BaseFormat):
 
     @classmethod
     def unshared_fields_dims_site(cls):
-        """ See BaseFormat class for description. """
+        """
+        See BaseFormat class for description and use of this method.
+        """
         return {
             'num_sequences': [],
             'int_time': [],
@@ -876,7 +1066,9 @@ class BorealisAntennasIqv0_4(BaseFormat):
 
     @classmethod
     def array_specific_fields_generate(cls):
-        """ See BaseFormat class for description. """
+        """
+        See BaseFormat class for description and use of this method.
+        """
         return {
             'num_beams': lambda records: np.array(
                 [len(record['beam_nums']) for key, record in records.items()],
@@ -888,7 +1080,9 @@ class BorealisAntennasIqv0_4(BaseFormat):
 
     @classmethod
     def site_specific_fields_generate(cls):
-        """ See BaseFormat class for description. """
+        """
+        See BaseFormat class for description and use of this method.
+        """
         return {
             'data_descriptors': lambda arrays, record_num: np.array(
                 ['num_antennas', 'num_sequences', 'num_samps']),
@@ -914,18 +1108,9 @@ class BorealisRawrfv0_4(BaseFormat):
     Rawrf data is data that has been produced at the original receive bandwidth
     and has not been mixed, filtered, or decimated.
 
-    See BaseFormat for description of classmethods and how they
-    are used to verify format files and restructure Borealis files to
-    array and site structure.
-
-    Static Methods
-    --------------
-    reshape_site_arrays(OrderedDict): OrderedDict
-        Reshapes the data field in the records according to data
-        dimensions.
-    flatten_site_arrays(OrderedDict): OrderedDict
-        Flattens the data field in the records as is the
-        convention for site style files.
+    See BaseFormat for description of classmethods and some staticmethods
+    and how they are used to verify format files and restructure Borealis
+    files to array and site structure.
     """
 
     @staticmethod
@@ -1087,6 +1272,7 @@ class BorealisRawacf(BorealisRawacfv0_4):
     --------
     BaseFormat
     BorealisRawacfv0_4
+    https://borealis.readthedocs.io/en/latest/borealis_data.html
 
     Notes
     -----
@@ -1101,7 +1287,9 @@ class BorealisRawacf(BorealisRawacfv0_4):
     In v0.5, the following fields were added:
     slice_id, slice_interfacing, scheduling_mode, and averaging_method.
     As well, blanked_samples was changed from shared to unshared in the array
-    restructuring.
+    restructuring, which necessitates an array-specific field, 
+    num_blanked_samples, to specify how much data to read in the blanked_samples
+    array in the array style file.
     """
 
     @classmethod
@@ -1142,7 +1330,18 @@ class BorealisRawacf(BorealisRawacfv0_4):
 
     @classmethod
     def shared_fields(cls):
-        """ See BaseFormat class for description. """
+        """
+        See BaseFormat class for description and use of this method.
+
+        Notes
+        -----
+        In Borealis v0.5, slice_id, scheduling_mode, and
+        averaging_method were added and these will be shared fields. These
+        fields will not change from record to record. Blanked samples may 
+        change from record to record if a new slice is added and interfaced 
+        within the sequence. Therefore, this bug was fixed by changing 
+        blanked_samples to an unshared field in Borealis v0.5.
+        """
         shared = super(BorealisRawacf, cls).shared_fields() + \
             ['slice_id', 'scheduling_mode', 'averaging_method']
         shared.remove('blanked_samples')
@@ -1150,7 +1349,17 @@ class BorealisRawacf(BorealisRawacfv0_4):
 
     @classmethod
     def unshared_fields_dims_array(cls):
-        """ See BaseFormat class for description. """
+        """
+        See BaseFormat class for description and use of this method.
+
+        Notes
+        -----
+        In Borealis v0.5, blanked samples was changed to an unshared field.
+        This was a bug in earlier versions. 'slice_interfacing' was a new 
+        field added in Borealis v0.5. It is an unshared field because 
+        new slices may be added and interfaced to this slice and therefore 
+        slice_interfacing may not be the same from record to record.
+        """
         unshared_fields_dims = super(BorealisRawacf,
                                      cls).unshared_fields_dims_array()
         unshared_fields_dims.update({
@@ -1161,7 +1370,9 @@ class BorealisRawacf(BorealisRawacfv0_4):
 
     @classmethod
     def unshared_fields_dims_site(cls):
-        """ See BaseFormat class for description. """
+        """
+        See BaseFormat class for description and use of this method.
+        """
         unshared_fields_dims = super(BorealisRawacf,
                                      cls).unshared_fields_dims_site()
         unshared_fields_dims.update({
@@ -1173,7 +1384,9 @@ class BorealisRawacf(BorealisRawacfv0_4):
 
     @classmethod
     def array_specific_fields_generate(cls):
-        """ See BaseFormat class for description. """
+        """
+        See BaseFormat class for description and use of this method.
+        """
         array_specific = super(BorealisRawacf,
                                cls).array_specific_fields_generate()
         array_specific.update({
@@ -1208,7 +1421,9 @@ class BorealisBfiq(BorealisBfiqv0_4):
     In v0.5, the following fields were added:
     slice_id, slice_interfacing, and scheduling_mode.
     As well, blanked_samples was changed from shared to unshared in the array
-    restructuring.
+    restructuring, which necessitates an array-specific field, 
+    num_blanked_samples, to specify how much data to read in the blanked_samples
+    array in the array style file.
     """
 
     @classmethod
@@ -1221,6 +1436,10 @@ class BorealisBfiq(BorealisBfiqv0_4):
         single_element_types
             All the single-element fields in records of the
             format, as a dictionary fieldname : type.
+
+        See Also
+        --------
+        https://borealis.readthedocs.io/en/latest/borealis_data.html
 
         Notes
         -----
@@ -1246,7 +1465,18 @@ class BorealisBfiq(BorealisBfiqv0_4):
 
     @classmethod
     def shared_fields(cls):
-        """ See BaseFormat class for description. """
+        """
+        See BaseFormat class for description and use of this method.
+
+        Notes
+        -----
+        In Borealis v0.5, slice_id and scheduling_mode were added and these 
+        will be shared fields. These fields will not change from record to 
+        record. Blanked samples may  change from record to record if a new 
+        slice is added and interfaced within the sequence. Therefore, this bug 
+        was fixed by changing blanked_samples to an unshared field in Borealis 
+        v0.5.
+        """
         shared = super(BorealisBfiq, cls).shared_fields() + \
             ['slice_id', 'scheduling_mode']
         shared.remove('blanked_samples')
@@ -1254,7 +1484,17 @@ class BorealisBfiq(BorealisBfiqv0_4):
 
     @classmethod
     def unshared_fields_dims_array(cls):
-        """ See BaseFormat class for description. """
+        """
+        See BaseFormat class for description and use of this method.
+
+        Notes
+        -----
+        In Borealis v0.5, blanked samples was changed to an unshared field.
+        This was a bug in earlier versions. 'slice_interfacing' was a new 
+        field added in Borealis v0.5. It is an unshared field because 
+        new slices may be added and interfaced to this slice and therefore 
+        slice_interfacing may not be the same from record to record.
+        """
         unshared_fields_dims = super(BorealisBfiq,
                                      cls).unshared_fields_dims_array()
         unshared_fields_dims.update({
@@ -1265,7 +1505,9 @@ class BorealisBfiq(BorealisBfiqv0_4):
 
     @classmethod
     def unshared_fields_dims_site(cls):
-        """ See BaseFormat class for description. """
+        """
+        See BaseFormat class for description and use of this method.
+        """
         unshared_fields_dims = super(BorealisBfiq,
                                      cls).unshared_fields_dims_site()
         unshared_fields_dims.update({
@@ -1277,7 +1519,9 @@ class BorealisBfiq(BorealisBfiqv0_4):
 
     @classmethod
     def array_specific_fields_generate(cls):
-        """ See BaseFormat class for description. """
+        """
+        See BaseFormat class for description and use of this method.
+        """
         array_specific = super(BorealisBfiq,
                                cls).array_specific_fields_generate()
         array_specific.update({
@@ -1311,6 +1555,9 @@ class BorealisAntennasIq(BorealisAntennasIqv0_4):
     In v0.5, the following fields were added to the Borealis-produced
     site structured files:
     slice_id, slice_interfacing, scheduling_mode, and blanked_samples.
+    blanked_samples is unshared in the array restructuring, which necessitates 
+    an array-specific field, num_blanked_samples, to specify how much data to 
+    read in the blanked_samples array in the array style file.
     """
 
     @classmethod
@@ -1371,14 +1618,31 @@ class BorealisAntennasIq(BorealisAntennasIqv0_4):
 
     @classmethod
     def shared_fields(cls):
-        """ See BaseFormat class for description. """
+        """
+        See BaseFormat class for description and use of this method.
+
+        Notes
+        -----
+        In Borealis v0.5, slice_id and scheduling_mode were added and these 
+        will be shared fields. 
+        """
         shared = super(BorealisAntennasIq, cls).shared_fields() + \
             ['slice_id', 'scheduling_mode']
         return shared
 
     @classmethod
     def unshared_fields_dims_array(cls):
-        """ See BaseFormat class for description. """
+        """
+        See BaseFormat class for description and use of this method.
+
+        Notes
+        -----
+        In Borealis v0.5, blanked samples was added to the antennas_iq.
+        This was a bug in earlier versions. 'slice_interfacing' was a new 
+        field as well. Both are unshared fields because
+        new slices may be added and interfaced to this slice and therefore 
+        the field may not be the same from record to record.
+        """
         unshared_fields_dims = super(BorealisAntennasIq,
                                      cls).unshared_fields_dims_array()
         unshared_fields_dims.update({
@@ -1389,7 +1653,9 @@ class BorealisAntennasIq(BorealisAntennasIqv0_4):
 
     @classmethod
     def unshared_fields_dims_site(cls):
-        """ See BaseFormat class for description. """
+        """
+        See BaseFormat class for description and use of this method.
+        """
         unshared_fields_dims = super(BorealisAntennasIq,
                                      cls).unshared_fields_dims_site()
         unshared_fields_dims.update({
@@ -1401,7 +1667,9 @@ class BorealisAntennasIq(BorealisAntennasIqv0_4):
 
     @classmethod
     def array_specific_fields_generate(cls):
-        """ See BaseFormat class for description. """
+        """
+        See BaseFormat class for description and use of this method.
+        """
         array_specific = super(BorealisAntennasIq,
                                cls).array_specific_fields_generate()
         array_specific.update({
@@ -1428,8 +1696,8 @@ class BorealisRawrf(BorealisRawrfv0_4):
     are used to verify format files and restructure Borealis files to
     array and site structure.
 
-    In v0.5, the following fields were added:
-    slice_id, slice_interfacing, scheduling_mode, and blanked_samples.
+    In v0.5, the following fields were added to BorealisRawrf:
+    scheduling_mode and blanked_samples. 
     """
 
     @classmethod

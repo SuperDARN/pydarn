@@ -294,10 +294,11 @@ class BaseFormat():
         Fields are then classified into four types to determine
         how to restructure: shared_fields (all records have the same value),
         unshared_fields (all records have unique value/array),
-        array_specific_fields (used mainly where dimensions
-        may vary between records so the number to parse needs to be stored),
-        and site_specific_fields (used mainly where dimensions of
-        flattened arrays need to be stored).
+        array_specific_fields (any fields unique to array files, used mainly
+        where dimensions may vary between records so the number to parse needs
+        to be stored), and site_specific_fields (any fields unique to site
+        files, used mainly where dimensions of flattened arrays need to be
+        stored).
         """
         return []
 
@@ -326,10 +327,11 @@ class BaseFormat():
         Fields are then classified into four types to determine
         how to restructure: shared_fields (all records have the same value),
         unshared_fields (all records have unique value/array),
-        array_specific_fields (used mainly where dimensions
-        may vary between records so the number to parse needs to be stored),
-        and site_specific_fields (used mainly where dimensions of
-        flattened arrays need to be stored).
+        array_specific_fields (any fields unique to array files, used mainly
+        where dimensions may vary between records so the number to parse needs
+        to be stored), and site_specific_fields (any fields unique to site
+        files, used mainly where dimensions of flattened arrays need to be
+        stored).
         """
         return {}
 
@@ -357,10 +359,11 @@ class BaseFormat():
         Fields are then classified into four types to determine
         how to restructure: shared_fields (all records have the same value),
         unshared_fields (all records have unique value/array),
-        array_specific_fields (used mainly where dimensions
-        may vary between records so the number to parse needs to be stored),
-        and site_specific_fields (used mainly where dimensions of
-        flattened arrays need to be stored).
+        array_specific_fields (any fields unique to array files, used mainly
+        where dimensions may vary between records so the number to parse needs
+        to be stored), and site_specific_fields (any fields unique to site
+        files, used mainly where dimensions of flattened arrays need to be
+        stored).
         """
         return {}
 
@@ -388,10 +391,11 @@ class BaseFormat():
         Fields are then classified into four types to determine
         how to restructure: shared_fields (all records have the same value),
         unshared_fields (all records have unique value/array),
-        array_specific_fields (used mainly where dimensions
-        may vary between records so the number to parse needs to be stored),
-        and site_specific_fields (used mainly where dimensions of
-        flattened arrays need to be stored).
+        array_specific_fields (any fields unique to array files, used mainly
+        where dimensions may vary between records so the number to parse needs
+        to be stored), and site_specific_fields (any fields unique to site
+        files, used mainly where dimensions of flattened arrays need to be
+        stored).
         """
         return {}
 
@@ -419,12 +423,13 @@ class BaseFormat():
         Fields are then classified into four types to determine
         how to restructure: shared_fields (all records have the same value),
         unshared_fields (all records have unique value/array),
-        array_specific_fields (used mainly where dimensions
-        may vary between records so the number to parse needs to be stored),
-        and site_specific_fields (used mainly where dimensions of
-        flattened arrays need to be stored).
-        return {}
+        array_specific_fields (any fields unique to array files, used mainly
+        where dimensions may vary between records so the number to parse needs
+        to be stored), and site_specific_fields (any fields unique to site
+        files, used mainly where dimensions of flattened arrays need to be
+        stored).
         """
+        return {}
 
     # STATIC METHODS THAT VARY BY FORMAT
     # i.e. methods used in restructuring that the format to/from site
@@ -516,10 +521,11 @@ class BaseFormat():
         Fields are then classified into four types to determine
         how to restructure: shared_fields (all records have the same value),
         unshared_fields (all records have unique value/array),
-        array_specific_fields (used mainly where dimensions
-        may vary between records so the number to parse needs to be stored),
-        and site_specific_fields (used mainly where dimensions of
-        flattened arrays need to be stored).
+        array_specific_fields (any fields unique to array files, used mainly
+        where dimensions may vary between records so the number to parse needs
+        to be stored), and site_specific_fields (any fields unique to site
+        files, used mainly where dimensions of flattened arrays need to be
+        stored).
         """
         return list(cls.unshared_fields_dims_array().keys())
 
@@ -540,10 +546,11 @@ class BaseFormat():
         Fields are then classified into four types to determine
         how to restructure: shared_fields (all records have the same value),
         unshared_fields (all records have unique value/array),
-        array_specific_fields (used mainly where dimensions
-        may vary between records so the number to parse needs to be stored),
-        and site_specific_fields (used mainly where dimensions of
-        flattened arrays need to be stored).
+        array_specific_fields (any fields unique to array files, used mainly
+        where dimensions may vary between records so the number to parse needs
+        to be stored), and site_specific_fields (any fields unique to site
+        files, used mainly where dimensions of flattened arrays need to be
+        stored).
         """
         return list(cls.array_specific_fields_generate().keys())
 
@@ -564,10 +571,11 @@ class BaseFormat():
         Fields are then classified into four types to determine
         how to restructure: shared_fields (all records have the same value),
         unshared_fields (all records have unique value/array),
-        array_specific_fields (used mainly where dimensions
-        may vary between records so the number to parse needs to be stored),
-        and site_specific_fields (used mainly where dimensions of
-        flattened arrays need to be stored).
+        array_specific_fields (any fields unique to array files, used mainly
+        where dimensions may vary between records so the number to parse needs
+        to be stored), and site_specific_fields (any fields unique to site
+        files, used mainly where dimensions of flattened arrays need to be
+        stored).
         """
         return list(cls.site_specific_fields_generate().keys())
 
@@ -589,10 +597,11 @@ class BaseFormat():
         Fields are then classified into four types to determine
         how to restructure: shared_fields (all records have the same value),
         unshared_fields (all records have unique value/array),
-        array_specific_fields (used mainly where dimensions
-        may vary between records so the number to parse needs to be stored),
-        and site_specific_fields (used mainly where dimensions of
-        flattened arrays need to be stored).
+        array_specific_fields (any fields unique to array files, used mainly
+        where dimensions may vary between records so the number to parse needs
+        to be stored), and site_specific_fields (any fields unique to site
+        files, used mainly where dimensions of flattened arrays need to be
+        stored).
         """
         return cls.shared_fields() + cls.unshared_fields() + \
             cls.site_specific_fields()
@@ -615,10 +624,11 @@ class BaseFormat():
         Fields are then classified into four types to determine
         how to restructure: shared_fields (all records have the same value),
         unshared_fields (all records have unique value/array),
-        array_specific_fields (used mainly where dimensions
-        may vary between records so the number to parse needs to be stored),
-        and site_specific_fields (used mainly where dimensions of
-        flattened arrays need to be stored).
+        array_specific_fields (any fields unique to array files, used mainly
+        where dimensions may vary between records so the number to parse needs
+        to be stored), and site_specific_fields (any fields unique to site
+        files, used mainly where dimensions of flattened arrays need to be
+        stored).
         """
         return cls.shared_fields() + cls.unshared_fields() + \
             cls.array_specific_fields()
