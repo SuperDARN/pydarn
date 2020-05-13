@@ -43,6 +43,7 @@ from collections import OrderedDict
 
 from pydarn import borealis_exceptions
 
+
 class BaseFormat():
     """
     The base format of all Borealis format classes.

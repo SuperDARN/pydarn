@@ -1288,8 +1288,8 @@ class BorealisRawacf(BorealisRawacfv0_4):
     slice_id, slice_interfacing, scheduling_mode, and averaging_method.
     As well, blanked_samples was changed from shared to unshared in the array
     restructuring, which necessitates an array-specific field,
-    num_blanked_samples, to specify how much data to read in the blanked_samples
-    array in the array style file.
+    num_blanked_samples, to specify how much data to read in the
+    blanked_samples array in the array style file.
     """
 
     @classmethod
@@ -1422,8 +1422,8 @@ class BorealisBfiq(BorealisBfiqv0_4):
     slice_id, slice_interfacing, and scheduling_mode.
     As well, blanked_samples was changed from shared to unshared in the array
     restructuring, which necessitates an array-specific field,
-    num_blanked_samples, to specify how much data to read in the blanked_samples
-    array in the array style file.
+    num_blanked_samples, to specify how much data to read in the
+    blanked_samples array in the array style file.
     """
 
     @classmethod
