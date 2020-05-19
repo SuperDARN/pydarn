@@ -6,6 +6,7 @@
 """
 Range-Time Parameter (aka Intensity) plots
 """
+import copy
 import matplotlib.pyplot as plt
 import numpy as np
 import warnings
@@ -49,7 +50,7 @@ class ACF():
              gate_num: int = 15, parameter: str = 'acfd',
              scan_num: int = 0, start_time: datetime = None, ax=None,
              normalized: bool = True, real_color: str = 'red',
-             blank_color: str = 'white', blank_marker: str = '.',
+             blank_color: str = 'black', blank_marker: str = 'o',
              imaginary_color: str = 'blue', legend: bool = True,
              **kwargs):
         """
@@ -83,10 +84,10 @@ class ACF():
             default: red
         blank_color: str
             the color of the blanked lags marker
-            default: white
+            default: black
         blank_marker: str
             the marker symbol of blanked lags
-            default: . - dot
+            default: o - dot
         imaginary_color: str
             line color of the imaginary part of the parameter
             default: blue
@@ -152,11 +153,16 @@ class ACF():
 
                     # calculate the blank lags for this record and gate
                     blanked_lags = cls.__blanked_lags(record, lags, gate_num)
+                    blank_re = copy.deepcopy(re)
+                    blank_im = copy.deepcopy(im)
                     lag_num = 0
                     lags_len = len(lags)
                     # Search for missing lags
                     # Note: had to use while loop do to insert method
                     while lag_num < lags_len:
+                        if lag_num in blanked_lags:
+                            re[lag_num] = np.nan
+                            im[lag_num] = np.nan
                         if lags[lag_num] != lag_num:
                             lags.insert(lag_num, lag_num)
                             # increase length by one due to insert
@@ -171,6 +177,9 @@ class ACF():
                 scan_count += 1
 
         if normalized:
+            blank_re /= record['pwr0'][gate_num]
+            blank_im /= record['pwr0'][gate_num]
+
             re /= record['pwr0'][gate_num]
             im /= record['pwr0'][gate_num]
 
@@ -189,13 +198,14 @@ class ACF():
 
         # plot blanked lags
         for blank in blanked_lags:
-            ax.plot(blank, re[lags.index(blank)], color=blank_color,
-                    marker=blank_marker)
-            ax.plot(blank, im[lags.index(blank)], color=blank_color,
+            line = ax.plot(blank, blank_re[lags.index(blank)], color=blank_color,
+                           marker=blank_marker)
+            ax.plot(blank, blank_im[lags.index(blank)], color=blank_color,
                     marker=blank_marker)
 
         # generate generic legend
         if legend:
+            line[0].set_label('Blanked')
             ax.legend()
         ax.set_ylabel(parameter)
         ax.set_xlabel('Lag Number')
