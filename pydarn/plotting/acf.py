@@ -50,7 +50,7 @@ class ACF():
              gate_num: int = 15, parameter: str = 'acfd',
              scan_num: int = 0, start_time: datetime = None, ax=None,
              normalized: bool = True, real_color: str = 'red',
-             blank_color: str = 'black', blank_marker: str = 'o',
+             blank_color: str = 'black', blank_marker: str = 'x',
              imaginary_color: str = 'blue', legend: bool = True,
              **kwargs):
         """
@@ -201,14 +201,15 @@ class ACF():
 
         # plot blanked lags
         for blank in blanked_lags:
-            line = ax.plot(blank, blank_re[lags.index(blank)], color=blank_color,
-                           marker=blank_marker)
-            ax.plot(blank, blank_im[lags.index(blank)], color=blank_color,
-                    marker=blank_marker)
+            line_re = ax.scatter(blank, blank_re[lags.index(blank)], color=real_color,
+                                 marker=blank_marker)
+            line_im = ax.scatter(blank, blank_im[lags.index(blank)], color=imaginary_color,
+                                 marker=blank_marker)
 
         # generate generic legend
         if legend:
-            line[0].set_label('Blanked')
+            line_re.set_label('Real Blanked')
+            line_im.set_label('Imaginary Blanked')
             ax.legend()
         ax.set_ylabel(parameter)
         ax.set_xlabel('Lag Number')
