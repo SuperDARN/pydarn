@@ -348,7 +348,7 @@ class BorealisConvert(BorealisRead):
                                       sample_spacing):
                     raise borealis_exceptions.\
                             BorealisConvert2IqdatError(
-                                'Increased complexity: Borealis rawacf file'
+                                'Increased complexity: Borealis bfiq file'
                                 ' record {} blanked_samples {} does not equate'
                                 ' to pulses array converted to sample number '
                                 '{} * {}'.format(record_key,
