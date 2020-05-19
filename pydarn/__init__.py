@@ -32,6 +32,8 @@ from .io import superdarn_formats
 # importing utils
 from .utils.conversions import dict2dmap
 from .utils.conversions import dmap2dict
+from .utils.plotting import check_data_type
+from .utils.plotting import time2datetime
 from .utils.superdarn_radars import SuperDARNRadars
 from .utils.superdarn_cpid import SuperDARNCpids
 from .utils.superdarn_radars import Hemisphere
@@ -55,3 +57,4 @@ from .io.borealis.borealis_convert import BorealisConvert
 # import plotting
 from .plotting.color_maps import PyDARNColormaps
 from .plotting.rtp import RTP
+from .plotting.acf import ACF

@@ -1,5 +1,5 @@
-# Copyright (C) 2019 SuperDARN
-# Author: Marian Schmidt
+# Copyright (C) 2019 SuperDARN Canada, University of Saskwatchewan
+# Author: Marina Schmidt
 # This code is improvement based on rti.py in the DaVitpy library
 # https://github.com/vtsuperdarn/davitpy/blob/master/davitpy
 
@@ -14,8 +14,9 @@ from datetime import datetime, timedelta
 from matplotlib import dates, colors, cm, ticker
 from typing import List
 
-from pydarn import (dmap2dict, DmapArray, DmapScalar,
-                    rtp_exceptions, SuperDARNCpids, SuperDARNRadars,
+from pydarn import (dmap2dict, check_data_type, time2datetime,
+                    DmapArray, DmapScalar, rtp_exceptions,
+                    SuperDARNCpids, SuperDARNRadars,
                     standard_warning_format, PyDARNColormaps)
 
 warnings.formatwarning = standard_warning_format
@@ -35,8 +36,8 @@ class RTP():
 
     Methods
     -------
-    plot_profile
-    plot_scalar
+    plot_range_time
+    plot_time_series
     plot_summary
     """
 
@@ -46,58 +47,6 @@ class RTP():
                 "   - plot_rang_time()\n"\
                 "   - plot_time_series()\n"\
                 "   - plot_summary()\n"
-
-    @classmethod
-    def plot_acf(cls, dmap_data: List[dict], beam_num: int = 0,
-                 gate_num: int = 15, parameter: str = 'acfd', ax=None,
-                 **kwargs):
-        """
-        plots the acfd field from superDARN file, typically RAWACF format
-        for a given beam and gate number
-
-        Parameters
-        ----------
-        dmap_data : list[dict]
-            records from a dmap file
-        beam_num : int
-            the beam number to plot, default: 0
-        gate_num : int
-            the gate number to plot, default: 15
-        parameter : str
-            the parameter to plot, default: acfd
-        ax: matplotlib.axes
-            axes object for another way of plotting
-            Default: None
-
-        Raises
-        ------
-
-        Returns
-        -------
-
-        """
-        # If an axes object is not passed in then store
-        # the equivalent object in matplotlib. This allows
-        # for variant matplotlib plotting styles.
-        if not ax:
-            ax = plt.gca()
-         # Determine if a DmapRecord was passed in, instead of a list
-        try:
-            # because of partial records we need to find the first
-            # record that has that parameter
-            index_first_match = next(i for i, d in enumerate(dmap_data)
-                                     if parameter in d)
-            if isinstance(dmap_data[index_first_match][parameter],
-                          DmapArray) or\
-               isinstance(dmap_data[index_first_match][parameter],
-                          DmapScalar):
-                dmap_data = dmap2dict(dmap_data)
-        except StopIteration:
-            raise rtp_exceptions.RTPUnknownParameterError(parameter)
-
-        cls.dmap_data = dmap_data
-        cls.__check_data_type(parameter, 'array', index_first_match)
-
 
     @classmethod
     def plot_range_time(cls, dmap_data: List[dict], parameter: str = 'v',
@@ -268,7 +217,7 @@ class RTP():
         except StopIteration:
             raise rtp_exceptions.RTPUnknownParameterError(parameter)
         cls.dmap_data = dmap_data
-        cls.__check_data_type(parameter, 'array', index_first_match)
+        check_data_type(cls.dmap_data, parameter, 'array', index_first_match)
         start_time, end_time = cls.__determine_start_end_time(start_time,
                                                               end_time)
 
@@ -303,7 +252,7 @@ class RTP():
 
         for dmap_record in cls.dmap_data:
             # get time difference to test if there is some gap data
-            rec_time = cls.__time2datetime(dmap_record)
+            rec_time = time2datetime(dmap_record)
             diff_time = 0.0
             if rec_time > end_time:
                 break
@@ -539,7 +488,7 @@ class RTP():
             raise rtp_exceptions.RTPUnknownParameterError(parameter)
 
         cls.dmap_data = dmap_data
-        cls.__check_data_type(parameter, 'scalar', index_first_match)
+        check_data_type(cls.dmap_data, parameter, 'scalar', index_first_match)
         start_time, end_time = cls.__determine_start_end_time(start_time,
                                                               end_time)
 
@@ -554,11 +503,11 @@ class RTP():
             old_cpid = None
             for dmap_record in cls.dmap_data:
                 # TODO: this check could be a function call
-                x.append(cls.__time2datetime(dmap_record))
+                x.append(time2datetime(dmap_record))
 
                 if (dmap_record['bmnum'] == beam_num or beam_num == 'all') and\
                    (dmap_record['channel'] == channel or channel == 'all'):
-                    rec_time = cls.__time2datetime(dmap_record)
+                    rec_time = time2datetime(dmap_record)
                     if start_time <= rec_time and rec_time <= end_time:
                         if old_cpid != dmap_record['cp'] or old_cpid is None:
                             ax.axvline(x=rec_time, color='black')
@@ -606,7 +555,7 @@ class RTP():
         else:
             for dmap_record in cls.dmap_data:
                 # TODO: this check could be a function call
-                rec_time = cls.__time2datetime(dmap_record)
+                rec_time = time2datetime(dmap_record)
                 if start_time <= rec_time and rec_time <= end_time:
                     if (dmap_record['bmnum'] == beam_num or
                         beam_num == 'all') and \
@@ -1102,61 +1051,6 @@ class RTP():
 
         return pass_flg
 
-    @classmethod
-    def __check_data_type(cls, parameter: str, expected_type: str, i: int):
-        """
-        Checks to make sure the plot type is correct
-        for the data structure
-
-        Parameters
-        ----------
-        parameter: str
-            string key word name of the parameter
-        expected_type: str
-            string describing an array or scalar type
-            to determine which one is needed for the type of plot
-
-        Raises
-        -------
-        RTPIncorrectPlotMethodError
-        """
-        data_type = cls.dmap_data[i][parameter]
-        if expected_type == 'array':
-            if not isinstance(data_type, np.ndarray):
-                raise rtp_exceptions.RTPIncorrectPlotMethodError(parameter,
-                                                                 data_type)
-        else:
-            if isinstance(data_type, np.ndarray):
-                raise rtp_exceptions.RTPIncorrectPlotMethodError(parameter,
-                                                                 data_type)
-
-    # TODO: move to a utils or SuperDARN utils
-    @classmethod
-    def __time2datetime(cls, dmap_record: dict) -> datetime:
-        """
-        Converts DMAP time parameter fields into a datetime object
-
-        Parameter
-        ---------
-        dmap_record: dict
-            dictionary of the DMAP data contains the time data
-
-        Returns
-        -------
-        datetime object
-            returns a datetime object of the records time stamp
-        """
-        year = dmap_record['time.yr']
-        month = dmap_record['time.mo']
-        day = dmap_record['time.dy']
-        hour = dmap_record['time.hr']
-        minute = dmap_record['time.mt']
-        second = dmap_record['time.sc']
-        micro_sec = dmap_record['time.us']
-
-        return datetime(year=year, month=month, day=day, hour=hour,
-                        minute=minute, second=second, microsecond=micro_sec)
-
     # TODO: if used in other plotting methods then this should moved to
     #       utils
     @classmethod
@@ -1178,7 +1072,7 @@ class RTP():
         end_time: datetime
         """
         if not start_time:
-            start_time = cls.__time2datetime(cls.dmap_data[0])
+            start_time = time2datetime(cls.dmap_data[0])
         if not end_time:
-            end_time = cls.__time2datetime(cls.dmap_data[-1])
+            end_time = time2datetime(cls.dmap_data[-1])
         return start_time, end_time
