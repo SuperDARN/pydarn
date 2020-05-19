@@ -348,12 +348,14 @@ class BorealisConvert(BorealisRead):
                                       sample_spacing):
                     raise borealis_exceptions.\
                             BorealisConvert2IqdatError(
-                                'Increased complexity: Borealis bfiq file '
-                                'record {} blanked_samples {} does not equal '
-                                'pulses array {}'
-                                ''.format(record_key,
-                                          record['blanked_samples'],
-                                          record['pulses']))
+                                'Increased complexity: Borealis rawacf file'
+                                ' record {} blanked_samples {} does not equate'
+                                ' to pulses array converted to sample number '
+                                '{} * {}'.format(record_key,
+                                                 record['blanked_samples'],
+                                                 record['pulses'],
+                                                 int(record['tau_spacing'] /
+                                                     record['tx_pulse_len'])))
                 if not all([x == 0 for x in record['pulse_phase_offset']]):
                     raise borealis_exceptions.\
                             BorealisConvert2IqdatError(
@@ -400,12 +402,14 @@ class BorealisConvert(BorealisRead):
                                       sample_spacing):
                     raise borealis_exceptions.\
                             BorealisConvert2RawacfError(
-                                'Increased complexity: Borealis rawacf file '
-                                'record {} blanked_samples {} does not equal '
-                                'pulses array {}'
-                                ''.format(record_key,
+                                'Increased complexity: Borealis rawacf file'
+                                ' record {} blanked_samples {} does not equate'
+                                ' to pulses array converted to sample number '
+                                '{} * {}'.format(record_key,
                                           record['blanked_samples'],
-                                          record['pulses']))
+                                          record['pulses'],
+                                          int(record['tau_spacing'] /
+                                              record['tx_pulse_len'])))
 
         return True
 

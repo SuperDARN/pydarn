@@ -55,18 +55,3 @@ from .io.borealis.borealis_convert import BorealisConvert
 # import plotting
 from .plotting.color_maps import PyDARNColormaps
 from .plotting.rtp import RTP
-
-"""
-pyDARN uses yaml for logging configuration because its legibility
-makes it the preferred configuration file format.
-"""
-# real path is needed because path imports from where it is ran and the
-# logging config will not be in the users current path.
-real_path = os.path.realpath(__file__)
-dirname = os.path.dirname(real_path)
-
-# setting the logging configuration.
-log_path = dirname + "/logging_config.yaml"
-with open(log_path, 'r') as f:
-    config = yaml.safe_load(f.read())
-    logging.config.dictConfig(config)

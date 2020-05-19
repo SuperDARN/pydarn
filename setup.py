@@ -16,7 +16,6 @@ import sys
 from subprocess import check_call
 from setuptools.command.install import install, orig
 
-
 # This class and function overrides the install python
 # setup method to add an extra git command in to install
 # the submodule
@@ -65,4 +64,6 @@ setup(
     # pyyaml library install
     install_requires=['pyyaml', 'numpy', 'matplotlib',
                       'h5py', 'deepdish', 'pathlib2']
+    # commented out due to not implemented yet.
+    #ext_modules = [rstmodule]
 )
