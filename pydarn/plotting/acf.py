@@ -171,6 +171,9 @@ class ACF():
                             # gaps in the data
                             re.insert(lag_num, np.nan)
                             im.insert(lag_num, np.nan)
+                            blank_re.insert(lag_num, np.nan)
+                            blank_im.insert(lag_num, np.nan)
+
                         lag_num += 1
                     # once we got the data break free!!
                     break
