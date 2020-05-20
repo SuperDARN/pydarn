@@ -50,9 +50,8 @@ class ACF():
              gate_num: int = 15, parameter: str = 'acfd',
              scan_num: int = 0, start_time: datetime = None, ax=None,
              normalized: bool = True, real_color: str = 'red',
-             blank_color: str = 'black', blank_marker: str = 'x',
-             imaginary_color: str = 'blue', legend: bool = True,
-             **kwargs):
+             blank_marker: str = 'x', imaginary_color: str = 'blue',
+             legend: bool = True, **kwargs):
         """
         plots the parameter ACF/XCF field from superDARN file,
         typically RAWACF format for a given beam and gate number
@@ -82,9 +81,6 @@ class ACF():
         real_color: str
             line color of the real part of the paramter
             default: red
-        blank_color: str
-            the color of the blanked lags marker
-            default: black
         blank_marker: str
             the marker symbol of blanked lags
             default: o - dot
@@ -153,6 +149,7 @@ class ACF():
 
                     # calculate the blank lags for this record and gate
                     blanked_lags = cls.__blanked_lags(record, lags, gate_num)
+                    # Need to deep clone so we keep the values
                     blank_re = copy.deepcopy(re)
                     blank_im = copy.deepcopy(im)
                     lag_num = 0
@@ -161,6 +158,7 @@ class ACF():
                     # Note: had to use while loop do to insert method
                     while lag_num < lags_len:
                         if lag_num in blanked_lags:
+                            # to remove lines going through the points
                             re[lag_num] = np.nan
                             im[lag_num] = np.nan
                         if lags[lag_num] != lag_num:
@@ -171,6 +169,7 @@ class ACF():
                             # gaps in the data
                             re.insert(lag_num, np.nan)
                             im.insert(lag_num, np.nan)
+                            # ensures the points line up on the plot
                             blank_re.insert(lag_num, np.nan)
                             blank_im.insert(lag_num, np.nan)
 
@@ -201,6 +200,8 @@ class ACF():
 
         # plot blanked lags
         for blank in blanked_lags:
+            # I use scatter here to make points not lines
+            # also shows up in the legend nicer
             line_re = ax.scatter(blank, blank_re[lags.index(blank)], color=real_color,
                                  marker=blank_marker)
             line_im = ax.scatter(blank, blank_im[lags.index(blank)], color=imaginary_color,
