@@ -476,6 +476,11 @@ class BorealisConvert(BorealisRead):
             accommodate. This value is provided to multiply the data
             by before converting to int, to allow the noise floor to be
             seen, for instance.
+
+        Notes
+        -----
+        The scaling_factor can cause the data to scale outside the limits of
+        int16, at which point the data will be equal to the int16 max or min.
         """
 
         # key value pair from Borealis bfiq record.
@@ -485,7 +490,7 @@ class BorealisConvert(BorealisRead):
         # num_sequences, num_beams, num_samps
         # scale by normalization and then scale to integer max as per
         # dmap style
-        data = v['data'].reshape(v['data_dimensions']).astype(np.complex128) / \
+        data = v['data'].reshape(v['data_dimensions']).astype(np.complex64) / \
             v['data_normalization_factor'] * np.iinfo(np.int16).max * \
             scaling_factor
 
@@ -522,9 +527,14 @@ class BorealisConvert(BorealisRead):
             # flattened)
             flattened_data = np.array(reshaped_data).flatten()
 
-            int_data = np.empty(flattened_data.size * 2, dtype=np.int16)
+            int_data = np.empty(flattened_data.size * 2, dtype=np.float64)
             int_data[0::2] = flattened_data.real
             int_data[1::2] = flattened_data.imag
+
+            np.minimum(int_data, 32767, int_data)
+            np.maximum(int_data, -32768, int_data)
+
+            int_data = np.array(int_data, dtype=np.int16)
 
             # flattening done in convert_to_dmap_datastructures
             record_dict = {
@@ -601,7 +611,8 @@ class BorealisConvert(BorealisRead):
                 'iqdata.revision.minor': np.int32(0),
                 'combf': 'Converted from Borealis file: ' + origin_string +\
                          ' record ' + str(k) + ' with scaling factor = ' + \
-                         scaling_factor + ' ; Number of beams in record: ' + \
+                         str(scaling_factor) + \
+                         ' ; Number of beams in record: ' + \
                          str(len(v['beam_nums'])) + ' ; ' + \
                          v['experiment_comment'] + ' ; ' + \
                          v['slice_comment'],
@@ -709,17 +720,17 @@ class BorealisConvert(BorealisRead):
         # in correlation (integer max squared)
         shaped_data['main_acfs'] = v['main_acfs'].reshape(
             v['correlation_dimensions']).astype(
-            np.complex128) * ((np.iinfo(np.int16).max**2 * scaling_factor) /
+            np.complex64) * ((np.iinfo(np.int16).max**2 * scaling_factor) /
                               (v['data_normalization_factor']**2))
 
         if 'intf_acfs' in v.keys():
             shaped_data['intf_acfs'] = v['intf_acfs'].reshape(
-                v['correlation_dimensions']).astype(np.complex128) * \
+                v['correlation_dimensions']).astype(np.complex64) * \
                     ((np.iinfo(np.int16).max**2) /
                      (v['data_normalization_factor']**2))
         if 'xcfs' in v.keys():
             shaped_data['xcfs'] = v['xcfs'].reshape(
-                v['correlation_dimensions']).astype(np.complex128) *\
+                v['correlation_dimensions']).astype(np.complex64) *\
                     ((np.iinfo(np.int16).max**2) /
                      (v['data_normalization_factor']**2))
 
@@ -841,7 +852,8 @@ class BorealisConvert(BorealisRead):
                 'rawacf.revision.minor': np.int32(0),
                 'combf': 'Converted from Borealis file: ' + origin_string + \
                          ' record ' + str(k) + ' with scaling factor = ' + \
-                         scaling_factor + ' ; Number of beams in record: ' + \
+                         str(scaling_factor) + \
+                         ' ; Number of beams in record: ' + \
                          str(len(v['beam_nums'])) + ' ; ' + \
                          v['experiment_comment'] + ' ; ' + v['slice_comment'],
                 'thr': np.float32(0),
