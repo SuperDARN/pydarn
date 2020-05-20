@@ -153,13 +153,17 @@ class BorealisConvert(BorealisRead):
     borealis_slice_id: int
         The slice id of the file being converted. Used as channel identifier
         in SDARN DMap records.
+    scaling_factor: int
+        The scaling factor the data has been multiplied by before converting
+        to integers for the corresponding dmap format.
     """
 
     __allowed_conversions = {'rawacf': 'rawacf', 'bfiq': 'iqdat'}
 
     def __init__(self, borealis_filename: str, borealis_filetype: str,
                  sdarn_filename: str, borealis_slice_id: int,
-                 borealis_file_structure: Union[str, None] = None):
+                 borealis_file_structure: Union[str, None] = None,
+                 scaling_factor: int = 1):
         """
         Convert HDF5 Borealis records to a given SDARN file with DMap format.
 
@@ -180,6 +184,12 @@ class BorealisConvert(BorealisRead):
             The write structure of the file provided. Possible types are
             'site', 'array', or None. If None (default), array read will be
             attempted first followed by site.
+        scaling_factor : int
+            A scaling factor to adjust the integer values by, as the precision
+            of bfiq and rawacf floating points are much greater than the int16
+            can accommodate. This value is provided to multiply the data
+            by before converting to int, to allow the noise floor to be
+            seen, for instance.
 
         Raises
         ------
@@ -205,6 +215,7 @@ class BorealisConvert(BorealisRead):
         self._borealis_slice_id = borealis_slice_id
         self._sdarn_dmap_records = {}
         self._sdarn_dict = {}
+        self._scaling_factor = scaling_factor
         try:
             self._sdarn_filetype = self.__allowed_conversions[
                     self.borealis_filetype]
@@ -265,6 +276,14 @@ class BorealisConvert(BorealisRead):
         in SDARN DMap records.
         """
         return self._borealis_slice_id
+
+    @property
+    def scaling_factor(self):
+        """
+        The scaling factor the data has been multiplied by before converting
+        to integers for the corresponding dmap format.
+        """
+        return self._scaling_factor
 
     def _write_to_sdarn(self) -> str:
         """
@@ -403,6 +422,7 @@ class BorealisConvert(BorealisRead):
 
         See Also
         --------
+        __convert_bfiq_record
         https://superdarn.github.io/rst/superdarn/src.doc/rfc/0027.html
         https://borealis.readthedocs.io/en/latest/
         BorealisBfiq
@@ -422,7 +442,8 @@ class BorealisConvert(BorealisRead):
                 record_dict = \
                         self.__convert_bfiq_record(self.borealis_slice_id,
                                                    record,
-                                                   self.borealis_filename)
+                                                   self.borealis_filename,
+                                                   self.scaling_factor)
                 recs.append(record_dict)
             self._sdarn_dict = recs
             self._sdarn_dmap_records = dict2dmap(recs)
@@ -432,7 +453,8 @@ class BorealisConvert(BorealisRead):
     @staticmethod
     def __convert_bfiq_record(borealis_slice_id: int,
                               borealis_bfiq_record: tuple,
-                              origin_string: str) -> dict:
+                              origin_string: str,
+                              scaling_factor: int = 1) -> dict:
         """
         Converts a single record dict of Borealis bfiq data to a SDARN DMap
         record dict.
@@ -448,6 +470,12 @@ class BorealisConvert(BorealisRead):
         origin_string : str
             String representing origin of the Borealis data, typically
             Borealis filename.
+        scaling_factor : int
+            A scaling factor to adjust the integer values by, as the precision
+            of bfiq floating points are much greater than the int16 can
+            accommodate. This value is provided to multiply the data
+            by before converting to int, to allow the noise floor to be
+            seen, for instance.
         """
 
         # key value pair from Borealis bfiq record.
@@ -458,7 +486,8 @@ class BorealisConvert(BorealisRead):
         # scale by normalization and then scale to integer max as per
         # dmap style
         data = v['data'].reshape(v['data_dimensions']).astype(np.complex128) / \
-            v['data_normalization_factor'] * np.iinfo(np.int16).max
+            v['data_normalization_factor'] * np.iinfo(np.int16).max * \
+            scaling_factor
 
         # Borealis git tag version numbers. If not a tagged version,
         # then use 255.255
@@ -571,8 +600,8 @@ class BorealisConvert(BorealisRead):
                 'iqdata.revision.major': np.int32(1),
                 'iqdata.revision.minor': np.int32(0),
                 'combf': 'Converted from Borealis file: ' + origin_string +\
-                         ' record ' + str(k) + \
-                         ' ; Number of beams in record: ' + \
+                         ' record ' + str(k) + ' with scaling factor = ' + \
+                         scaling_factor + ' ; Number of beams in record: ' + \
                          str(len(v['beam_nums'])) + ' ; ' + \
                          v['experiment_comment'] + ' ; ' + \
                          v['slice_comment'],
@@ -635,7 +664,8 @@ class BorealisConvert(BorealisRead):
                 record_dict = \
                         self.__convert_rawacf_record(self.borealis_slice_id,
                                                      record,
-                                                     self.borealis_filename)
+                                                     self.borealis_filename,
+                                                     self.scaling_factor)
                 recs.append(record_dict)
             self._sdarn_dict = recs
             self._sdarn_dmap_records = dict2dmap(recs)
@@ -645,7 +675,8 @@ class BorealisConvert(BorealisRead):
     @staticmethod
     def __convert_rawacf_record(borealis_slice_id: int,
                                 borealis_rawacf_record: tuple,
-                                origin_string: str) -> dict:
+                                origin_string: str,
+                                scaling_factor: int = 1) -> dict:
         """
         Converts a single record dict of Borealis rawacf data to a SDARN DMap
         record dict.
@@ -661,6 +692,12 @@ class BorealisConvert(BorealisRead):
         origin_string : str
             String representing origin of the Borealis data, typically
             Borealis filename.
+        scaling_factor : int
+            A scaling factor to adjust the integer values by, as the precision
+            of floating points are much greater than the int16 can
+            accommodate. This value is provided to multiply the data
+            by before converting to int, to allow the noise floor to be
+            seen, for instance.
         """
 
         # key value pair from Borealis record dictionary
@@ -672,7 +709,7 @@ class BorealisConvert(BorealisRead):
         # in correlation (integer max squared)
         shaped_data['main_acfs'] = v['main_acfs'].reshape(
             v['correlation_dimensions']).astype(
-            np.complex128) * ((np.iinfo(np.int16).max**2) /
+            np.complex128) * ((np.iinfo(np.int16).max**2 * scaling_factor) /
                               (v['data_normalization_factor']**2))
 
         if 'intf_acfs' in v.keys():
@@ -803,8 +840,8 @@ class BorealisConvert(BorealisRead):
                 'rawacf.revision.major': np.int32(1),
                 'rawacf.revision.minor': np.int32(0),
                 'combf': 'Converted from Borealis file: ' + origin_string + \
-                         ' record ' + str(k) + \
-                         ' ; Number of beams in record: ' + \
+                         ' record ' + str(k) + ' with scaling factor = ' + \
+                         scaling_factor + ' ; Number of beams in record: ' + \
                          str(len(v['beam_nums'])) + ' ; ' + \
                          v['experiment_comment'] + ' ; ' + v['slice_comment'],
                 'thr': np.float32(0),
