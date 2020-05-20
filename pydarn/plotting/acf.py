@@ -50,7 +50,7 @@ class ACF():
              gate_num: int = 15, parameter: str = 'acfd',
              scan_num: int = 0, start_time: datetime = None, ax=None,
              normalized: bool = True, real_color: str = 'red',
-             blank_marker: str = 'x', imaginary_color: str = 'blue',
+             blank_marker: str = 'o', imaginary_color: str = 'blue',
              legend: bool = True, **kwargs):
         """
         plots the parameter ACF/XCF field from superDARN file,
@@ -202,9 +202,11 @@ class ACF():
         for blank in blanked_lags:
             # I use scatter here to make points not lines
             # also shows up in the legend nicer
-            line_re = ax.scatter(blank, blank_re[lags.index(blank)], color=real_color,
+            line_re = ax.scatter(blank, blank_re[lags.index(blank)],
+                                 edgecolors=real_color, facecolors='white',
                                  marker=blank_marker)
-            line_im = ax.scatter(blank, blank_im[lags.index(blank)], color=imaginary_color,
+            line_im = ax.scatter(blank, blank_im[lags.index(blank)],
+                                 edgecolors=imaginary_color, facecolors='white',
                                  marker=blank_marker)
 
         # generate generic legend
