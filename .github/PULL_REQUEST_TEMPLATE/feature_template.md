@@ -17,6 +17,7 @@ What does this feature not do?
 - [ ] unit tests
 - [ ] Code documentation
 - [ ] readthedocs documentation
+- [ ] merge to `develop`
 
 ## Test code
 - Please provide an example of code to show how to test it. 
