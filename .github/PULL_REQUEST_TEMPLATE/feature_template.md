@@ -1,14 +1,14 @@
 # New Feature 
 **Name:**
 
-**module:** *pythoon file name*
+**module:** *python file name*
 
 **package:** *folder it is under*
 
 ## Issue reference
 *Does this feature pertain to a specific issue?*
 
-**Issue** *number sign and number of issue*
+**Issue** *number sign and number of the issue*
 
 ## Scope
 *What does this feature do?*
@@ -34,6 +34,7 @@
 *Please provide any other information on this PR here.*
 
 *Example info:*
+
     - *does it use metadata?*
     - *does it require a change in the `setup.py`*
     - *are there performance hits/improvements?*
