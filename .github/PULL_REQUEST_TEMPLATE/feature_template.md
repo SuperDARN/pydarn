@@ -34,8 +34,7 @@
 *Please provide any other information on this PR here.*
 
 *Example info:*
-
-    - *does it use metadata?*
-    - *does it require a change in the `setup.py`*
-    - *are there performance hits/improvements?*
-    - *what is the design pattern?*
+- *does it use metadata?*
+- *does it require a change in the `setup.py`*
+- *are there performance hits/improvements?*
+- *what is the design pattern?*
