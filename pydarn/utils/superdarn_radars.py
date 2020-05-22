@@ -346,7 +346,7 @@ class SuperDARNRadars():
               96: _Radar('Dome C',
                          'Institute for Space Astrophysics and Planetology',
                          Hemisphere.South, read_hdw_file('dce')),
-              96: _Radar('Dome C North',
+              97: _Radar('Dome C North',
                          'Institute for Space Astrophysics and Planetology',
                          Hemisphere.South, read_hdw_file('dcn')),
               21: _Radar('Falkland Islands', 'British Antarctic Survey',

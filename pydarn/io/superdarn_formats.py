@@ -72,10 +72,10 @@ class Rawacf():
         'acfd': 'f'
         }
 
-    digitizing_fields = {
+    digitizing_field = {
             'ifmode': 'h'
             }
-    fittex_fields = {
+    fittex_field = {
             'mplgexs': 'h',
             }
     cross_correlation_field = {
