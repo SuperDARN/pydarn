@@ -15,11 +15,9 @@
 *Please provide any other information on what is modified to fix this bug*
 
 ## Scope
-Which bug does this address?
-
-*use point form or check boxs*
-
-What does this bug fix not address? 
+- Which bug does this address?
+- *use point form or check boxs*
+- What does this bug fix not address? 
 
 ### Requirements Checklist
 - [ ] PEP 8/flake8 check
