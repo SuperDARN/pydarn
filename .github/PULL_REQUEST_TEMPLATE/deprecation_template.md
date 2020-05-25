@@ -1,6 +1,6 @@
-# <span style="color: red">!!!DEPRECATION!!! </span>
+# <style>!!!DEPRECATION!!!{color:red;}</style>
 
-<span style="color: red">**!!! warning** You are suggesting on removing a feature from pyDARN</span>
+**!!! warning !!!** You are suggesting on removing a feature from pyDARN</span>
 
 **Name:** 
 
