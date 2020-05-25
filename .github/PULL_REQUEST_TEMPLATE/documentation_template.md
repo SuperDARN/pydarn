@@ -26,8 +26,9 @@ Which category does this documentation add/updated/remove?
     - [ ] developer
     - [ ] communication
 
-### Details on the category
-Please provide more details on the add/updated/removed documentation on the selected categories. 
+### Details
+
+*Please provide more details on the add/updated/removed documentation on the selected categories.* 
 
 ### Goals
 What goals are you trying to achieve with the add/updated/removed documentation? 
@@ -50,7 +51,7 @@ What goals are you trying to achieve with the add/updated/removed documentation?
 - [ ] view in readthedocs/markdown viewer (if applicable)
 - [ ] proof read
 
-### Reviewers help
+### Reviewers Help
 
 What do you want the review to focus on? 
 - [ ] spelling/grammar
@@ -60,7 +61,7 @@ What do you want the review to focus on?
 - [ ] test out examples (if applicable)
 - [ ] follow steps (if applicable)
 
-## readthedocs Link/Display
+## **readthedocs** Link/Display
 
 *Please provide the readthedocs link to your documentation or how to view it.* 
 
