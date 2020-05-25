@@ -1,34 +1,39 @@
-# !!!DEPRECATION!!! 
-!!! warning
-    You are suggesting on removing a feature from pyDARN
+# <span style="color: red">!!!DEPRECATION!!! </span>
+
+<span style="color: red">**!!! warning** You are suggesting on removing a feature from pyDARN</span>
+
 **Name:** 
-**module:** <pythoon file name>
-**package:** <folder it is under>
+
+**module:** *file_name.py*
+
+**package:** */directory*
 
 ## Issue reference
-Does this deprecation pertain to a specific issue? 
-Issue(s) <number sign and number of issue>
+
+**Issue:** *issue number*
 
 ## Reason
-What is the reason for removing a feature?
 
-Is the package a scope violation? 
-
-Is it legacy code? 
+- *What is the reason for removing a feature?*
+- *Is the package a scope violation?*
+- *Is it legacy code?* 
 
 ### Requirements Checklist
+
 - [ ] old unit tests still pass
 - [ ] readthedocs documentation updated
 - [ ] merge to `develop`
 - [ ] Warning messages that the tool is removed
 
 ## Warning code
-- Please provide an example of code to show how the deprecation will be notified to the user. 
+
+- *Please provide an example of **code** to show how the deprecation will be notified to the user.*
 
 - Please provide **expected output** of the code provided
 
 ## Extra notes
-Please provide any other information on this PR here.
+
+*Please provide any other information on this PR here.*
 Example info: 
     - is there another package supporting this feature
     - does it require a change in the `setup.py`
