@@ -100,7 +100,9 @@ class ACF():
 
         Raises
         ------
-        RTPUnkownParameterError
+        UnkownParameterError
+        IncorrectPlotMethodError
+        OutOfRangeGateError
 
         Returns
         -------
