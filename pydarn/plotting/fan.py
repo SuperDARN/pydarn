@@ -200,7 +200,7 @@ class fan():
 
                 if cmapindex > 1:
                     cmapindex = 1
-                    colour_rgba = cmap(cmapindex)
+                colour_rgba = cmap(cmapindex)
 
                 # Check for zero values (white) and groundscatter (gray)
                 if scan[gates, beams] == 0:
