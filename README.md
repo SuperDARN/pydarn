@@ -46,7 +46,6 @@ or to read a compressed file:
 ``` python
 import bz2
 import pydarn 
-
 # read in compressed file
 fitacf_file = '20180220.C0.rkn.stream.fitacf.bz2'
 with bz2.open(fitacf_file) as fp: 

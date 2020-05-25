@@ -55,6 +55,7 @@ from .io.borealis.borealis_convert import BorealisConvert
 # import plotting
 from .plotting.color_maps import PyDARNColormaps
 from .plotting.rtp import RTP
+from .plotting.fan import fan
 
 """
 pyDARN uses yaml for logging configuration because its legibility
