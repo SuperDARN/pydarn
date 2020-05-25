@@ -1,7 +1,9 @@
 # Documentatioon 
+
 **Title:** 
 
 ## Category
+
 Which category does this documentation add/updated/remove?
 - [ ] code documentation
 - [ ] wiki
@@ -36,10 +38,11 @@ What goals are you trying to achieve with the add/updated/removed documentation?
 - [ ] user-interface (making something more user friendly)
 
 ## Issue reference
-Does this feature pertain to a specific issue? 
-Issue(s) <number sign and number of issue>
+
+**Issue:** *issue number*
 
 ## Checklist
+
 - [ ] spell checker
 - [ ] grammar checker
 - [ ] meets PEP8 documentation style (if applicable)
@@ -48,6 +51,7 @@ Issue(s) <number sign and number of issue>
 - [ ] proof read
 
 ### Reviewers help
+
 What do you want the review to focus on? 
 - [ ] spelling/grammar
 - [ ] accuracy
@@ -57,12 +61,15 @@ What do you want the review to focus on?
 - [ ] follow steps (if applicable)
 
 ## readthedocs Link/Display
-Please provide the readthedocs link to your documentation or how to view it. 
+
+*Please provide the readthedocs link to your documentation or how to view it.* 
 
 ## Extra notes
-Please provide any other information on this PR here.
+
+*Please provide any other information on this PR here.*
+
 Example info: 
-    - does this need to be updated on readthedocs
-    - does it require a change in the `setup.py`
-    - are there performance hits/improvements?
-    - what is the design pattern? 
+- does this need to be updated on readthedocs
+- does it require a change in the `setup.py`
+- are there performance hits/improvements?
+- what is the design pattern? 
