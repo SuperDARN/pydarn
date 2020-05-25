@@ -16,7 +16,7 @@ from typing import List
 
 from pydarn import (dmap2dict, check_data_type, time2datetime,
                     DmapArray, DmapScalar, rtp_exceptions,
-                    SuperDARNCpids, SuperDARNRadars,
+                    plot_exceptions, SuperDARNCpids, SuperDARNRadars,
                     standard_warning_format, PyDARNColormaps)
 
 warnings.formatwarning = standard_warning_format
@@ -155,9 +155,9 @@ class RTP():
 
         Raises
         ------
-        RTPUnknownParameterError
-        RTPIncorrectPlotMethodError
-        RTPNoDataFoundError
+        UnknownParameterError
+        IncorrectPlotMethodError
+        NoDataFoundError
         IndexError
 
         Returns
@@ -215,7 +215,7 @@ class RTP():
                           DmapScalar):
                 dmap_data = dmap2dict(dmap_data)
         except StopIteration:
-            raise rtp_exceptions.RTPUnknownParameterError(parameter)
+            raise plot_exceptions.UnknownParameterError(parameter)
         cls.dmap_data = dmap_data
         check_data_type(cls.dmap_data, parameter, 'array', index_first_match)
         start_time, end_time = cls.__determine_start_end_time(start_time,
@@ -324,9 +324,9 @@ class RTP():
         x.append(end_time)
         # Check if there is any data to plot
         if np.all(np.isnan(z)):
-            raise rtp_exceptions.RTPNoDataFoundError(parameter, beam_num,
-                                                     start_time, end_time,
-                                                     cls.dmap_data[0]['bmnum'])
+            raise plot_exceptions.NoDataFoundError(parameter, beam_num,
+                                                   start_time, end_time,
+                                                   cls.dmap_data[0]['bmnum'])
         time_axis, y_axis = np.meshgrid(x, y)
         z_data = np.ma.masked_where(np.isnan(z.T), z.T)
         norm = norm(zmin, zmax)
@@ -445,9 +445,9 @@ class RTP():
 
         Raises
         ------
-        RTPUnknownParameterError
-        RTPIncorrectPlotMethodError
-        RTPNoDataFoundError
+        UnknownParameterError
+        IncorrectPlotMethodError
+        NoDataFoundError
         IndexError
 
         Returns
@@ -485,7 +485,7 @@ class RTP():
                           DmapScalar):
                 dmap_data = dmap2dict(dmap_data)
         except StopIteration:
-            raise rtp_exceptions.RTPUnknownParameterError(parameter)
+            raise plot_exceptions.UnknownParameterError(parameter)
 
         cls.dmap_data = dmap_data
         check_data_type(cls.dmap_data, parameter, 'scalar', index_first_match)
@@ -545,10 +545,10 @@ class RTP():
 
             # Check if the old cp ID change, if not then there was no data
             if old_cpid is None:
-                raise rtp_exceptions.\
-                        RTPNoDataFoundError(parameter, beam_num,
-                                            start_time, end_time,
-                                            cls.dmap_data[0]['bmnum'])
+                raise plot_exceptions.\
+                        NoDataFoundError(parameter, beam_num,
+                                         start_time, end_time,
+                                         cls.dmap_data[0]['bmnum'])
 
             # to get rid of y-axis numbers
             ax.set_yticks([])
@@ -578,10 +578,10 @@ class RTP():
                             y.append(np.nan)  # for masking the data
             # Check if there is any data to plot
             if np.all(np.isnan(y)) or len(x) == 0:
-                raise rtp_exceptions.\
-                        RTPNoDataFoundError(parameter, beam_num,
-                                            start_time, end_time,
-                                            cls.dmap_data[0]['bmnum'])
+                raise plot_exceptions.\
+                        NoDataFoundError(parameter, beam_num,
+                                         start_time, end_time,
+                                         cls.dmap_data[0]['bmnum'])
 
             # using masked arrays to create gaps in the plot
             # otherwise the lines will connect in gapped data
@@ -705,9 +705,9 @@ class RTP():
         Raises
         ------
         IndexError
-        RTPUnknownParameterError
-        RTPIncorrectPlotMethodError
-        RTPNoDataFoundError
+        UnknownParameterError
+        IncorrectPlotMethodError
+        NoDataFoundError
 
         See Also
         --------

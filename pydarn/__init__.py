@@ -19,6 +19,7 @@ import yaml
 from .exceptions import dmap_exceptions
 from .exceptions import superdarn_exceptions
 from .exceptions import rtp_exceptions
+from .exceptions import plot_exceptions
 from .exceptions import borealis_exceptions
 from .exceptions import radar_exceptions
 from .exceptions.warning_formatting import standard_warning_format

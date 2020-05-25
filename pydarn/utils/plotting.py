@@ -10,7 +10,7 @@ import numpy as np
 from datetime import datetime
 from typing import List
 
-from pydarn import rtp_exceptions
+from pydarn import plot_exceptions
 
 
 def check_data_type(dmap_data: List[dict], parameter: str,
@@ -38,13 +38,13 @@ def check_data_type(dmap_data: List[dict], parameter: str,
     data_type = dmap_data[index][parameter]
     if expected_type == 'array':
         if not isinstance(data_type, np.ndarray):
-            raise rtp_exceptions.RTPIncorrectPlotMethodError(parameter,
-                                                             data_type)
+            raise plot_exceptions.IncorrectPlotMethodError(parameter,
+                                                           data_type)
     else:
         if isinstance(data_type, np.ndarray):
             # TODO: make into a general plotting exception
-            raise rtp_exceptions.RTPIncorrectPlotMethodError(parameter,
-                                                             data_type)
+            raise plot_exceptions.IncorrectPlotMethodError(parameter,
+                                                           data_type)
 
 
 def time2datetime(dmap_record: dict) -> datetime:

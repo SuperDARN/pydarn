@@ -15,7 +15,7 @@ from datetime import datetime
 from typing import List
 
 from pydarn import (dmap2dict, DmapArray, DmapScalar,
-                    rtp_exceptions, SuperDARNRadars,
+                    plot_exceptions, SuperDARNRadars,
                     standard_warning_format, time2datetime,
                     check_data_type)
 
@@ -124,7 +124,7 @@ class ACF():
                 dmap_data = dmap2dict(dmap_data)
         except StopIteration:
             # TODO: make this a generalize exception
-            raise rtp_exceptions.RTPUnknownParameterError(parameter)
+            raise plot_exceptions.UnknownParameterError(parameter)
 
         cls.dmap_data = dmap_data
         check_data_type(cls.dmap_data, parameter, 'array', index_first_match)
@@ -137,6 +137,10 @@ class ACF():
                 time = time2datetime(record)
                 if (scan_count == scan_num and start_time is None) or\
                    start_time < time:
+                    if gate_num >= record['nrang'] or gate_num < 0:
+                        raise plot_exceptions.\
+                                OutOfRangeGateError(parameter, gate_num,
+                                                    record['nrang'])
                     # get the difference to get the lag number
                     lags = [lag[1] - lag[0] for lag in record['ltab']]
                     # remove the last lag as it is the zeroth lag
@@ -206,8 +210,8 @@ class ACF():
                                  edgecolors=real_color, facecolors='white',
                                  marker=blank_marker)
             line_im = ax.scatter(blank, blank_im[lags.index(blank)],
-                                 edgecolors=imaginary_color, facecolors='white',
-                                 marker=blank_marker)
+                                 edgecolors=imaginary_color,
+                                 facecolors='white', marker=blank_marker)
 
         # generate generic legend
         if legend:
