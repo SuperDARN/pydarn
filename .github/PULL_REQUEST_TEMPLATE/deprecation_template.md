@@ -1,6 +1,6 @@
 # !!!DEPRECATION!!!
 
-<span style="color: red;">!!! warning !!!** You are suggesting on removing a feature from pyDARN</span>
+!!! warning !!!** You are suggesting on removing a feature from pyDARN
 
 **Name:** 
 
@@ -34,9 +34,10 @@
 ## Extra notes
 
 *Please provide any other information on this PR here.*
+
 Example info: 
-    - is there another package supporting this feature
-    - does it require a change in the `setup.py`
-    - are there performance hits/improvements?
-    - does this affect the workflow of previous releases using other methods?
-    - if yes to above what can a user do to fix future issues from the deprication? 
+- is there another package supporting this feature
+- does it require a change in the `setup.py`
+- are there performance hits/improvements?
+- does this affect the workflow of previous releases using other methods?
+- if yes to above what can a user do to fix future issues from the deprication? 
