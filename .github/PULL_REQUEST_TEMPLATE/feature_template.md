@@ -34,5 +34,8 @@
 *Example info:*
 - *does it use metadata?*
 - *does it require a change in the `setup.py`*
+- *new dependecies or requirements to installing the package?*
 - *are there performance hits/improvements?*
+- *python version?*
+- *operating system?*
 - *what is the [design pattern](https://refactoring.guru/design-patterns/template-method)?*
