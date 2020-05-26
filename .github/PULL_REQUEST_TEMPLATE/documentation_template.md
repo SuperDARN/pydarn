@@ -44,7 +44,7 @@ What goals are you trying to achieve with the add/updated/removed documentation?
 
 ## Checklist
 
-- [ ] spell checker
+- [ ] spell checker (US recommended)
 - [ ] grammar checker
 - [ ] meets PEP8 documentation style (if applicable)
 - [ ] meets numpy/pandas docstring style (if applicable)
@@ -54,7 +54,7 @@ What goals are you trying to achieve with the add/updated/removed documentation?
 ### Reviewers Help
 
 What do you want the review to focus on? 
-- [ ] spelling/grammar
+- [ ] spelling/grammar (US recommended)
 - [ ] accuracy
 - [ ] readability
 - [ ] fluiditiy 
