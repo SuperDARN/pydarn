@@ -65,12 +65,3 @@ What do you want the review to focus on?
 
 *Please provide the readthedocs link to your documentation or how to view it.* 
 
-## Extra notes
-
-*Please provide any other information on this PR here.*
-
-Example info: 
-- does this need to be updated on readthedocs
-- does it require a change in the `setup.py`
-- are there performance hits/improvements?
-- what is the design pattern? 
