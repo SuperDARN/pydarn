@@ -52,3 +52,5 @@ Example info:
 - does it require a change in the `setup.py`
 - are there performance hits/improvements?
 - are there problems you cannot fix?
+- python version used locally: 3.X.Y
+- operating system used locally:
