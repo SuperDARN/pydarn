@@ -6,9 +6,7 @@
 **package:** *folder it is under*
 
 ## Issue reference
-*Does this feature pertain to a specific issue?*
-
-**Issue** *number sign and number of the issue*
+**Issue** *issue number*
 
 ## Scope
 *What does this feature do?*
@@ -37,4 +35,4 @@
 - *does it use metadata?*
 - *does it require a change in the `setup.py`*
 - *are there performance hits/improvements?*
-- *what is the design pattern?*
+- *what is the [design pattern](https://refactoring.guru/design-patterns/template-method)?*
