@@ -21,13 +21,16 @@
 
 ### Requirements Checklist
 - [ ] PEP 8/flake8 check
-- [ ] current unit tests -> **pass**
+- [ ] unit tests showing coverage of the bug fix
 - [ ] Update code documentation (if applicable)
 - [ ] Update readthedocs documentation (if applicable)
 - [ ] merge to `develop` or `master`
 
 ### Merging to Master
 *If applicable please reason why this bug fix should be merged to `master`?*
+*Examples:*
+- fixes the code from breaking with main use
+- fixes inaccuracies in how the data is visualize 
 
 ## Test code
 ### Code example with the bug
