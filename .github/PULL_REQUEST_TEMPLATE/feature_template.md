@@ -15,7 +15,8 @@
 
 ### Requirements Checklist
 - [ ] PEP 8/flake8 check
-- [ ] unit tests
+- [ ] added new unit tests
+- [ ] existing unit tests pass
 - [ ] Code documentation
 - [ ] readthedocs documentation
 - [ ] merge to `develop`
