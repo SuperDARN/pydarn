@@ -47,8 +47,7 @@ url={}
 
 ## DOI's 
 
-v1.0.0
-Currently in development  
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3727270.svg)](https://doi.org/10.5281/zenodo.3727270)
 
 ## Acknowledgements
 
