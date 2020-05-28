@@ -1,21 +1,23 @@
 # Requesting New Feature
+
 **Name**: *Feature name*
 
-**module**:  *file.py* 
+**module**:  *potential_filename.py* 
 
-**package**: */directory_name*
+**package**: */which directory should it go in*
 
 ## Purpose
+
 *What does the feature do?*
 
 *Does it solve a problem?*
 
 ### Issue Reference
-*Does it address a current issue?*
 
-Issue 
+**Issue:** *Issue number* 
 
 ## Checklist
+
 *Create a check list using markdowns [checklist syntax](https://help.github.com/en/github/managing-your-work-on-github/about-task-lists) on the scope of the feature*
 
 *What will the feature do?*
@@ -31,6 +33,7 @@ Issue
 -  [ ] Have you created a pyDARN project to reflect the process of developing it? 
 
 ### Developement help
+
 *pyDARN does not have a dedicated developement team on hand to full feature developement. 
 However, if you are able to provide some time and help the community will try to aid you the best way they can in making your feature possible.*
 
@@ -49,6 +52,6 @@ However, if you are able to provide some time and help the community will try to
 
 *Please provide any other details about this feature*
     - *publications*
-    - *code in another language or in python*
-    - *examples you may have seen that you will like incorportate - data visuals*
+    - *GitHub link of code in another language or in python*
+    - *examples you may have seen that you will like to incorportate - data visuals*
     - *potential solutions to current/future problems*
