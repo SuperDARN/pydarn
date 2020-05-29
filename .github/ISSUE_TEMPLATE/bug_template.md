@@ -6,7 +6,7 @@
 
 - [ ] Minor - typo, incorrect naming, fails on specific uncommon situation
 - [ ] Major - miss representation of data, failure in more common situation 
-- [ ] Urgen - failure in usage, large miss representation
+- [ ] Urgent - failure in usage, large miss representation
 
 ## Example of the bug 
 
@@ -20,12 +20,12 @@
 
 ### Data Location
 
-*Please indicate where to get the data you found the bug with. If applicable*
+*Please indicate where to get the data you found the bug with.*
 
 ## Potential Bug Location 
 
 *Please note this is not required.*
-*if you can link to some code in pyDARN where you think the bug is coming from this will help the developer fix it sooner* 
+*If you can link to some code in pyDARN where you think the bug is coming from this will help the developer fix it sooner* 
 
 ## Potential Solution(s)
 
@@ -35,8 +35,8 @@
 ## Extra Notes
 
 *Please provide any other details about this feature*
-    - *Operating System*
-    - *python version 3.X.X*
-    - *examples of what the visual should look like*
-    - *other data files that show the same bug*
-    - *How to access data files to test out the bug*
+- *Operating System*
+- *python version 3.X.X*
+- *examples of what the visual should look like*
+- *other data files that show the same bug*
+- *How to access data files to test out the bug*
