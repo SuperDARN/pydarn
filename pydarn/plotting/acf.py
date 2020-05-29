@@ -141,7 +141,7 @@ class ACF():
             if record['bmnum'] == beam_num:
                 time = time2datetime(record)
                 if time.day != start_time.day or \
-                   time.day != start_time.month or \
+                   time.month != start_time.month or \
                    time.year != start_time.year:
                     raise plot_exceptions.IncorrectDateError(time, start_time)
 
