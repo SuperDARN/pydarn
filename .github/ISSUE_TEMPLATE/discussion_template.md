@@ -21,11 +21,11 @@
 
 ## Example  
 
-*If applicable fill in one of the following.*
+*If applicable, fill in one of the following.*
 
 ### Code
 
-*please provide **pseudocode/code** and **output** that the question is around.*
+*Please provide **code** and **output** that the discussion is around.*
 
 ### Installation Process 
 
