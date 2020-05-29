@@ -227,7 +227,7 @@ class ACF():
                                  facecolors='white', marker=blank_marker)
 
         # generate generic legend
-        if legend:
+        if legend and blanked_lags != []:
             line_re.set_label('Real Blanked')
             line_im.set_label('Imaginary Blanked')
             ax.legend()
