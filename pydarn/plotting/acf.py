@@ -140,6 +140,11 @@ class ACF():
         for record in cls.dmap_data:
             if record['bmnum'] == beam_num:
                 time = time2datetime(record)
+                if time.day != start_time.day or \
+                   time.day != start_time.month or \
+                   time.year != start_time.year:
+                    raise plot_exceptions.IncorrectDateError(time, start_time)
+
                 if (scan_count == scan_num and start_time is None) or\
                    start_time < time:
                     if gate_num >= record['nrang'] or gate_num < 0:

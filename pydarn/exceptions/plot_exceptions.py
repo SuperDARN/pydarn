@@ -23,6 +23,23 @@ class IncorrectPlotMethodError(Exception):
         pydarn_log.error(self.message)
 
 
+class IncorrectDateError(Exception):
+    """
+    This error is raised when the file dates and plotting
+    date do not match
+    """
+    def __init__(self, record_date: datetime.datetime,
+                 plot_date: datetime.datetime):
+        self.record_date = record_date
+        self.plot_date = plot_date
+        self.message = "Incorrect date in record {record_date} or "\
+            "plotting date {plot_date}"\
+            "".format(record_date=self.record_date.strftime('%Y%m%d %H:%M'),
+                      plot_date=self.plot_date.strftime('%Y%m%d %H:%M'))
+        super().__init__(self.message)
+        pydarn_log.error(self.message)
+
+
 class NoDataFoundError(Exception):
     """
     This error is raised when no data is found for
@@ -72,11 +89,11 @@ class OutOfRangeGateError(Exception):
     def __init__(self, parameter: str, gate_num: int, max_range_gate: int):
         self.parameter = parameter
         self.gate_num = gate_num
-        self.max_range_gate  = max_range_gate
+        self.max_range_gate = max_range_gate
         self.message = "The range gate {gate_num} is out of range for this"\
-                "parameter {param}. Please pick a range gate number"\
-                "between 0 - {max_gate}".format(gate_num=self.gate_num,
-                                                param=self.parameter,
-                                                max_gate=self.max_range_gate-1)
+            "parameter {param}. Please pick a range gate number"\
+            "between 0 - {max_gate}".format(gate_num=self.gate_num,
+                                            param=self.parameter,
+                                            max_gate=self.max_range_gate-1)
         super().__init__(self.message)
         pydarn_log.error(self.message)
