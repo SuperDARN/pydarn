@@ -14,11 +14,9 @@
 
 *What will the feature not do?* 
 
-## Purpose
+## Description
 
-*What does the feature do?*
-
-*Does it solve a problem?*
+*Please provide a description of the new feature and if will improve or solve a problem.*
 
 ### pyDARN Checklist 
 
@@ -42,7 +40,7 @@ However, if you are able to provide some time and help, the community will try t
 
 ## User Interface 
 
-*Please provide pseudocode on how you see your new feature interacting with the code*
+*Please provide **pseudocode** on how you see your new feature interacting with the code or user-interface*
 
 ## Extra Notes
 
