@@ -9,7 +9,9 @@
 ## Reason
 
 *Why should this feature be deprecated?*
+
 *Is it out of pyDARN's scope?*
+
 *Legacy?*
 
 ## Replacement
