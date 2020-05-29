@@ -10,6 +10,7 @@ import copy
 import matplotlib.pyplot as plt
 import numpy as np
 import warnings
+import matplotlib.ticker as ticker
 
 from datetime import datetime
 from typing import List
@@ -134,6 +135,8 @@ class ACF():
         # search over the records to find the correct beam, and scan/time
         # to plot the corresponding ACF/XCF plot
         scan_count = 0
+        re = []
+        im = []
         for record in cls.dmap_data:
             if record['bmnum'] == beam_num:
                 time = time2datetime(record)
@@ -184,6 +187,9 @@ class ACF():
                     break
                 scan_count += 1
 
+        if re == [] or im == []:
+            raise plot_exceptions.OutOfRangeGateError(parameter, gate_num, record['nrang'])
+
         if normalized:
             blank_re /= record['pwr0'][gate_num]
             blank_im /= record['pwr0'][gate_num]
@@ -222,6 +228,7 @@ class ACF():
             ax.legend()
         ax.set_ylabel(parameter)
         ax.set_xlabel('Lag Number')
+        ax.xaxis.set_major_locator(ticker.MaxNLocator(integer=True))
         radar_name = SuperDARNRadars.radars[cls.dmap_data[0]['stid']].name
         title = "{date} UT {radar} Beam {beam}, Gate {gate}"\
                 "".format(radar=radar_name, beam=beam_num, gate=gate_num,
