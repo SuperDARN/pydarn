@@ -5,8 +5,8 @@
 ## Priority
 
 - [ ] Minor - typo, incorrect naming, fails on specific uncommon situation
-- [ ] Major - miss representation of data, failure in more common situation 
-- [ ] Urgent - failure in usage, large miss representation
+- [ ] Major - misrepresentation of data, failure in a common situation 
+- [ ] Urgent - failure in usage, large misrepresentation
 
 ## Example of the bug 
 
@@ -20,7 +20,7 @@
 
 ### Data Location
 
-*Please indicate where to get the data you found the bug with.*
+*Please indicate where (and how) to get the data file that was used to obtain the bug.*
 
 ## Potential Bug Location 
 

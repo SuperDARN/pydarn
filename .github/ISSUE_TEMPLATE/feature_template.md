@@ -28,7 +28,7 @@
 
 ### Developement help
 
-*pyDARN does not have a dedicated developement team on hand to full feature developement. 
+*pyDARN does not have a dedicated development team on hand to full feature development. 
 However, if you are able to provide some time and help, the community will try to aid you the best way they can in making your feature possible.*
 
 *If you need help please indicate what expertise you are looking for:*

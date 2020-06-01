@@ -8,11 +8,7 @@
 
 ## Reason
 
-*Why should this feature be deprecated?*
-
-*Is it out of pyDARN's scope?*
-
-*Legacy?*
+*Why should this feature be deprecated?  Possible reasons include being outside of pyDARN's current scope or being a legacy function that is no longer used.*
 
 ## Replacement
 
