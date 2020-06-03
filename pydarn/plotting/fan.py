@@ -11,8 +11,7 @@ import os
 
 from pydarn import PyDARNColormaps
 from typing import List
-from matplotlib import ticker
-
+from matplotlib import ticker, cm, colors
 
 class fan():
     # TODO: Add class documentation
@@ -232,15 +231,16 @@ class fan():
                   rs[0, 0:thetas.shape[1] - 2], color='black',
                   linewidth=0.5)
 
+        norm = colors.Normalize
+        norm = norm(zmin, zmax)
         # Create color bar if True
         if not colorbar:
-            print(zmin)
-            print(zmax)
+            mappable = cm.ScalarMappable(norm=norm, cmap=cmap)
             locator = ticker.MaxNLocator(symmetric=True, min_n_ticks=3,
                                          integer=True, nbins='auto')
             ticks = locator.tick_values(vmin=zmin, vmax=zmax)
-            im = ax.collections[0]
-            cb = ax.figure.colorbar(im, ax=ax, extend='both', ticks=ticks)
+
+            cb = ax.figure.colorbar(mappable, ax=ax, extend='both', ticks=ticks)
 
         if colorbar_label != '':
             cb.set_label(colorbar_label)
