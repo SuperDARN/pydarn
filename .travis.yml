@@ -36,6 +36,8 @@ matrix:
       language: minimal
       before_install:
           - pip3 install -U pip
+      install:
+          - pip3 install --user .
     - name: Windows
       os: windows
       language: shell
@@ -46,6 +48,6 @@ matrix:
           
 
 install:
-    - pip3 install --user .
+    - pip3 install .
     - pip3 install pytest
 script: pytest --ignore=test/performance --ignore=test/integration 
