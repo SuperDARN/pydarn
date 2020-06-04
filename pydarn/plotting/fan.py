@@ -1,5 +1,5 @@
 # Copyright (C) 2020 SuperDARN Canada, University of Saskatchewan
-# Author: Daniel Billett
+# Author: Daniel Billett, Marina Schmidt
 """
 Fan plots, mapped to AACGM coordinates
 """
