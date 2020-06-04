@@ -36,7 +36,7 @@ matrix:
       language: minimal
       before_install:
           - pip3 install -U pip
-          - pip3 install --user pytest
+          - pip3 install pytest
       install:
           - pip3 install --user .
     - name: Windows
