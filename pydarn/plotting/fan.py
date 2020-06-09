@@ -114,10 +114,10 @@ class fan():
         beam_corners_mlts = np.zeros((fan_shape[0], fan_shape[1]))
 
         # Time for coordinate conversion
-        dtime = dt.datetime(dmap_data[0]['time.yr'],
-                            dmap_data[0]['time.mo'], dmap_data[0]['time.dy'],
-                            dmap_data[0]['time.hr'], dmap_data[0]['time.mt'],
-                            dmap_data[0]['time.sc'])
+        dtime = dt.datetime(dmap_data[plot_beams[0][0]]['time.yr'],
+                            dmap_data[plot_beams[0][0]]['time.mo'], dmap_data[plot_beams[0][0]]['time.dy'],
+                            dmap_data[plot_beams[0][0]]['time.hr'], dmap_data[plot_beams[0][0]]['time.mt'],
+                            dmap_data[plot_beams[0][0]]['time.sc'])
         for x in range(fan_shape[0]):
             for y in range(fan_shape[1]):
                 # Convert to AACGM
