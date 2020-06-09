@@ -6,6 +6,7 @@ pyDARN supports python [logging library](https://docs.python.org/3/library/loggi
 
 Use `logging.basicConfig()` to set various configurations include logging levels. 
 pyDARN supports various levels of logging:
+
 - `INFO`: provided info and status of where the pyDARN are at in functionality 
 - `DEBUG`: provides extra information useful for debugging 
 - `ERROR`: provides exceptions error information 
@@ -61,4 +62,3 @@ DEBUG:pydarn:Reading record: reading scalars
 
 DEBUG:pydarn:Reading record: reading arrays
 ```
-
