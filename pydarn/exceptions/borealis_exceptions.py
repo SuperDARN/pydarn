@@ -52,6 +52,7 @@ class BorealisFileTypeError(Exception):
             " not been implemented yet. {filename} was not used. Please check"\
             " the spelling of {file_type}.".format(file_type=self.file_type,
                                                    filename=self.filename)
+        pydarn_logger.error(self.message)
         Exception.__init__(self, self.message)
 
 
@@ -89,6 +90,7 @@ class BorealisFieldMissingError(Exception):
         self.message = "The following fields in {source} are missing:"\
             " {fields}".format(source=error_source,
                                fields=self.fields)
+        pydarn_logger.error(self.message)
         Exception.__init__(self, self.message)
 
 
@@ -126,6 +128,7 @@ class BorealisExtraFieldError(Exception):
         self.message = "The following fields in {source} are not allowed:"\
             " {fields}".format(source=error_source,
                                fields=self.fields)
+        pydarn_logger.error(self.message)
         Exception.__init__(self, self.message)
 
 
@@ -164,6 +167,7 @@ class BorealisDataFormatTypeError(Exception):
             " are not of their given correct type:"\
             " {incorrect}".format(source=error_source,
                                   incorrect=self.incorrect_types)
+        pydarn_logger.error(self.message)
         Exception.__init__(self, self.message)
 
 
@@ -199,6 +203,7 @@ class BorealisNumberOfRecordsError(Exception):
             "have the same first dimension size equal to number of records: "\
             "{array_types}".format(filename=self.filename,
                                    array_types=self.array_types)
+        pydarn_logger.error(self.message)
         Exception.__init__(self, self.message)
 
 
@@ -231,6 +236,7 @@ class BorealisConversionTypesError(Exception):
                        "{allowed_types}".format(dmap_filename=dmap_filename,
                                                 origin_filetype=origin_filetype,
                                                 allowed_types=allowed_types)
+        pydarn_logger.error(self.message)
         Exception.__init__(self, self.message)
 
 
@@ -253,6 +259,7 @@ class BorealisConvert2IqdatError(Exception):
         self.message = "The file cannot be converted to SDARN DMap iqdat due"\
             " to the following error: {error_str}"\
             "".format(error_str=error_str)
+        pydarn_logger.error(self.message)
         Exception.__init__(self, self.message)
 
 
@@ -275,6 +282,7 @@ class BorealisConvert2RawacfError(Exception):
         self.message = "The file cannot be converted to SDARN DMap rawacf "\
             "due to the following error: {error_str}"\
             "".format(error_str=error_str)
+        pydarn_logger.error(self.message)
         Exception.__init__(self, self.message)
 
 
@@ -302,6 +310,7 @@ class BorealisRestructureError(Exception):
         self.message = "The file cannot be restructured due to the "\
             " following error: {error_str}"\
             "".format(error_str=error_str)
+        pydarn_logger.error(self.message)
         Exception.__init__(self, self.message)
 
 
@@ -332,6 +341,7 @@ class BorealisStructureError(Exception):
                 " supported). Please check if you are interested"\
                 " in records or arrays."\
                 "{error_str}".format(error_str=error_str)
+        pydarn_logger.error(self.message)
         Exception.__init__(self, self.message)
 
 
@@ -353,6 +363,7 @@ class ConvertFileOverWriteError(Exception):
     def __init__(self, filename: str):
         self.message = "Writing to {filename} not permitted while reading"\
             " the file as source.".format(filename=filename)
+        pydarn_logger.error(self.message)
         Exception.__init__(self, self.message)
 
 
@@ -383,4 +394,5 @@ class BorealisVersionError(Exception):
             " a recognized Borealis version or has not been implemented yet."\
             " {filename} was not used.".format(file_version=self.file_version,
                                    filename=self.filename)
+        pydarn_logger.error(self.message)
         Exception.__init__(self, self.message)
