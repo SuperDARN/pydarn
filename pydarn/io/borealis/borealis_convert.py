@@ -521,7 +521,7 @@ class BorealisConvert(BorealisRead):
                 arrays = [this_data[x, i, :]
                           for x in range(this_data.shape[0])]
                 # append
-                reshaped_data.append(np.ravel(np.column_stack(arrays)))
+                reshaped_data.append(np.ravel(arrays))
 
             # (num_sequences x num_antenna_arrays x num_samps,
             # flattened)
