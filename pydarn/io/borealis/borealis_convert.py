@@ -432,6 +432,17 @@ class BorealisConvert(BorealisRead):
         ------
         BorealisConvert2IqdatError
 
+        Notes
+        -----
+        SuperDARN RFC 0027 specifies that the dimensions of the data in 
+        iqdat should be by number of sequences, number of arrays, number
+        of samples, 2 (i+q). There is some history where the dimensions were
+        instead sequences, samples, arrays, 2(i+q). We have chosen to 
+        use the former, as it is consistent with the rest of SuperDARN Canada
+        radars at this time and is as specified in the document. This means
+        that you may need to use make_raw with the -d option in RST if you
+        wish to process the resulting iqdat into rawacf. 
+
         Returns
         -------
         dmap_recs, the records converted to DMap format
