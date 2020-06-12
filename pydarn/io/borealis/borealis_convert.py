@@ -764,7 +764,7 @@ class BorealisConvert(BorealisRead):
         # in correlation (integer max squared)
         shaped_data['main_acfs'] = record_dict['main_acfs'].reshape(
             record_dict['correlation_dimensions']).astype(
-            np.complex64) * 
+            np.complex64) *\
             ((np.iinfo(np.int16).max**2 * scaling_factor) /
              (record_dict['data_normalization_factor']**2))
 
