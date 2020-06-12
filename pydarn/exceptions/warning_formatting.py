@@ -6,7 +6,6 @@
 # Disclaimer: pyDARN is licensed under the GPL v 3.0 found in LICENSE
 #
 
-
 def standard_warning_format(message: str, category: str, filename: str,
                             lineno: int, file: str = None,
                             line: int = None) -> str:
