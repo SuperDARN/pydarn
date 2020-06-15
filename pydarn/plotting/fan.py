@@ -11,6 +11,8 @@ import os
 
 from typing import List
 from matplotlib import ticker, cm, colors
+from pydarn import PyDARNColormaps
+
 
 class fan():
     # TODO: Add class documentation
