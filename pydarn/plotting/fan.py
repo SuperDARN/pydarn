@@ -9,7 +9,6 @@ import aacgmv2
 import datetime as dt
 import os
 
-from pydarn import PyDARNColormaps
 from typing import List
 from matplotlib import ticker, cm, colors
 
