@@ -30,7 +30,6 @@ class Fan():
                        zmin: int = None, zmax: int = None,
                        colorbar: plt.colorbar = None,
                        colorbar_label: str = ''):
-        # value you will find in MAP files
         """
         Plots a radar FOV fan plot for the given data and scan number
 
