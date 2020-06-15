@@ -31,7 +31,7 @@ class Fan():
                        colorbar: plt.colorbar = None,
                        colorbar_label: str = ''):
         """
-        Plots a radar FOV fan plot for the given data and scan number
+        Plots a radar's Field Of View (FOV) fan plot for the given data and scan number
 
         Parameters
         -----------
@@ -57,18 +57,19 @@ class Fan():
                 Set true to indicate if groundscatter should be plotted in grey
                 Default: False
             zmin: int
-                Minimum value for colouring
+                The minimum parameter value for coloring
                 Default: {'p_l': [0], 'v': [-200], 'w_l': [0], 'elv': [0]}
             zmax: int
-                Maximum value for colouring
+                The maximum parameter value for  coloring
                 Default: {'p_l': [50], 'v': [200], 'w_l': [250], 'elv': [50]}
-            colorbar: int
-                Draw a colourbar if set to an integer
+        colorbar: matplotlib.pyplot.colorbar
+                Draw a colourbar if None
                 Default: None
             colorbar_label: str
                 the label that appears next to the colour bar
                 Default: ''
         """
+        # TODO: put a function here to get the grid of the radar's FOV information 
         my_path = os.path.abspath(os.path.dirname(__file__))
         base_path = os.path.join(my_path, '..')
 
