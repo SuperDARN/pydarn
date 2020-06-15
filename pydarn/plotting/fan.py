@@ -20,7 +20,7 @@ class Fan():
     def __str__(self):
         return "This class is static class that provides"\
                 " the following methods: \n"\
-                "   - plot_fan()\n"\
+                "   - plot_radar_fov()\n"\
                 "   - return_beam_pos()\n"
 
     @classmethod
@@ -74,9 +74,9 @@ class Fan():
         base_path = os.path.join(my_path, '..')
 
         # Setup scans for easy locating
+        # Makes a list of size (number of records), with the scan number for each
         scan_mark = [sub['scan'] for sub in dmap_data]
         no_scans = 0
-        # TODO: my PEP8 linter says this variable is not used?
         beam_scan = np.zeros((len(dmap_data)))
         for beam in range(len(dmap_data)):
             if abs(scan_mark[beam]) == 1:
@@ -164,7 +164,6 @@ class Fan():
         # Setup plot
         # TODO: eek! remeber there is an option to pass in a variable called ax
         # This may screw up references
-        #Figure out hemisphere
         ax = plt.axes(polar=True)
         if beam_corners_aacgm_lats[0,0] > 0:
             ax.set_ylim(90, lowlat)
@@ -200,13 +199,12 @@ class Fan():
 
                 if groundscatter and grndsct[gates, beams] == 1:
                     colour_rgba = 'gray'
-
+                
+                #Angle for polar plotting
                 theta = [thetas[gates, beams], thetas[gates + 1, beams],
                          thetas[gates + 1, beams + 1],
                          thetas[gates, beams + 1]]
-                # TODO: try to avoid single letter names or at
-                # least leave a comment
-                # if it is a common letter to use, assuming r = radius?
+                #Radius for polar plotting
                 r = [rs[gates, beams], rs[gates + 1, beams],
                      rs[gates + 1, beams + 1], rs[gates, beams + 1]]
                 im = ax.fill(theta, r, color=colour_rgba)
