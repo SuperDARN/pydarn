@@ -25,8 +25,7 @@ class fan():
     @classmethod
     def plot_radar_fov(cls, dmap_data: List[dict], scan_index: int = 0,
                        all_gates: bool = False, parameter: str = 'v',
-                       hemisphere: str = 'north', lowlat: int = 50,
-                       cmap: str = None, groundscatter: bool = False,
+                       lowlat: int = 50, cmap: str = None, groundscatter: bool = False,
                        zmin: int = None, zmax: int = None,
                        colorbar: plt.colorbar = None,
                        colorbar_label: str = ''):
@@ -46,11 +45,6 @@ class fan():
             parameter: str
                 Key name indicating which parameter to plot.
                 Default: v (Velocity). Alternatives: 'p_l', 'w_l', 'elv'
-            hemisphere: str
-                North or south, depending on radar. Currently,
-                pyDARN cannot work this out
-                itself, so you should always give it
-                Default: 'north'. Alternatives: 'south'
             lowlat: int
                 Lower AACGM latitude boundary for the polar plot
                 Default: 50
@@ -172,13 +166,14 @@ class fan():
         # Setup plot
         # TODO: eek! remeber there is an option to pass in a variable called ax
         # This may screw up references
+        #Figure out hemisphere
         ax = plt.axes(polar=True)
-        if hemisphere == 'south':
-            ax.set_ylim(-90, -lowlat)
-            ax.set_yticks(np.arange(-lowlat, -90, -10))
-        else:
+        if beam_corners_aacgm_lats[0,0] > 0:
             ax.set_ylim(90, lowlat)
             ax.set_yticks(np.arange(lowlat, 90, 10))
+        else:
+            ax.set_ylim(-90, -lowlat)
+            ax.set_yticks(np.arange(-lowlat, -90, -10))       	
         ax.set_xticklabels(['00', '', '06', '', '12', '', '18', ''])
         ax.set_theta_zero_location("S")
 
