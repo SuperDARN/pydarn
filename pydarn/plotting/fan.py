@@ -30,7 +30,6 @@ class Fan():
                        zmin: int = None, zmax: int = None,
                        colorbar: plt.colorbar = None,
                        colorbar_label: str = ''):
-        # check out the file. Even has an enum for hemisphere and associated
         # value you will find in MAP files
         """
         Plots a radar FOV fan plot for the given data and scan number
