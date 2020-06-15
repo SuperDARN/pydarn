@@ -30,7 +30,6 @@ class Fan():
                        zmin: int = None, zmax: int = None,
                        colorbar: plt.colorbar = None,
                        colorbar_label: str = ''):
-        # TODO: pyDARN can work out the hemisphere via superDARNRadars.radars
         # check out the file. Even has an enum for hemisphere and associated
         # value you will find in MAP files
         """
