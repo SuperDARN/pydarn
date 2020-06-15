@@ -79,7 +79,6 @@ class Fan():
         scan_mark = [sub['scan'] for sub in dmap_data]
         no_scans = 0
         # TODO: my PEP8 linter says this variable is not used?
-        scan_no = 0
         beam_scan = np.zeros((len(dmap_data)))
         for beam in range(len(dmap_data)):
             if abs(scan_mark[beam]) == 1:
