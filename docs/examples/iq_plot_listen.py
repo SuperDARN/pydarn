@@ -152,7 +152,8 @@ def plot_iq(records, save_directory, sequences_to_plot=None):
         record_datetime = record_datetime.strftime("%Y%m%d.%H%M.%S")
         plot_filename = save_directory + '/' + record_datetime + '.' + radar_abbrev + \
                         '.bm' + str(record['bmnum']) + '.png'
-
+# TODO: Describe the x axis of the plot, place note that says what black and red signals are
+# TODO: Place note saying what the rsep is on the plot or title
         if sequences_to_plot is None:
             # Plot all of them!
             sequences_to_plot = int(record['seqnum'])
