@@ -50,7 +50,7 @@ matrix:
           
 before_install:
     - git submodule update --init --recursive
-    - git submodule update --recusive --remote 
+    - git submodule update --recursive --remote 
 install:
     - pip3 install .
     - pip3 install pytest
