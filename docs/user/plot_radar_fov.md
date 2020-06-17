@@ -53,7 +53,7 @@ Here is a list of all the current options than can be used with `plot_radar_fov`
 | Option                  | Action                                                                                              |
 |-------------------------|-----------------------------------------------------------------------------------------------------|
 | scan_index=(int)        | Scan number, from start of records in file                                                          |
-| lowlat=(int)            | Control the lower latitude boundary of the plot (default 40/-40 AACGM lat)                          |
+| lowlat=(int)            | Control the lower latitude boundary of the plot (default 50/-50 AACGM lat)                          |
 | groundscatter=(bool)    | True or false to showing ground scatter as grey                                                     |
 | all_gates=(bool)        | True of false to show all the range gates for the radar (default false, cuts out at 75 range gates) |
 | cmap=matplotlib.cm      | A matplotlib color map object. Will override the pyDARN defaults for chosen parameter               |
@@ -61,6 +61,10 @@ Here is a list of all the current options than can be used with `plot_radar_fov`
 | zmax=(int)              | Maximum data value for colouring                                                                    |
 | colorbar_label=(string) | Label for the colour bar                                                                            |
 
+As an example, the following code produces the following fan plot (using data from one of the mid-latitude radars:
+```python
+a = pydarn.fan.plot_radar_fov(fitacf_data, scan_index=140, parameter='p_l', colorbar_label='Power [dB]', all_gates=True, lowlat=40)
 
-
+```
+![](../imgs/fan_3.png)
 
