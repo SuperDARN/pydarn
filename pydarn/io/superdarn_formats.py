@@ -71,12 +71,11 @@ class Rawacf():
     correlation_field = {
         'acfd': 'f'
         }
-
     digitizing_field = {
             'ifmode': 'h'
             }
     fittex_field = {
-            'mplgexs': 'h',
+            'mplgexs': 'h'
             }
     cross_correlation_field = {
             'xcfd': 'f'

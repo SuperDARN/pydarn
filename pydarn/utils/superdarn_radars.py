@@ -343,7 +343,7 @@ class SuperDARNRadars():
                          Hemisphere.North, read_hdw_file('wal')),
               24: _Radar('Buckland Park', 'La Trobe University',
                          Hemisphere.South, read_hdw_file('bpk')),
-              96: _Radar('Dome C',
+              96: _Radar('Dome C East',
                          'Institute for Space Astrophysics and Planetology',
                          Hemisphere.South, read_hdw_file('dce')),
               97: _Radar('Dome C North',
