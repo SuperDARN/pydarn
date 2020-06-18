@@ -21,10 +21,10 @@
 ### pyDARN Checklist 
 
 -  [ ] Does this fit within pyDARN's scope? 
--  [ ] Is this a minor change?
--  [ ] Is this a major change?
+-  [ ] Is this a minor change i.e., new small utility function?
+-  [ ] Is this a major change i.e., new plotting function?
 -  [ ] Do you need help developing it? 
--  [ ] Have you created a pyDARN project to reflect the process of developing it? 
+-  [ ] Have you created a pyDARN GitHub [project](https://github.com/SuperDARN/pydarn/projects) to show the tasks needed to be done? 
 
 ### Developement help
 
