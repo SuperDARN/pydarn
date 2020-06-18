@@ -3,16 +3,19 @@
 """
 Fan plots, mapped to AACGM coordinates
 """
+
+import datetime as dt
 import matplotlib.pyplot as plt
 import numpy as np
-import aacgmv2
-import datetime as dt
 import os
 
-from typing import List
 from matplotlib import ticker, cm, colors
-from pydarn import PyDARNColormaps
+from typing import List
 
+# third part libs
+import aacgmv2
+
+from pydarn import PyDARNColormaps
 
 class Fan():
     # TODO: Add class documentation
@@ -69,7 +72,7 @@ class Fan():
                 the label that appears next to the colour bar
                 Default: ''
         """
-        # TODO: put a function here to get the grid of the radar's FOV information 
+        # TODO: put a function here to get the grid of the radar's FOV information
         my_path = os.path.abspath(os.path.dirname(__file__))
         base_path = os.path.join(my_path, '..')
 
@@ -140,6 +143,7 @@ class Fan():
                 scan[slist, iterat] = dmap_data[i.astype(int)][parameter]
                 grndsct[slist, iterat] = dmap_data[i.astype(int)]['gflg']
                 iterat += 1
+            # if there is no slist field this means partial record
             except KeyError:
                 continue
 
@@ -170,7 +174,7 @@ class Fan():
             ax.set_yticks(np.arange(lowlat, 90, 10))
         else:
             ax.set_ylim(-90, -lowlat)
-            ax.set_yticks(np.arange(-lowlat, -90, -10))       	
+            ax.set_yticks(np.arange(-lowlat, -90, -10))
         ax.set_xticklabels(['00', '', '06', '', '12', '', '18', ''])
         ax.set_theta_zero_location("S")
 
@@ -199,7 +203,7 @@ class Fan():
 
                 if groundscatter and grndsct[gates, beams] == 1:
                     colour_rgba = 'gray'
-                
+
                 #Angle for polar plotting
                 theta = [thetas[gates, beams], thetas[gates + 1, beams],
                          thetas[gates + 1, beams + 1],
