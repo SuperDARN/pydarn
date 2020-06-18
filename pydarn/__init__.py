@@ -12,8 +12,6 @@ module, classes, and functions.
 # KEEP THIS FILE AS MINIMAL AS POSSIBLE!
 
 import os
-import logging.config
-import yaml
 
 # Importing pydarn exception classes
 from .exceptions import dmap_exceptions
