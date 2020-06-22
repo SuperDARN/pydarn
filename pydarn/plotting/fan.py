@@ -27,7 +27,7 @@ class Fan():
                 "   - return_beam_pos()\n"
 
     @classmethod
-    def plot_radar_fov(cls, dmap_data: List[dict], scan_index: int = 0,
+    def plot_radar_fov(cls, dmap_data: List[dict], ax=None, scan_index: int = 0,
                        all_gates: bool = False, parameter: str = 'v',
                        lowlat: int = 50, cmap: str = None, groundscatter: bool = False,
                        zmin: int = None, zmax: int = None,
