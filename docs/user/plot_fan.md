@@ -18,9 +18,9 @@ SDarn_read = pydarn.SDarnRead(file)
 fitacf_data = SDarn_read.read_fitacf()
 
 ```
-With the FITACF data loaded as a list of dictionaries (`fitacf_data` variable in above example), you may now call the `plot_radar_fov` method. Make sure you tell it which scan (numbered from first recorded scan in file) you want using `scan_index`:
+With the FITACF data loaded as a list of dictionaries (`fitacf_data` variable in above example), you may now call the `plot_fan` method. Make sure you tell it which scan (numbered from first recorded scan in file) you want using `scan_index`:
 ```python
-a = pydarn.fan.plot_radar_fov(fitacf_data, scan_index=27)
+fanplot = pydarn.fan.plot_fan(fitacf_data, scan_index=27)
 plt.show()
 
 ```
@@ -29,11 +29,20 @@ Here I plotted the 27th scan in the file, and because I didn't tell it which par
 
 Default plots also do not show groundscatter as grey. Set it to true to colour groundscatter this way:
 ```python
-a = pydarn.fan.plot_radar_fov(fitacf_data, scan_index=27, groundscatter=1)
+fanplot = pydarn.fan.plot_fan(fitacf_data, scan_index=27, groundscatter=1)
 plt.show()
 
 ```
 ![](../imgs/fan_2.png)
+
+You might have noticed that the variable `fanplot` in the examples above actually holds some information. This contains the AACGM latitude and longitude of the fan just plotted, as well as the data and ground scatter information. If you instead change `fanplot` to 4 separate variables, it will return the latitude, longitude, data and groundscatter info into seperate numpy arrays:
+```python
+lats,lons,data,grndsct=pydarn.fan.plot_fan(fitacf_data, scan_index=27)
+
+lats.shape
+
+```
+Which returns `>>>(76, 17)`, i.e. ranges x beams array of the AACGM latitude, and so on for the other variables. The groundscatter array is 0's and 1's, 1 being a range gate flagged as groundscatter.
 
 ### Additional parameters
 
@@ -48,23 +57,30 @@ In addition to line-of-sight velocity, you can choose one of three other data pr
 
 ### Additional options
 
-Here is a list of all the current options than can be used with `plot_radar_fov`
+Here is a list of all the current options than can be used with `plot_fan`
 
 | Option                  | Action                                                                                              |
 |-------------------------|-----------------------------------------------------------------------------------------------------|
 | scan_index=(int)        | Scan number, from start of records in file                                                          |
 | lowlat=(int)            | Control the lower latitude boundary of the plot (default 50/-50 AACGM lat)                          |
 | groundscatter=(bool)    | True or false to showing ground scatter as grey                                                     |
-| all_gates=(bool)        | True of false to show all the range gates for the radar (default false, cuts out at 75 range gates) |
+| ranges=(list)           | Two element list giving the lower and upper ranges to ploy (default [0,75]                          |
 | cmap=matplotlib.cm      | A matplotlib color map object. Will override the pyDARN defaults for chosen parameter               |
 | zmin=(int)              | Minimum data value for colouring                                                                    |
 | zmax=(int)              | Maximum data value for colouring                                                                    |
-| colorbar_label=(string) | Label for the colour bar                                                                            |
+| colorbar=(bool)		  | Set true to plot a colorbar (default: True)															|
+| colorbar_label=(string) | Label for the colour bar (requires colorbar to be true)                                             |
+| boundary=(bool)		  | Set false to not show the outline of the radar FOV (default: True)     								|
 
-As an example, the following code produces the following fan plot (using data from one of the mid-latitude radars:
+As an example, the following code plots two fan plots, from the same radar at two different scans. The first one has been limited to only the first 20 ranges, and the second has no FOV boundary. Make sure you disable the colorbar on subsequent plots, or it will plot two. If you want to try this example for yourself, I used data from Saskatoon on 20200507 all day FITACF 3.0 file:
 ```python
-a = pydarn.fan.plot_radar_fov(fitacf_data, scan_index=140, parameter='p_l', colorbar_label='Power [dB]', all_gates=True, lowlat=40)
+lats,lons,data,grndsct = pydarn.Fan.plot_fan(fitacf_data, scan_index=1, parameter='p_l', 
+	colorbar_label='Power [dB]', ranges=[0,20])
+	
+lats2,lons2,data2,grndsct2 = pydarn.Fan.plot_fan(fitacf_data, scan_index=140, parameter='p_l', 
+	colorbar=False, boundary=False)
 
+plt.show()
 ```
 ![](../imgs/fan_3.png)
 
