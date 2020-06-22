@@ -168,7 +168,8 @@ class Fan():
         # Setup plot
         # TODO: eek! remeber there is an option to pass in a variable called ax
         # This may screw up references
-        ax = plt.axes(polar=True)
+        if ax is None:
+            ax = plt.axes(polar=True)
         if beam_corners_aacgm_lats[0,0] > 0:
             ax.set_ylim(90, lowlat)
             ax.set_yticks(np.arange(lowlat, 90, 10))
