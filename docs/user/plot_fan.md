@@ -20,7 +20,7 @@ fitacf_data = SDarn_read.read_fitacf()
 ```
 With the FITACF data loaded as a list of dictionaries (`fitacf_data` variable in above example), you may now call the `plot_fan` method. Make sure you tell it which scan (numbered from first recorded scan in file) you want using `scan_index`:
 ```python
-fanplot = pydarn.fan.plot_fan(fitacf_data, scan_index=27)
+fanplot = pydarn.Fan.plot_fan(fitacf_data, scan_index=27)
 plt.show()
 
 ```
@@ -29,7 +29,7 @@ Here I plotted the 27th scan in the file, and because I didn't tell it which par
 
 Default plots also do not show groundscatter as grey. Set it to true to colour groundscatter this way:
 ```python
-fanplot = pydarn.fan.plot_fan(fitacf_data, scan_index=27, groundscatter=1)
+fanplot = pydarn.Fan.plot_fan(fitacf_data, scan_index=27, groundscatter=1)
 plt.show()
 
 ```
@@ -37,7 +37,7 @@ plt.show()
 
 You might have noticed that the variable `fanplot` in the examples above actually holds some information. This contains the AACGM latitude and longitude of the fan just plotted, as well as the data and ground scatter information. If you instead change `fanplot` to 4 separate variables, it will return the latitude, longitude, data and groundscatter info into seperate numpy arrays:
 ```python
-lats,lons,data,grndsct=pydarn.fan.plot_fan(fitacf_data, scan_index=27)
+lats,lons,data,grndsct=pydarn.Fan.plot_fan(fitacf_data, scan_index=27)
 
 lats.shape
 
