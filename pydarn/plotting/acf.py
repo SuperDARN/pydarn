@@ -1,5 +1,5 @@
 # Copyright (C) 2020 SuperDARN Canada, University of Saskatchewan
-# Author: Marian Schmidt
+# Author: Marina Schmidt
 # This code is improvement based on acf.py in the DaVitpy library
 # https://github.com/vtsuperdarn/davitpy/blob/master/davitpy
 
