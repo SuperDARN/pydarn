@@ -237,9 +237,11 @@ class ACF():
         ax.set_xlabel('Lag Number')
         ax.xaxis.set_major_locator(ticker.MaxNLocator(integer=True))
         radar_name = SuperDARNRadars.radars[cls.dmap_data[0]['stid']].name
-        title = "{date} UT {radar} Beam {beam}, Gate {gate}"\
+        title = "{date} UT {radar} Beam {beam}, Gate {gate} Control "\
+                "Program: {cpid}"\
                 "".format(radar=radar_name, beam=beam_num, gate=gate_num,
-                          date=time.strftime("%Y %b %d %H:%M"))
+                          date=time.strftime("%Y %b %d %H:%M"),
+                          cpid=record['id'])
         ax.set_title(title)
 
     @classmethod
