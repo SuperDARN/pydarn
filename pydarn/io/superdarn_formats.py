@@ -66,12 +66,16 @@ class Rawacf():
         'ptab': 'h',
         'ltab': 'h',
         'slist': 'h',
-        'pwr0': 'f',
-        'acfd': 'f',
+        'pwr0': 'f'
         }
-    extra_fields = {
-            'ifmode': 'h',
-            'mplgexs': 'h',
+    correlation_field = {
+        'acfd': 'f'
+        }
+    digitizing_field = {
+            'ifmode': 'h'
+            }
+    fittex_field = {
+            'mplgexs': 'h'
             }
     cross_correlation_field = {
             'xcfd': 'f'
