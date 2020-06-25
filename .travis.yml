@@ -16,35 +16,35 @@ matrix:
     - os: linux
       dist: xenial
       name: ubuntu 16.04
-      before_install:
-          - pip3 install -U pip
     - name: ubuntu 18.04 
       os: linux
       dist: bionic
-      before_install:
-          - pip3 install -U pip
     - name: PEP8 
       os: linux
       python: 3.7
       before_install:
           - pip3 install -U pip
           - pip3 install flake8 mypy
+          - git submodule update --init --recursive
+          - git submodule update --recursive --remote
       script: 
       - flake8 --exit-zero --ignore=E501,F401
     - name: MacOS
       os: osx
       language: minimal
-      before_install:
-          - pip3 install -U pip
     - name: Windows
       os: windows
       language: shell
       before_install:
-          - choco install python3 --version 3.7.0
+          - choco install python3 --version 3.7.0  
           - python -m pip install --upgrade pip
+          - pip3 install --upgrade certifi
       env: export PATH="/c/Python37:/c/Python37/Scripts:$PATH"
           
-
+before_install:
+    - pip3 install -U pip
+    - git submodule update --init --recursive
+    - git submodule update --recursive --remote
 install:
     - pip3 install .
     - pip3 install pytest
