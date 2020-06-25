@@ -91,8 +91,8 @@ class OutOfRangeGateError(Exception):
         self.gate_num = gate_num
         self.max_range_gate = max_range_gate
         self.message = "The range gate {gate_num} is out of range for this"\
-            "parameter {param}. Please pick a range gate number"\
-            "between 0 - {max_gate}".format(gate_num=self.gate_num,
+            " parameter {param}. Please pick a range gate number"\
+            " between 0 - {max_gate}".format(gate_num=self.gate_num,
                                             param=self.parameter,
                                             max_gate=self.max_range_gate-1)
         super().__init__(self.message)
