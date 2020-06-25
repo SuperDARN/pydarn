@@ -189,7 +189,13 @@ class ACF():
                 scan_count += 1
 
         if re == [] or im == []:
-            raise plot_exceptions.OutOfRangeGateError(parameter, gate_num, record['nrang'])
+            if gate_num > 0 and gate_num < record['nrang']:
+                raise plot_exceptions.NoDataFoundError(parameter, beam_num,
+                                                       None, time,
+                                                       record['bmnum'])
+            else:
+                raise plot_exceptions.OutOfRangeGateError(parameter,gate_num,
+                                                          record['nrang'])
 
         if normalized:
             blank_re /= record['pwr0'][gate_num]
