@@ -16,7 +16,6 @@ import sys
 from subprocess import check_call
 from setuptools.command.install import install, orig
 
-
 # This class and function overrides the install python
 # setup method to add an extra git command in to install
 # the submodule
@@ -24,6 +23,7 @@ class initialize_submodules(install):
     def run(self):
         if path.exists('.git'):
             check_call(['git', 'submodule', 'update', '--init', '--recursive'])
+            check_call(['git', 'submodule', 'update', '--recursive', '--remote'])
         if self.old_and_unmanageable or self.single_version_externally_managed:
             return orig.install.run(self)
         caller = sys._getframe(2)
@@ -65,4 +65,6 @@ setup(
     # pyyaml library install
     install_requires=['pyyaml', 'numpy', 'matplotlib',
                       'h5py', 'deepdish', 'pathlib2']
+    # commented out due to not implemented yet.
+    #ext_modules = [rstmodule]
 )

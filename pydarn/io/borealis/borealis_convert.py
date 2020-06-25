@@ -37,8 +37,6 @@ see: https://borealis.readthedocs.io/en/latest/
 
 Future Work
 -----------
-Remove requirement for hdf5 filename by fixing Borealis datawrite so that
-    slice_id is written. This must be fixed in the Borealis code.
 Update noise values in SDarn fields when these can be calculated.
 
 """
@@ -158,7 +156,7 @@ class BorealisConvert(BorealisRead):
     __allowed_conversions = {'rawacf': 'rawacf', 'bfiq': 'iqdat'}
 
     def __init__(self, borealis_filename: str, borealis_filetype: str,
-                 sdarn_filename: str, borealis_slice_id: int,
+                 sdarn_filename: str, borealis_slice_id: int = None,
                  borealis_file_structure: Union[str, None] = None):
         """
         Convert HDF5 Borealis records to a given SDARN file with DMap format.
@@ -175,7 +173,8 @@ class BorealisConvert(BorealisRead):
         sdarn_filename: str
             The filename of the SDARN DMap file to be written.
         borealis_slice_id: int
-            The slice id of the file being converted.
+            The slice id of the file being converted. Only necessary for
+            files produced by Borealis versions before v0.5.
         borealis_file_structure: Union[str, None]
             The write structure of the file provided. Possible types are
             'site', 'array', or None. If None (default), array read will be
@@ -183,6 +182,7 @@ class BorealisConvert(BorealisRead):
 
         Raises
         ------
+        BorealisStructureError
         BorealisConversionTypesError
         ConvertFileOverWriteError
         """
@@ -202,7 +202,19 @@ class BorealisConvert(BorealisRead):
         self.borealis_records = self.records
         self.sdarn_filename = sdarn_filename
         self.borealis_filename = self.filename
-        self._borealis_slice_id = borealis_slice_id
+
+        try:
+            first_key = list(self.records.keys())[0]
+            self._borealis_slice_id = self.records[first_key]['slice_id']
+        except KeyError as e:
+            if borealis_slice_id is not None:
+                self._borealis_slice_id = int(borealis_slice_id)
+            else:
+                raise borealis_exceptions.BorealisStructureError(
+                    'The slice_id could not be found in the file: Borealis '
+                    'files produced before Borealis v0.5 must provide the '
+                    'slice_id value to the BorealisConvert class.') from e
+
         self._sdarn_dmap_records = {}
         self._sdarn_dict = {}
         try:
@@ -328,30 +340,29 @@ class BorealisConvert(BorealisRead):
                 self.sdarn_filename, self.borealis_filetype,
                 self.__allowed_conversions)
         else:  # There are some specific things to check
-            for k, v in self.borealis_records.items():
-                if not np.array_equal(v['blanked_samples'],
-                                      v['pulses'] *
-                                      int(v['tau_spacing']/v['tx_pulse_len'])):
+            for record_key, record in self.borealis_records.items():
+                sample_spacing = int(record['tau_spacing'] /
+                                     record['tx_pulse_len'])
+                if not np.array_equal(record['blanked_samples'],
+                                      record['pulses'] *
+                                      sample_spacing):
                     raise borealis_exceptions.\
-                            BorealisConvert2IqdatError('Increased complexity:'
-                                                       ' Borealis bfiq file'
-                                                       ' record {}'
-                                                       ' blanked_samples {}'
-                                                       ' does not equal pulses'
-                                                       ' array {}'
-                                                       ''.format(k,
-                                                                 v['blanked_samples'],
-                                                                 v['pulses']))
-                if not all([x == 0 for x in v['pulse_phase_offset']]):
+                            BorealisConvert2IqdatError(
+                                'Increased complexity: Borealis bfiq file'
+                                ' record {} blanked_samples {} does not equate'
+                                ' to pulses array converted to sample number '
+                                '{} * {}'.format(record_key,
+                                                 record['blanked_samples'],
+                                                 record['pulses'],
+                                                 int(record['tau_spacing'] /
+                                                     record['tx_pulse_len'])))
+                if not all([x == 0 for x in record['pulse_phase_offset']]):
                     raise borealis_exceptions.\
-                            BorealisConvert2IqdatError('Increased complexity:'
-                                                       ' Borealis bfiq file'
-                                                       ' record {}'
-                                                       ' pulse_phase_offset {}'
-                                                       ' contains non-zero'
-                                                       ' values.'
-                                                       ''.format(k,
-                                                                 v['pulse_phase_offset']))
+                            BorealisConvert2IqdatError(
+                                'Increased complexity: Borealis bfiq file '
+                                'record {} pulse_phase_offset {} contains '
+                                'non-zero values.'.format(
+                                    record_key, record['pulse_phase_offset']))
         return True
 
     def _is_convertible_to_rawacf(self) -> bool:
@@ -383,20 +394,22 @@ class BorealisConvert(BorealisRead):
                                                  self.borealis_filetype,
                                                  self.__allowed_conversions)
         else:  # There are some specific things to check
-            for k, v in self.borealis_records.items():
-                if not np.array_equal(v['blanked_samples'],
-                                      v['pulses'] *
-                                      int(v['tau_spacing']/v['tx_pulse_len'])):
+            for record_key, record in self.borealis_records.items():
+                sample_spacing = int(record['tau_spacing'] /
+                                     record['tx_pulse_len'])
+                if not np.array_equal(record['blanked_samples'],
+                                      record['pulses'] *
+                                      sample_spacing):
                     raise borealis_exceptions.\
-                            BorealisConvert2RawacfError('Increased complexity:'
-                                                        ' Borealis rawacf file'
-                                                        ' record {}'
-                                                        ' blanked_samples {}'
-                                                        'does not equal'
-                                                        ' pulses array {}'
-                                                        ''.format(k,
-                                                                  v['blanked_samples'],
-                                                                  v['pulses']))
+                            BorealisConvert2RawacfError(
+                                'Increased complexity: Borealis rawacf file'
+                                ' record {} blanked_samples {} does not equate'
+                                ' to pulses array converted to sample number '
+                                '{} * {}'.format(record_key,
+                                          record['blanked_samples'],
+                                          record['pulses'],
+                                          int(record['tau_spacing'] /
+                                              record['tx_pulse_len'])))
 
         return True
 
@@ -422,11 +435,11 @@ class BorealisConvert(BorealisRead):
         try:
             recs = []
             for record in self.borealis_records.items():
-                record_dict = \
+                sdarn_record_dict = \
                         self.__convert_bfiq_record(self.borealis_slice_id,
                                                    record,
                                                    self.borealis_filename)
-                recs.append(record_dict)
+                recs.append(sdarn_record_dict)
             self._sdarn_dict = recs
             self._sdarn_dmap_records = dict2dmap(recs)
         except Exception as e:
@@ -454,30 +467,32 @@ class BorealisConvert(BorealisRead):
         """
 
         # key value pair from Borealis bfiq record.
-        (k, v) = borealis_bfiq_record
+        (record_key, record_dict) = borealis_bfiq_record
 
         # data_descriptors (dimensions) are num_antenna_arrays,
         # num_sequences, num_beams, num_samps
         # scale by normalization and then scale to integer max as per
         # dmap style
-        data = v['data'].reshape(v['data_dimensions']).astype(np.complex128) / \
-            v['data_normalization_factor'] * np.iinfo(np.int16).max
+        data = record_dict['data'].reshape(record_dict['data_dimensions']).\
+            astype(np.complex128) / record_dict['data_normalization_factor'] *\
+            np.iinfo(np.int16).max
 
         # Borealis git tag version numbers. If not a tagged version,
         # then use 255.255
-        if v['borealis_git_hash'][0] == 'v' and \
-                v['borealis_git_hash'][2] == '.':
+        if record_dict['borealis_git_hash'][0] == 'v' and \
+                record_dict['borealis_git_hash'][2] == '.':
 
-            borealis_major_revision = v['borealis_git_hash'][1]
-            borealis_minor_revision = v['borealis_git_hash'][3]
+            borealis_major_revision = record_dict['borealis_git_hash'][1]
+            borealis_minor_revision = record_dict['borealis_git_hash'][3]
         else:
             borealis_major_revision = 255
             borealis_minor_revision = 255
 
         # base offset for setting the toff field in SDARN DMap iqdat file.
-        offset = 2 * v['antenna_arrays_order'].shape[0] * v['num_samps']
+        offset = 2 * record_dict['antenna_arrays_order'].shape[0] * \
+            record_dict['num_samps']
 
-        for beam_index, beam in enumerate(v['beam_nums']):
+        for beam_index, beam in enumerate(record_dict['beam_nums']):
             # grab this beam's data
             # shape is now num_antenna_arrays x num_sequences
             # x num_samps
@@ -485,7 +500,7 @@ class BorealisConvert(BorealisRead):
             # iqdat shape is num_sequences x num_antennas_arrays x
             # num_samps x 2 (real, imag), flattened
             reshaped_data = []
-            for i in range(v['num_sequences']):
+            for i in range(record_dict['num_sequences']):
                 # get the samples for each array 1 after the other
                 arrays = [this_data[x, i, :]
                           for x in range(this_data.shape[0])]
@@ -501,72 +516,83 @@ class BorealisConvert(BorealisRead):
             int_data[1::2] = flattened_data.imag
 
             # flattening done in convert_to_dmap_datastructures
-            record_dict = {
+            sdarn_record_dict = {
                 'radar.revision.major': np.int8(borealis_major_revision),
                 'radar.revision.minor': np.int8(borealis_minor_revision),
                 'origin.code': np.int8(100),  # indicating Borealis
-                'origin.time': datetime.\
-                utcfromtimestamp(v['sqn_timestamps'][0]).strftime("%c"),
-                'origin.command': 'Borealis ' + v['borealis_git_hash'] + \
-                ' ' + v['experiment_name'],
-                'cp': np.int16(v['experiment_id']),
-                'stid': np.int16(code_to_stid[v['station']]),
+                'origin.time':
+                    datetime.\
+                    utcfromtimestamp(record_dict['sqn_timestamps'][0]).\
+                    strftime("%c"),
+                'origin.command': 'Borealis ' + \
+                                  record_dict['borealis_git_hash'] + \
+                                  ' ' + record_dict['experiment_name'],
+                'cp': np.int16(record_dict['experiment_id']),
+                'stid': np.int16(code_to_stid[record_dict['station']]),
                 'time.yr': np.int16(datetime.
-                                    utcfromtimestamp(v['sqn_timestamps'][0]).
+                                    utcfromtimestamp(
+                                        record_dict['sqn_timestamps'][0]).
                                     year),
                 'time.mo': np.int16(datetime.
-                                    utcfromtimestamp(v['sqn_timestamps'][0]).
+                                    utcfromtimestamp(
+                                        record_dict['sqn_timestamps'][0]).
                                     month),
                 'time.dy': np.int16(datetime.
-                                    utcfromtimestamp(v['sqn_timestamps'][0]).
+                                    utcfromtimestamp(
+                                        record_dict['sqn_timestamps'][0]).
                                     day),
                 'time.hr': np.int16(datetime.
-                                    utcfromtimestamp(v['sqn_timestamps'][0]).
+                                    utcfromtimestamp(
+                                        record_dict['sqn_timestamps'][0]).
                                     hour),
                 'time.mt': np.int16(datetime.
-                                    utcfromtimestamp(v['sqn_timestamps'][0]).
+                                    utcfromtimestamp(
+                                        record_dict['sqn_timestamps'][0]).
                                     minute),
                 'time.sc': np.int16(datetime.
-                                    utcfromtimestamp(v['sqn_timestamps'][0]).
+                                    utcfromtimestamp(
+                                        record_dict['sqn_timestamps'][0]).
                                     second),
                 'time.us': np.int32(datetime.
-                                    utcfromtimestamp(v['sqn_timestamps'][0]).
+                                    utcfromtimestamp(
+                                        record_dict['sqn_timestamps'][0]).
                                     microsecond),
                 'txpow': np.int16(-1),
-                'nave': np.int16(v['num_sequences']),
+                'nave': np.int16(record_dict['num_sequences']),
                 'atten': np.int16(0),
-                'lagfr': np.int16(v['first_range_rtt']),
+                'lagfr': np.int16(record_dict['first_range_rtt']),
                 # smsep is in us; conversion from seconds
-                'smsep': np.int16(1e6 / v['rx_sample_rate']),
+                'smsep': np.int16(1e6 / record_dict['rx_sample_rate']),
                 'ercod': np.int16(0),
                 # TODO: currently not implemented
                 'stat.agc': np.int16(0),
                 # TODO: currently not implemented
                 'stat.lopwr': np.int16(0),
                 # TODO: currently not implemented
-                'noise.search': np.float32(v['noise_at_freq'][0]),
+                'noise.search': np.float32(record_dict['noise_at_freq'][0]),
                 # TODO: currently not implemented
                 'noise.mean': np.float32(0),
                 'channel': np.int16(borealis_slice_id),
                 'bmnum': np.int16(beam),
-                'bmazm': np.float32(v['beam_azms'][beam_index]),
-                'scan': np.int16(v['scan_start_marker']),
+                'bmazm': np.float32(record_dict['beam_azms'][beam_index]),
+                'scan': np.int16(record_dict['scan_start_marker']),
                 # no digital receiver offset or rxrise required in
                 # Borealis
                 'offset': np.int16(0),
                 'rxrise': np.int16(0),
-                'intt.sc': np.int16(math.floor(v['int_time'])),
-                'intt.us': np.int32(math.fmod(v['int_time'], 1.0) * 1e6),
-                'txpl': np.int16(v['tx_pulse_len']),
-                'mpinc': np.int16(v['tau_spacing']),
-                'mppul': np.int16(len(v['pulses'])),
+                'intt.sc': np.int16(math.floor(record_dict['int_time'])),
+                'intt.us': np.int32(math.fmod(record_dict['int_time'], 1.0) * \
+                                    1e6),
+                'txpl': np.int16(record_dict['tx_pulse_len']),
+                'mpinc': np.int16(record_dict['tau_spacing']),
+                'mppul': np.int16(len(record_dict['pulses'])),
                 # an alternate lag-zero will be given, so subtract 1.
-                'mplgs': np.int16(v['lags'].shape[0] - 1),
-                'nrang': np.int16(v['num_ranges']),
-                'frang': np.int16(round(v['first_range'])),
-                'rsep': np.int16(round(v['range_sep'])),
-                'xcf': np.int16('intf' in v['antenna_arrays_order']),
-                'tfreq': np.int16(v['freq']),
+                'mplgs': np.int16(record_dict['lags'].shape[0] - 1),
+                'nrang': np.int16(record_dict['num_ranges']),
+                'frang': np.int16(round(record_dict['first_range'])),
+                'rsep': np.int16(round(record_dict['range_sep'])),
+                'xcf': np.int16('intf' in record_dict['antenna_arrays_order']),
+                'tfreq': np.int16(record_dict['freq']),
                 # mxpwr filler; cannot specify this information
                 'mxpwr': np.int32(-1),
                 # lvmax RST default
@@ -574,14 +600,15 @@ class BorealisConvert(BorealisRead):
                 'iqdata.revision.major': np.int32(1),
                 'iqdata.revision.minor': np.int32(0),
                 'combf': 'Converted from Borealis file: ' + origin_string +\
-                         ' record ' + str(k) + \
+                         ' record ' + str(record_key) + \
                          ' ; Number of beams in record: ' + \
-                         str(len(v['beam_nums'])) + ' ; ' + \
-                         v['experiment_comment'] + ' ; ' + \
-                         v['slice_comment'],
-                'seqnum': np.int32(v['num_sequences']),
-                'chnnum': np.int32(v['antenna_arrays_order'].shape[0]),
-                'smpnum': np.int32(v['num_samps']),
+                         str(len(record_dict['beam_nums'])) + ' ; ' + \
+                         record_dict['experiment_comment'] + ' ; ' + \
+                         record_dict['slice_comment'],
+                'seqnum': np.int32(record_dict['num_sequences']),
+                'chnnum': np.int32(record_dict['antenna_arrays_order'].
+                                   shape[0]),
+                'smpnum': np.int32(record_dict['num_samps']),
                 # NOTE: The following is a hack. This is currently how
                 # iqdat files are being processed . RST make_raw does
                 # not use first range information at all, only skip
@@ -593,24 +620,28 @@ class BorealisConvert(BorealisRead):
                 # in theory =0 as the first sample from Borealis
                 # decimated (prebfiq) data is centred on the first
                 # pulse.
-                'skpnum': np.int32(v['first_range'] / v['range_sep']),
-                'ptab': v['pulses'].astype(np.int16),
-                'ltab': v['lags'].astype(np.int16),
+                'skpnum': np.int32(record_dict['first_range'] / \
+                                   record_dict['range_sep']),
+                'ptab': record_dict['pulses'].astype(np.int16),
+                'ltab': record_dict['lags'].astype(np.int16),
                 # timestamps in ms, convert to seconds and us.
                 'tsc': np.array([math.floor(x/1e3) for x in
-                                 v['sqn_timestamps']], dtype=np.int32),
+                                 record_dict['sqn_timestamps']],
+                                dtype=np.int32),
                 'tus': np.array([math.fmod(x, 1000.0) * 1e3 for x in
-                                 v['sqn_timestamps']], dtype=np.int32),
-                'tatten': np.array([0] * v['num_sequences'],
+                                 record_dict['sqn_timestamps']],
+                                dtype=np.int32),
+                'tatten': np.array([0] * record_dict['num_sequences'],
                                    dtype=np.int16),
-                'tnoise': v['noise_at_freq'].astype(np.float32),
+                'tnoise': record_dict['noise_at_freq'].astype(np.float32),
                 'toff': np.array([i * offset for i in
-                                  range(v['num_sequences'])], dtype=np.int32),
-                'tsze': np.array([offset] * v['num_sequences'],
+                                  range(record_dict['num_sequences'])],
+                                 dtype=np.int32),
+                'tsze': np.array([offset] * record_dict['num_sequences'],
                                  dtype=np.int32),
                 'data': int_data
             }
-        return record_dict
+        return sdarn_record_dict
 
     def _convert_rawacf_to_rawacf(self):
         """
@@ -635,11 +666,11 @@ class BorealisConvert(BorealisRead):
         try:
             recs = []
             for record in self.borealis_records.items():
-                record_dict = \
+                sdarn_record_dict = \
                         self.__convert_rawacf_record(self.borealis_slice_id,
                                                      record,
                                                      self.borealis_filename)
-                recs.append(record_dict)
+                recs.append(sdarn_record_dict)
             self._sdarn_dict = recs
             self._sdarn_dmap_records = dict2dmap(recs)
         except Exception as e:
@@ -667,39 +698,39 @@ class BorealisConvert(BorealisRead):
         """
 
         # key value pair from Borealis record dictionary
-        (k, v) = borealis_rawacf_record
+        (record_key, record_dict) = borealis_rawacf_record
 
         shaped_data = {}
         # correlation_descriptors are num_beams, num_ranges, num_lags
         # scale by the scale squared to make up for the multiply
         # in correlation (integer max squared)
-        shaped_data['main_acfs'] = v['main_acfs'].reshape(
-            v['correlation_dimensions']).astype(
+        shaped_data['main_acfs'] = record_dict['main_acfs'].reshape(
+            record_dict['correlation_dimensions']).astype(
             np.complex128) * ((np.iinfo(np.int16).max**2) /
-                              (v['data_normalization_factor']**2))
+                              (record_dict['data_normalization_factor']**2))
 
-        if 'intf_acfs' in v.keys():
-            shaped_data['intf_acfs'] = v['intf_acfs'].reshape(
-                v['correlation_dimensions']).astype(np.complex128) * \
+        if 'intf_acfs' in record_dict.keys():
+            shaped_data['intf_acfs'] = record_dict['intf_acfs'].reshape(
+                record_dict['correlation_dimensions']).astype(np.complex128) *\
                     ((np.iinfo(np.int16).max**2) /
-                     (v['data_normalization_factor']**2))
-        if 'xcfs' in v.keys():
-            shaped_data['xcfs'] = v['xcfs'].reshape(
-                v['correlation_dimensions']).astype(np.complex128) *\
+                     (record_dict['data_normalization_factor']**2))
+        if 'xcfs' in record_dict.keys():
+            shaped_data['xcfs'] = record_dict['xcfs'].reshape(
+                record_dict['correlation_dimensions']).astype(np.complex128) *\
                     ((np.iinfo(np.int16).max**2) /
-                     (v['data_normalization_factor']**2))
+                     (record_dict['data_normalization_factor']**2))
 
         # Borealis git tag version numbers. If not a tagged version,
         # then use 255.255
-        if v['borealis_git_hash'][0] == 'v' and \
-                v['borealis_git_hash'][2] == '.':
-            borealis_major_revision = v['borealis_git_hash'][1]
-            borealis_minor_revision = v['borealis_git_hash'][3]
+        if record_dict['borealis_git_hash'][0] == 'v' and \
+                record_dict['borealis_git_hash'][2] == '.':
+            borealis_major_revision = record_dict['borealis_git_hash'][1]
+            borealis_minor_revision = record_dict['borealis_git_hash'][3]
         else:
             borealis_major_revision = 255
             borealis_minor_revision = 255
 
-        for beam_index, beam in enumerate(v['beam_nums']):
+        for beam_index, beam in enumerate(record_dict['beam_nums']):
             # this beam, all ranges lag 0
             lag_zero = shaped_data['main_acfs'][beam_index, :, 0]
             lag_zero[-10:] = shaped_data['main_acfs'][beam_index, -10:, -1]
@@ -726,99 +757,113 @@ class BorealisConvert(BorealisRead):
                 # num_ranges x num_lags x 2; num_lags is one less than
                 # in Borealis file because Borealis keeps alternate
                 # lag0
-                new_data = int_data.reshape(v['correlation_dimensions'][1],
-                                            v['correlation_dimensions'][2]-1,
-                                            2)
+                new_data = int_data.reshape(
+                    record_dict['correlation_dimensions'][1],
+                    record_dict['correlation_dimensions'][2]-1,
+                    2)
                 # NOTE: Flattening happening in
                 # convert_to_dmap_datastructures
                 # place the SDARN-style array in the dict
                 correlation_dict[key] = new_data
 
-            record_dict = {
+            sdarn_record_dict = {
                 'radar.revision.major': np.int8(borealis_major_revision),
                 'radar.revision.minor': np.int8(borealis_minor_revision),
                 'origin.code': np.int8(100),  # indicating Borealis
-                'origin.time': datetime.\
-                utcfromtimestamp(v['sqn_timestamps'][0]).strftime("%c"),
-                'origin.command': 'Borealis ' + v['borealis_git_hash'] +\
-                ' ' + v['experiment_name'],
-                'cp': np.int16(v['experiment_id']),
-                'stid': np.int16(code_to_stid[v['station']]),
+                'origin.time':
+                    datetime.\
+                    utcfromtimestamp(record_dict['sqn_timestamps'][0]).\
+                    strftime("%c"),
+                'origin.command': 'Borealis ' +\
+                                  record_dict['borealis_git_hash'] +\
+                                  ' ' + record_dict['experiment_name'],
+                'cp': np.int16(record_dict['experiment_id']),
+                'stid': np.int16(code_to_stid[record_dict['station']]),
                 'time.yr': np.int16(datetime.
-                                    utcfromtimestamp(v['sqn_timestamps'][0]).
+                                    utcfromtimestamp(
+                                        record_dict['sqn_timestamps'][0]).
                                     year),
                 'time.mo': np.int16(datetime.
-                                    utcfromtimestamp(v['sqn_timestamps'][0]).
+                                    utcfromtimestamp(
+                                        record_dict['sqn_timestamps'][0]).
                                     month),
                 'time.dy': np.int16(datetime.
-                                    utcfromtimestamp(v['sqn_timestamps'][0]).
+                                    utcfromtimestamp(
+                                        record_dict['sqn_timestamps'][0]).
                                     day),
                 'time.hr': np.int16(datetime.
-                                    utcfromtimestamp(v['sqn_timestamps'][0]).
+                                    utcfromtimestamp(
+                                        record_dict['sqn_timestamps'][0]).
                                     hour),
                 'time.mt': np.int16(datetime.
-                                    utcfromtimestamp(v['sqn_timestamps'][0]).
+                                    utcfromtimestamp(
+                                        record_dict['sqn_timestamps'][0]).
                                     minute),
                 'time.sc': np.int16(datetime.
-                                    utcfromtimestamp(v['sqn_timestamps'][0]).
+                                    utcfromtimestamp(
+                                        record_dict['sqn_timestamps'][0]).
                                     second),
                 'time.us': np.int32(datetime.
-                                    utcfromtimestamp(v['sqn_timestamps'][0]).
+                                    utcfromtimestamp(
+                                        record_dict['sqn_timestamps'][0]).
                                     microsecond),
                 'txpow': np.int16(-1),
                 # see Borealis documentation
-                'nave': np.int16(v['num_sequences']),
+                'nave': np.int16(record_dict['num_sequences']),
                 'atten': np.int16(0),
-                'lagfr': np.int16(v['first_range_rtt']),
-                'smsep': np.int16(1e6/v['rx_sample_rate']),
+                'lagfr': np.int16(record_dict['first_range_rtt']),
+                'smsep': np.int16(1e6/record_dict['rx_sample_rate']),
                 'ercod': np.int16(0),
                 # TODO: currently not implemented
                 'stat.agc': np.int16(0),
                 # TODO: currently not implemented
                 'stat.lopwr': np.int16(0),
                 # TODO: currently not implemented
-                'noise.search': np.float32(v['noise_at_freq'][0]),
+                'noise.search': np.float32(record_dict['noise_at_freq'][0]),
                 # TODO: currently not implemented
                 'noise.mean': np.float32(0),
                 'channel': np.int16(borealis_slice_id),
                 'bmnum': np.int16(beam),
-                'bmazm': np.float32(v['beam_azms'][beam_index]),
-                'scan': np.int16(v['scan_start_marker']),
+                'bmazm': np.float32(record_dict['beam_azms'][beam_index]),
+                'scan': np.int16(record_dict['scan_start_marker']),
                 # no digital receiver offset or rxrise required in
                 # Borealis
                 'offset': np.int16(0),
                 'rxrise': np.int16(0),
-                'intt.sc': np.int16(math.floor(v['int_time'])),
-                'intt.us': np.int32(math.fmod(v['int_time'], 1.0) * 1e6),
-                'txpl': np.int16(v['tx_pulse_len']),
-                'mpinc': np.int16(v['tau_spacing']),
-                'mppul': np.int16(len(v['pulses'])),
+                'intt.sc': np.int16(math.floor(record_dict['int_time'])),
+                'intt.us': np.int32(math.fmod(record_dict['int_time'], 1.0) * \
+                                    1e6),
+                'txpl': np.int16(record_dict['tx_pulse_len']),
+                'mpinc': np.int16(record_dict['tau_spacing']),
+                'mppul': np.int16(len(record_dict['pulses'])),
                 # an alternate lag-zero will be given.
-                'mplgs': np.int16(v['lags'].shape[0] - 1),
-                'nrang': np.int16(v['correlation_dimensions'][1]),
-                'frang': np.int16(round(v['first_range'])),
-                'rsep': np.int16(round(v['range_sep'])),
+                'mplgs': np.int16(record_dict['lags'].shape[0] - 1),
+                'nrang': np.int16(record_dict['correlation_dimensions'][1]),
+                'frang': np.int16(round(record_dict['first_range'])),
+                'rsep': np.int16(round(record_dict['range_sep'])),
                 # False if list is empty.
-                'xcf': np.int16(bool('xcfs' in v.keys())),
-                'tfreq': np.int16(v['freq']),
+                'xcf': np.int16(bool('xcfs' in record_dict.keys())),
+                'tfreq': np.int16(record_dict['freq']),
                 'mxpwr': np.int32(-1),
                 'lvmax': np.int32(20000),
                 'rawacf.revision.major': np.int32(1),
                 'rawacf.revision.minor': np.int32(0),
                 'combf': 'Converted from Borealis file: ' + origin_string + \
-                         ' record ' + str(k) + \
+                         ' record ' + str(record_key) + \
                          ' ; Number of beams in record: ' + \
-                         str(len(v['beam_nums'])) + ' ; ' + \
-                         v['experiment_comment'] + ' ; ' + v['slice_comment'],
+                         str(len(record_dict['beam_nums'])) + ' ; ' + \
+                         record_dict['experiment_comment'] + ' ; ' + \
+                         record_dict['slice_comment'],
                 'thr': np.float32(0),
-                'ptab': v['pulses'].astype(np.int16),
-                'ltab': v['lags'].astype(np.int16),
+                'ptab': record_dict['pulses'].astype(np.int16),
+                'ltab': record_dict['lags'].astype(np.int16),
                 'pwr0': lag_zero_power.astype(np.float32),
                 # list from 0 to num_ranges
-                'slist': np.array(list(range(0,
-                                             v['correlation_dimensions'][1]))).astype(np.int16),
+                'slist': np.array(list(
+                            range(0, record_dict['correlation_dimensions'][1]))
+                            ).astype(np.int16),
                 'acfd': correlation_dict['main_acfs'],
                 'xcfd': correlation_dict['xcfs']
             }
 
-        return record_dict
+        return sdarn_record_dict
