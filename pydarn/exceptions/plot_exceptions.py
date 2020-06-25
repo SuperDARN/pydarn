@@ -1,4 +1,4 @@
-# Copyright (C) SuperDARN Canada, Universtiy of Saskatchewan
+# Copyright (C) SuperDARN Canada, University of Saskatchewan
 # Authors: Marina Schmidt
 import logging
 import datetime

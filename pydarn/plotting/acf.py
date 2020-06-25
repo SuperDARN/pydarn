@@ -3,9 +3,6 @@
 # This code is improvement based on acf.py in the DaVitpy library
 # https://github.com/vtsuperdarn/davitpy/blob/master/davitpy
 
-"""
-Range-Time Parameter (aka Intensity) plots
-"""
 import copy
 import matplotlib.pyplot as plt
 import numpy as np
@@ -44,10 +41,10 @@ class ACF():
     def __str__(self):
         return "This class is static class that provides"\
                 " the following methods: \n"\
-                "   - plot()\n"\
+                "   - plot_acfs()\n"\
 
     @classmethod
-    def plot(cls, dmap_data: List[dict], beam_num: int = 0,
+    def plot_acfs(cls, dmap_data: List[dict], beam_num: int = 0,
              gate_num: int = 15, parameter: str = 'acfd',
              scan_num: int = 0, start_time: datetime = None, ax=None,
              normalized: bool = True, real_color: str = 'red',
@@ -126,7 +123,6 @@ class ACF():
                           DmapScalar):
                 dmap_data = dmap2dict(dmap_data)
         except StopIteration:
-            # TODO: make this a generalize exception
             raise plot_exceptions.UnknownParameterError(parameter)
 
         cls.dmap_data = dmap_data
