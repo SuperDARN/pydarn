@@ -4,7 +4,7 @@
 
 **module**:  *potential_filename.py* 
 
-**package**: */which directory should it go in*
+**package**: *which directory should it go in*
 
 ## Scope
 

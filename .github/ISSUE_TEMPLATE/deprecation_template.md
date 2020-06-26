@@ -16,4 +16,4 @@
 
 ## Details
 
-*Please provide any other details about the deprecation process and the future.*
+*Please provide any other details about the deprecation process, such as a timeline for warning the user about the deprecation.*

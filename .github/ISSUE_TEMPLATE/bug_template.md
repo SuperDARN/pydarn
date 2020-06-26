@@ -25,18 +25,18 @@
 ## Potential Bug Location 
 
 *Please note this is not required.*
-*If you can link to some code in pyDARN where you think the bug is coming from this will help the developer fix it sooner* 
+*If you can link to some code in pyDARN where you think the bug is coming from this will help the developer fix it sooner.*
 
 ## Potential Solution(s)
 
 *Please note this is not required.*
-*If you have some idea of how to fix/improve on the bug then please describe here for possible solution(s)*
+*If you have some idea of how to fix/improve on the bug then please describe here for possible solution(s).*
 
 ## Extra Notes
 
-*Please provide any other details about this feature*
+*Please provide other pertinent details about this feature:*
 - *Operating System*
-- *python version 3.X.X*
-- *examples of what the visual should look like*
-- *other data files that show the same bug*
+- *Python version 3.X.X*
+- *Examples of what the visual output should look like*
+- *Other data files that show the same bug*
 - *How to access data files to test out the bug*
