@@ -241,7 +241,7 @@ class ACF():
                 "Program: {cpid}"\
                 "".format(radar=radar_name, beam=beam_num, gate=gate_num,
                           date=time.strftime("%Y %b %d %H:%M"),
-                          cpid=record['id'])
+                          cpid=record['cp'])
         ax.set_title(title)
 
     @classmethod
