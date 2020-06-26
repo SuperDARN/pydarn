@@ -190,6 +190,7 @@ class ACF():
 
         if re == [] or im == []:
             if gate_num > 0 and gate_num < record['nrang']:
+                time = time2datetime(record)
                 raise plot_exceptions.NoDataFoundError(parameter, beam_num,
                                                        None, time,
                                                        record['bmnum'])
@@ -237,7 +238,7 @@ class ACF():
         ax.set_xlabel('Lag Number')
         ax.xaxis.set_major_locator(ticker.MaxNLocator(integer=True))
         radar_name = SuperDARNRadars.radars[cls.dmap_data[0]['stid']].name
-        title = "{date} UT {radar} Beam {beam}, Gate {gate} Control "\
+        title = "{date} UT {radar} Beam {beam}, Gate {gate}, Control "\
                 "Program: {cpid}"\
                 "".format(radar=radar_name, beam=beam_num, gate=gate_num,
                           date=time.strftime("%Y %b %d %H:%M"),
