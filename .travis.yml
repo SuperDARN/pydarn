@@ -36,13 +36,14 @@ matrix:
       os: windows
       language: shell
       before_install:
-          - choco install python3 --version 3.7.0
+          - choco install python3 --version 3.7.0  
           - python -m pip install --upgrade pip
           - pip3 install --upgrade certifi
       env: export PATH="/c/Python37:/c/Python37/Scripts:$PATH"
           
 before_install:
     - pip3 install -U pip
+    - pip3 install -U numpy
     - git submodule update --init --recursive
     - git submodule update --recursive --remote 
 install:
