@@ -311,8 +311,12 @@ class SDarnRead(DmapRead):
         --------
         DmapRead : for inheritance information
         """
-        warnings.simplefilter('once', DeprecationWarning)
-        warnings.warn("SDarnRead method will be removed from pyDARN v 1.2, please use pyDARNio: https://github.com/SuperDARN/pyDARNio", DeprecationWarning)
+
+        warnings.simplefilter('once', PendingDeprecationWarning)
+        warnings.warn("SDarnRead method will be removed from pyDARN v 1.2,"
+                      " please use pyDARNio: "
+                      "https://github.com/SuperDARN/pyDARNio",
+                      PendingDeprecationWarning)
 
         DmapRead.__init__(self, filename, stream)
 
@@ -554,8 +558,10 @@ class SDarnWrite(DmapWrite):
         filename : str
             Name of the file the user wants to write to
         """
-        warnings.simplefilter('once', DeprecationWarning)
-        warnings.warn("SDarnWrite method will be removed from pyDARN v 1.2, please use pyDARNio: https://github.com/SuperDARN/pyDARNio", DeprecationWarning)
+        warnings.warn("SDarnWrite method will be removed from pyDARN v 1.2,"
+                      " please use pyDARNio:"
+                      "https://github.com/SuperDARN/pyDARNio",
+                      DeprecationWarning)
 
         DmapWrite.__init__(self, dmap_records, filename)
 
