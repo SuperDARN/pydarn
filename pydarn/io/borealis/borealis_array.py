@@ -105,6 +105,12 @@ class BorealisArrayRead():
         BorealisVersionError
             Borealis software version format does not exist in pydarn
         """
+        warnings.simplefilter('once', DeprecationWarning)
+        warnings.warn("BorelaisArrayRead method will be removed from"
+                      " pyDARN v 1.2, please use pyDARNio: "
+                      "https://github.com/SuperDARN/pyDARNio",
+                      DeprecationWarning)
+
         self.filename = filename
 
         if borealis_filetype not in ['bfiq', 'antennas_iq', 'rawacf', 'rawrf']:
@@ -350,6 +356,12 @@ class BorealisArrayWrite():
         BorealisVersionError
             Borealis software version format does not exist in pydarn
         """
+        warnings.simplefilter('once', DeprecationWarning)
+        warnings.warn("BorelaisArrayWrite method will be removed from"
+                      " pyDARN v 1.2, please use pyDARNio: "
+                      "https://github.com/SuperDARN/pyDARNio",
+                      DeprecationWarning)
+
         self.filename = filename
         self._arrays = borealis_arrays
         if borealis_filetype not in ['bfiq', 'antennas_iq', 'rawacf', 'rawrf']:

@@ -36,6 +36,7 @@ Notes
 DmapRead and DmapWrite are inherited by SDarnRead and SDarnWrite
 """
 import logging
+import warnings
 
 from typing import Union, List
 
@@ -310,6 +311,9 @@ class SDarnRead(DmapRead):
         --------
         DmapRead : for inheritance information
         """
+        warnings.simplefilter('once', DeprecationWarning)
+        warnings.warn("SDarnRead method will be removed from pyDARN v 1.2, please use pyDARNio: https://github.com/SuperDARN/pyDARNio", DeprecationWarning)
+
         DmapRead.__init__(self, filename, stream)
 
     # helper function that could be used parallelization
@@ -550,6 +554,9 @@ class SDarnWrite(DmapWrite):
         filename : str
             Name of the file the user wants to write to
         """
+        warnings.simplefilter('once', DeprecationWarning)
+        warnings.warn("SDarnWrite method will be removed from pyDARN v 1.2, please use pyDARNio: https://github.com/SuperDARN/pyDARNio", DeprecationWarning)
+
         DmapWrite.__init__(self, dmap_records, filename)
 
         # WARNING: This check will be removed when real-time is implemented to

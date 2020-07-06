@@ -196,6 +196,11 @@ class BorealisConvert(BorealisRead):
         BorealisConversionTypesError
         ConvertFileOverWriteError
         """
+        warnings.simplefilter('once', DeprecationWarning)
+        warnings.warn("BorelaisConvert method will be removed from "
+                      "pyDARN v 1.2, please use pyDARNio: "
+                      "https://github.com/SuperDARN/pyDARNio",
+                      DeprecationWarning)
 
         super(BorealisConvert, self).__init__(borealis_filename,
                                               borealis_filetype,
@@ -450,14 +455,14 @@ class BorealisConvert(BorealisRead):
 
         Notes
         -----
-        SuperDARN RFC 0027 specifies that the dimensions of the data in 
+        SuperDARN RFC 0027 specifies that the dimensions of the data in
         iqdat should be by number of sequences, number of arrays, number
         of samples, 2 (i+q). There is some history where the dimensions were
-        instead sequences, samples, arrays, 2(i+q). We have chosen to 
+        instead sequences, samples, arrays, 2(i+q). We have chosen to
         use the former, as it is consistent with the rest of SuperDARN Canada
         radars at this time and is as specified in the document. This means
         that you may need to use make_raw with the -d option in RST if you
-        wish to process the resulting iqdat into rawacf. 
+        wish to process the resulting iqdat into rawacf.
 
         Returns
         -------
