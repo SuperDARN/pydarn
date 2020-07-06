@@ -148,7 +148,7 @@ class DmapRead():
         --------
         read_records : to obtain dmap_records
         """
-        warnings.warn("DampRead method will be removed from pyDARN v 1.2,"
+        warnings.warn("DmapRead method will be removed from pyDARN v 1.2,"
                       " please use pyDARNio:"
                       " https://github.com/SuperDARN/pyDARNio",
                       PendingDeprecationWarning)
@@ -890,7 +890,7 @@ class DmapWrite(object):
         DmapTypeError
         FilenameRequiredError
         """
-        warnings.warn("DampWrite method will be removed from pyDARN v 1.2,"
+        warnings.warn("DmapWrite method will be removed from pyDARN v 1.2,"
                       " please use pyDARNio:"
                       " https://github.com/SuperDARN/pyDARNio",
                       PendingDeprecationWarning)

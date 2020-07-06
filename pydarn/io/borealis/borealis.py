@@ -38,6 +38,7 @@ filetypes, see: https://borealis.readthedocs.io/en/latest/
 """
 
 import logging
+import warnings
 
 from collections import OrderedDict
 from typing import Union
@@ -123,7 +124,7 @@ class BorealisRead():
             Unknown structure type.
         """
         warnings.simplefilter('once', PendingDeprecationWarning)
-        warnings.warn("BorelaisRead method will be removed from pyDARN v 1.2,"
+        warnings.warn("BorealisRead method will be removed from pyDARN v 1.2,"
                       " please use pyDARNio: "
                       "https://github.com/SuperDARN/pyDARNio",
                       PendingDeprecationWarning)
@@ -349,7 +350,7 @@ class BorealisWrite():
             A kwarg key name, giving a string representing compression type.
         """
         warnings.simplefilter('once', PendingDeprecationWarning)
-        warnings.warn("BorelaisWrite method will be removed from pyDARN v 1.2,"
+        warnings.warn("BorealisWrite method will be removed from pyDARN v 1.2,"
                       " please use pyDARNio: "
                       "https://github.com/SuperDARN/pyDARNio",
                       PendingDeprecationWarning)

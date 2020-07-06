@@ -561,7 +561,7 @@ class SDarnWrite(DmapWrite):
         warnings.warn("SDarnWrite method will be removed from pyDARN v 1.2,"
                       " please use pyDARNio:"
                       "https://github.com/SuperDARN/pyDARNio",
-                      DeprecationWarning)
+                      PendingDeprecationWarning)
 
         DmapWrite.__init__(self, dmap_records, filename)
 

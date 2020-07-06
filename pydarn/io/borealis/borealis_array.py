@@ -39,6 +39,7 @@ files, see: https://borealis.readthedocs.io/en/latest/
 """
 import deepdish as dd
 import logging
+import warnings
 
 from typing import List
 
@@ -106,7 +107,7 @@ class BorealisArrayRead():
             Borealis software version format does not exist in pydarn
         """
         warnings.simplefilter('once', PendingDeprecationWarning)
-        warnings.warn("BorelaisArrayRead method will be removed from"
+        warnings.warn("BorealisArrayRead method will be removed from"
                       " pyDARN v 1.2, please use pyDARNio: "
                       "https://github.com/SuperDARN/pyDARNio",
                       PendingDeprecationWarning)
@@ -357,7 +358,7 @@ class BorealisArrayWrite():
             Borealis software version format does not exist in pydarn
         """
         warnings.simplefilter('once', PendingDeprecationWarning)
-        warnings.warn("BorelaisArrayWrite method will be removed from"
+        warnings.warn("BorealisArrayWrite method will be removed from"
                       " pyDARN v 1.2, please use pyDARNio: "
                       "https://github.com/SuperDARN/pyDARNio",
                       PendingDeprecationWarning)

@@ -43,6 +43,7 @@ Update noise values in SDarn fields when these can be calculated.
 import logging
 import math
 import numpy as np
+import warnings
 
 from datetime import datetime
 from typing import Union
@@ -197,7 +198,7 @@ class BorealisConvert(BorealisRead):
         ConvertFileOverWriteError
         """
         warnings.simplefilter('once', PendingDeprecationWarning)
-        warnings.warn("BorelaisConvert method will be removed from "
+        warnings.warn("BorealisConvert method will be removed from "
                       "pyDARN v 1.2, please use pyDARNio: "
                       "https://github.com/SuperDARN/pyDARNio",
                       PendingDeprecationWarning)

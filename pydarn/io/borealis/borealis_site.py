@@ -112,7 +112,7 @@ class BorealisSiteRead():
             Borealis software version format does not exist in pydarn
         """
         warnings.simplefilter('once', PendingDeprecationWarning)
-        warnings.warn("BorelaisSiteRead method will be removed from pyDARN v 1.2,"
+        warnings.warn("BorealisSiteRead method will be removed from pyDARN v 1.2,"
                       " please use pyDARNio: "
                       "https://github.com/SuperDARN/pyDARNio",
                       PendingDeprecationWarning)
@@ -369,7 +369,7 @@ class BorealisSiteWrite():
             Borealis software version format does not exist in pydarn
         """
         warnings.simplefilter('once', PendingDeprecationWarning)
-        warnings.warn("BorelaisSiteWrite method will be removed from pyDARN v 1.2,"
+        warnings.warn("BorealisSiteWrite method will be removed from pyDARN v 1.2,"
                       " please use pyDARNio: "
                       "https://github.com/SuperDARN/pyDARNio",
                       PendingDeprecationWarning)
