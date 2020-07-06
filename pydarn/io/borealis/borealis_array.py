@@ -105,11 +105,11 @@ class BorealisArrayRead():
         BorealisVersionError
             Borealis software version format does not exist in pydarn
         """
-        warnings.simplefilter('once', DeprecationWarning)
+        warnings.simplefilter('once', PendingDeprecationWarning)
         warnings.warn("BorelaisArrayRead method will be removed from"
                       " pyDARN v 1.2, please use pyDARNio: "
                       "https://github.com/SuperDARN/pyDARNio",
-                      DeprecationWarning)
+                      PendingDeprecationWarning)
 
         self.filename = filename
 
@@ -356,11 +356,11 @@ class BorealisArrayWrite():
         BorealisVersionError
             Borealis software version format does not exist in pydarn
         """
-        warnings.simplefilter('once', DeprecationWarning)
+        warnings.simplefilter('once', PendingDeprecationWarning)
         warnings.warn("BorelaisArrayWrite method will be removed from"
                       " pyDARN v 1.2, please use pyDARNio: "
                       "https://github.com/SuperDARN/pyDARNio",
-                      DeprecationWarning)
+                      PendingDeprecationWarning)
 
         self.filename = filename
         self._arrays = borealis_arrays

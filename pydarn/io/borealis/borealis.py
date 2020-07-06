@@ -122,11 +122,11 @@ class BorealisRead():
         BorealisStructureError
             Unknown structure type.
         """
-        warnings.simplefilter('once', DeprecationWarning)
+        warnings.simplefilter('once', PendingDeprecationWarning)
         warnings.warn("BorelaisRead method will be removed from pyDARN v 1.2,"
                       " please use pyDARNio: "
                       "https://github.com/SuperDARN/pyDARNio",
-                      DeprecationWarning)
+                      PendingDeprecationWarning)
 
         self.filename = filename
 
@@ -348,11 +348,11 @@ class BorealisWrite():
         hdf5_compression: str
             A kwarg key name, giving a string representing compression type.
         """
-        warnings.simplefilter('once', DeprecationWarning)
+        warnings.simplefilter('once', PendingDeprecationWarning)
         warnings.warn("BorelaisWrite method will be removed from pyDARN v 1.2,"
                       " please use pyDARNio: "
                       "https://github.com/SuperDARN/pyDARNio",
-                      DeprecationWarning)
+                      PendingDeprecationWarning)
 
         self.filename = filename
         self.data = borealis_data

@@ -111,11 +111,11 @@ class BorealisSiteRead():
         BorealisVersionError
             Borealis software version format does not exist in pydarn
         """
-        warnings.simplefilter('once', DeprecationWarning)
+        warnings.simplefilter('once', PendingDeprecationWarning)
         warnings.warn("BorelaisSiteRead method will be removed from pyDARN v 1.2,"
                       " please use pyDARNio: "
                       "https://github.com/SuperDARN/pyDARNio",
-                      DeprecationWarning)
+                      PendingDeprecationWarning)
 
         self.filename = filename
         if borealis_filetype not in ['bfiq', 'antennas_iq', 'rawacf', 'rawrf']:
@@ -368,11 +368,11 @@ class BorealisSiteWrite():
         BorealisVersionError
             Borealis software version format does not exist in pydarn
         """
-        warnings.simplefilter('once', DeprecationWarning)
+        warnings.simplefilter('once', PendingDeprecationWarning)
         warnings.warn("BorelaisSiteWrite method will be removed from pyDARN v 1.2,"
                       " please use pyDARNio: "
                       "https://github.com/SuperDARN/pyDARNio",
-                      DeprecationWarning)
+                      PendingDeprecationWarning)
 
         self._records = borealis_records
         if borealis_filetype not in ['bfiq', 'antennas_iq', 'rawacf', 'rawrf']:

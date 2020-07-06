@@ -196,11 +196,11 @@ class BorealisConvert(BorealisRead):
         BorealisConversionTypesError
         ConvertFileOverWriteError
         """
-        warnings.simplefilter('once', DeprecationWarning)
+        warnings.simplefilter('once', PendingDeprecationWarning)
         warnings.warn("BorelaisConvert method will be removed from "
                       "pyDARN v 1.2, please use pyDARNio: "
                       "https://github.com/SuperDARN/pyDARNio",
-                      DeprecationWarning)
+                      PendingDeprecationWarning)
 
         super(BorealisConvert, self).__init__(borealis_filename,
                                               borealis_filetype,
