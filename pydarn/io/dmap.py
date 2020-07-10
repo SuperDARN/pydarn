@@ -37,6 +37,7 @@ import logging
 import numpy as np
 import os
 import struct
+import warnings
 
 from typing import List, Union
 
@@ -147,6 +148,10 @@ class DmapRead():
         --------
         read_records : to obtain dmap_records
         """
+        warnings.warn("DmapRead method will be removed from pyDARN v 1.2,"
+                      " please use pyDARNio:"
+                      " https://github.com/SuperDARN/pyDARNio",
+                      PendingDeprecationWarning)
         self.rec_num = 0
         self.cursor = 0  # Current position in bytes
         self.dmap_end_bytes = 0  # total number of bytes in the dmap_file
@@ -885,6 +890,11 @@ class DmapWrite(object):
         DmapTypeError
         FilenameRequiredError
         """
+        warnings.warn("DmapWrite method will be removed from pyDARN v 1.2,"
+                      " please use pyDARNio:"
+                      " https://github.com/SuperDARN/pyDARNio",
+                      PendingDeprecationWarning)
+
         self.filename = filename
         self.rec_num = 0
 
