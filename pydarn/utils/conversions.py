@@ -128,3 +128,46 @@ def dmap2dict(dmap_records: List[dict]) -> List[dict]:
                      for field, data in dmap_record.items()}
         dmap_list.append(OrderedDict(dmap_dict))
     return dmap_list
+
+
+def gate2slant(record, nrang, center=True):
+    """
+    Calculate the slant range (km) for each range gate for SuperDARN data
+
+    Parameters
+    ----------
+        record: dict
+            dictionary of superdarn data records
+        nrang: int
+            max number of range gates in the list of records
+        center: boolean
+            Calculate the slant range in the center of range gate
+            or edge
+
+    Returns
+    -------
+        slant_ranges : np.array
+            returns an array of slant ranges for the radar
+    """
+
+    # lag to the first range gate in microseconds
+    # TODO: with 2.0 and 0.3 what do these values mean?
+    lag_first = record['frang'] * 2.0 / 0.3
+
+    # sample separation in microseconds
+    sample_sep = record['rsep'] * 2.0 / 0.3
+
+    # Range offset
+    # If center is true, calculate at the center
+    if center:
+        # TODO: why -0.5? what does this value mean?
+        range_offset = -0.5 * record['rsep']
+    else:
+        range_offset = 0.0
+
+    # Now calculate slant range in km
+    slant_ranges = np.zeros(nrang+1)
+    for gate in range(nrang+1):
+        slant_ranges[gate] = (lag_first - record['rxrise'] +
+                              gate * sample_sep) * 0.3 / 2.0 + range_offset
+    return slant_ranges
