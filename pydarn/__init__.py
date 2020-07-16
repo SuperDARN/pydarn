@@ -31,6 +31,7 @@ from .io import superdarn_formats
 # importing utils
 from .utils.conversions import dict2dmap
 from .utils.conversions import dmap2dict
+from .utils.conversions import gate2slant
 from .utils.plotting import check_data_type
 from .utils.plotting import time2datetime
 from .utils.superdarn_radars import SuperDARNRadars
