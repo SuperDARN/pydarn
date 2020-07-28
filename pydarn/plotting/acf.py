@@ -234,7 +234,7 @@ class ACF():
         if legend and blanked_lags != []:
             line_re.set_label('Real Blanked')
             line_im.set_label('Imaginary Blanked')
-            ax.legend()
+        ax.legend()
         ax.set_ylabel(parameter)
         ax.set_xlabel('Lag Number')
         ax.xaxis.set_major_locator(ticker.MaxNLocator(integer=True))
