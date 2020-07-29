@@ -45,11 +45,12 @@ class ACF():
 
     @classmethod
     def plot_acfs(cls, dmap_data: List[dict], beam_num: int = 0,
-             gate_num: int = 15, parameter: str = 'acfd',
-             scan_num: int = 0, start_time: datetime = None, ax=None,
-             normalized: bool = True, real_color: str = 'red',
-             blank_marker: str = 'o', imaginary_color: str = 'blue',
-             legend: bool = True, **kwargs):
+                  gate_num: int = 15, parameter: str = 'acfd',
+                  scan_num: int = 0, start_time: datetime = None, ax=None,
+                  normalized: bool = True, real_color: str = 'red',
+                  plot_blank: bool = False, blank_marker: str = 'o',
+                  imaginary_color: str = 'blue', legend: bool = True,
+                  **kwargs):
         """
         plots the parameter ACF/XCF field from superDARN file,
         typically RAWACF format for a given beam and gate number
@@ -79,6 +80,9 @@ class ACF():
         real_color: str
             line color of the real part of the paramter
             default: red
+        plot_blanked: bool
+            boolean to determine if blanked lags should be plotted
+            default: False
         blank_marker: str
             the marker symbol of blanked lags
             default: o - dot
@@ -220,20 +224,21 @@ class ACF():
                 label='Real', **kwargs)
 
         # plot blanked lags
-        for blank in blanked_lags:
-            # I use scatter here to make points not lines
-            # also shows up in the legend nicer
-            line_re = ax.scatter(blank, blank_re[lags.index(blank)],
-                                 edgecolors=real_color, facecolors='white',
-                                 marker=blank_marker)
-            line_im = ax.scatter(blank, blank_im[lags.index(blank)],
-                                 edgecolors=imaginary_color,
-                                 facecolors='white', marker=blank_marker)
+        if plot_blank:
+            for blank in blanked_lags:
+                # I use scatter here to make points not lines
+                # also shows up in the legend nicer
+                line_re = ax.scatter(blank, blank_re[lags.index(blank)],
+                                     edgecolors=real_color, facecolors='white',
+                                     marker=blank_marker)
+                line_im = ax.scatter(blank, blank_im[lags.index(blank)],
+                                     edgecolors=imaginary_color,
+                                     facecolors='white', marker=blank_marker)
 
-        # generate generic legend
-        if legend and blanked_lags != []:
-            line_re.set_label('Real Blanked')
-            line_im.set_label('Imaginary Blanked')
+            # generate generic legend
+            if legend and blanked_lags != []:
+                line_re.set_label('Real Blanked')
+                line_im.set_label('Imaginary Blanked')
         ax.legend()
         ax.set_ylabel(parameter)
         ax.set_xlabel('Lag Number')
