@@ -168,15 +168,16 @@ class ACF():
                     blank_re = copy.deepcopy(re)
                     blank_im = copy.deepcopy(im)
                     lag_num = 0
+                    lag_idx = 0
                     lags_len = len(lags)
                     # Search for missing lags
                     # Note: had to use while loop do to insert method
-                    while lag_num < lags_len:
+                    while lag_idx < lags_len:
                         if lag_num in blanked_lags:
                             # to remove lines going through the points
-                            re[lag_num] = np.nan
-                            im[lag_num] = np.nan
-                        if lags[lag_num] != lag_num:
+                            re[lag_idx] = np.nan
+                            im[lag_idx] = np.nan
+                        if lags[lag_idx] != lag_num:
                             lags.insert(lag_num, lag_num)
                             # increase length by one due to insert
                             lags_len += 1
@@ -188,7 +189,13 @@ class ACF():
                             blank_re.insert(lag_num, np.nan)
                             blank_im.insert(lag_num, np.nan)
 
-                        lag_num += 1
+                        lag_idx +=1
+                        if lag_idx < lags_len:
+                            if lag_num != lags[lag_idx]:
+                                if lag_num > lags[lag_idx]:
+                                    lag_num = lags[lag_idx]
+                                else:
+                                    lag_num += 1
                     # once we got the data break free!!
                     break
                 scan_count += 1
