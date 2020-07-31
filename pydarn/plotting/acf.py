@@ -43,6 +43,7 @@ class ACF():
                 " the following methods: \n"\
                 "   - plot_acfs()\n"\
 
+
     @classmethod
     def plot_acfs(cls, dmap_data: List[dict], beam_num: int = 0,
                   gate_num: int = 15, parameter: str = 'acfd',
@@ -52,7 +53,7 @@ class ACF():
                   imaginary_color: str = 'blue', legend: bool = True,
                   **kwargs):
         """
-        plots the parameter ACF/XCF field from superDARN file,
+        plots the parameter ACF/XCF field from SuperDARN file,
         typically RAWACF format for a given beam and gate number
 
         Parameters
@@ -144,7 +145,8 @@ class ACF():
                     if time.day != start_time.day or \
                        time.month != start_time.month or \
                        time.year != start_time.year:
-                        raise plot_exceptions.IncorrectDateError(time, start_time)
+                        raise plot_exceptions.IncorrectDateError(time,
+                                                                 start_time)
 
                 if (scan_count == scan_num and start_time is None) or\
                    start_time < time:
@@ -189,7 +191,7 @@ class ACF():
                             blank_re.insert(lag_num, np.nan)
                             blank_im.insert(lag_num, np.nan)
 
-                        lag_idx +=1
+                        lag_idx += 1
                         if lag_idx < lags_len:
                             if lag_num != lags[lag_idx]:
                                 if lag_num > lags[lag_idx]:
@@ -199,7 +201,12 @@ class ACF():
                     # once we got the data break free!!
                     break
                 scan_count += 1
-
+        if record['cp'] == 503:
+            warnings.warn("Please note this data is from Tauscan which has"
+                          "different lag properties to other control problems"
+                          "this ACF plot may not be correct."
+                          "Please contact the PI of the radar to"
+                          "confirm if the data looks correct.")
         if re == [] or im == []:
             if gate_num > 0 and gate_num < record['nrang']:
                 time = time2datetime(record)
@@ -207,7 +214,7 @@ class ACF():
                                                        None, time,
                                                        record['bmnum'])
             else:
-                raise plot_exceptions.OutOfRangeGateError(parameter,gate_num,
+                raise plot_exceptions.OutOfRangeGateError(parameter, gate_num,
                                                           record['nrang'])
 
         if normalized:
