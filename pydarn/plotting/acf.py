@@ -49,7 +49,7 @@ class ACF():
                   gate_num: int = 15, parameter: str = 'acfd',
                   scan_num: int = 0, start_time: datetime = None, ax=None,
                   normalized: bool = True, real_color: str = 'red',
-                  plot_blank: bool = False, blank_marker: str = 'o',
+                  plot_blank: bool = True, blank_marker: str = 'o',
                   imaginary_color: str = 'blue', legend: bool = True,
                   **kwargs):
         """
