@@ -9,14 +9,19 @@ Python data visualization library for the Super Dual Auroral Radar Network (Supe
 
 ## Changelog
 
-## Version 1.0 - Release!
+## Version 1.1 - Release!
 
-pyDARN is released! Included are the following features:
-- Reading and writing DMap format IQDAT, RAWACF, FITACF, GRID/GRD and MAP files
-- Reading and writing HDF5 format files for Borealis radar data, as well as conversion to and from DMap format
-- Range-time parameter style plots for RAWACF and FITACF files
-- Summary plots for RAWACF and FITACF files
-- Time series plots for RAWACF and FITACF files
+!!! Warning 
+    pyDARN will be removing the IO package in the next release. Please use [pyDARNio](https://github.com/SuperDARN/pyDARNio)
+
+pyDARN release v1.1 includes the following features:
+- Deprecation warnings for IO reading of pyDARN
+- Borealis v 5.0 file reading
+- Bug fix in RAWACF field checking
+- Bug fix in grabbing the most recent hardware files
+- Added JME and DCN to the hardware list 
+- Plots ACFs 
+- updated logging in pyDARN
 
 ## Documentation
 
@@ -33,6 +38,10 @@ If wish to get access to SuperDARN data please read the [SuperDARN data access d
 Please make sure to also read the documentation on [**citing superDARN and pydarn**](https://pydarn.readthedocs.io/en/master/user/citing/). 
 
 As a quick tutorial on using pydarn to read a non-compressed file: 
+
+!!! Warning 
+    pyDARN will be removing the IO package in the next release. Please use [pyDARNio](https://github.com/SuperDARN/pyDARNio)
+
 ```python
 import pydarn 
 
