@@ -1,6 +1,9 @@
 # Reading in Borealis HDF5 structured SuperDARN data files
 ---
 
+!!! Warning
+    These methods will be removed from pyDARN in the next release. Please use [pyDARNio](https://github.com/SuperDARN/pyDARNio)
+
 HDF5 (Hierarchical Data Format v5) is a user-friendly data format that supports
 heterogeneous data, allows for easy sharing, is cross platform, has fast I/O
 with storage space optimizations, has no limit on dataset size inside the file,

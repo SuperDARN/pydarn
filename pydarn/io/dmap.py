@@ -37,6 +37,7 @@ import logging
 import numpy as np
 import os
 import struct
+import warnings
 
 from typing import List, Union
 
@@ -147,6 +148,10 @@ class DmapRead():
         --------
         read_records : to obtain dmap_records
         """
+        warnings.warn("DmapRead method will be removed from pyDARN v 1.2,"
+                      " please use pyDARNio:"
+                      " https://github.com/SuperDARN/pyDARNio",
+                      PendingDeprecationWarning)
         self.rec_num = 0
         self.cursor = 0  # Current position in bytes
         self.dmap_end_bytes = 0  # total number of bytes in the dmap_file
@@ -171,7 +176,7 @@ class DmapRead():
             # Read binary
             with open(self.dmap_file, 'rb') as f:
                 self.dmap_bytearr = bytearray(f.read())
-            pydarn_log.debug("DMap Read file: {}".format(self.dmap_file))
+            pydarn_log.info("DMap Read file: {}".format(self.dmap_file))
 
         else:
             if len(dmap_file) == 0:
@@ -324,7 +329,7 @@ class DmapRead():
         zero_check : raises ZeroByteError
         byte_check : raises MistmatchByteError
         """
-        pydarn_log.debug("Testing the integrity of the /stream")
+        pydarn_log.info("Testing the integrity of the /stream")
         total_block_size = 0  # unit of bytes
         if self.cursor != 0:
             raise dmap_exceptions.CursorError(self.cursor, 0, self.rec_num)
@@ -885,13 +890,18 @@ class DmapWrite(object):
         DmapTypeError
         FilenameRequiredError
         """
+        warnings.warn("DmapWrite method will be removed from pyDARN v 1.2,"
+                      " please use pyDARNio:"
+                      " https://github.com/SuperDARN/pyDARNio",
+                      PendingDeprecationWarning)
+
         self.filename = filename
         self.rec_num = 0
 
         self.dmap_records = self.__check_dmap_dict(dmap_records)
 
         self.dmap_bytearr = bytearray()
-        pydarn_log.debug("Initiating DmapWrite")
+        pydarn_log.info("Initiating DmapWrite")
 
     def __repr__(self):
         """ for representation of the class object"""
@@ -953,7 +963,7 @@ class DmapWrite(object):
         correct.
         """
         self._filename_check(filename)
-        pydarn_log.debug("Writing : {}".format(self.filename))
+        pydarn_log.info("Writing : {}".format(self.filename))
         self.write_dmap_stream()
         with open(self.filename, 'wb') as f:
             f.write(self.dmap_bytearr)
@@ -975,7 +985,7 @@ class DmapWrite(object):
         if self.dmap_records == []:
             self.dmap_records = self.__check_dmap_dict(dmap_records)
         self._empty_record_check()
-        pydarn_log.debug("Writing to dmap stream")
+        pydarn_log.info("Writing to dmap stream")
         self.dmap_records_to_bytes()
         return self.dmap_bytearr
 

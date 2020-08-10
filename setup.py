@@ -16,7 +16,6 @@ import sys
 from subprocess import check_call
 from setuptools.command.install import install, orig
 
-
 # This class and function overrides the install python
 # setup method to add an extra git command in to install
 # the submodule
@@ -24,6 +23,7 @@ class initialize_submodules(install):
     def run(self):
         if path.exists('.git'):
             check_call(['git', 'submodule', 'update', '--init', '--recursive'])
+            check_call(['git', 'submodule', 'update', '--recursive', '--remote'])
         if self.old_and_unmanageable or self.single_version_externally_managed:
             return orig.install.run(self)
         caller = sys._getframe(2)
@@ -45,14 +45,14 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 setup(
     cmdclass={'install': initialize_submodules},
     name="pydarn",
-    version="1.0.0",
+    version="1.1.0",
     long_description=long_description,
     long_description_content_type='text/markdown',
     description="Data visualization library for SuperDARN data",
     url='https://github.com/SuperDARN/pydarn.git',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
-        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+        'License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7'],
     python_requires='>=3.6',
@@ -65,4 +65,6 @@ setup(
     # pyyaml library install
     install_requires=['pyyaml', 'numpy', 'matplotlib',
                       'h5py', 'deepdish', 'pathlib2']
+    # commented out due to not implemented yet.
+    #ext_modules = [rstmodule]
 )

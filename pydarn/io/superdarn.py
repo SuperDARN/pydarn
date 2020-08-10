@@ -36,6 +36,7 @@ Notes
 DmapRead and DmapWrite are inherited by SDarnRead and SDarnWrite
 """
 import logging
+import warnings
 
 from typing import Union, List
 
@@ -310,6 +311,13 @@ class SDarnRead(DmapRead):
         --------
         DmapRead : for inheritance information
         """
+
+        warnings.simplefilter('once', PendingDeprecationWarning)
+        warnings.warn("SDarnRead method will be removed from pyDARN v 1.2,"
+                      " please use pyDARNio: "
+                      "https://github.com/SuperDARN/pyDARNio",
+                      PendingDeprecationWarning)
+
         DmapRead.__init__(self, filename, stream)
 
     # helper function that could be used parallelization
@@ -396,7 +404,7 @@ class SDarnRead(DmapRead):
         dmap_records : List[dict]
             DMAP record of the Iqdat data
         """
-        pydarn_log.debug("Reading Iqdat file: {}".format(self.dmap_file))
+        pydarn_log.info("Reading Iqdat file: {}".format(self.dmap_file))
         file_struct_list = [superdarn_formats.Iqdat.types]
         self._read_darn_records(file_struct_list)
         self.records = dmap2dict(self._dmap_records)
@@ -411,11 +419,13 @@ class SDarnRead(DmapRead):
         dmap_records : List[dict]
             DMAP record of the Rawacf data
         """
-        pydarn_log.debug("Reading Rawacf file: {}".format(self.dmap_file))
+        pydarn_log.info("Reading Rawacf file: {}".format(self.dmap_file))
 
         file_struct_list = [superdarn_formats.Rawacf.types,
-                            superdarn_formats.Rawacf.extra_fields,
-                            superdarn_formats.Rawacf.cross_correlation_field]
+                            superdarn_formats.Rawacf.correlation_field,
+                            superdarn_formats.Rawacf.cross_correlation_field,
+                            superdarn_formats.Rawacf.digitizing_field,
+                            superdarn_formats.Rawacf.fittex_field]
         self._read_darn_records(file_struct_list)
         self.records = dmap2dict(self._dmap_records)
         return self.records
@@ -429,7 +439,7 @@ class SDarnRead(DmapRead):
         dmap_records : List[dict]
             DMAP record of the Fitacf data
         """
-        pydarn_log.debug("Reading Fitacf file: {}".format(self.dmap_file))
+        pydarn_log.info("Reading Fitacf file: {}".format(self.dmap_file))
 
         # We need to separate the fields into subsets because fitacf fitting
         # methods 2.5 and 3.0 do not include a subset of fields if the data
@@ -452,7 +462,7 @@ class SDarnRead(DmapRead):
         dmap_records : List[dict]
             DMAP record of the Grid data
         """
-        pydarn_log.debug("Reading Grid file: {}".format(self.dmap_file))
+        pydarn_log.info("Reading Grid file: {}".format(self.dmap_file))
         # We need to separate the fields into subsets because grid files
         # can exclude extra fields if the option -ext is not passed in
         # when generating the grid file in RST. See missing_field_check
@@ -473,7 +483,7 @@ class SDarnRead(DmapRead):
         dmap_records : List[dict]
             DMAP record of the Map data
         """
-        pydarn_log.debug("Reading Map file: {}".format(self.dmap_file))
+        pydarn_log.info("Reading Map file: {}".format(self.dmap_file))
         # We need to separate the fields into subsets because map files
         # can exclude extra fields if the grid file does not contain them.
         # Other subsets are related to what processing commands are used to
@@ -548,6 +558,11 @@ class SDarnWrite(DmapWrite):
         filename : str
             Name of the file the user wants to write to
         """
+        warnings.warn("SDarnWrite method will be removed from pyDARN v 1.2,"
+                      " please use pyDARNio:"
+                      "https://github.com/SuperDARN/pyDARNio",
+                      PendingDeprecationWarning)
+
         DmapWrite.__init__(self, dmap_records, filename)
 
         # WARNING: This check will be removed when real-time is implemented to
@@ -580,7 +595,7 @@ class SDarnWrite(DmapWrite):
         """
         self._filename_check(filename)
         self._empty_record_check()
-        pydarn_log.debug("Writing Iqdat file: {}".format(self.filename))
+        pydarn_log.info("Writing Iqdat file: {}".format(self.filename))
 
         file_struct_list = [superdarn_formats.Iqdat.types]
         self.superDARN_file_structure_to_bytes(file_struct_list)
@@ -611,12 +626,14 @@ class SDarnWrite(DmapWrite):
         superdarn_formats.Rawacf - module contain the data types
                                  in each SuperDARN files types
         """
-        pydarn_log.debug("Writing Rawacf file: {}".format(self.filename))
+        pydarn_log.info("Writing Rawacf file: {}".format(self.filename))
         self._filename_check(filename)
         self._empty_record_check()
         file_struct_list = [superdarn_formats.Rawacf.types,
-                            superdarn_formats.Rawacf.extra_fields,
-                            superdarn_formats.Rawacf.cross_correlation_field]
+                            superdarn_formats.Rawacf.correlation_field,
+                            superdarn_formats.Rawacf.digitizing_field,
+                            superdarn_formats.Rawacf.cross_correlation_field,
+                            superdarn_formats.Rawacf.fittex_field]
         self.superDARN_file_structure_to_bytes(file_struct_list)
         with open(self.filename, 'wb') as f:
             f.write(self.dmap_bytearr)
@@ -645,7 +662,7 @@ class SDarnWrite(DmapWrite):
         superdarn_formats.Fitacf - module contain the data types
                                  in each SuperDARN files types
         """
-        pydarn_log.debug("Writing Fitacf file: {}".format(self.filename))
+        pydarn_log.info("Writing Fitacf file: {}".format(self.filename))
 
         self._filename_check(filename)
         self._empty_record_check()
@@ -685,7 +702,7 @@ class SDarnWrite(DmapWrite):
         superdarn_formats.Grid - module contain the data types
                                  in each SuperDARN files types
         """
-        pydarn_log.debug("Writing Grid file: {}".format(self.filename))
+        pydarn_log.info("Writing Grid file: {}".format(self.filename))
 
         self._filename_check(filename)
         self._empty_record_check()
@@ -724,7 +741,7 @@ class SDarnWrite(DmapWrite):
         superdarn_formats.Map - module contain the data types
                                  in each SuperDARN files types
         """
-        pydarn_log.debug("Writing Map file: {}".format(self.filename))
+        pydarn_log.info("Writing Map file: {}".format(self.filename))
 
         self._filename_check(filename)
         self._empty_record_check()
