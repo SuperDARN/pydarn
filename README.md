@@ -11,8 +11,7 @@ Python data visualization library for the Super Dual Auroral Radar Network (Supe
 
 ## Version 1.1 - Release!
 
-!!! Warning 
-    pyDARN will be removing the IO package in the next release. Please use [pyDARNio](https://github.com/SuperDARN/pyDARNio)
+**pyDARN will be removing the IO package in the next release. Please use [pyDARNio](https://github.com/SuperDARN/pyDARNio)**
 
 pyDARN release v1.1 includes the following features:
 - Deprecation warnings for IO reading of pyDARN
