@@ -29,6 +29,5 @@ def build_scan(dmap_data: List[dict]):
             beam_scan[beam] = no_scans
         if scan_mark[beam] == 0:
             beam_scan[beam] = no_scans
-    no_scans += 1
     
     return beam_scan
