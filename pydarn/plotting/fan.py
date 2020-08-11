@@ -139,14 +139,13 @@ class Fan():
 
 		# Get range-gate data and groundscatter array for given scan
 		scan = np.zeros((fan_shape[0] - 1, fan_shape[1]-1))
-		grndsct = np.zeros((fan_shape[0] - 1, fan_shape[1]-1))
-		iterat = 0
+		grndsct = np.zeros((fan_shape[0] - 1, fan_shape[1]-1)) #initialise arrays
 		for i in np.nditer(plot_beams):
 			try:
-				slist = dmap_data[i.astype(int)]['slist']
-				scan[slist, iterat] = dmap_data[i.astype(int)][parameter]
-				grndsct[slist, iterat] = dmap_data[i.astype(int)]['gflg']
-				iterat += 1
+				slist = dmap_data[i.astype(int)]['slist'] #get a list of gates where there is data
+				beam = dmap_data[i.astype(int)]['bmnum'] #get the beam number for the record
+				scan[slist, beam] = dmap_data[i.astype(int)][parameter]
+				grndsct[slist, beam] = dmap_data[i.astype(int)]['gflg']
 			# if there is no slist field this means partial record
 			except KeyError:
 				continue
