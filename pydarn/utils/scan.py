@@ -1,7 +1,7 @@
 # Copyright (C) 2020 SuperDARN Canada, Universtiy of Saskatchewan
 # Author(s): Daniel Billett
 """
-This module is is used for sorting a given dmap_data list of dictionaries
+This module is used for sorting a given dmap_data list of dictionaries
 into scans
 """
 
