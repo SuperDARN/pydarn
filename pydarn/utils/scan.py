@@ -18,7 +18,7 @@ def build_scan(dmap_data: List[dict]):
     dmap_data: List(dict)
         list of records (dictionaries) representing dmap data
     """ 
-    # Setup scans for easy locating
+    # Set up scans for easy locating
     # Makes a list of size (number of records), with the scan number for each
     scan_mark = [sub['scan'] for sub in dmap_data]
     no_scans = 0
