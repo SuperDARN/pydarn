@@ -10,7 +10,7 @@ from typing import List
 
 def build_scan(dmap_data: List[dict]):
     """
-    Returns list of size equal tonumber of records in dmap_data, with scan number
+    Returns list of size equal to number of records in dmap_data, with scan number
     for each record
 
     Parameters
