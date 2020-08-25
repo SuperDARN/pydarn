@@ -15,9 +15,8 @@ from matplotlib import dates, colors, cm, ticker
 from typing import List
 
 from pydarn import (dmap2dict, check_data_type, time2datetime,
-                    DmapArray, DmapScalar, rtp_exceptions,
-                    plot_exceptions, SuperDARNCpids, SuperDARNRadars,
-                    standard_warning_format, PyDARNColormaps)
+                    rtp_exceptions, plot_exceptions, SuperDARNCpids,
+                    SuperDARNRadars, standard_warning_format, PyDARNColormaps)
 
 warnings.formatwarning = standard_warning_format
 
@@ -209,11 +208,6 @@ class RTP():
             # record that has that parameter
             index_first_match = next(i for i, d in enumerate(dmap_data)
                                      if parameter in d)
-            if isinstance(dmap_data[index_first_match][parameter],
-                          DmapArray) or\
-               isinstance(dmap_data[index_first_match][parameter],
-                          DmapScalar):
-                dmap_data = dmap2dict(dmap_data)
         except StopIteration:
             raise plot_exceptions.UnknownParameterError(parameter)
         cls.dmap_data = dmap_data
@@ -479,11 +473,6 @@ class RTP():
             # record that has that parameter
             index_first_match = next(i for i, d in enumerate(dmap_data)
                                      if parameter in d)
-            if isinstance(dmap_data[index_first_match][parameter],
-                          DmapArray) or\
-               isinstance(dmap_data[index_first_match][parameter],
-                          DmapScalar):
-                dmap_data = dmap2dict(dmap_data)
         except StopIteration:
             raise plot_exceptions.UnknownParameterError(parameter)
 
