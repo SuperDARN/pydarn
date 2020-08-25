@@ -1,6 +1,6 @@
 # Summary plots 
 
-Summary plots in SuperDARN are a collection of set parameter plots from a FitACF file. The parameters typically in the plots are:
+Summary plots in SuperDARN are a collection of set parameter plots from a FITACF file. The parameters typically in the plots are:
 - Time-series plots:
   - Sky Noise (`noise.sky`)
   - Transmission Frequency and Number of averages (`tfreq` and `nav`)
@@ -16,10 +16,12 @@ Summary plots in SuperDARN are a collection of set parameter plots from a FitACF
     If the radar doesn't have elevation data then it is not plotted.
 
 ## Default Summary
-With PyDARN and matplotlib imported, read in a FITACF with SDarn_read, then call plot_summary with a chosen beam number. Here, we've loaded in some data from Clyde River and chosen beam 2:
+With pyDARN, pyDARNio, and matplotlib imported, read in a FITACF with `pydarnio.SDarnRead`, then call plot_summary with a chosen beam number. Here, we've loaded in some data from Clyde River and chosen beam 2:
 ```python
-import pydarn
 import matplotlib.pyplot as plt
+
+import pydarn
+import pydarnio
 
 fitacf_file = "20190831.C0.cly.fitacf"
 darn_read = pydarn.SDarnRead(fitacf_file)
@@ -27,7 +29,6 @@ fitacf_data = darn_read.read_fitacf()
 
 pydarn.RTP.plot_summary(fitacf_data,beam_num=2)
 plt.show()
-  
 ```
 which gives:
 
@@ -37,6 +38,7 @@ Note that ground scatter is displayed as default in the velocity panel. To disab
 
 ### Additional options
 In the example above, we can see the velocities are a little too high for the default colour scale. To change that, we need to create a python dictionary that redefines the boundaries:
+
 ```python
 boundaries={'v': [-500,500]}
 
