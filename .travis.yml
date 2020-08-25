@@ -49,4 +49,4 @@ before_install:
 install:
     - pip3 install .
     - pip3 install pytest
-script: pytest --ignore=test/performance --ignore=test/integration 
+script: pytest --ignore=test/integration 
