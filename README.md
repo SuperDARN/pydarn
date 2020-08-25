@@ -13,11 +13,8 @@ Python data visualization library for the Super Dual Auroral Radar Network (Supe
 
 **pyDARN will be removing the IO package in the next release. Please use [pyDARNio](https://github.com/SuperDARN/pyDARNio)**
 
-pyDARN release v1.1 includes the following features:
-- Deprecation warnings for IO reading of pyDARN
-- Borealis v 5.0 file reading
-- Bug fix in RAWACF field checking
-- Bug fix in grabbing the most recent hardware files
+pyDARN release v1.2 includes the following features:
+- Removal of IO reading of pyDARN
 - Added JME and DCN to the hardware list 
 - Plots ACFs 
 - updated logging in pyDARN
@@ -39,32 +36,26 @@ Please make sure to also read the documentation on [**citing superDARN and pydar
 As a quick tutorial on using pydarn to read a non-compressed file: 
 
 !!! Warning 
-    pyDARN will be removing the IO package in the next release. Please use [pyDARNio](https://github.com/SuperDARN/pyDARNio)
+    pyDARN removed the IO package in the next release. Please use [pyDARNio](https://github.com/SuperDARN/pyDARNio)
 
 ```python
-import pydarn 
+import matplotlib.pyplot as plt
+
+import pydarn
+import pydarnop
 
 # read a non-compressed file
-fitacf_file = '20180220.C0.rkn.stream.fitacf'
+fitacf_file = '20190831.C0.cly.fitacf'
 
 # pyDARN functions to read a fitacf file
-reader = pydarn.SDarnRead(fitacf_file)
-records = reader.read_fitacf()
+reader = pydarnio.SDarnRead(fitacf_file)
+fitacf_data = reader.read_fitacf()
+
+pydarn.RTP.plot_summary(fitacf_data, beam_num=2)
+plt.show()
 ```
 
-or to read a compressed file:
-``` python
-import bz2
-import pydarn 
-# read in compressed file
-fitacf_file = '20180220.C0.rkn.stream.fitacf.bz2'
-with bz2.open(fitacf_file) as fp: 
-      fitacf_stream = fp.read()
-
-# pyDARN functions to read a fitacf file stream
-reader = pydarn.SDarnRead(fitacf_stream, True)
-records = reader.read_fitacf()
-```
+[summary plot](docs/imgs/summary_clyb2.png)
 
 For more information and tutorials on pyDARN please see the [tutorial section](https://pydarn.readthedocs.io/en/master/)
 
