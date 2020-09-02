@@ -15,7 +15,7 @@ from typing import List
 # third part libs
 import aacgmv2
 
-from pydarn import PyDARNColormaps
+from pydarn import PyDARNColormaps, build_scan
 
 class Fan():
     # TODO: Add class documentation
@@ -74,24 +74,15 @@ class Fan():
                 Default: True
             colorbar_label: str
                 the label that appears next to the colour bar. Requires colorbar to be true
-                Default: ''
+                Default: ''              
+            
         """
 		# TODO: put a function here to get the grid of the radar's FOV information
 		my_path = os.path.abspath(os.path.dirname(__file__))
 		base_path = os.path.join(my_path, '..')
 
-		# Setup scans for easy locating
-		# Makes a list of size (number of records), with the scan number for each
-		scan_mark = [sub['scan'] for sub in dmap_data]
-		no_scans = 0
-		beam_scan = np.zeros((len(dmap_data)))
-		for beam in range(len(dmap_data)):
-			if abs(scan_mark[beam]) == 1:
-				no_scans += 1
-				beam_scan[beam] = no_scans
-			if scan_mark[beam] == 0:
-				beam_scan[beam] = no_scans
-		no_scans += 1
+		# Get scan numbers for each record
+		beam_scan=build_scan(dmap_data)
 
 		# Locate scan in loaded data
 		plot_beams = np.where(beam_scan == scan_index)
