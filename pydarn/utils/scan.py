@@ -17,6 +17,11 @@ def build_scan(dmap_data: List[dict]):
     ----------
     dmap_data: List(dict)
         list of records (dictionaries) representing dmap data
+    Returns 
+    ----------
+    beam_scan: List
+        list of size equal to number of records in dmap_data, with scan number
+    for each record
     """ 
     # Set up scans for easy locating
     # Makes a list of size (number of records), with the scan number for each
