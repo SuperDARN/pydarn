@@ -27,7 +27,7 @@ class Fan():
 				"   - return_beam_pos()\n"
 
 	@classmethod
-	def plot_fan(cls, dmap_data: List[dict], ax=None, scan_index: int = 0,
+	def plot_fan(cls, dmap_data: List[dict], ax=None, scan_index: int = 1,
 					   ranges: List = [0,75], boundary: bool = True,
 					   parameter: str = 'v', lowlat: int = 50, cmap: str = None,
 					   groundscatter: bool = False,
@@ -43,7 +43,7 @@ class Fan():
                 Named list of dictionaries obtained from SDarn_read
             scan_index: int
                 Scan number from beginning of first record in file
-                Default: 0
+                Default: 1
             parameter: str
                 Key name indicating which parameter to plot.
                 Default: v (Velocity). Alternatives: 'p_l', 'w_l', 'elv'
