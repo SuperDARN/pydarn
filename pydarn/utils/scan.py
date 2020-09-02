@@ -26,13 +26,13 @@ def build_scan(dmap_data: List[dict]):
     # Set up scans for easy locating
     # Makes a list of size (number of records), with the scan number for each
     scan_mark = [sub['scan'] for sub in dmap_data]
-    no_scans = 0
+    current_scan = 0
     beam_scan = np.zeros((len(dmap_data)))
     for beam in range(len(dmap_data)):
-        if abs(scan_mark[beam]) == 1:
-            no_scans += 1
-            beam_scan[beam] = no_scans
+        if abs(scan_mark[beam]) == 1: #Absoloute value used due to some scan flags set as "-1"
+            current_scan += 1
+            beam_scan[beam] = current_scan
         if scan_mark[beam] == 0:
-            beam_scan[beam] = no_scans
+            beam_scan[beam] = current_scan
     
     return beam_scan
