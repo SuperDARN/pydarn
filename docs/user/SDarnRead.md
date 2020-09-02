@@ -1,6 +1,10 @@
 # Reading in DMap structured SuperDARN data files
 ---
 
+!!! Warning
+    These methods will be removed from pyDARN in the next release. Please use [pyDARNio](https://github.com/SuperDARN/pyDARNio)
+
+
 Data Map (DMap) is a binary self-describing format that was developed by Rob Barnes. 
 This format is currently the primary format used by SuperDARN. 
 For more information on DMap please see [RST Documentation](https://radar-software-toolkit-rst.readthedocs.io/en/latest/).

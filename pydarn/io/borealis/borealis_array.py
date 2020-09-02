@@ -39,6 +39,7 @@ files, see: https://borealis.readthedocs.io/en/latest/
 """
 import deepdish as dd
 import logging
+import warnings
 
 from typing import List
 
@@ -105,6 +106,12 @@ class BorealisArrayRead():
         BorealisVersionError
             Borealis software version format does not exist in pydarn
         """
+        warnings.simplefilter('once', PendingDeprecationWarning)
+        warnings.warn("BorealisArrayRead method will be removed from"
+                      " pyDARN v 1.2, please use pyDARNio: "
+                      "https://github.com/SuperDARN/pyDARNio",
+                      PendingDeprecationWarning)
+
         self.filename = filename
 
         if borealis_filetype not in ['bfiq', 'antennas_iq', 'rawacf', 'rawrf']:
@@ -350,6 +357,12 @@ class BorealisArrayWrite():
         BorealisVersionError
             Borealis software version format does not exist in pydarn
         """
+        warnings.simplefilter('once', PendingDeprecationWarning)
+        warnings.warn("BorealisArrayWrite method will be removed from"
+                      " pyDARN v 1.2, please use pyDARNio: "
+                      "https://github.com/SuperDARN/pyDARNio",
+                      PendingDeprecationWarning)
+
         self.filename = filename
         self._arrays = borealis_arrays
         if borealis_filetype not in ['bfiq', 'antennas_iq', 'rawacf', 'rawrf']:

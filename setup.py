@@ -46,14 +46,14 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 setup(
     cmdclass={'install': initialize_submodules},
     name="pydarn",
-    version="1.0.0",
+    version="1.1.0",
     long_description=long_description,
     long_description_content_type='text/markdown',
     description="Data visualization library for SuperDARN data",
     url='https://github.com/SuperDARN/pydarn.git',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
-        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+        'License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7'],
     python_requires='>=3.6',

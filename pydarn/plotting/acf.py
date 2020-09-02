@@ -43,15 +43,17 @@ class ACF():
                 " the following methods: \n"\
                 "   - plot_acfs()\n"\
 
+
     @classmethod
     def plot_acfs(cls, dmap_data: List[dict], beam_num: int = 0,
-             gate_num: int = 15, parameter: str = 'acfd',
-             scan_num: int = 0, start_time: datetime = None, ax=None,
-             normalized: bool = True, real_color: str = 'red',
-             blank_marker: str = 'o', imaginary_color: str = 'blue',
-             legend: bool = True, **kwargs):
+                  gate_num: int = 15, parameter: str = 'acfd',
+                  scan_num: int = 0, start_time: datetime = None, ax=None,
+                  normalized: bool = True, real_color: str = 'red',
+                  plot_blank: bool = True, blank_marker: str = 'o',
+                  imaginary_color: str = 'blue', legend: bool = True,
+                  **kwargs):
         """
-        plots the parameter ACF/XCF field from superDARN file,
+        plots the parameter ACF/XCF field from SuperDARN file,
         typically RAWACF format for a given beam and gate number
 
         Parameters
@@ -79,6 +81,9 @@ class ACF():
         real_color: str
             line color of the real part of the paramter
             default: red
+        plot_blanked: bool
+            boolean to determine if blanked lags should be plotted
+            default: False
         blank_marker: str
             the marker symbol of blanked lags
             default: o - dot
@@ -136,10 +141,12 @@ class ACF():
         for record in cls.dmap_data:
             if record['bmnum'] == beam_num:
                 time = time2datetime(record)
-                if time.day != start_time.day or \
-                   time.month != start_time.month or \
-                   time.year != start_time.year:
-                    raise plot_exceptions.IncorrectDateError(time, start_time)
+                if start_time is not None:
+                    if time.day != start_time.day or \
+                       time.month != start_time.month or \
+                       time.year != start_time.year:
+                        raise plot_exceptions.IncorrectDateError(time,
+                                                                 start_time)
 
                 if (scan_count == scan_num and start_time is None) or\
                    start_time < time:
@@ -163,15 +170,16 @@ class ACF():
                     blank_re = copy.deepcopy(re)
                     blank_im = copy.deepcopy(im)
                     lag_num = 0
+                    lag_idx = 0
                     lags_len = len(lags)
                     # Search for missing lags
                     # Note: had to use while loop do to insert method
-                    while lag_num < lags_len:
+                    while lag_idx < lags_len:
                         if lag_num in blanked_lags:
                             # to remove lines going through the points
-                            re[lag_num] = np.nan
-                            im[lag_num] = np.nan
-                        if lags[lag_num] != lag_num:
+                            re[lag_idx] = np.nan
+                            im[lag_idx] = np.nan
+                        if lags[lag_idx] != lag_num:
                             lags.insert(lag_num, lag_num)
                             # increase length by one due to insert
                             lags_len += 1
@@ -183,11 +191,22 @@ class ACF():
                             blank_re.insert(lag_num, np.nan)
                             blank_im.insert(lag_num, np.nan)
 
-                        lag_num += 1
+                        lag_idx += 1
+                        if lag_idx < lags_len:
+                            if lag_num != lags[lag_idx]:
+                                if lag_num > lags[lag_idx]:
+                                    lag_num = lags[lag_idx]
+                                else:
+                                    lag_num += 1
                     # once we got the data break free!!
                     break
                 scan_count += 1
-
+        if record['cp'] == 503:
+            warnings.warn("Please note this data is from Tauscan which has"
+                          "different lag properties to other control problems"
+                          "this ACF plot may not be correct."
+                          "Please contact the PI of the radar to"
+                          "confirm if the data looks correct.")
         if re == [] or im == []:
             if gate_num > 0 and gate_num < record['nrang']:
                 time = time2datetime(record)
@@ -195,7 +214,7 @@ class ACF():
                                                        None, time,
                                                        record['bmnum'])
             else:
-                raise plot_exceptions.OutOfRangeGateError(parameter,gate_num,
+                raise plot_exceptions.OutOfRangeGateError(parameter, gate_num,
                                                           record['nrang'])
 
         if normalized:
@@ -219,21 +238,22 @@ class ACF():
                 label='Real', **kwargs)
 
         # plot blanked lags
-        for blank in blanked_lags:
-            # I use scatter here to make points not lines
-            # also shows up in the legend nicer
-            line_re = ax.scatter(blank, blank_re[lags.index(blank)],
-                                 edgecolors=real_color, facecolors='white',
-                                 marker=blank_marker)
-            line_im = ax.scatter(blank, blank_im[lags.index(blank)],
-                                 edgecolors=imaginary_color,
-                                 facecolors='white', marker=blank_marker)
+        if plot_blank:
+            for blank in blanked_lags:
+                # I use scatter here to make points not lines
+                # also shows up in the legend nicer
+                line_re = ax.scatter(blank, blank_re[lags.index(blank)],
+                                     edgecolors=real_color, facecolors='white',
+                                     marker=blank_marker)
+                line_im = ax.scatter(blank, blank_im[lags.index(blank)],
+                                     edgecolors=imaginary_color,
+                                     facecolors='white', marker=blank_marker)
 
-        # generate generic legend
-        if legend and blanked_lags != []:
-            line_re.set_label('Real Blanked')
-            line_im.set_label('Imaginary Blanked')
-            ax.legend()
+            # generate generic legend
+            if legend and blanked_lags != []:
+                line_re.set_label('Real Blanked')
+                line_im.set_label('Imaginary Blanked')
+        ax.legend()
         ax.set_ylabel(parameter)
         ax.set_xlabel('Lag Number')
         ax.xaxis.set_major_locator(ticker.MaxNLocator(integer=True))

@@ -36,6 +36,7 @@ Notes
 DmapRead and DmapWrite are inherited by SDarnRead and SDarnWrite
 """
 import logging
+import warnings
 
 from typing import Union, List
 
@@ -310,6 +311,13 @@ class SDarnRead(DmapRead):
         --------
         DmapRead : for inheritance information
         """
+
+        warnings.simplefilter('once', PendingDeprecationWarning)
+        warnings.warn("SDarnRead method will be removed from pyDARN v 1.2,"
+                      " please use pyDARNio: "
+                      "https://github.com/SuperDARN/pyDARNio",
+                      PendingDeprecationWarning)
+
         DmapRead.__init__(self, filename, stream)
 
     # helper function that could be used parallelization
@@ -550,6 +558,11 @@ class SDarnWrite(DmapWrite):
         filename : str
             Name of the file the user wants to write to
         """
+        warnings.warn("SDarnWrite method will be removed from pyDARN v 1.2,"
+                      " please use pyDARNio:"
+                      "https://github.com/SuperDARN/pyDARNio",
+                      PendingDeprecationWarning)
+
         DmapWrite.__init__(self, dmap_records, filename)
 
         # WARNING: This check will be removed when real-time is implemented to
@@ -617,8 +630,10 @@ class SDarnWrite(DmapWrite):
         self._filename_check(filename)
         self._empty_record_check()
         file_struct_list = [superdarn_formats.Rawacf.types,
-                            superdarn_formats.Rawacf.extra_fields,
-                            superdarn_formats.Rawacf.cross_correlation_field]
+                            superdarn_formats.Rawacf.correlation_field,
+                            superdarn_formats.Rawacf.digitizing_field,
+                            superdarn_formats.Rawacf.cross_correlation_field,
+                            superdarn_formats.Rawacf.fittex_field]
         self.superDARN_file_structure_to_bytes(file_struct_list)
         with open(self.filename, 'wb') as f:
             f.write(self.dmap_bytearr)

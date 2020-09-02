@@ -1,22 +1,26 @@
 ![pydarn](https://raw.githubusercontent.com/SuperDARN/pydarn/master/docs/imgs/pydarn_logo.png)
 
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) 
+[![License: LGPL v3](https://img.shields.io/badge/License-LGPLv3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0) 
 [![Python 3.6](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/downloads/release/python-360/) 
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/superdarn/pydarn)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3727270.svg)](https://doi.org/10.5281/zenodo.3727270)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3978643.svg)](https://doi.org/10.5281/zenodo.3978643)
 
 Python data visualization library for the Super Dual Auroral Radar Network (SuperDARN).
 
 ## Changelog
 
-## Version 1.0 - Release!
+## Version 1.1 - Release!
 
-pyDARN is released! Included are the following features:
-- Reading and writing DMap format IQDAT, RAWACF, FITACF, GRID/GRD and MAP files
-- Reading and writing HDF5 format files for Borealis radar data, as well as conversion to and from DMap format
-- Range-time parameter style plots for RAWACF and FITACF files
-- Summary plots for RAWACF and FITACF files
-- Time series plots for RAWACF and FITACF files
+**pyDARN will be removing the IO package in the next release. Please use [pyDARNio](https://github.com/SuperDARN/pyDARNio)**
+
+pyDARN release v1.1 includes the following features:
+- Deprecation warnings for IO reading of pyDARN
+- Borealis v 5.0 file reading
+- Bug fix in RAWACF field checking
+- Bug fix in grabbing the most recent hardware files
+- Added JME and DCN to the hardware list 
+- Plots ACFs 
+- updated logging in pyDARN
 
 ## Documentation
 
@@ -33,6 +37,10 @@ If wish to get access to SuperDARN data please read the [SuperDARN data access d
 Please make sure to also read the documentation on [**citing superDARN and pydarn**](https://pydarn.readthedocs.io/en/master/user/citing/). 
 
 As a quick tutorial on using pydarn to read a non-compressed file: 
+
+!!! Warning 
+    pyDARN will be removing the IO package in the next release. Please use [pyDARNio](https://github.com/SuperDARN/pyDARNio)
+
 ```python
 import pydarn 
 
