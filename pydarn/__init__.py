@@ -38,6 +38,7 @@ from .utils.superdarn_cpid import SuperDARNCpids
 from .utils.superdarn_radars import Hemisphere
 from .utils.superdarn_radars import read_hdw_file
 from .utils.scan import build_scan
+from .utils.read_radar import read_radar
 
 # Importing pydarn dmap classes
 from .io.dmap import DmapRead
