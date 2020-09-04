@@ -50,7 +50,7 @@ def read_radar(stid: int, coords: str = 'aacgm', year: int = 2020):
 	beam_corners_lons = np.loadtxt(beam_lons)
 	
 	# AACGMv2 conversion
-	if coords == 'aacgm' or coords == 'mlt':
+	if coords == 'aacgm':
 		
 		# Initialise arrays
 		fan_shape = beam_corners_lons.shape
