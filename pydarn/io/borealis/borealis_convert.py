@@ -233,7 +233,7 @@ class BorealisConvert(BorealisRead):
 
         self._sdarn_dmap_records = {}
         self._sdarn_dict = {}
-        self._scaling_factor = scaling_factor
+        self._scaling_factor = int(scaling_factor)
         try:
             self._sdarn_filetype = self.__allowed_conversions[
                     self.borealis_filetype]

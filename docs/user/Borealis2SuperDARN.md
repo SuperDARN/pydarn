@@ -1,5 +1,9 @@
 # Converting Borealis HDF5 to DMap SuperDARN Standard
 
+!!! Warning
+    These methods will be removed from pyDARN in the next release. Please use [pyDARNio](https://github.com/SuperDARN/pyDARNio)
+
+
 The conversions available from Borealis HDF5 to SuperDARN DMap (SDARN) standards
 are currently:
 
