@@ -1,4 +1,4 @@
-# Copyright (C) 2020 SuperDARN Canada, Universtiy of Saskatchewan
+# Copyright (C) 2020 SuperDARN Canada, University of Saskatchewan
 # Author(s): Daniel Billett
 """
 This module is used for returning beam/gate coordinates of a specified radar
@@ -35,7 +35,7 @@ def read_radar(stid: int, coords: str = 'aacgm', year: int = 2020):
 		corners
 	 """ 
       
-    # Locate base PyDARN directory
+      # Locate base PyDARN directory
 	my_path = os.path.abspath(os.path.dirname(__file__))
 	base_path = os.path.join(my_path, '..')  
 	
