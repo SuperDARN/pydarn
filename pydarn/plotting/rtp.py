@@ -55,8 +55,8 @@ class RTP():
                         zmin: int = None, zmax: int = None,
                         start_time: datetime = None, end_time: datetime = None,
                         colorbar: plt.colorbar = None, ymax: int = None,
-                        slant = True,
-                        colorbar_label: str = '', norm=colors.Normalize,
+                        slant: bool = True, colorbar_label: str = '',
+                        norm=colors.Normalize,
                         cmap: str = PyDARNColormaps.PYDARN_VELOCITY,
                         filter_settings: dict = {},
                         date_fmt: str = '%y/%m/%d\n %H:%M', **kwargs):
@@ -365,7 +365,11 @@ class RTP():
         if ymax is None:
                 ymax = max(y)
         ax.set_ylim(0, ymax)
-        ax.yaxis.set_ticks(np.arange(0, ymax+1, (ymax)/5))
+
+        if slant:
+            ax.yaxis.set_ticks(np.arange(0, ymax+1), 200)
+        else:
+            ax.yaxis.set_ticks(np.arange(0, ymax+1, (ymax)/5))
 
         # SuperDARN file typically are in 2hr or 24 hr files
         # to make the minute ticks sensible, the time length is detected
