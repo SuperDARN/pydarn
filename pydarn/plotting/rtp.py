@@ -642,7 +642,7 @@ class RTP():
     @classmethod
     def plot_summary(cls, dmap_data: List[dict], beam_num: int = 0,
                      groundscatter: bool = True, channel: int = 'all',
-                     slant=True, figsize: tuple = (11, 8.5),
+                     slant: bool = True, figsize: tuple = (11, 8.5),
                      watermark: bool = True, boundary: dict = {},
                      background_color: str = 'w', cmaps: dict = {},
                      lines: dict = {}, plot_elv: bool = True, title=None):
@@ -926,6 +926,10 @@ class RTP():
             else:
                 # Current standard is to only have groundscatter
                 # on the velocity plot. This may change in the future.
+                if slant:
+                    ymax = 3517.5
+                else:
+                    ymax = 75
                 if groundscatter and axes_parameters[i] == 'v':
                     grndflg = True
                 else:
@@ -942,7 +946,7 @@ class RTP():
                                         cmap=cmap[axes_parameters[i]],
                                         zmin=boundary_ranges[axes_parameters[i]][0],
                                         zmax=boundary_ranges[axes_parameters[i]][1],
-                                        ymax=3517.5,
+                                        ymax=ymax,
                                         background=background_color)
                 # Overwriting velocity ticks to get a better pleasing
                 # look on the colorbar
