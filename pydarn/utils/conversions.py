@@ -151,16 +151,18 @@ def gate2slant(record, nrang, center=True):
     """
 
     # lag to the first range gate in microseconds
-    # TODO: with 2.0 and 0.3 what do these values mean?
-    lag_first = record['frang'] * 2.0 / 0.3
+    # 0.3 - speed of light (km/us)
+    # 2 - two times for there and back
+    speed_of_light = 0.3 # TODO: should this be more accurate?
+    distance_factor = 2.0
+    lag_first = record['frang'] * distance_factor / speed_of_light
 
     # sample separation in microseconds
-    sample_sep = record['rsep'] * 2.0 / 0.3
-
+    sample_sep = record['rsep'] * distance_factor / speed_of_light
     # Range offset
     # If center is true, calculate at the center
     if center:
-        # TODO: why -0.5? what does this value mean?
+        # 0.5 off set to the centre of the range gate instead of edge
         range_offset = -0.5 * record['rsep']
     else:
         range_offset = 0.0
@@ -169,5 +171,5 @@ def gate2slant(record, nrang, center=True):
     slant_ranges = np.zeros(nrang+1)
     for gate in range(nrang+1):
         slant_ranges[gate] = (lag_first - record['rxrise'] +
-                              gate * sample_sep) * 0.3 / 2.0 + range_offset
+                              gate * sample_sep) * distance_factor / speed_of_light + range_offset
     return slant_ranges
