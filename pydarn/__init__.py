@@ -22,12 +22,14 @@ from .exceptions.warning_formatting import only_message_warning_format
 
 # importing utils
 from .utils.conversions import dmap2dict
+from .utils.conversions import gate2slant
 from .utils.plotting import check_data_type
 from .utils.plotting import time2datetime
 from .utils.superdarn_radars import SuperDARNRadars
 from .utils.superdarn_cpid import SuperDARNCpids
 from .utils.superdarn_radars import Hemisphere
 from .utils.superdarn_radars import read_hdw_file
+from .utils.scan import build_scan
 
 # import plotting
 from .plotting.color_maps import PyDARNColormaps
