@@ -102,7 +102,7 @@ class RTP():
         ymax: int
             Sets the maximum y value
             Default: None, uses 'nrang' from data
-        slant: boolen
+        slant: boolean
             set the y-axis to slant range (km)
             if false will show gate numbers.
             Default: True
