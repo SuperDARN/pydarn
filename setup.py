@@ -67,6 +67,5 @@ setup(
     # pyyaml library install
     install_requires=['pyyaml', 'numpy', 'matplotlib',
                       'h5py', 'deepdish', 'pathlib2', 'aacgmv2']
-    # commented out due to not implemented yet.
-    #ext_modules = [rstmodule]
+
 )
