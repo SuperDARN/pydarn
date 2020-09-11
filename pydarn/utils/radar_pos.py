@@ -1,18 +1,18 @@
 # Copyright (C) 2020 SuperDARN Canada, University of Saskatchewan
 # Author(s): Daniel Billett
 """
-This module is used for returning beam/gate coordinates of a specified radar
+This module is used for handling coordinates of a specified radar
 in AACGMv2 or geographic coordinates
 """
 
 import numpy as np
-import datetime as dt
+import datetime
 import aacgmv2
 import os
 
-def read_radar(stid: int, coords: str = 'aacgm', year: int = 2020):
+def radar_fov(stid: int, coords: str = 'aacgm', date: datetime = None):
 	"""
-	Returning beam/gate coordinates of a specified radar
+	Returning beam/gate coordinates of a specified radar's field-of-view
 
 	Parameters
 	----------
@@ -21,9 +21,9 @@ def read_radar(stid: int, coords: str = 'aacgm', year: int = 2020):
 	coords: str
 		Type of coordinates returned. 'geo' = Geographic, 'aacgm' = AACGMv2
 		Default: 'aacgm'
-	year: int
-		Year needed for conversion to AACGM	
-		Default: 2020
+	date: datetime 
+		datetime object date to be used for AACGMv2 conversion
+		Default: Current day
  
 	Returns 
 	----------
@@ -35,7 +35,7 @@ def read_radar(stid: int, coords: str = 'aacgm', year: int = 2020):
 		corners
 	 """ 
       
-      # Locate base PyDARN directory
+    # Locate base PyDARN directory
 	my_path = os.path.abspath(os.path.dirname(__file__))
 	base_path = os.path.join(my_path, '..')  
 	
@@ -51,12 +51,13 @@ def read_radar(stid: int, coords: str = 'aacgm', year: int = 2020):
 	
 	# AACGMv2 conversion
 	if coords == 'aacgm':
+		if not date:
+			date = datetime.datetime.now()
 		
 		# Initialise arrays
 		fan_shape = beam_corners_lons.shape
 		beam_corners_aacgm_lons = np.zeros((fan_shape[0], fan_shape[1]))
-		beam_corners_aacgm_lats = np.zeros((fan_shape[0], fan_shape[1]))
-		dtime = dt.datetime(year,1,1)		
+		beam_corners_aacgm_lats = np.zeros((fan_shape[0], fan_shape[1]))		
 		
 		for x in range(fan_shape[0]):
 			for y in range(fan_shape[1]):
@@ -65,7 +66,7 @@ def read_radar(stid: int, coords: str = 'aacgm', year: int = 2020):
 				geomag = np.array(aacgmv2.
 					get_aacgm_coord(beam_corners_lats[x, y],
 					beam_corners_lons[x, y],
-					250, dtime))
+					250, date))
 
 				beam_corners_aacgm_lats[x, y] = geomag[0]
 				beam_corners_aacgm_lons[x, y] = geomag[1]
