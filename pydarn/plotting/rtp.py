@@ -14,10 +14,10 @@ from datetime import datetime, timedelta
 from matplotlib import dates, colors, cm, ticker
 from typing import List
 
-from pydarn import (dmap2dict, check_data_type, time2datetime,
-                    DmapArray, DmapScalar, rtp_exceptions,
-                    plot_exceptions, SuperDARNCpids, SuperDARNRadars,
-                    standard_warning_format, PyDARNColormaps)
+from pydarn import (dmap2dict, gate2slant, check_data_type, time2datetime,
+                    rtp_exceptions, plot_exceptions, SuperDARNCpids,
+                    SuperDARNRadars, standard_warning_format,
+                    PyDARNColormaps)
 
 warnings.formatwarning = standard_warning_format
 
@@ -44,7 +44,7 @@ class RTP():
     def __str__(self):
         return "This class is static class that provides"\
                 " the following methods: \n"\
-                "   - plot_rang_time()\n"\
+                "   - plot_range_time()\n"\
                 "   - plot_time_series()\n"\
                 "   - plot_summary()\n"
 
@@ -55,7 +55,8 @@ class RTP():
                         zmin: int = None, zmax: int = None,
                         start_time: datetime = None, end_time: datetime = None,
                         colorbar: plt.colorbar = None, ymax: int = None,
-                        colorbar_label: str = '', norm=colors.Normalize,
+                        slant: bool = True, colorbar_label: str = '',
+                        norm=colors.Normalize,
                         cmap: str = PyDARNColormaps.PYDARN_VELOCITY,
                         filter_settings: dict = {},
                         date_fmt: str = '%y/%m/%d\n %H:%M', **kwargs):
@@ -101,6 +102,10 @@ class RTP():
         ymax: int
             Sets the maximum y value
             Default: None, uses 'nrang' from data
+        slant: boolean
+            set the y-axis to slant range (km)
+            if false will show gate numbers.
+            Default: True
         norm: matplotlib.colors.Normalization object
             This object use dependency injection to use any normalization
             method with the zmin and zmax.
@@ -209,11 +214,6 @@ class RTP():
             # record that has that parameter
             index_first_match = next(i for i, d in enumerate(dmap_data)
                                      if parameter in d)
-            if isinstance(dmap_data[index_first_match][parameter],
-                          DmapArray) or\
-               isinstance(dmap_data[index_first_match][parameter],
-                          DmapScalar):
-                dmap_data = dmap2dict(dmap_data)
         except StopIteration:
             raise plot_exceptions.UnknownParameterError(parameter)
         cls.dmap_data = dmap_data
@@ -327,6 +327,8 @@ class RTP():
             raise plot_exceptions.NoDataFoundError(parameter, beam_num,
                                                    start_time, end_time,
                                                    cls.dmap_data[0]['bmnum'])
+        if slant:
+            y = gate2slant(cls.dmap_data[0], y_max)
         time_axis, y_axis = np.meshgrid(x, y)
         z_data = np.ma.masked_where(np.isnan(z.T), z.T)
         norm = norm(zmin, zmax)
@@ -356,9 +358,13 @@ class RTP():
         ax.set_xlim([rounded_down_start_time, x[-1]])
         ax.xaxis.set_major_formatter(dates.DateFormatter(date_fmt))
         if ymax is None:
-            ymax = y_max
+                ymax = max(y)
         ax.set_ylim(0, ymax)
-        ax.yaxis.set_ticks(np.arange(0, ymax+1, (ymax)/5))
+
+        if slant:
+            ax.yaxis.set_ticks(np.arange(0, ymax+1), 200)
+        else:
+            ax.yaxis.set_ticks(np.arange(0, ymax+1, (ymax)/5))
 
         # SuperDARN file typically are in 2hr or 24 hr files
         # to make the minute ticks sensible, the time length is detected
@@ -371,7 +377,10 @@ class RTP():
         else:
             tick_interval = 1
         ax.xaxis.set_minor_locator(dates.MinuteLocator(interval=tick_interval))
-        ax.yaxis.set_minor_locator(ticker.MultipleLocator(5))
+        if slant:
+            ax.yaxis.set_minor_locator(ticker.MultipleLocator(100))
+        else:
+            ax.yaxis.set_minor_locator(ticker.MultipleLocator(5))
         # so the plots gets to the ends
         ax.margins(0)
 
@@ -479,11 +488,6 @@ class RTP():
             # record that has that parameter
             index_first_match = next(i for i, d in enumerate(dmap_data)
                                      if parameter in d)
-            if isinstance(dmap_data[index_first_match][parameter],
-                          DmapArray) or\
-               isinstance(dmap_data[index_first_match][parameter],
-                          DmapScalar):
-                dmap_data = dmap2dict(dmap_data)
         except StopIteration:
             raise plot_exceptions.UnknownParameterError(parameter)
 
@@ -628,10 +632,10 @@ class RTP():
     @classmethod
     def plot_summary(cls, dmap_data: List[dict], beam_num: int = 0,
                      groundscatter: bool = True, channel: int = 'all',
-                     figsize: tuple = (11, 8.5), watermark: bool = True,
-                     boundary: dict = {}, background_color: str = 'w',
-                     cmaps: dict = {}, lines: dict = {},
-                     plot_elv: bool = True, title=None):
+                     slant: bool = True, figsize: tuple = (11, 8.5),
+                     watermark: bool = True, boundary: dict = {},
+                     background_color: str = 'w', cmaps: dict = {},
+                     lines: dict = {}, plot_elv: bool = True, title=None):
         """
         Plots the summary of several SuperDARN parameters using time-series and
         range-time plots. Please see Notes for further description
@@ -661,6 +665,10 @@ class RTP():
             channel number that will be plotted
             in the summary plot.
             Default: 'all'
+        slant: bool
+            calculate slant range for range-gates if true.
+            False will use range-gate numbers
+            Default: True
         figsize : (int,int)
             tuple containing (height, width) figure size
             Default: 11 x 8.5
@@ -908,6 +916,10 @@ class RTP():
             else:
                 # Current standard is to only have groundscatter
                 # on the velocity plot. This may change in the future.
+                if slant:
+                    ymax = 3517.5
+                else:
+                    ymax = 75
                 if groundscatter and axes_parameters[i] == 'v':
                     grndflg = True
                 else:
@@ -920,10 +932,11 @@ class RTP():
                                         ax=axes[i],
                                         groundscatter=grndflg,
                                         channel=channel,
+                                        slant=slant,
                                         cmap=cmap[axes_parameters[i]],
                                         zmin=boundary_ranges[axes_parameters[i]][0],
                                         zmax=boundary_ranges[axes_parameters[i]][1],
-                                        ymax=75,
+                                        ymax=ymax,
                                         background=background_color)
                 # Overwriting velocity ticks to get a better pleasing
                 # look on the colorbar
@@ -939,7 +952,10 @@ class RTP():
                     if ticks[-1] > boundary_ranges[axes_parameters[i]][1]:
                         ticks[-1] = boundary_ranges[axes_parameters[i]][1]
                     cbar.set_ticks(ticks)
-                axes[i].set_ylabel('Range Gates')
+                if slant:
+                    axes[i].set_ylabel('Slant Range (km)')
+                else:
+                    axes[i].set_ylabel('Range Gates')
             if i < num_plots-1:
                 axes[i].set_xticklabels([])
             # last plot needs the label on the x-axis

@@ -12,8 +12,7 @@ import matplotlib.ticker as ticker
 from datetime import datetime
 from typing import List
 
-from pydarn import (dmap2dict, DmapArray, DmapScalar,
-                    plot_exceptions, SuperDARNRadars,
+from pydarn import (dmap2dict, plot_exceptions, SuperDARNRadars,
                     standard_warning_format, time2datetime,
                     check_data_type)
 
@@ -122,14 +121,8 @@ class ACF():
             # record that has that parameter
             index_first_match = next(i for i, d in enumerate(dmap_data)
                                      if parameter in d)
-            if isinstance(dmap_data[index_first_match][parameter],
-                          DmapArray) or\
-               isinstance(dmap_data[index_first_match][parameter],
-                          DmapScalar):
-                dmap_data = dmap2dict(dmap_data)
         except StopIteration:
             raise plot_exceptions.UnknownParameterError(parameter)
-
         cls.dmap_data = dmap_data
         check_data_type(cls.dmap_data, parameter, 'array', index_first_match)
 
