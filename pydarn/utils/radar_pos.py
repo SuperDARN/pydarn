@@ -77,7 +77,3 @@ def radar_fov(stid: int, coords: str = 'aacgm', date: datetime = None):
 	else:
 		# Return geographic coordinates
 		return beam_corners_lats, beam_corners_lons
-		
-		
-		  
-    
