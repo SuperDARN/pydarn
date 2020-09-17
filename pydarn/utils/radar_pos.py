@@ -5,10 +5,11 @@ This module is used for handling coordinates of a specified radar
 in AACGMv2 or geographic coordinates
 """
 
-import numpy as np
 import datetime
-import aacgmv2
+import numpy as np
 import os
+
+import aacgmv2
 
 def radar_fov(stid: int, coords: str = 'aacgm', date: datetime = None):
 	"""
