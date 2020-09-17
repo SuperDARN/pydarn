@@ -30,6 +30,7 @@ from .utils.superdarn_cpid import SuperDARNCpids
 from .utils.superdarn_radars import Hemisphere
 from .utils.superdarn_radars import read_hdw_file
 from .utils.scan import build_scan
+from .utils.radar_pos import radar_fov
 
 # import plotting
 from .plotting.color_maps import PyDARNColormaps
