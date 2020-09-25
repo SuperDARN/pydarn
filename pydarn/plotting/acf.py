@@ -264,6 +264,11 @@ class ACF():
                           date=time.strftime("%Y %b %d %H:%M"),
                           cpid=record['cp'])
         ax.set_title(title)
+        warnings.warn("Please make sure to cite pyDARN in an publications that"
+              " uses plots from pyDARN DOI:"
+              " https://zenodo.org/record/3978643 and cite SuperDARN"
+              " data correctly, see "
+              "https://pydarn.readthedocs.io/en/master/user/citing/")
 
     @classmethod
     def __blanked_lags(cls, record: dict, lags: list, gate: int):
