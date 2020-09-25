@@ -264,7 +264,7 @@ class ACF():
                           date=time.strftime("%Y %b %d %H:%M"),
                           cpid=record['cp'])
         ax.set_title(title)
-        warnings.warn("Please make sure to cite pyDARN in an publications that"
+        warnings.warn("Please make sure to cite pyDARN in publications that"
               " uses plots from pyDARN DOI:"
               " https://zenodo.org/record/3978643 and cite SuperDARN"
               " data correctly, see "

@@ -407,7 +407,7 @@ class RTP():
         if colorbar_label != '':
             cb.set_label(colorbar_label)
 
-        warnings.warn("Please make sure to cite pyDARN in an publications that"
+        warnings.warn("Please make sure to cite pyDARN in publications that"
                       " uses plots from pyDARN DOI:"
                       " https://zenodo.org/record/3978643 and cite SuperDARN"
                       " data correctly, see "
@@ -642,7 +642,7 @@ class RTP():
 
         ax.margins(x=0)
         ax.tick_params(axis='y', which='minor')
-        warnings.warn("Please make sure to cite pyDARN in an publications that"
+        warnings.warn("Please make sure to cite pyDARN in publications that"
               " uses plots from pyDARN DOI:"
               " https://zenodo.org/record/3978643 and cite SuperDARN"
               " data correctly, see "
@@ -990,7 +990,7 @@ class RTP():
                      color='gray', ha='right', va='top',
                      rotation=-38, alpha=0.3)
 
-        warnings.warn("Please make sure to cite pyDARN in an publications that"
+        warnings.warn("Please make sure to cite pyDARN in publications that"
               " uses plots from pyDARN DOI:"
               " https://zenodo.org/record/3978643 and cite SuperDARN"
               " data correctly, see "
