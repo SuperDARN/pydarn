@@ -8,7 +8,7 @@ import unittest
 from datetime import datetime
 
 import pydarn
-
+import pydarnio
 
 # TODO: discuss show vs. save image? Also how does this fit in python test?
 @pytest.mark.skip
@@ -25,7 +25,7 @@ class TestRTP(unittest.TestCase):
         """
         # fitacf_file = "../testfiles/20190203.0001.00.fhw.fitacf3"
         fitacf_file = "../testfiles/20180220.C0.rkn.fitacf"
-        darn_read = pydarn.DarnRead(fitacf_file)
+        darn_read = pydarnio.DarnRead(fitacf_file)
         cls.fitacf_data = darn_read.read_fitacf()
 
     def test_simple_time_series_plot(self):

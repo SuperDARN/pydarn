@@ -9,12 +9,13 @@ running the files.
 author:
 Marina Schmidt
 """
-
-from setuptools import setup, find_packages
-from os import path
 import sys
-from subprocess import check_call
+
+from os import path
+from setuptools import setup, find_packages
 from setuptools.command.install import install, orig
+from glob import glob
+from subprocess import check_call
 
 # This class and function overrides the install python
 # setup method to add an extra git command in to install
@@ -56,15 +57,15 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7'],
     python_requires='>=3.6',
+    data_files=[('pydarn/radar_fov_files',glob('radar_fov_files/**'))],
     packages=find_packages(exclude=['docs', 'test']),
     author="SuperDARN",
     # used to import the logging config file into pydarn.
     include_package_data=True,
-    setup_requires=['pyyaml', 'numpy', 'matplotlib',
-                    'h5py', 'deepdish', 'pathlib2'],
+    setup_requires=['pyyaml', 'numpy', 'matplotlib', 'aacgmv2'],
     # pyyaml library install
-    install_requires=['pyyaml', 'numpy', 'matplotlib',
-                      'h5py', 'deepdish', 'pathlib2']
+    install_requires=['pyyaml', 'numpy', 'matplotlib', 'aacgmv2']
     # commented out due to not implemented yet.
     #ext_modules = [rstmodule]
+
 )
