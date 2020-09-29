@@ -403,10 +403,10 @@ class RTP():
             cb.set_label(colorbar_label)
 
         warnings.warn("Please make sure to cite pyDARN in publications that"
-                      " uses plots from pyDARN DOI:"
-                      " https://zenodo.org/record/3978643 and cite SuperDARN"
-                      " data correctly, see "
-                      "https://pydarn.readthedocs.io/en/master/user/citing/")
+                      " use plots created by pyDARN using DOI:"
+                      " https://zenodo.org/record/3978643. Citing information"
+                      " for SuperDARN data is found at"
+                      " https://pydarn.readthedocs.io/en/master/user/citing/")
         return im, cb, cmap, x, y, z_data
 
     @classmethod
@@ -632,12 +632,12 @@ class RTP():
 
         ax.margins(x=0)
         ax.tick_params(axis='y', which='minor')
-        warnings.warn("Please make sure to cite pyDARN in publications that"
-              " uses plots from pyDARN DOI:"
-              " https://zenodo.org/record/3978643 and cite SuperDARN"
-              " data correctly, see "
-              "https://pydarn.readthedocs.io/en/master/user/citing/")
 
+        warnings.warn("Please make sure to cite pyDARN in publications that"
+                      " use plots created by pyDARN using DOI:"
+                      " https://zenodo.org/record/3978643. Citing information"
+                      " for SuperDARN data is found at"
+                      " https://pydarn.readthedocs.io/en/master/user/citing/")
         return lines, x, y
 
     @classmethod
@@ -981,11 +981,10 @@ class RTP():
                      rotation=-38, alpha=0.3)
 
         warnings.warn("Please make sure to cite pyDARN in publications that"
-              " uses plots from pyDARN DOI:"
-              " https://zenodo.org/record/3978643 and cite SuperDARN"
-              " data correctly, see "
-              "https://pydarn.readthedocs.io/en/master/user/citing/")
-
+                      " use plots created by pyDARN using DOI:"
+                      " https://zenodo.org/record/3978643. Citing information"
+                      " for SuperDARN data is found at"
+                      " https://pydarn.readthedocs.io/en/master/user/citing/")
 
         return fig, axes
 
