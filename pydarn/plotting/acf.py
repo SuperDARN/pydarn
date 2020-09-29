@@ -258,7 +258,7 @@ class ACF():
                           cpid=record['cp'])
         ax.set_title(title)
         warnings.warn("Please make sure to cite pyDARN in publications that"
-              " uses plots from pyDARN DOI:"
+              " use plots from pyDARN DOI:"
               " https://zenodo.org/record/3978643 and cite SuperDARN"
               " data correctly, see "
               "https://pydarn.readthedocs.io/en/master/user/citing/")
