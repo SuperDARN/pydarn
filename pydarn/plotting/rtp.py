@@ -843,7 +843,12 @@ class RTP():
 
                 # plot time-series parameters that share a plot
                 if i < 2:
+                    # with warning catch, catches all the warnings
+                    # that would be produced by time-series this would be
+                    # the citing warning.
                     with warnings.catch_warnings() as w:
+                        # ignore the warnings because summary plots
+                        # has its own warning message
                         warnings.simplefilter("ignore")
                         cls.plot_time_series(dmap_data, beam_num=beam_num,
                                              parameter=axes_parameters[i][0],
@@ -872,6 +877,9 @@ class RTP():
                     if i == 1:
                         # plot the shared parameter
                         second_ax = axes[i].twinx()
+                        # with warning catch, catches all the warnings
+                        # that would be produced by time-series this would be
+                        # the citing warning.
                         # warnings are not caught with try/except
                         with warnings.catch_warnings() as w:
                             warnings.simplefilter("ignore")
@@ -907,6 +915,9 @@ class RTP():
                 axes[i].set_facecolor(background_color)
             # plot cp id
             elif i == 2:
+                # with warning catch, catches all the warnings
+                # that would be produced by time-series this would be
+                # the citing warning.
                 with warnings.catch_warnings() as w:
                     warnings.simplefilter("ignore")
                     cls.plot_time_series(dmap_data, beam_num=beam_num,
@@ -928,7 +939,9 @@ class RTP():
                     grndflg = True
                 else:
                     grndflg = False
-
+                # with warning catch, catches all the warnings
+                # that would be produced by time-series this would be
+                # the citing warning.
                 with warnings.catch_warnings() as w:
                     warnings.simplefilter("ignore")
                     _, cbar, _, x, _, _ =\
