@@ -402,6 +402,11 @@ class RTP():
         if colorbar_label != '':
             cb.set_label(colorbar_label)
 
+        warnings.warn("Please make sure to cite pyDARN in publications that"
+                      " use plots created by pyDARN using DOI:"
+                      " https://zenodo.org/record/3978643. Citing information"
+                      " for SuperDARN data is found at"
+                      " https://pydarn.readthedocs.io/en/master/user/citing/")
         return im, cb, cmap, x, y, z_data
 
     @classmethod
@@ -627,6 +632,12 @@ class RTP():
 
         ax.margins(x=0)
         ax.tick_params(axis='y', which='minor')
+
+        warnings.warn("Please make sure to cite pyDARN in publications that"
+                      " use plots created by pyDARN using DOI:"
+                      " https://zenodo.org/record/3978643. Citing information"
+                      " for SuperDARN data is found at"
+                      " https://pydarn.readthedocs.io/en/master/user/citing/")
         return lines, x, y
 
     @classmethod
@@ -742,6 +753,7 @@ class RTP():
             - w_l : spectral width (range-time)
             - elv : elevation (optional) (range-time)
         """
+
         message = "WARNING: matplotlib Default dpi may cause distortion"\
                   " in range gates and time period. The figure size can"\
                   " be adjusted with the option figsize and dpi can be"\
@@ -831,19 +843,19 @@ class RTP():
 
                 # plot time-series parameters that share a plot
                 if i < 2:
-                    with warnings.catch_warnings(record=True) as w:
+                    # with warning catch, catches all the warnings
+                    # that would be produced by time-series this would be
+                    # the citing warning.
+                    with warnings.catch_warnings() as w:
+                        # ignore the warnings because summary plots
+                        # has its own warning message
+                        warnings.simplefilter("ignore")
                         cls.plot_time_series(dmap_data, beam_num=beam_num,
                                              parameter=axes_parameters[i][0],
                                              channel=channel, scale=scale,
                                              color=line[axes_parameters[i][0]],
                                              ax=axes[i], linestyle='-',
                                              label=labels[i][0])
-                    if len(w) > 0:
-                        warnings.\
-                            warn("Warning: {parameter} raised the"
-                                 " following warning: {message}"
-                                 "".format(parameter=axes_parameters[i][0],
-                                           message=str(w[0].message)))
                     axes[i].set_ylabel(labels[i][0], rotation=0, labelpad=30)
                     axes[i].\
                         axhline(y=boundary_ranges[axes_parameters[i][0]][0] +
@@ -865,20 +877,18 @@ class RTP():
                     if i == 1:
                         # plot the shared parameter
                         second_ax = axes[i].twinx()
+                        # with warning catch, catches all the warnings
+                        # that would be produced by time-series this would be
+                        # the citing warning.
                         # warnings are not caught with try/except
-                        with warnings.catch_warnings(record=True) as w:
+                        with warnings.catch_warnings() as w:
+                            warnings.simplefilter("ignore")
                             cls.plot_time_series(dmap_data, beam_num=beam_num,
                                                  parameter=axes_parameters[i][1],
                                                  color=line[axes_parameters[i][1]],
                                                  channel=channel,
                                                  scale=scale, ax=second_ax,
                                                  linestyle='--')
-                        if len(w) > 0:
-                            warnings.\
-                                warn("Warning: {parameter} raised the"
-                                     " following warning: {message}"
-                                     "".format(parameter=axes_parameters[i][1],
-                                               message=str(w[0].message)))
                         second_ax.set_xticklabels([])
                         second_ax.set_ylabel(labels[i][1], rotation=0,
                                              labelpad=25)
@@ -905,10 +915,15 @@ class RTP():
                 axes[i].set_facecolor(background_color)
             # plot cp id
             elif i == 2:
-                cls.plot_time_series(dmap_data, beam_num=beam_num,
-                                     parameter=axes_parameters[i],
-                                     channel=channel,
-                                     ax=axes[i])
+                # with warning catch, catches all the warnings
+                # that would be produced by time-series this would be
+                # the citing warning.
+                with warnings.catch_warnings() as w:
+                    warnings.simplefilter("ignore")
+                    cls.plot_time_series(dmap_data, beam_num=beam_num,
+                                         parameter=axes_parameters[i],
+                                         channel=channel,
+                                         ax=axes[i])
                 axes[i].set_ylabel('CPID', rotation=0, labelpad=30)
                 axes[i].yaxis.set_label_coords(-0.08, 0.079)
                 axes[i].set_facecolor(background_color)
@@ -924,20 +939,25 @@ class RTP():
                     grndflg = True
                 else:
                     grndflg = False
-                _, cbar, _, x, _, _ =\
-                    cls.plot_range_time(dmap_data,
-                                        beam_num=beam_num,
-                                        colorbar_label=labels[i],
-                                        parameter=axes_parameters[i],
-                                        ax=axes[i],
-                                        groundscatter=grndflg,
-                                        channel=channel,
-                                        slant=slant,
-                                        cmap=cmap[axes_parameters[i]],
-                                        zmin=boundary_ranges[axes_parameters[i]][0],
-                                        zmax=boundary_ranges[axes_parameters[i]][1],
-                                        ymax=ymax,
-                                        background=background_color)
+                # with warning catch, catches all the warnings
+                # that would be produced by time-series this would be
+                # the citing warning.
+                with warnings.catch_warnings() as w:
+                    warnings.simplefilter("ignore")
+                    _, cbar, _, x, _, _ =\
+                            cls.plot_range_time(dmap_data,
+                                                beam_num=beam_num,
+                                                colorbar_label=labels[i],
+                                                parameter=axes_parameters[i],
+                                                ax=axes[i],
+                                                groundscatter=grndflg,
+                                                channel=channel,
+                                                slant=slant,
+                                                cmap=cmap[axes_parameters[i]],
+                                                zmin=boundary_ranges[axes_parameters[i]][0],
+                                                zmax=boundary_ranges[axes_parameters[i]][1],
+                                                ymax=ymax,
+                                                background=background_color)
                 # Overwriting velocity ticks to get a better pleasing
                 # look on the colorbar
                 # Preference by Marina Schmidt
@@ -972,6 +992,12 @@ class RTP():
             fig.text(0.90, 0.99, "Not for Publication Use", fontsize=75,
                      color='gray', ha='right', va='top',
                      rotation=-38, alpha=0.3)
+
+        warnings.warn("Please make sure to cite pyDARN in publications that"
+                      " use plots created by pyDARN using DOI:"
+                      " https://zenodo.org/record/3978643. Citing information"
+                      " for SuperDARN data is found at"
+                      " https://pydarn.readthedocs.io/en/master/user/citing/")
 
         return fig, axes
 
