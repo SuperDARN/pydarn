@@ -13,6 +13,9 @@ module, classes, and functions.
 
 import os
 
+# Import io for pyDARN
+from .io.supdarn_io import SuperDARNRead
+
 # Importing pydarn exception classes
 from .exceptions import rtp_exceptions
 from .exceptions import plot_exceptions
