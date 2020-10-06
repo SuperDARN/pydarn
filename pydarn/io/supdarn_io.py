@@ -80,6 +80,9 @@ class SuperDARNRead(pydarnio.SDarnRead):
             filename: str
                 string name of the file, make sure "rawacf" or "bfiq" is in
                 the name
+            slice_id: int
+                the Borealis slice id of the file, required if reading Borealis data
+                produced prior to when Borealis v0.5 was released
 
         Post
         ----
