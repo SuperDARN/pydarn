@@ -74,7 +74,7 @@ class SuperDARNRead(pydarnio.SDarnRead):
     def read_borealis(self, filename: str, slice_id: int = None):
         """
         Reads RAWACF or BFIQ borealis files and converts them to
-        pyDARN data format for plotting.
+        an SDARN data format dictionary for plotting.
 
         Parameters
         ----------
