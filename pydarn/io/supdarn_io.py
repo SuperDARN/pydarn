@@ -102,7 +102,7 @@ class SuperDARNRead(pydarnio.SDarnRead):
         elif 'bfiq' in filename:
             file_type = 'bfiq'
         else:
-            raise ValueError("{} cannot  be converted to borealis"
+            raise ValueError("The filetype of {} cannot  be determined,"
                              " please make sure the filename has rawacf"
                              " or bfiq in the name or look up the accepted"
                              " file in pyDARNio's"
