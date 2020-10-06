@@ -13,7 +13,8 @@ class SuperDARNRead(pydarnio.SDarnRead):
     Methods
     -------
     read_dmap : reads superDARN DMap formats
-    read_borealis: not implemented yet
+    read_borealis: Reads Borealis hdf5 formats and converts 
+        Borealis' data dictionary to SDARN data dictionary
     """
     def __init__(self):
         pass
