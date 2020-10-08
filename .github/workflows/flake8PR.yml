@@ -18,7 +18,9 @@ jobs:
         python -m pip install --upgrade pip
         pip install flake8
     - name: Flake8 action
-      uses: suo/flake8-github-action@v1
+      uses: TrueBrain/actions-flake8@master
+      with: 
+        path: pydarn
     - name: Lint with flake8
       run: |
         pip3 install flake8
