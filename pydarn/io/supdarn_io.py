@@ -15,8 +15,9 @@ class SuperDARNRead(pydarnio.SDarnRead):
     read_dmap : reads superDARN DMap formats
     read_borealis: not implemented yet
     """
-    def __init__(self):
-        pass
+    def __init__(self, filename: str = None, stream: bool = False):
+        if filename is not None:
+            super().__init__(filename, stream)
 
     def read_dmap(self, filename: str):
         """
