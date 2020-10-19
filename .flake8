@@ -5,4 +5,5 @@ exclude =
     build/,
     # for now excluding this 
     # file to avoid F401 files 
-    __init__.py
+    __init__.py,
+    .eggs
