@@ -1,0 +1,9 @@
+[flake8]
+exclude = 
+    .git,
+    __pycache__,
+    build/,
+    # for now excluding this 
+    # file to avoid F401 files 
+    __init__.py,
+    .eggs

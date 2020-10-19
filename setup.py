@@ -62,10 +62,7 @@ setup(
     author="SuperDARN",
     # used to import the logging config file into pydarn.
     include_package_data=True,
-    setup_requires=['pyyaml', 'numpy', 'matplotlib', 'aacgmv2'],
-    # pyyaml library install
-    install_requires=['pyyaml', 'numpy', 'matplotlib', 'aacgmv2']
-    # commented out due to not implemented yet.
-    #ext_modules = [rstmodule]
+    # setup_requires=['pyyaml', 'numpy', 'matplotlib', 'aacgmv2'],
+    install_requires=['pyyaml', 'numpy', 'matplotlib', 'aacgmv2', 'flake8']
 
 )
