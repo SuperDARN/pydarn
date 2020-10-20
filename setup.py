@@ -63,6 +63,6 @@ setup(
     # used to import the logging config file into pydarn.
     include_package_data=True,
     # setup_requires=['pyyaml', 'numpy', 'matplotlib', 'aacgmv2'],
-    install_requires=['pyyaml', 'numpy', 'matplotlib', 'aacgmv2', 'flake8']
-
+    install_requires=['pyyaml', 'numpy', 'matplotlib', 'aacgmv2',
+                      'pydarnio'],
 )
