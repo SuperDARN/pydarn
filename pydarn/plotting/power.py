@@ -85,9 +85,9 @@ class Power():
                                  if record['tfreq'] > frequency]
 
             if len(low_freq_records) == 0 and high_freq_records == 0:
-                exceptions.plot_exceptions.\
+                raise(exceptions.plot_exceptions.\
                       NoDataFoundError('lag0', beam_num,
-                                       opt_beam_num=records[0]['bmnum'])
+                                       opt_beam_num=records[0]['bmnum']))
             # gather important info regarding the records of interest
             # get the date information from the first record
             date = low_freq_records[0]['origin.time']
@@ -123,9 +123,9 @@ class Power():
                                    if record['tfreq'] == frequency]
 
             if len(records_of_interest) == 0:
-                exceptions.plot_exceptions.\
+                raise(exceptions.plot_exceptions.\
                       NoDataFoundError('lag0', beam_num,
-                                       opt_beam_num=records[0]['bmnum'])
+                                       opt_beam_num=records[0]['bmnum']))
 
             # gather important info regarding the records of interest
             date = records_of_interest[0]['origin.time']
