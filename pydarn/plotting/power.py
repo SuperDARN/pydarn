@@ -5,7 +5,7 @@ import numpy as np
 
 from typing import List
 
-import pydarn
+from pydarn import exceptions
 
 
 class Power():
@@ -22,9 +22,10 @@ class Power():
         return "This class provides the following methods: \n"\
                 " - plot_interference()"
 
-    def plot_interference(cls, records: List[dict], beam_num: int,
-                          frequency: float, parameter: str,
-                          compare: bool = False):
+    @classmethod
+    def plot_lag0(cls, records: List[dict], beam_num: int = 0,
+                  compare: bool = True, frequency: float = 11000,
+                  statistical_calc: object=np.mean):
 
         """
         This function will plot lag 0 power as a function of time.
@@ -55,142 +56,49 @@ class Power():
         records: List[dict]
         beam_num: int
             The beam number with the desired data to plot
+        compare: bool
+            determines if a single frequency is use in plotting lag0
+            (compare=False) or two frequencies between a frequency
+            (compare=True)
+            default: False
         frequency: int
-            if compare = False then data with a tfreq value of
-            frequency will be plotted
-            if compare = True then the records will be separate by
-            this value as a cutoff
-        parameter: str
-            key name indicating which statistical parameter of
-            lag 0 power to plot
-        compare: boolean
-            if True then the records will be separated to allow for a
-            comparison of interference power at two frequencies
-            if false then the records will only display interference power
-            for a single specified frequency
-
+            frequency to specifically look for or split between depending
+            on the setting of compare.
+            default: 1100 kHz
+        statistical_calc: numpy object
+            numpy statistical calculation or generic min or max functions
+            default. numpy.mean
         """
 
         # consider the case when we do not want to compare frequencies but
         # rather just look at interference with a single frequency
-        if compare is False:
-            records_of_interest = []
-            for record in records:
-                if record['tfreq'] == frequency:
-                    # then separate the record with the desired frequency
-                    records_of_interest.append(record)
-
-            if len(records_of_interest) == 0:
-                print('There is no data for that beam and/or frequency.'
-                      'You must select a different combination of beam number'
-                      'and frequency. \n'
-                      'For example, you can find data with beam: ' +
-                      str(records[0]['bmnum']) + ' and Freq: ' + str(
-                          records[0]['tfreq']) + ' kHz')
-            # gather important info regarding the records of interest
-            date = records_of_interest[0]['origin.time']
-            stid = records_of_interest[0]['stid']
-            radar_abbrev = pydarn.SuperDARNRadars.radars[stid].\
-                hardware_info.abbrev
-
-            for record in records_of_interest:
-
-                # check which statistical parameter is to be plotted and
-                # then compute that parameter and update the record to
-                # include an additional field called 'noise'
-                if parameter == 'mean':
-                    mean_pwr0 = np.mean(record['pwr0'])
-                    record.update({'noise': mean_pwr0})
-                if parameter == 'median':
-                    median_pwr0 = np.median(record['pwr0'])
-                    record.update({'noise': median_pwr0})
-                if parameter == 'std':
-                    std = np.std(record['pwr0'])
-                    record.update({'noise': std})
-                if parameter == 'max':
-                    mx = max(record['pwr0'])
-                    record.update({'noise': mx})
-                if parameter == 'min':
-                    mn = min(record['pwr0'])
-                    record.update({'noise': mn})
-
-            plt.figure()
-            # use the time series RTP function
-            pydarn.RTP.plot_time_series(records_of_interest, parameter='noise',
-                                        beam_num=beam_num)
-            plt.ylabel(str(parameter).capitalize() + ' Power \n [raw units]')
-            plt.title(parameter.capitalize() + ' Lag 0 Power at ' +
-                      str(radar_abbrev) + ' on ' + str(
-                date) + '\n Beam: ' + str(
-                beam_num) + '  Frequency: ' + str(frequency) + ' kHz')
-            plt.show()
-
-        if compare is True:
+        if compare:
             # now compare frequencies separated by a frequency cutoff
             # predefine the lists of separated records
-            low_freq_records = []
-            high_freq_records = []
+            low_freq_records = [record for record in records
+                                if record['tfreq'] < frequency]
+            high_freq_records = [record for record in records
+                                 if record['tfreq'] > frequency]
 
-            # separate the records by frequency
-            for record in records:
-                if record['tfreq'] > frequency:
-                    high_freq_records.append(record)
-                if record['tfreq'] < frequency:
-                    low_freq_records.append(record)
-
+            if len(low_freq_records) == 0 and high_freq_records == 0:
+                exceptions.plot_exceptions.\
+                      NoDataFoundError('lag0', beam_num,
+                                       opt_beam_num=records[0]['bmnum'])
             # gather important info regarding the records of interest
             # get the date information from the first record
             date = low_freq_records[0]['origin.time']
             # get the site location
             stid = high_freq_records[0]['stid']
             # site location in terms of abbreviation
-            radar_abbrev = pydarn.SuperDARNRadars.radars[
-                stid].hardware_info.abbrev
-
-            # check the length of the low and high frequency records to
-            # ensure there is actually data to plot
-            if len(low_freq_records) == 0 and len(high_freq_records) == 0:
-                print(
-                    'There is no data for both frequencies above and below the'
-                    'frequency cutoff that you have provided')
-                exit()
+            radar_abbrev = pydarn.SuperDARNRadars.radars[stid]\
+                    .hardware_info.abbrev
             # now compute the statistical parameter of lag 0 power to be
             # plotted in the high frequency records
-            for record in high_freq_records:
-                # check which statistical parameter is to be plotted
-                if parameter == 'mean':
-                    mean_pwr0 = np.mean(record['pwr0'])
-                    record.update({'noise': mean_pwr0})
-                if parameter == 'median':
-                    median_pwr0 = np.median(record['pwr0'])
-                    record.update({'noise': median_pwr0})
-                if parameter == 'std':
-                    std = np.std(record['pwr0'])
-                    record.update({'noise': std})
-                if parameter == 'max':
-                    mx = max(record['pwr0'])
-                    record.update({'noise': mx})
-                if parameter == 'min':
-                    mn = min(record['pwr0'])
-                    record.update({'noise': mn})
-
-            # repeat for the low frequency data
-            for record in low_freq_records:
-                if parameter == 'mean':
-                    mean_pwr0 = np.mean(record['pwr0'])
-                    record.update({'noise': mean_pwr0})
-                if parameter == 'median':
-                    median_pwr0 = np.median(record['pwr0'])
-                    record.update({'noise': median_pwr0})
-                if parameter == 'std':
-                    std = np.std(record['pwr0'])
-                    record.update({'noise': std})
-                if parameter == 'max':
-                    mx = max(record['pwr0'])
-                    record.update({'noise': mx})
-                if parameter == 'min':
-                    mn = min(record['pwr0'])
-                    record.update({'noise': mn})
+            high_freq_records = [statistical_calc(recprd['pwr0'])
+                                 for record in high_freq_records]
+            # then the low frequency records
+            low_freq_records = [statistical_calc(record['pwr0'])
+                                for record in low_freq_records]
 
             plt.subplot(2, 1, 1)
             pydarn.RTP.plot_time_series(high_freq_records, parameter='noise',
@@ -206,3 +114,32 @@ class Power():
                                         beam_num=beam_num)
             plt.ylabel(str(parameter).capitalize() + ' Power \n [raw units]')
             plt.legend([str(low_freq_records[0]['tfreq']) + ' kHz'])
+        else:
+            # get records of interest that have a specific frequency
+            records_of_interest = [record for record in records
+                                   if record['tfreq'] == frequency]
+
+            if len(records_of_interest) == 0:
+                exceptions.plot_exceptions.NoDataFoundError('lag0',
+                                                            beam_num,
+                                                            opt_beam_num=record[0][bmnum])
+
+            # gather important info regarding the records of interest
+            date = records_of_interest[0]['origin.time']
+            stid = records_of_interest[0]['stid']
+            radar_abbrev = pydarn.SuperDARNRadars.radars[stid].\
+                hardware_info.abbrev
+
+            records_of_interest = [statistical_calc(record['pwr0'])
+                                   for record in records_of_interest]
+
+            plt.figure()
+            # use the time series RTP function
+            pydarn.RTP.plot_time_series(records_of_interest, parameter='noise',
+                                        beam_num=beam_num)
+            plt.ylabel(str(parameter).capitalize() + ' Power \n [raw units]')
+            plt.title(parameter.capitalize() + ' Lag 0 Power at ' +
+                      str(radar_abbrev) + ' on ' + str(
+                date) + '\n Beam: ' + str(
+                beam_num) + '  Frequency: ' + str(frequency) + ' kHz')
+
