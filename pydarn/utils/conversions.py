@@ -11,8 +11,6 @@ from typing import List
 import numpy as np
 from collections import OrderedDict
 
-from pydarn import DmapArray, DmapScalar
-
 # key is the format char type defined by python,
 # item is the DMAP int value for the type
 DMAP_FORMAT_TYPES = {'c': 1,  # char = int8 by RST rtypes.h definition
@@ -57,53 +55,6 @@ DMAP_CASTING_TYPES = {'c': np.int8,  # RST defined char
                       'H': np.uint16,  # Unsigned short
                       'I': np.uint32,  # Unsigned int
                       'Q': np.uint64}  # Unsigned long int
-
-
-# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-#       WARNING: RST treats chars as int8 types,
-#       thus single characters are kept are strings
-# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-def dict2dmap(dmap_list: List[dict]) -> List[dict]:
-    """
-    This method converts list of dictionaries contain keys representing a field
-    name for the DMAP format and the item being the value of the field.
-
-    Parameters
-    ----------
-    dmap_list : List[dict]
-        List of dictionaries containing the field names and the
-        values of the data
-
-    Return
-    ------
-    dmap_records : List[dict]
-        List of Ordered dictionaries containing dmap data structures
-        DmapScalars and DmapArrays.
-    """
-    dmap_records = []
-    for dmap_dict in dmap_list:
-        dmap_record = OrderedDict()
-        for field, value in dmap_dict.items():
-            # if the value is an array then it is a DmapArray
-            if isinstance(value, list):
-                value = np.array(value)  # keep data structures consistent
-            if isinstance(value, np.ndarray):
-                shape = list(np.shape(value))
-                dimension = np.ndim(value)
-                format_type = FORMAT_CONVERSION[value.dtype.type]
-                dmap_type = DMAP_FORMAT_TYPES[format_type]
-                dmap_data = DmapArray(field, value, dmap_type,
-                                      format_type, dimension, shape)
-
-            # else DmapScalar
-            else:
-                format_type = FORMAT_CONVERSION[type(value)]
-                dmap_type = DMAP_FORMAT_TYPES[format_type]
-                dmap_data = DmapScalar(field, value, dmap_type, format_type)
-            dmap_record[field] = dmap_data
-        dmap_records.append(dmap_record)
-    return dmap_records
-
 
 def dmap2dict(dmap_records: List[dict]) -> List[dict]:
     """
@@ -151,16 +102,18 @@ def gate2slant(record, nrang, center=True):
     """
 
     # lag to the first range gate in microseconds
-    # TODO: with 2.0 and 0.3 what do these values mean?
-    lag_first = record['frang'] * 2.0 / 0.3
+    # 0.3 - speed of light (km/us)
+    # 2 - two times for there and back
+    speed_of_light = 0.3  # TODO: should this be more accurate?
+    distance_factor = 2.0
+    lag_first = record['frang'] * distance_factor / speed_of_light
 
     # sample separation in microseconds
-    sample_sep = record['rsep'] * 2.0 / 0.3
-
+    sample_sep = record['rsep'] * distance_factor / speed_of_light
     # Range offset
     # If center is true, calculate at the center
     if center:
-        # TODO: why -0.5? what does this value mean?
+        # 0.5 off set to the centre of the range gate instead of edge
         range_offset = -0.5 * record['rsep']
     else:
         range_offset = 0.0
@@ -169,5 +122,6 @@ def gate2slant(record, nrang, center=True):
     slant_ranges = np.zeros(nrang+1)
     for gate in range(nrang+1):
         slant_ranges[gate] = (lag_first - record['rxrise'] +
-                              gate * sample_sep) * 0.3 / 2.0 + range_offset
+                              gate * sample_sep) * speed_of_light /\
+                distance_factor + range_offset
     return slant_ranges
