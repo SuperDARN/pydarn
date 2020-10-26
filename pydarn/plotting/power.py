@@ -97,11 +97,12 @@ class Power():
             radar_abbrev = SuperDARNRadars.radars[stid].hardware_info.abbrev
             # now compute the statistical statistical_calc of lag 0 power to be
             # plotted in the high frequency records
-            high_freq_records = [statistical_calc(record['pwr0'])
-                                 for record in high_freq_records]
-            # then the low frequency records
-            low_freq_records = [statistical_calc(record['pwr0'])
-                                for record in low_freq_records]
+            for record in high_freq_records:
+                stat_pwr = statistical_calc(record['pwr0'])
+                record.update({'pwr0': stat_pwr})
+            for record in low_freq_records:
+                stat_pwr = statistical_calc(record['pwr0'])
+                record.update({'pwr0': stat_pwr})
 
             plt.subplot(2, 1, 1)
             RTP.plot_time_series(high_freq_records, parameter='noise',
@@ -132,8 +133,9 @@ class Power():
             stid = records_of_interest[0]['stid']
             radar_abbrev = SuperDARNRadars.radars[stid].hardware_info.abbrev
 
-            records_of_interest = [statistical_calc(record['pwr0'])
-                                   for record in records_of_interest]
+            for record in records_of_interest:
+                stat_pwr = statistical_calc(record['pwr0'])
+                record.update({'pwr0': stat_pwr})
 
             plt.figure()
             # use the time series RTP function
