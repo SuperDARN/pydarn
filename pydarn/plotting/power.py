@@ -104,7 +104,7 @@ class Power():
                                 for record in low_freq_records]
 
             plt.subplot(2, 1, 1)
-            RTP.plot_time_series(high_freq_records, statistical_calc='noise',
+            RTP.plot_time_series(high_freq_records, parameter='noise',
                                  beam_num=beam_num)
             plt.title(statistical_calc.capitalize() + ' Lag 0 Power at ' +
                       str(radar_abbrev) + ' on ' + str(
@@ -113,7 +113,7 @@ class Power():
             plt.legend([str(high_freq_records[0]['tfreq']) + ' kHz'])
 
             plt.subplot(2, 1, 2)
-            RTP.plot_time_series(low_freq_records, statistical_calc='noise',
+            RTP.plot_time_series(low_freq_records, parameter='noise',
                                  beam_num=beam_num)
             plt.ylabel(str(statistical_calc) + ' Power \n [raw units]')
             plt.legend([str(low_freq_records[0]['tfreq']) + ' kHz'])
@@ -137,7 +137,7 @@ class Power():
 
             plt.figure()
             # use the time series RTP function
-            RTP.plot_time_series(records_of_interest, statistical_calc='noise',
+            RTP.plot_time_series(records_of_interest, parameter='noise',
                                  beam_num=beam_num)
             plt.ylabel(str(statistical_calc) + ' Power \n [raw units]')
             plt.title(str(statistical_calc) + ' Lag 0 Power at ' +
