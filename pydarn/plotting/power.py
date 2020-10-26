@@ -1,11 +1,11 @@
-# Copyright (C) 2020 SuperDARN Canada, University of Saskatchewan
-# Author: Cooper Ross Robertson, Summer Student 2020
+#  Copyright (C) 2020 SuperDARN Canada, University of Saskatchewan
+#  Author: Cooper Ross Robertson, Summer Student 2020
 import matplotlib.pyplot as plt
 import numpy as np
 
 from typing import List
 
-from pydarn import exceptions
+from pydarn import SuperDARNRadars, exceptions, RTP
 
 
 class Power():
@@ -15,7 +15,7 @@ class Power():
 
     Methods
     -------
-    plot_interference
+    plot_lag0
     """
     def _str_(self):
 
@@ -25,7 +25,7 @@ class Power():
     @classmethod
     def plot_lag0(cls, records: List[dict], beam_num: int = 0,
                   compare: bool = True, frequency: float = 11000,
-                  statistical_calc: object=np.mean):
+                  statistical_calc: object = np.mean):
 
         """
         This function will plot lag 0 power as a function of time.
@@ -51,7 +51,7 @@ class Power():
         sense of the interference
 
 
-        Parameters
+        statistical_calcs
         __________
         records: List[dict]
         beam_num: int
@@ -68,6 +68,10 @@ class Power():
         statistical_calc: numpy object
             numpy statistical calculation or generic min or max functions
             default. numpy.mean
+
+        Raise
+        -----
+        NoDataFound
         """
 
         # consider the case when we do not want to compare frequencies but
@@ -90,29 +94,28 @@ class Power():
             # get the site location
             stid = high_freq_records[0]['stid']
             # site location in terms of abbreviation
-            radar_abbrev = pydarn.SuperDARNRadars.radars[stid]\
-                    .hardware_info.abbrev
-            # now compute the statistical parameter of lag 0 power to be
+            radar_abbrev = SuperDARNRadars.radars[stid].hardware_info.abbrev
+            # now compute the statistical statistical_calc of lag 0 power to be
             # plotted in the high frequency records
-            high_freq_records = [statistical_calc(recprd['pwr0'])
+            high_freq_records = [statistical_calc(record['pwr0'])
                                  for record in high_freq_records]
             # then the low frequency records
             low_freq_records = [statistical_calc(record['pwr0'])
                                 for record in low_freq_records]
 
             plt.subplot(2, 1, 1)
-            pydarn.RTP.plot_time_series(high_freq_records, parameter='noise',
-                                        beam_num=beam_num)
-            plt.title(parameter.capitalize() + ' Lag 0 Power at ' +
+            RTP.plot_time_series(high_freq_records, statistical_calc='noise',
+                                 beam_num=beam_num)
+            plt.title(statistical_calc.capitalize() + ' Lag 0 Power at ' +
                       str(radar_abbrev) + ' on ' + str(
                 date) + '\n Beam: ' + str(beam_num))
-            plt.ylabel(str(parameter).capitalize() + ' Power \n [raw units]')
+            plt.ylabel(str(statistical_calc) + ' Power \n [raw units]')
             plt.legend([str(high_freq_records[0]['tfreq']) + ' kHz'])
 
             plt.subplot(2, 1, 2)
-            pydarn.RTP.plot_time_series(low_freq_records, parameter='noise',
-                                        beam_num=beam_num)
-            plt.ylabel(str(parameter).capitalize() + ' Power \n [raw units]')
+            RTP.plot_time_series(low_freq_records, statistical_calc='noise',
+                                 beam_num=beam_num)
+            plt.ylabel(str(statistical_calc) + ' Power \n [raw units]')
             plt.legend([str(low_freq_records[0]['tfreq']) + ' kHz'])
         else:
             # get records of interest that have a specific frequency
@@ -120,26 +123,24 @@ class Power():
                                    if record['tfreq'] == frequency]
 
             if len(records_of_interest) == 0:
-                exceptions.plot_exceptions.NoDataFoundError('lag0',
-                                                            beam_num,
-                                                            opt_beam_num=record[0][bmnum])
+                exceptions.plot_exceptions.\
+                      NoDataFoundError('lag0', beam_num,
+                                       opt_beam_num=records[0]['bmnum'])
 
             # gather important info regarding the records of interest
             date = records_of_interest[0]['origin.time']
             stid = records_of_interest[0]['stid']
-            radar_abbrev = pydarn.SuperDARNRadars.radars[stid].\
-                hardware_info.abbrev
+            radar_abbrev = SuperDARNRadars.radars[stid].hardware_info.abbrev
 
             records_of_interest = [statistical_calc(record['pwr0'])
                                    for record in records_of_interest]
 
             plt.figure()
             # use the time series RTP function
-            pydarn.RTP.plot_time_series(records_of_interest, parameter='noise',
-                                        beam_num=beam_num)
-            plt.ylabel(str(parameter).capitalize() + ' Power \n [raw units]')
-            plt.title(parameter.capitalize() + ' Lag 0 Power at ' +
+            RTP.plot_time_series(records_of_interest, statistical_calc='noise',
+                                 beam_num=beam_num)
+            plt.ylabel(str(statistical_calc) + ' Power \n [raw units]')
+            plt.title(str(statistical_calc) + ' Lag 0 Power at ' +
                       str(radar_abbrev) + ' on ' + str(
                 date) + '\n Beam: ' + str(
                 beam_num) + '  Frequency: ' + str(frequency) + ' kHz')
-
