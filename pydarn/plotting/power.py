@@ -81,7 +81,6 @@ class Power():
         """
 
         # consider the case when we do not want to compare frequencies but
-        # rather just look at interference with a single frequency
         if compare:
             # now compare frequencies separated by a frequency cutoff
             # predefine the lists of separated records
