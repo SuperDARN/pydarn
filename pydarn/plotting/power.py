@@ -15,7 +15,7 @@ class Power():
 
     Methods
     -------
-    plot_lag0
+    plot_pwr0_statistic()
     """
     def _str_(self):
 
@@ -23,20 +23,20 @@ class Power():
                 " - plot_interference()"
 
     @classmethod
-    def plot_lag0(cls, records: List[dict], beam_num: int = 0,
-                  compare: bool = True, frequency: float = 11000,
-                  statistical_calc: object = np.mean):
+    def plot_pwr0_statistic(cls, records: List[dict], beam_num: int = 0,
+                            compare: bool = True, frequency: float = 11000,
+                            statistical_calc: object = np.mean):
 
         """
-        This function will calculate and plot a statistic of the lag-0 
+        This function will calculate and plot a statistic of the lag-0
         power of each record as a function of time.
-        
-        This function applies the statistical function (ex. numpy.mean) to the pwr0 vector
-        (lag-0 power for each range) for each record before plotting the results from all 
-        records chronologically. 
 
-        Extra  Details
-        --------------
+        This function applies the statistical function (ex. numpy.mean)
+        to the pwr0 vector (lag-0 power for each range) for each record
+        before plotting the results from all records chronologically.
+
+        Notes
+        -----
         If the records that are input correspond to politescan data then this
         can be a useful method for determining background interference
         variations and patterns.
