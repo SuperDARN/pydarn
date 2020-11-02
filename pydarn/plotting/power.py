@@ -35,7 +35,6 @@ class Power():
         (lag-0 power for each range) for each record before plotting the results from all 
         records chronologically. 
 
-
         Extra  Details
         --------------
         If the records that are input correspond to politescan data then this
