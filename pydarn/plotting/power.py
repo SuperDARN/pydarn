@@ -72,7 +72,8 @@ class Power():
             default: 1100 kHz
         statistical_calc: numpy object
             numpy statistical calculation or generic min or max functions
-            default. numpy.mean
+            e.g. numpy.std, numpy.median, numpy.min, numpy.max
+            default: numpy.mean
 
         Raise
         -----
