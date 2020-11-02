@@ -28,7 +28,12 @@ class Power():
                   statistical_calc: object = np.mean):
 
         """
-        This function will plot lag 0 power as a function of time.
+        This function will calculate and plot a statistic of the lag-0 
+        power of each record as a function of time.
+        
+        This function applies the statistical function (ex. numpy.mean) to the pwr0 vector
+        (lag-0 power for each range) for each record before plotting the results from all 
+        records chronologically. 
 
 
         Extra  Details
