@@ -50,13 +50,13 @@ class Power():
         the frequency that politescan ran with i.e 12.2 MHz exclusively.
 
         Future Work
-        ___________
+        -----------
         Allow for multi-beam comparison to get a directional
         sense of the interference
 
 
-        statistical_calcs
-        __________
+        Parameters
+        ----------
         records: List[dict]
         beam_num: int
             The beam number with the desired data to plot
@@ -79,7 +79,6 @@ class Power():
         NoDataFound
         """
 
-        # consider the case when we do not want to compare frequencies but
         if compare:
             # now compare frequencies separated by a frequency cutoff
             # predefine the lists of separated records
