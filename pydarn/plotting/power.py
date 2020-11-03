@@ -24,7 +24,7 @@ class Power():
 
     @classmethod
     def plot_pwr0_statistic(cls, records: List[dict], beam_num: int = 0,
-                            compare: bool = True, frequency: [float, NoneType] = None,
+                            compare: bool = True, frequency: float = None,
                             statistical_calc: object = np.mean):
 
         """
@@ -38,8 +38,8 @@ class Power():
         Notes
         -----
         This code can be used to study background interference in rawacf data
-        when the radar has been operating in a receive-only mode such as 
-        "politescan" (cpid -3380), or during periods without any obvious 
+        when the radar has been operating in a receive-only mode such as
+        "politescan" (cpid -3380), or during periods without any obvious
         coherent scatter returns from any range.
 
         If you wish to compare the background interference associated with two
@@ -90,8 +90,9 @@ class Power():
 
             if len(low_freq_records) == 0 and high_freq_records == 0:
                 raise(exceptions.plot_exceptions.\
-                      NoDataFoundError('lag0', beam_num,
-                                       opt_beam_num=records[0]['bmnum']))
+                      NoDataFoundError('tfreq', beam_num,
+                                       opt_beam_num=records[0]['bmnum'],
+                                       opt_parameter_value=records[0]['tfreq']))
             # gather important info regarding the records of interest
             # get the date information from the first record
             date = low_freq_records[0]['origin.time']
@@ -128,8 +129,9 @@ class Power():
 
             if len(records_of_interest) == 0:
                 raise(exceptions.plot_exceptions.\
-                      NoDataFoundError('pwr0 for frequency {}'.format(frequency), beam_num,
-                                       opt_beam_num=records[0]['bmnum']))
+                      NoDataFoundError('tfreq', beam_num,
+                                       opt_beam_num=records[0]['bmnum'],
+                                       opt_parameter_value=records[0]['tfreq']))
 
             # gather important info regarding the records of interest
             date = records_of_interest[0]['origin.time']
