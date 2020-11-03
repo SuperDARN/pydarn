@@ -46,7 +46,8 @@ class NoDataFoundError(Exception):
     the given beam and parameter
     """
     def __init__(self, parameter: str, beam_num: int, opt_beam_num: int,
-                 start_time: int = None, end_time: datetime.datetime = None):
+                 start_time: datetime.datetime = None,
+                 end_time: datetime.datetime = None):
         self.parameter = parameter
         self.beam_num = beam_num
         if start_time is None or end_time is None:
