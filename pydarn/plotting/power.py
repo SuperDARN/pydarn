@@ -37,9 +37,10 @@ class Power():
 
         Notes
         -----
-        If the records that are input correspond to politescan data then this
-        can be a useful method for determining background interference
-        variations and patterns.
+        This code can be used to study background interference in rawacf data
+        when the radar has been operating in a receive-only mode such as 
+        "politescan" (cpid -3380), or during periods without any obvious 
+        coherent scatter returns from any range.
 
         If you wish to compare the background interference associated with two
         different frequencies then let compare=true. The frequencies will be
