@@ -2,6 +2,7 @@
 #  Author: Cooper Ross Robertson, Summer Student 2020
 import matplotlib.pyplot as plt
 import numpy as np
+import warnings
 
 from typing import List
 
@@ -62,7 +63,7 @@ class Power():
         beam_num: int
             The beam number with the desired data to plot
         compare: bool
-            determines if a single frequency is use in plotting lag0
+            determines if a single frequency is use in plotting pwr0
             (compare=False) or two frequencies between a frequency
             (compare=True)
             default: False
@@ -79,7 +80,8 @@ class Power():
         -----
         NoDataFound
         """
-
+        if frequency is None:
+            frequency = records[0]['tfreq']
         if compare:
             # now compare frequencies separated by a frequency cutoff
             # predefine the lists of separated records
@@ -88,40 +90,68 @@ class Power():
             high_freq_records = [record for record in records
                                  if record['tfreq'] > frequency]
 
+            # gather important info regarding the records of interest
+            # get the date information from the first record
+            date = records[0]['origin.time']
+            # get the site location
+            stid = records[0]['stid']
+            # site location in terms of abbreviation
+            radar_abbrev = SuperDARNRadars.radars[stid].hardware_info.abbrev
+            # now compute the statistical statistical_calc of lag 0 power to be
+
             if len(low_freq_records) == 0 and high_freq_records == 0:
                 raise(exceptions.plot_exceptions.\
                       NoDataFoundError('tfreq', beam_num,
                                        opt_beam_num=records[0]['bmnum'],
                                        opt_parameter_value=records[0]['tfreq']))
-            # gather important info regarding the records of interest
-            # get the date information from the first record
-            date = low_freq_records[0]['origin.time']
-            # get the site location
-            stid = high_freq_records[0]['stid']
-            # site location in terms of abbreviation
-            radar_abbrev = SuperDARNRadars.radars[stid].hardware_info.abbrev
-            # now compute the statistical statistical_calc of lag 0 power to be
-            # plotted in the high frequency records
-            for record in high_freq_records:
-                stat_pwr = statistical_calc(record['pwr0'])
-                record.update({'pwr0': stat_pwr})
-            for record in low_freq_records:
-                stat_pwr = statistical_calc(record['pwr0'])
-                record.update({'pwr0': stat_pwr})
-
-            plt.subplot(2, 1, 1)
-            RTP.plot_time_series(high_freq_records, parameter='pwr0',
-                                 beam_num=beam_num)
-            plt.title(' Lag 0 Power for {} Beam: {} '.format(radar_abbrev,
-                                                             beam_num))
-            plt.ylabel("{} Power\n [raw units]".format(statistical_calc))
-            plt.legend(["{} kHz".format(low_freq_records[0]['tfreq'])])
-            plt.xticks([])
-            plt.subplot(2, 1, 2)
-            RTP.plot_time_series(low_freq_records, parameter='pwr0',
-                                 beam_num=beam_num)
-            plt.ylabel("{} Power\n [raw units]".format(statistical_calc))
-            plt.legend(["{} kHz".format(low_freq_records[0]['tfreq'])])
+            elif len(low_freq_records) == 0:
+                warnings.warn("There are no frequencies lower than: {},"
+                              "only higher frequencies will be plotted"
+                              "".format(frequency))
+                for record in high_freq_records:
+                    stat_pwr = statistical_calc(record['pwr0'])
+                    record.update({'pwr0': stat_pwr})
+                RTP.plot_time_series(high_freq_records, parameter='pwr0',
+                                     beam_num=beam_num)
+                plt.title(' Lag 0 Power for {} Beam: {} '.format(radar_abbrev,
+                                                                 beam_num))
+                plt.ylabel("{} Power\n [raw units]".format(statistical_calc))
+                plt.legend(["{} kHz".format(high_freq_records[0]['tfreq'])])
+                plt.ylabel("{} Power\n [raw units]".format(statistical_calc))
+            elif len(high_freq_records == 0):
+                warnings.warn("There are no frequencies lower than: {},"
+                              "only higher frequencies will be plotted"
+                              "".format(frequency))
+                for record in low_freq_records:
+                    stat_pwr = statistical_calc(record['pwr0'])
+                    record.update({'pwr0': stat_pwr})
+                RTP.plot_time_series(low_freq_records, parameter='pwr0',
+                                     beam_num=beam_num)
+                plt.title(' Lag 0 Power for {} Beam: {} '.format(radar_abbrev,
+                                                                 beam_num))
+                plt.ylabel("{} Power\n [raw units]".format(statistical_calc))
+                plt.legend(["{} kHz".format(low_freq_records[0]['tfreq'])])
+                plt.ylabel("{} Power\n [raw units]".format(statistical_calc))
+            else:
+                for record in high_freq_records:
+                    stat_pwr = statistical_calc(record['pwr0'])
+                    record.update({'pwr0': stat_pwr})
+                for record in low_freq_records:
+                    stat_pwr = statistical_calc(record['pwr0'])
+                    record.update({'pwr0': stat_pwr})
+                plt.subplot(2, 1, 1)
+                RTP.plot_time_series(high_freq_records, parameter='pwr0',
+                                     beam_num=beam_num)
+                plt.title(' Lag 0 Power for {} Beam: {} '.format(radar_abbrev,
+                                                                 beam_num))
+                plt.ylabel("{} Power\n [raw units]".format(statistical_calc))
+                plt.legend(["{} kHz".format(high_freq_records[0]['tfreq'])])
+                plt.xticks([])
+                plt.subplot(2, 1, 2)
+                RTP.plot_time_series(low_freq_records, parameter='pwr0',
+                                     beam_num=beam_num)
+                plt.ylabel("{} Power\n [raw units]".format(statistical_calc))
+                plt.legend(["{} kHz".format(low_freq_records[0]['tfreq'])])
         else:
             # get records of interest that have a specific frequency
             records_of_interest = [record for record in records
