@@ -24,7 +24,7 @@ class Power():
 
     @classmethod
     def plot_pwr0_statistic(cls, records: List[dict], beam_num: int = 0,
-                            compare: bool = True, frequency: float = 11000,
+                            compare: bool = True, frequency: [float, NoneType] = None,
                             statistical_calc: object = np.mean):
 
         """
@@ -128,7 +128,7 @@ class Power():
 
             if len(records_of_interest) == 0:
                 raise(exceptions.plot_exceptions.\
-                      NoDataFoundError('lag0', beam_num,
+                      NoDataFoundError('pwr0 for frequency {}'.format(frequency), beam_num,
                                        opt_beam_num=records[0]['bmnum']))
 
             # gather important info regarding the records of interest
