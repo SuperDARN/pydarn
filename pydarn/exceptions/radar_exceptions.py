@@ -17,7 +17,7 @@ class HardwareFileNotFoundError(Exception):
         self.path = os.path.dirname(pydarn.__file__)
         self.message = "Hardware file for {abv} radar was not found"\
             " in {path}/utils/hdw/."\
-            " Please insure the abbreviation is correct and there"\
+            " Please ensure the abbreviation is correct and there"\
             " exists a hardware file for it by checking:"\
             " https://github.com/superdarn/hdw. If this error occurs when"\
             " installing pydarn, please make an issue on the github page:"\
