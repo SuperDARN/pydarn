@@ -6,10 +6,11 @@ This module contains SuperDARN radar information
 """
 import os
 
+import pydarn
+
 from typing import NamedTuple
 from enum import Enum
 from datetime import datetime, timedelta
-from pydarn import radar_exceptions
 from subprocess import check_call
 
 
@@ -38,10 +39,6 @@ def read_hdw_file(abbrv, date: datetime = None, update: bool = False):
     HardwareFileNotFoundError raised when there is no hardware file found for
     the given abbreviation
     """
-    if update:
-        print("Updating Hardware Files")
-        check_call(['git', 'submodule', 'update', '--init', '--recursive'])
-        check_call(['git', 'submodule', 'update', '--recursive', '--remote'])
     if date is None:
         date = datetime.now()
 
@@ -129,7 +126,7 @@ def read_hdw_file(abbrv, date: datetime = None, update: bool = False):
                                         float(hdw_data[16]),
                                         int(hdw_data[17]), int(hdw_data[18]))
     except FileNotFoundError:
-        raise radar_exceptions.HardwareFileNotFoundError(abbrv)
+        raise pydarn.radar_exceptions.HardwareFileNotFoundError(abbrv)
 
 
 class Hemisphere(Enum):
