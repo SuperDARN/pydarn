@@ -10,9 +10,10 @@ from typing import NamedTuple
 from enum import Enum
 from datetime import datetime, timedelta
 from pydarn import radar_exceptions
+from subprocess import check_call
 
 
-def read_hdw_file(abbrv, date: datetime = None):
+def read_hdw_file(abbrv, date: datetime = None, update: bool = False):
     """
     Reads the hardware file for the associated abbreviation of the radar name.
 
@@ -23,7 +24,10 @@ def read_hdw_file(abbrv, date: datetime = None):
         date: datetime
             Datetime object of hardware information to obtain
             default: current date
-
+        update: bool
+            If True this will update the hardware files again
+            without re-installing pydarn
+            default: False
     Return
     ------
     _HdwInfo object that contains all the field names in a hardware
@@ -34,6 +38,10 @@ def read_hdw_file(abbrv, date: datetime = None):
     HardwareFileNotFoundError raised when there is no hardware file found for
     the given abbreviation
     """
+    if update:
+        print("Updating Hardware Files")
+        check_call(['git', 'submodule', 'update', '--init', '--recursive'])
+        check_call(['git', 'submodule', 'update', '--recursive', '--remote'])
     if date is None:
         date = datetime.now()
 
@@ -314,8 +322,8 @@ class SuperDARNRadars():
                          Hemisphere.North, read_hdw_file('hkw')),
               64: _Radar('Inuvik', 'University of Saskatchewan',
                          Hemisphere.North, read_hdw_file('inv')),
-              50: _Radar('Jiamusi East radar', 
-                         'National Space Science Center, Chinese Academy of Sciences', 
+              50: _Radar('Jiamusi East radar',
+                         'National Space Science Center, Chinese Academy of Sciences',
                          Hemisphere.North, read_hdw_file('jme')),
               3: _Radar('Kapuskasing', 'Virginia Tech', Hemisphere.North,
                         read_hdw_file('kap')),
