@@ -118,7 +118,7 @@ class Power():
                 plt.ylabel("{} Power\n [raw units]".format(statistical_calc))
                 plt.legend(["{} kHz".format(high_freq_records[0]['tfreq'])])
                 plt.ylabel("{} Power\n [raw units]".format(statistical_calc))
-            elif len(high_freq_records == 0):
+            elif len(high_freq_records)== 0:
                 warnings.warn("There are no frequencies lower than: {},"
                               "only higher frequencies will be plotted"
                               "".format(frequency))
