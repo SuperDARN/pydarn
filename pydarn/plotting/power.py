@@ -144,13 +144,13 @@ class Power():
                                      beam_num=beam_num)
                 plt.title(' Lag 0 Power for {} Beam: {} '.format(radar_abbrev,
                                                                  beam_num))
-                plt.ylabel("{} Power\n [raw units]".format(statistical_calc))
+                plt.ylabel("{} Power\n [raw units]".format(statistical_calc.__name__.capitalize()))
                 plt.legend(["{} kHz".format(high_freq_records[0]['tfreq'])])
                 plt.xticks([])
                 plt.subplot(2, 1, 2)
                 RTP.plot_time_series(low_freq_records, parameter='pwr0',
                                      beam_num=beam_num)
-                plt.ylabel("{} Power\n [raw units]".format(statistical_calc))
+                plt.ylabel("{} Power\n [raw units]".format(statistical_calc.__name__.capitalize()))
                 plt.legend(["{} kHz".format(low_freq_records[0]['tfreq'])])
         else:
             # get records of interest that have a specific frequency
@@ -176,7 +176,7 @@ class Power():
             # use the time series RTP function
             RTP.plot_time_series(records_of_interest, parameter='pwr0',
                                  beam_num=beam_num)
-            plt.ylabel("{} Power\n [raw units]".format(statistical_calc))
-            plt.legend(["{} kHz".format(low_freq_records[0]['tfreq'])])
+            plt.ylabel("{} Power\n [raw units]".format(statistical_calc.__name__.capitalize()))
+            plt.legend(["{} kHz".format(records_of_interest[0]['tfreq'])])
             plt.title(' Lag 0 Power for {} Beam: {} '.format(radar_abbrev,
                                                              beam_num))
