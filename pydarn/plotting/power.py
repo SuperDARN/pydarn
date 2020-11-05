@@ -246,7 +246,7 @@ class Power():
 
         if operand is '>':
             records_of_interest = [record for record in records
-                                   if record['tfreq'] > frequency]
+                                   if record['tfreq'] >= frequency]
         elif operand is '<':
             records_of_interest = [record for record in records
                                    if record['tfreq'] < frequency]
