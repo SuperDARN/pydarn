@@ -239,27 +239,77 @@ class Power():
                                                                  beam_num))
 
     @staticmethod
-    def __apply_stat2pwr0(records: list, stat_method: object, beam_num: int,
-                          operand: str = '', frequency: float = None):
+    def __apply_stat2pwr0(records: List[dict], stat_method: object,
+                          beam_num: int, operand: str = '',
+                          frequency: float = None):
+        """
+        Finds the records of interest based on the logic expression and
+        frequency passed in. The record then is updated with a
+        statistical method applying pwr0 to it
 
+        Parameters
+        ----------
+            records: List[dict]
+                data records of SuperDARN data
+            stat_method: object
+                statistical method to apply to pwr0 array
+            beam_num: int
+                beam number needed for error message if no
+                data is found for the frequency
+            operand: str
+                str containing a logical operation to
+                compare tfreq value in the records to
+                the given frequency
+            frequency: float
+                a number to indicate the frequency threshold
+                to compare to the tfreq. If none all
+                frequencies are used
+                default: None
+
+        Returns
+        -------
+            records_of_interest: list[dict]
+                contains all the records that met the operational
+                condition when compared to frequency
+
+        Raises
+        ------
+            NoDataFound: when no data is found within the comparison
+        """
+
+        # deep copy so we don't modify the original records
         records_of_interest = copy.deepcopy(records)
 
+        # tfreq greater than frequency
         if operand is '>':
             records_of_interest = [record for record in records
-                                   if record['tfreq'] >= frequency]
+                                   if record['tfreq'] > frequency]
+        # tfreq less than frequency
         elif operand is '<':
             records_of_interest = [record for record in records
                                    if record['tfreq'] < frequency]
+        # tfreq greater than equal to frequency
+        elif operand is '>=':
+            records_of_interest = [record for record in records
+                                   if record['tfreq'] >= frequency]
+        # tfreq less than equal to frequency
+        elif operand is '<=':
+            records_of_interest = [record for record in records
+                                   if record['tfreq'] <= frequency]
+        # tfreq equal to frequency
         elif operand is '==':
             records_of_interest = [record for record in records
                                    if record['tfreq'] == frequency]
 
+        # if no data is found so raise an error!
         if len(records_of_interest) == 0:
             raise exceptions.plot_exceptions.\
                   NoDataFoundError('tfreq', beam_num,
                                    opt_beam_num=records[0]['bmnum'],
                                    opt_parameter_value=records[0]['tfreq'])
 
+        #loop through the applied records of interest and apply the
+        # statistic method provided
         for record in records_of_interest:
             stat_pwr = stat_method(record['pwr0'])
             record.update({'pwr0': stat_pwr})
