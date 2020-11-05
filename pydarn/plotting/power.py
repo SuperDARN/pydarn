@@ -25,7 +25,7 @@ class Power():
 
     @classmethod
     def plot_pwr0_statistic(cls, records: List[dict], beam_num: int = 0,
-                            compare: bool = True, min_frequency: float = None,
+                            min_frequency: float = None,
                             max_frequency: float = None,
                             split_frequency: float = None,
                             statistical_method: object = np.mean):
@@ -64,11 +64,6 @@ class Power():
         records: List[dict]
         beam_num: int
             The beam number with the desired data to plot
-        compare: bool
-            determines if a single frequency is use in plotting pwr0
-            (compare=False) or two frequencies between a frequency
-            (compare=True)
-            default: False
         min_frequency: float
             set a minimum frequency boundary to plot
             default: None
@@ -127,17 +122,38 @@ class Power():
                     cls.__plot_pwr0(records_of_interest, beam_num,
                                     statistical_method)
         else:
-            # compare is kept for less parameters need to specify a specific
-            #  frequency to look at
-            if compare:
-                if min_frequency is None and max_frequency is None:
-                    # Plot high and low frequencies
+            if min_frequency is None and max_frequency is None:
+                # Plot high and low frequencies
+                low_frequency_records = cls.\
+                    __apply_stat2pwr0(records, statistical_method,
+                                      beam_num, '<', split_frequency)
+                # arbitrary pick for the inclusion of split_frequency
+                high_frequency_records = cls.\
+                    __apply_stat2pwr0(records, statistical_method,
+                                      beam_num, '>=', split_frequency)
+                plt.subplot(2, 1, 1)
+                cls.__plot_pwr0(low_frequency_records, beam_num,
+                                statistical_method)
+                plt.xticks([])
+                plt.subplot(2, 1, 2)
+                cls.__plot_pwr0(high_frequency_records, beam_num,
+                                statistical_method, False)
+
+            else:
+                # plot all frequencies lower than
+                # split_frequency and plot all frequencies between
+                # split_frequency and max_frequency
+                if min_frequency is None:
+                    records_of_interest = cls.\
+                        __apply_stat2pwr0(records, statistical_method,
+                                          beam_num, '<=', max_frequency)
                     low_frequency_records = cls.\
-                        __apply_stat2pwr0(records, statistical_method,
+                        __apply_stat2pwr0(records_of_interest,
+                                          statistical_method,
                                           beam_num, '<', split_frequency)
-                    # arbitrary pick for the inclusion of split_frequency
                     high_frequency_records = cls.\
-                        __apply_stat2pwr0(records, statistical_method,
+                        __apply_stat2pwr0(records_of_interest,
+                                          statistical_method,
                                           beam_num, '>=', split_frequency)
                     plt.subplot(2, 1, 1)
                     cls.__plot_pwr0(low_frequency_records, beam_num,
@@ -147,90 +163,57 @@ class Power():
                     cls.__plot_pwr0(high_frequency_records, beam_num,
                                     statistical_method, False)
 
-                else:
-                    # plot all frequencies lower than
-                    # split_frequency and plot all frequencies between
-                    # split_frequency and max_frequency
-                    if min_frequency is None:
-                        records_of_interest = cls.\
-                            __apply_stat2pwr0(records, statistical_method,
-                                              beam_num, '<=', max_frequency)
-                        low_frequency_records = cls.\
-                            __apply_stat2pwr0(records_of_interest,
-                                              statistical_method,
-                                              beam_num, '<', split_frequency)
-                        high_frequency_records = cls.\
-                            __apply_stat2pwr0(records_of_interest,
-                                              statistical_method,
-                                              beam_num, '>=', split_frequency)
-                        plt.subplot(2, 1, 1)
-                        cls.__plot_pwr0(low_frequency_records, beam_num,
-                                        statistical_method)
-                        plt.xticks([])
-                        plt.subplot(2, 1, 2)
-                        cls.__plot_pwr0(high_frequency_records, beam_num,
-                                        statistical_method, False)
-
-                    elif max_frequency is None:
-                        # plot all frequencies between min_frequency and
-                        # split_frequency and plot all frequencies higher than
-                        # split_frequency
-                        records_of_interest = cls.\
-                            __apply_stat2pwr0(records, statistical_method,
-                                              beam_num, '>=', min_frequency)
-                        low_frequency_records = cls.\
-                            __apply_stat2pwr0(records_of_interest,
-                                              statistical_method,
-                                              beam_num, '<', split_frequency)
-                        high_frequency_records = cls.\
-                            __apply_stat2pwr0(records_of_interest,
-                                              statistical_method,
-                                              beam_num, '>=', split_frequency)
-                        plt.subplot(2, 1, 1)
-                        cls.__plot_pwr0(low_frequency_records, beam_num,
-                                        statistical_method)
-                        plt.xticks([])
-                        plt.subplot(2, 1, 2)
-                        cls.__plot_pwr0(high_frequency_records, beam_num,
-                                        statistical_method, False)
-
-                    # if min=max=split frequency this is the same as
-                    # split and compare = False
-                    else:
-                        # plot all low and high frequencies between
-                        # min and max frequency
-                        records_of_interest = cls.\
-                            __apply_stat2pwr0(records, statistical_method,
-                                              beam_num, '>=', min_frequency)
-                        records_of_interest = cls.\
-                            __apply_stat2pwr0(records_of_interest,
-                                              statistical_method,
-                                              beam_num, '<=', max_frequency)
-
-                        low_frequency_records = cls.\
-                            __apply_stat2pwr0(records_of_interest,
-                                              statistical_method,
-                                              beam_num, '<', split_frequency)
-                        high_frequency_records = cls.\
-                            __apply_stat2pwr0(records_of_interest,
-                                              statistical_method,
-                                              beam_num, '>=', split_frequency)
-                        plt.subplot(2, 1, 1)
-                        cls.__plot_pwr0(low_frequency_records, beam_num,
-                                        statistical_method)
-                        plt.xticks([])
-                        plt.subplot(2, 1, 2)
-                        cls.__plot_pwr0(high_frequency_records, beam_num,
-                                        statistical_method, False)
-
-            # same idea as min=max=split
-            else:
-                # plot the single frequency
-                records_of_interest = cls.\
+                elif max_frequency is None:
+                    # plot all frequencies between min_frequency and
+                    # split_frequency and plot all frequencies higher than
+                    # split_frequency
+                    records_of_interest = cls.\
                         __apply_stat2pwr0(records, statistical_method,
-                                          beam_num, '==', split_frequency)
-                cls.__plot_pwr0(records_of_interest, beam_num,
-                                statistical_method)
+                                          beam_num, '>=', min_frequency)
+                    low_frequency_records = cls.\
+                        __apply_stat2pwr0(records_of_interest,
+                                          statistical_method,
+                                          beam_num, '<', split_frequency)
+                    high_frequency_records = cls.\
+                        __apply_stat2pwr0(records_of_interest,
+                                          statistical_method,
+                                          beam_num, '>=', split_frequency)
+                    plt.subplot(2, 1, 1)
+                    cls.__plot_pwr0(low_frequency_records, beam_num,
+                                    statistical_method)
+                    plt.xticks([])
+                    plt.subplot(2, 1, 2)
+                    cls.__plot_pwr0(high_frequency_records, beam_num,
+                                    statistical_method, False)
+
+                # if min=max=split frequency this is the same as
+                # split and compare = False
+                else:
+                    # plot all low and high frequencies between
+                    # min and max frequency
+                    records_of_interest = cls.\
+                        __apply_stat2pwr0(records, statistical_method,
+                                          beam_num, '>=', min_frequency)
+                    records_of_interest = cls.\
+                        __apply_stat2pwr0(records_of_interest,
+                                          statistical_method,
+                                          beam_num, '<=', max_frequency)
+
+                    low_frequency_records = cls.\
+                        __apply_stat2pwr0(records_of_interest,
+                                          statistical_method,
+                                          beam_num, '<', split_frequency)
+                    high_frequency_records = cls.\
+                        __apply_stat2pwr0(records_of_interest,
+                                          statistical_method,
+                                          beam_num, '>=', split_frequency)
+                    plt.subplot(2, 1, 1)
+                    cls.__plot_pwr0(low_frequency_records, beam_num,
+                                    statistical_method)
+                    plt.xticks([])
+                    plt.subplot(2, 1, 2)
+                    cls.__plot_pwr0(high_frequency_records, beam_num,
+                                    statistical_method, False)
 
     @staticmethod
     def __plot_pwr0(records: list, beam_num: int, statistical_method: object,
@@ -320,23 +303,23 @@ class Power():
         # tfreq greater than frequency
         if operand is '>':
             records_of_interest = [record for record in records_of_interest
-                           if record['tfreq'] > frequency]
+                                   if record['tfreq'] > frequency]
         # tfreq less than frequency
         elif operand is '<':
-            records_of_interest  = [record for record in records_of_interest
-                            if record['tfreq'] < frequency]
+            records_of_interest = [record for record in records_of_interest
+                                   if record['tfreq'] < frequency]
         # tfreq greater than equal to frequency
         elif operand is '>=':
             records_of_interest = [record for record in records_of_interest
-                           if record['tfreq'] >= frequency]
+                                   if record['tfreq'] >= frequency]
         # tfreq less than equal to frequency
         elif operand is '<=':
             records_of_interest = [record for record in records_of_interest
-                           if record['tfreq'] <= frequency]
+                                   if record['tfreq'] <= frequency]
         # tfreq equal to frequency
         elif operand is '==':
             records_of_interest = [record for record in records_of_interest
-                           if record['tfreq'] == frequency]
+                                   if record['tfreq'] == frequency]
 
         # if no data is found so raise an error!
         if len(records_of_interest) == 0:
