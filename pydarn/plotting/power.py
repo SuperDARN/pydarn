@@ -262,9 +262,9 @@ class Power():
         min_freq = records[0]['tfreq']
         max_freq = records[0]['tfreq']
         for record in records:
-            if record[0]['tfreq'] < min_freq:
+            if record['tfreq'] < min_freq:
                 min_freq = record['tfreq']
-            if record[0]['tfreq'] > max_freq:
+            if record['tfreq'] > max_freq:
                 max_freq = record['tfreq']
         if min_freq == max_freq:
             plt.legend(["{} kHz".format(min_freq)])
