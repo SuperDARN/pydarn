@@ -226,17 +226,47 @@ class Power():
                                 statistical_method)
 
     @staticmethod
-    def __plot_pwr0(records: list, beam_num: int, statistical_calc: object,
+    def __plot_pwr0(records: list, beam_num: int, statistical_method: object,
                     title: bool = True):
-            stid = records[0]['stid']
-            radar_abbrev = SuperDARNRadars.radars[stid].hardware_info.abbrev
-            RTP.plot_time_series(records, parameter='pwr0', beam_num=beam_num)
-            plt.ylabel("{} Power\n [raw units]"
-                       "".format(statistical_calc.__name__.capitalize()))
-            plt.legend(["{} kHz".format(records[0]['tfreq'])])
-            if title:
-                plt.title(' Lag 0 Power for {} Beam: {} '.format(radar_abbrev,
-                                                                 beam_num))
+        """
+        This is a method that handles all the plotting calls for pwr0
+
+        Parameters
+        ----------
+            records: List[dict]
+                data records of SuperDARN data
+            beam_num: int
+                beam number needed for error message if no
+                data is found for the frequency
+            statistical_method: object
+                statistical method to apply to pwr0 array
+            title: bool
+                to include the title or not
+                default: True
+        """
+        # get station ID and radar abbreviation for the title
+        stid = records[0]['stid']
+        radar_abbrev = SuperDARNRadars.radars[stid].hardware_info.abbrev
+        # plot a time series using RTP class of pwr0
+        RTP.plot_time_series(records, parameter='pwr0', beam_num=beam_num)
+        plt.ylabel("{} Power\n [raw units]"
+                   "".format(statistical_method.__name__.capitalize()))
+        # Find the range of frequencies for the legend
+        min_freq = records[0]['tfreq']
+        max_freq = records[0]['tfreq']
+        for record in records:
+            if record[0]['tfreq'] < min_freq:
+                min_freq = record[0]['tfreq']
+            if record[0]['tfreq'] > max_freq:
+                max_freq = record[0]['tfreq']
+        if min_freq == max_freq:
+            plt.legend(["{} kHz".format(min_freq)])
+        else:
+            plt.legend(["{}-{} kHz".format(min_freq,max_freq)])
+
+        if title:
+            plt.title(' Lag 0 Power for {} Beam: {} '.format(radar_abbrev,
+                                                             beam_num))
 
     @staticmethod
     def __apply_stat2pwr0(records: List[dict], stat_method: object,
