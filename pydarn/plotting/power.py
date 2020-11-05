@@ -319,24 +319,24 @@ class Power():
 
         # tfreq greater than frequency
         if operand is '>':
-            records_of_interest = [record for record in records
-                                   if record['tfreq'] > frequency]
+            records_of_interest = [record for record in records_of_interest
+                           if record['tfreq'] > frequency]
         # tfreq less than frequency
         elif operand is '<':
-            records_of_interest = [record for record in records
-                                   if record['tfreq'] < frequency]
+            records_of_interest  = [record for record in records_of_interest
+                            if record['tfreq'] < frequency]
         # tfreq greater than equal to frequency
         elif operand is '>=':
-            records_of_interest = [record for record in records
-                                   if record['tfreq'] >= frequency]
+            records_of_interest = [record for record in records_of_interest
+                           if record['tfreq'] >= frequency]
         # tfreq less than equal to frequency
         elif operand is '<=':
-            records_of_interest = [record for record in records
-                                   if record['tfreq'] <= frequency]
+            records_of_interest = [record for record in records_of_interest
+                           if record['tfreq'] <= frequency]
         # tfreq equal to frequency
         elif operand is '==':
-            records_of_interest = [record for record in records
-                                   if record['tfreq'] == frequency]
+            records_of_interest = [record for record in records_of_interest
+                           if record['tfreq'] == frequency]
 
         # if no data is found so raise an error!
         if len(records_of_interest) == 0:
