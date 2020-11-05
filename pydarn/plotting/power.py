@@ -263,13 +263,13 @@ class Power():
         max_freq = records[0]['tfreq']
         for record in records:
             if record[0]['tfreq'] < min_freq:
-                min_freq = record[0]['tfreq']
+                min_freq = record['tfreq']
             if record[0]['tfreq'] > max_freq:
-                max_freq = record[0]['tfreq']
+                max_freq = record['tfreq']
         if min_freq == max_freq:
             plt.legend(["{} kHz".format(min_freq)])
         else:
-            plt.legend(["{}-{} kHz".format(min_freq,max_freq)])
+            plt.legend(["{}-{} kHz".format(min_freq, max_freq)])
 
         if title:
             plt.title(' Lag 0 Power for {} Beam: {} '.format(radar_abbrev,
@@ -345,7 +345,7 @@ class Power():
                                    opt_beam_num=records[0]['bmnum'],
                                    opt_parameter_value=records[0]['tfreq'])
 
-        #loop through the applied records of interest and apply the
+        # loop through the applied records of interest and apply the
         # statistic method provided
         for record in records_of_interest:
             stat_pwr = stat_method(record['pwr0'])
