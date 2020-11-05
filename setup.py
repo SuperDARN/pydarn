@@ -32,6 +32,7 @@ class update_submodules(develop):
 class initialize_submodules(install):
     def run(self):
         if path.exists('.git'):
+            print("updating")
             check_call(['git', 'submodule', 'update', '--init', '--recursive'])
             check_call(['git', 'submodule', 'update', '--recursive', '--remote'])
         if self.old_and_unmanageable or self.single_version_externally_managed:
