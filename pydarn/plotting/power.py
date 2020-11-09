@@ -130,7 +130,8 @@ class Power():
                 # arbitrary pick for the inclusion of split_frequency
                 high_frequency_records = cls.\
                     __apply_stat2pwr0(records, statistical_method,
-                                      beam_num, '>=', split_frequency)
+                                      beam_num=beam_num, operand='>=',
+                                      frequency=split_frequency)
                 plt.subplot(2, 1, 1)
                 cls.__plot_pwr0(low_frequency_records, beam_num,
                                 statistical_method)
@@ -301,23 +302,23 @@ class Power():
         records_of_interest = copy.deepcopy(records)
 
         # tfreq greater than frequency
-        if operand is '>':
+        if operand == '>':
             records_of_interest = [record for record in records_of_interest
                                    if record['tfreq'] > frequency]
         # tfreq less than frequency
-        elif operand is '<':
+        elif operand == '<':
             records_of_interest = [record for record in records_of_interest
                                    if record['tfreq'] < frequency]
         # tfreq greater than equal to frequency
-        elif operand is '>=':
+        elif operand == '>=':
             records_of_interest = [record for record in records_of_interest
                                    if record['tfreq'] >= frequency]
         # tfreq less than equal to frequency
-        elif operand is '<=':
+        elif operand == '<=':
             records_of_interest = [record for record in records_of_interest
                                    if record['tfreq'] <= frequency]
         # tfreq equal to frequency
-        elif operand is '==':
+        elif operand == '==':
             records_of_interest = [record for record in records_of_interest
                                    if record['tfreq'] == frequency]
 
