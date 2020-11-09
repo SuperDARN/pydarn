@@ -239,7 +239,7 @@ class Power():
         radar_abbrev = SuperDARNRadars.radars[stid].hardware_info.abbrev
         # plot a time series using RTP class of pwr0
         RTP.plot_time_series(records, parameter='pwr0', beam_num=beam_num)
-        plt.ylabel("{} Power\n [raw units]"
+        plt.ylabel("[{}] A/D power\n [arbitrary units]"
                    "".format(statistical_method.__name__.capitalize()))
         # Find the range of frequencies for the legend
         min_freq = records[0]['tfreq']
