@@ -39,15 +39,23 @@ def get_hdw_files(force: bool = True, version: str = None):
     if version is not None:
         raise Exception("This feature is not implemented yet")
 
+    # if there is no files in hdw folder or force is true
+    # download the hdw files
     if len(os.listdir(hdw_path)) == 0 or force:
-
+        # pycurl doesn't download a zip folder easily so
+        # use the command line command
         check_call(['curl', '-L', '-o', hdw_path+'/master.zip',
                     'https://github.com/SuperDARN/hdw/archive/master.zip'])
-
+        # use unzip command because zipfile on works with files and not folders
+        # though this is possible with zipfile but this was easier for me to
+        # get it working
         check_call(['unzip', '-d', hdw_path, hdw_path+'/master.zip'])
         dat_files = glob.glob(hdw_path+'/hdw-master/*')
+        # shutil only moves specific files so we need to move
+        # everything one at a time
         for hdw_file in dat_files:
             shutil.move(hdw_file, hdw_path+os.path.basename(hdw_file))
+        # delete the empty folder
         os.removedirs(hdw_path+'/hdw-master/')
 
 
@@ -81,7 +89,10 @@ def read_hdw_file(abbrv, date: datetime = None, update: bool = False):
 
     hdw_path = os.path.dirname(__file__)+'/hdw/'
     hdw_file = "{path}/hdw.dat.{radar}".format(path=hdw_path, radar=abbrv)
-    get_hdw_files(False)
+    # if the file does not exist then try
+    # and download it
+    if os.path.exists(hdw_file) == False:
+        get_hdw_files()
     try:
         with open(hdw_file, 'r') as reader:
             for line in reader.readlines():
