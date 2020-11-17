@@ -4,14 +4,51 @@
 """
 This module contains SuperDARN radar information
 """
+import glob
 import os
-
 import pydarn
+import shutil
 
 from typing import NamedTuple
 from enum import Enum
 from datetime import datetime, timedelta
 from subprocess import check_call
+
+
+def get_hdw_files(force: bool = True, version: str = None):
+    """
+    downloads hardware files from the SuperDARN github page:
+        https://github.com/SuperDARN/hdw
+
+    Parameter
+    ---------
+    force: bool
+        download hardware files even if they are in the
+        directory
+    version: str
+        version number to download
+
+    Note: version is not currently working as hardware files
+    have yet to be versioned.
+    """
+
+    # Path should the path where pydarn is installed
+    hdw_path = "{}/hdw/".format(os.path.dirname(pydarn.utils.__file__))
+
+    # TODO: implement when DSWG starts versioning hardware files
+    if version is not None:
+        raise Exception("This feature is not implemented yet")
+
+    if len(os.listdir(hdw_path)) == 0 or force:
+
+        check_call(['curl', '-L', '-o', hdw_path+'/master.zip',
+                    'https://github.com/SuperDARN/hdw/archive/master.zip'])
+
+        check_call(['unzip', '-d', hdw_path, hdw_path+'/master.zip'])
+        dat_files = glob.glob(hdw_path+'/hdw-master/*')
+        for hdw_file in dat_files:
+            shutil.move(hdw_file, hdw_path+os.path.basename(hdw_file))
+        os.removedirs(hdw_path+'/hdw-master/')
 
 
 def read_hdw_file(abbrv, date: datetime = None, update: bool = False):
@@ -44,6 +81,7 @@ def read_hdw_file(abbrv, date: datetime = None, update: bool = False):
 
     hdw_path = os.path.dirname(__file__)+'/hdw/'
     hdw_file = "{path}/hdw.dat.{radar}".format(path=hdw_path, radar=abbrv)
+    get_hdw_files(False)
     try:
         with open(hdw_file, 'r') as reader:
             for line in reader.readlines():
