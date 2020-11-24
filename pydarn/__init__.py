@@ -39,3 +39,4 @@ from .utils.radar_pos import radar_fov
 from .plotting.color_maps import PyDARNColormaps
 from .plotting.rtp import RTP
 from .plotting.acf import ACF
+from .plotting.power import Power

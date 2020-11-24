@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 from matplotlib import dates, colors, cm, ticker
 from typing import List
 
-from pydarn import (dmap2dict, gate2slant, check_data_type, time2datetime,
+from pydarn import (gate2slant, check_data_type, time2datetime,
                     rtp_exceptions, plot_exceptions, SuperDARNCpids,
                     SuperDARNRadars, standard_warning_format,
                     PyDARNColormaps)
@@ -324,9 +324,11 @@ class RTP():
         x.append(end_time)
         # Check if there is any data to plot
         if np.all(np.isnan(z)):
-            raise plot_exceptions.NoDataFoundError(parameter, beam_num,
-                                                   start_time, end_time,
-                                                   cls.dmap_data[0]['bmnum'])
+            raise plot_exceptions.\
+                    NoDataFoundError(parameter, beam_num,
+                                     start_time=start_time,
+                                     end_time=end_time,
+                                     opt_beam_num=cls.dmap_data[0]['bmnum'])
         if slant:
             y = gate2slant(cls.dmap_data[0], y_max)
         time_axis, y_axis = np.meshgrid(x, y)
@@ -556,8 +558,9 @@ class RTP():
             if old_cpid is None:
                 raise plot_exceptions.\
                         NoDataFoundError(parameter, beam_num,
-                                         start_time, end_time,
-                                         cls.dmap_data[0]['bmnum'])
+                                         start_time=start_time,
+                                         end_time=end_time,
+                                         opt_beam_num=cls.dmap_data[0]['bmnum'])
 
             # to get rid of y-axis numbers
             ax.set_yticks([])
@@ -589,8 +592,9 @@ class RTP():
             if np.all(np.isnan(y)) or len(x) == 0:
                 raise plot_exceptions.\
                         NoDataFoundError(parameter, beam_num,
-                                         start_time, end_time,
-                                         cls.dmap_data[0]['bmnum'])
+                                         start_time=start_time,
+                                         end_time=end_time,
+                                         opt_beam_num=cls.dmap_data[0]['bmnum'])
 
             # using masked arrays to create gaps in the plot
             # otherwise the lines will connect in gapped data
@@ -846,7 +850,7 @@ class RTP():
                     # with warning catch, catches all the warnings
                     # that would be produced by time-series this would be
                     # the citing warning.
-                    with warnings.catch_warnings() as w:
+                    with warnings.catch_warnings():
                         # ignore the warnings because summary plots
                         # has its own warning message
                         warnings.simplefilter("ignore")
@@ -881,7 +885,7 @@ class RTP():
                         # that would be produced by time-series this would be
                         # the citing warning.
                         # warnings are not caught with try/except
-                        with warnings.catch_warnings() as w:
+                        with warnings.catch_warnings():
                             warnings.simplefilter("ignore")
                             cls.plot_time_series(dmap_data, beam_num=beam_num,
                                                  parameter=axes_parameters[i][1],
@@ -918,7 +922,7 @@ class RTP():
                 # with warning catch, catches all the warnings
                 # that would be produced by time-series this would be
                 # the citing warning.
-                with warnings.catch_warnings() as w:
+                with warnings.catch_warnings():
                     warnings.simplefilter("ignore")
                     cls.plot_time_series(dmap_data, beam_num=beam_num,
                                          parameter=axes_parameters[i],
@@ -942,22 +946,22 @@ class RTP():
                 # with warning catch, catches all the warnings
                 # that would be produced by time-series this would be
                 # the citing warning.
-                with warnings.catch_warnings() as w:
+                with warnings.catch_warnings():
                     warnings.simplefilter("ignore")
                     _, cbar, _, x, _, _ =\
-                            cls.plot_range_time(dmap_data,
-                                                beam_num=beam_num,
-                                                colorbar_label=labels[i],
-                                                parameter=axes_parameters[i],
-                                                ax=axes[i],
-                                                groundscatter=grndflg,
-                                                channel=channel,
-                                                slant=slant,
-                                                cmap=cmap[axes_parameters[i]],
-                                                zmin=boundary_ranges[axes_parameters[i]][0],
-                                                zmax=boundary_ranges[axes_parameters[i]][1],
-                                                ymax=ymax,
-                                                background=background_color)
+                        cls.plot_range_time(dmap_data,
+                                            beam_num=beam_num,
+                                            colorbar_label=labels[i],
+                                            parameter=axes_parameters[i],
+                                            ax=axes[i],
+                                            groundscatter=grndflg,
+                                            channel=channel,
+                                            slant=slant,
+                                            cmap=cmap[axes_parameters[i]],
+                                            zmin=boundary_ranges[axes_parameters[i]][0],
+                                            zmax=boundary_ranges[axes_parameters[i]][1],
+                                            ymax=ymax,
+                                            background=background_color)
                 # Overwriting velocity ticks to get a better pleasing
                 # look on the colorbar
                 # Preference by Marina Schmidt
