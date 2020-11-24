@@ -4,15 +4,62 @@
 """
 This module contains SuperDARN radar information
 """
+import glob
 import os
+import pydarn
+import shutil
 
 from typing import NamedTuple
 from enum import Enum
 from datetime import datetime, timedelta
-from pydarn import radar_exceptions
+from subprocess import check_call
 
 
-def read_hdw_file(abbrv, date: datetime = None):
+def get_hdw_files(force: bool = True, version: str = None):
+    """
+    downloads hardware files from the SuperDARN github page:
+        https://github.com/SuperDARN/hdw
+
+    Parameter
+    ---------
+    force: bool
+        download hardware files even if they are in the
+        directory
+    version: str
+        version number to download
+
+    Note: version is not currently working as hardware files
+    have yet to be versioned.
+    """
+
+    # Path should the path where pydarn is installed
+    hdw_path = "{}/hdw/".format(os.path.dirname(pydarn.utils.__file__))
+
+    # TODO: implement when DSWG starts versioning hardware files
+    if version is not None:
+        raise Exception("This feature is not implemented yet")
+
+    # if there is no files in hdw folder or force is true
+    # download the hdw files
+    if len(os.listdir(hdw_path)) == 0 or force:
+        # pycurl doesn't download a zip folder easily so
+        # use the command line command
+        check_call(['curl', '-L', '-o', hdw_path+'/master.zip',
+                    'https://github.com/SuperDARN/hdw/archive/master.zip'])
+        # use unzip command because zipfile on works with files and not folders
+        # though this is possible with zipfile but this was easier for me to
+        # get it working
+        check_call(['unzip', '-d', hdw_path, hdw_path+'/master.zip'])
+        dat_files = glob.glob(hdw_path+'/hdw-master/*')
+        # shutil only moves specific files so we need to move
+        # everything one at a time
+        for hdw_file in dat_files:
+            shutil.move(hdw_file, hdw_path+os.path.basename(hdw_file))
+        # delete the empty folder
+        os.removedirs(hdw_path+'/hdw-master/')
+
+
+def read_hdw_file(abbrv, date: datetime = None, update: bool = False):
     """
     Reads the hardware file for the associated abbreviation of the radar name.
 
@@ -23,7 +70,10 @@ def read_hdw_file(abbrv, date: datetime = None):
         date: datetime
             Datetime object of hardware information to obtain
             default: current date
-
+        update: bool
+            If True this will update the hardware files again
+            without re-installing pydarn
+            default: False
     Return
     ------
     _HdwInfo object that contains all the field names in a hardware
@@ -39,6 +89,10 @@ def read_hdw_file(abbrv, date: datetime = None):
 
     hdw_path = os.path.dirname(__file__)+'/hdw/'
     hdw_file = "{path}/hdw.dat.{radar}".format(path=hdw_path, radar=abbrv)
+    # if the file does not exist then try
+    # and download it
+    if os.path.exists(hdw_file) == False:
+        get_hdw_files()
     try:
         with open(hdw_file, 'r') as reader:
             for line in reader.readlines():
@@ -121,7 +175,7 @@ def read_hdw_file(abbrv, date: datetime = None):
                                         float(hdw_data[16]),
                                         int(hdw_data[17]), int(hdw_data[18]))
     except FileNotFoundError:
-        raise radar_exceptions.HardwareFileNotFoundError(abbrv)
+        raise pydarn.radar_exceptions.HardwareFileNotFoundError(abbrv)
 
 
 class Hemisphere(Enum):
@@ -314,8 +368,8 @@ class SuperDARNRadars():
                          Hemisphere.North, read_hdw_file('hkw')),
               64: _Radar('Inuvik', 'University of Saskatchewan',
                          Hemisphere.North, read_hdw_file('inv')),
-              50: _Radar('Jiamusi East radar', 
-                         'National Space Science Center, Chinese Academy of Sciences', 
+              50: _Radar('Jiamusi East radar',
+                         'National Space Science Center, Chinese Academy of Sciences',
                          Hemisphere.North, read_hdw_file('jme')),
               3: _Radar('Kapuskasing', 'Virginia Tech', Hemisphere.North,
                         read_hdw_file('kap')),

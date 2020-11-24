@@ -14,8 +14,17 @@ import sys
 from os import path
 from setuptools import setup, find_packages
 from setuptools.command.install import install, orig
+from setuptools.command.develop import develop
 from glob import glob
 from subprocess import check_call
+
+class update_submodules(develop):
+    def run(self):
+        if path.exists('.git'):
+            check_call(['git', 'submodule', 'update', '--init', '--recursive'])
+            check_call(['git', 'submodule', 'update', '--recursive', '--remote'])
+        develop.run(self)
+
 
 # This class and function overrides the install python
 # setup method to add an extra git command in to install
@@ -23,6 +32,7 @@ from subprocess import check_call
 class initialize_submodules(install):
     def run(self):
         if path.exists('.git'):
+            print("updating")
             check_call(['git', 'submodule', 'update', '--init', '--recursive'])
             check_call(['git', 'submodule', 'update', '--recursive', '--remote'])
         if self.old_and_unmanageable or self.single_version_externally_managed:
@@ -44,7 +54,7 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 
 # Setup information
 setup(
-    cmdclass={'install': initialize_submodules},
+    cmdclass={'install': initialize_submodules, 'develop': update_submodules},
     name="pydarn",
     version="1.1.0",
     long_description=long_description,
