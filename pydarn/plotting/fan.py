@@ -15,7 +15,7 @@ from typing import List
 # third part libs
 import aacgmv2
 
-from pydarn import PyDARNColormaps, build_scan
+from pydarn import PyDARNColormaps, build_scan, radar_fov
 
 class Fan():
     # TODO: Add class documentation
@@ -87,41 +87,21 @@ class Fan():
 		# Locate scan in loaded data
 		plot_beams = np.where(beam_scan == scan_index)
 
-		# Files holding radar beam/gate locations
-		beam_lats = base_path+'/radar_fov_files/' + \
-			dmap_data[0]['stid'].astype('str').zfill(3)+'_lats.txt'
-		beam_lons = base_path+'/radar_fov_files/' + \
-			dmap_data[0]['stid'].astype('str').zfill(3)+'_lons.txt'
-
-		# Initialise arrays holding coordinates and MLT's
-		beam_corners_lats = np.loadtxt(beam_lats)
-		beam_corners_lons = np.loadtxt(beam_lons)
-
-		fan_shape = beam_corners_lons.shape
-
-		beam_corners_aacgm_lons = np.zeros((fan_shape[0], fan_shape[1]))
-		beam_corners_aacgm_lats = np.zeros((fan_shape[0], fan_shape[1]))
-		beam_corners_mlts = np.zeros((fan_shape[0], fan_shape[1]))
-
 		# Time for coordinate conversion
 		dtime = dt.datetime(dmap_data[plot_beams[0][0]]['time.yr'],
 							dmap_data[plot_beams[0][0]]['time.mo'], dmap_data[plot_beams[0][0]]['time.dy'],
 							dmap_data[plot_beams[0][0]]['time.hr'], dmap_data[plot_beams[0][0]]['time.mt'],
 							dmap_data[plot_beams[0][0]]['time.sc'])
-		for x in range(fan_shape[0]):
-			for y in range(fan_shape[1]):
-				# Convert to AACGM
-				geomag = np.array(aacgmv2.
-								  get_aacgm_coord(beam_corners_lats[x, y],
-												  beam_corners_lons[x, y],
-												  250, dtime))
 
-				beam_corners_aacgm_lats[x, y] = geomag[0]
-				beam_corners_aacgm_lons[x, y] = geomag[1]
+		# Get radar beam/gate locations
+		beam_corners_aacgm_lats, beam_corners_aacgm_lons=radar_fov(dmap_data[0]['stid'], 
+			coords='aacgm', date=dtime)
+		fan_shape = beam_corners_aacgm_lons.shape	
 
 		# Work out shift due in MLT
-		mltshift = beam_corners_lons[x, y] - \
-			(aacgmv2.convert_mlt(beam_corners_lons[x, y], dtime) * 15)
+		beam_corners_mlts = np.zeros((fan_shape[0], fan_shape[1]))
+		mltshift = beam_corners_aacgm_lons[0, 0] - \
+			(aacgmv2.convert_mlt(beam_corners_aacgm_lons[0, 0], dtime) * 15)
 		beam_corners_mlts = beam_corners_aacgm_lons - mltshift
 
 		# Hold the beam positions
