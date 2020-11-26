@@ -41,6 +41,9 @@ class Fan():
         -----------
             dmap_data: List[dict]
                 Named list of dictionaries obtained from SDarn_read
+            ax:	matplotlib.pyplot axis
+            	Pre-defined axis object to pass in, must currently be polar projection
+            	Default: Generates a polar projection for the user with MLT/latitude labels
             scan_index: int
                 Scan number from beginning of first record in file
                 Default: 1
@@ -77,7 +80,7 @@ class Fan():
                 Default: ''              
             
         """
-		# TODO: put a function here to get the grid of the radar's FOV information
+		
 		my_path = os.path.abspath(os.path.dirname(__file__))
 		base_path = os.path.join(my_path, '..')
 
@@ -144,14 +147,14 @@ class Fan():
         # This may screw up references
 		if ax is None:
 			ax = plt.axes(polar=True)
-		if beam_corners_aacgm_lats[0,0] > 0:
-			ax.set_ylim(90, lowlat)
-			ax.set_yticks(np.arange(lowlat, 90, 10))
-		else:
-			ax.set_ylim(-90, -lowlat)
-			ax.set_yticks(np.arange(-lowlat, -90, -10))
-		ax.set_xticklabels(['00', '', '06', '', '12', '', '18', ''])
-		ax.set_theta_zero_location("S")
+			if beam_corners_aacgm_lats[0,0] > 0:
+				ax.set_ylim(90, lowlat)
+				ax.set_yticks(np.arange(lowlat, 90, 10))
+			else:
+				ax.set_ylim(-90, -lowlat)
+				ax.set_yticks(np.arange(-lowlat, -90, -10))
+			ax.set_xticklabels(['00', '', '06', '', '12', '', '18', ''])
+			ax.set_theta_zero_location("S")
 
         # Begin plotting by iterating over ranges and beams
 		for gates in range(ranges[0],ranges[1]-1):
@@ -210,4 +213,4 @@ class Fan():
 			if colorbar_label != '':
 				cb.set_label(colorbar_label)
 
-		return beam_corners_aacgm_lats, beam_corners_aacgm_lons, scan, grndsct
+		return dtime, beam_corners_aacgm_lats, beam_corners_aacgm_lons, scan, grndsct
