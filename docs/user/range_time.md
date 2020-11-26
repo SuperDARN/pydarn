@@ -11,13 +11,15 @@ The general syntax for plot_range_time is:
 'plot_range_time(fitacf_data, options)'
 where 'fitacf_data' is the read in data, and the options are several python parameters used to control how the plot looks.
 
-First, make sure pyDARN and matplotlib are imported, then read in the .fitacf file with the data you wish to plot:
+First, make sure pyDARN, pyDARNio and matplotlib are imported, then read in the .fitacf file with the data you wish to plot:
 ```python
-import pydarn
 import matplotlib.pyplot as plt
 
-fitacf_file = "path/to/fitacf/file"
-sdarn_read = pydarn.SDarnRead(fitacf_file)
+import pydarn
+import pydarnio
+
+fitacf_file = "20190831.C0.cly.fitacf"
+sdarn_read = pydarnio.SDarnRead(fitacf_file)
 fitacf_data = sdarn_read.read_fitacf()
 
 ```
@@ -40,10 +42,6 @@ To specify which beam to look at, add the option:
 
 As an example, taking a look at some 'v' data from the first record of Clyde River radar FITACF file:
 ```python
-fitacf_file = "20190831.C0.cly.fitacf"
-sdarn_read = pydarn.SDarnRead(fitacf_file)
-fitacf_data = sdarn_read.read_fitacf()
-
 pydarn.RTP.plot_range_time(fitacf_data, beam_num=fitacf_data[0]['bmnum'])
 plt.title("Radar {:d}, Beam {:d}".format(fitacf_data[0]['stid'], fitacf_data[0]['bmnum']))  
 
