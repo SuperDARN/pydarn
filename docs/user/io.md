@@ -13,7 +13,7 @@ Types of files used by SuperDARN which are usually accessed in DMap format are:
 
 This tutorial will focus on reading in DMap structured files using Pydarn, including how to read compressed files and access common data fields.
 
-## Reading with SDarnRead
+## Reading with SuperDARNRead
 
 The basic code to read in a DMap structured file is as follows:
 ```python
