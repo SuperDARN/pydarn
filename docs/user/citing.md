@@ -2,7 +2,7 @@ If pyDARN contributes to a project that leads to a scientific publication, pleas
 
 # How to cite SuperDARN
 
-Super Dual Auroral Radar Network (SuperDARN) is a made up of 36 radars 20 institutions, to cite general SuperDARN you can use: 
+Super Dual Auroral Radar Network (SuperDARN) is a made up of 35+ radars and 20 institutions, to generally cite SuperDARN you can use: 
 
 - Greenwald, R.A., Baker, K.B., Dudeney, J.R. et al. Space Sci Rev (1995) 71: 761. [doi:10.1007/BF00751350](https://doi.org/10.1007/BF00751350)
 
@@ -31,15 +31,20 @@ Possible services:
 author={Schmidt, M.T. and Detwiller, M.H. and
 Billet, D.D. and 
 Bland, E. C. and 
-Burrell, A. G. and 
+Burrell, A. G. and
+Herlingshaw, K. and
+Krieger, K. and 
 Kotyk, K. and
+Martin, C. J. and
 Peters, D. GO. and 
-Reimer, A. S. and 
+Reimer, A. S. and
+Reistad, J. P. and
+Robertson, C. R. and 
 Sterne, K. T. and
 Thomas, E. G.}, 
 title={pyDARN},
-month=jan,
-year=2020,
+month=jan(*update before release*),
+year=2020(*update before release*),
 doi=[],
 url={}
 ] 
@@ -49,6 +54,7 @@ url={}
 
 - Release 1.0.0 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3727270.svg)](https://doi.org/10.5281/zenodo.3727270)
 - Release 1.1.0 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3978643.svg)](https://doi.org/10.5281/zenodo.3978643)
+- Release 1.2.0 [![DOI](add new zenodo link here)]()
 
 ## Acknowledgements
 
