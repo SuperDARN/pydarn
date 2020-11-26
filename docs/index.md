@@ -15,6 +15,7 @@ If you have any questions or concerns please submit an **Issue** on the SuperDAR
   - [SuperDARN Data Access](user/superdarn_data.md)
   - [Citing](user/citing.md)
   - Tutorials 
+    - [Reading a SuperDARN File](user/io.md)
     - [Radar and Hardware Information](user/hardware.md)
     - Plotting
         - [Range-Time plots](user/range_time.md)
