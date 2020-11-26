@@ -17,7 +17,7 @@ Summary plots in SuperDARN are a collection of set parameter plots from a FITACF
     If the radar doesn't have elevation data then it is not plotted.
 
 ## Default Summary
-With pyDARN and matplotlib imported, read in a FITACF with `pydarnio.SuperDARNRead`, then call `plot_summary` with a chosen beam number. Here, we've loaded in some data from Clyde River and chosen beam 2:
+With pyDARN and matplotlib imported, read in a FITACF with `pydarn.SuperDARNRead`, then call `plot_summary` with a chosen beam number. Here, we've loaded in some data from Clyde River and chosen beam 2:
 ```python
 import matplotlib.pyplot as plt
 
