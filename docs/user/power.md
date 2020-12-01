@@ -1,39 +1,64 @@
-### Time Series Plots
+### Statistical Power Plots
 
-`plot_time_series` simply plots out a time series of any scalar beam parameter in the loaded in FITACF or RAWACF file. Currently there is no functionalilty to plot parameters from MAP files. To do that, you would need to manually extract the information from those loaded dictionaries. See [`pydarnio.SDarnRead`](https://pydarnio.readthedocs.io/en/release-1.0/user/SDarnRead/) for more info.
+`plot_pwr0_statistic` simply plots statistical calculation of `pwr0`, lag 0, in the loaded in RAWACF file. 
 
-Basic code to plot a time series from a FITACF file would look like:
+Basic code to plot lag 0, will plot the mean of `pwr0` for all frequencies at beam 0, from a RAWACF file would look like:
 ```python
 import matplotlib.pyplot as plt
-
 import pydarn
 
-file = "20190831.C0.cly.fitacf"
+file = "20180101.0000.01.rkn.rawacf"
 sdarn_read = pydarn.SuperDARNRead(file)
-fitacf_data = sdarn_read.read_fitacf()
- 
-pydarn.RTP.plot_time_series(fitacf_data)
+rawacf_data = sdarn_read.read_rawacf()
+
+pydarn.ACF.plot_acfs(rawacf_data)
 plt.show()
-```    
-If no scalar parameter is specified (using `parameter=string`), or beam (using `beam_num=int`), then the default is a `tfreq` time series from beam 0. 
+```  
 
-In a similar way to RTP, you also have access to numerous plotting options:
+![](../imgs/power_plot1.png)
 
-
-| Parameter                    | Action                                                      |
-|------------------------------|-------------------------------------------------------------|
-| start_time=(datetime object) | Control the start time of the plot                          |
-| end_time=(datetime object)   | Control the end time of the plot                            |
-| date_fmt=(string)            | How the x-tick labels look. Default is ('%y/%m/%d\n %H:%M') |
-| channel=(int or string)      | Choose which channel to plot. Default is 'all'.             |
-| cp_name=(bool)               | Print the name of the cpid when plotting cpid timeseries' |
+You also have access to numerous plotting options:
 
 
-For example, checking out the cpid's for a 24hour Clyde FITACF file:
+| Parameter                  | Action                                                   |
+| -------------------------- | -------------------------------------------------------- |
+| beam_bum=0                 | beam number to plot                                      |
+| min_frequency              | minimum Frequency (inclusive) to plot                    |
+| max_frequency              | maximum Frequency (inclusive) to plot                    |
+| split_frequency            | specific frequency to look for or split between          |
+| statistical_method=np.mean | the statistical calculation to apply to the `pwr0` array |
+
+If you want display only one frequency set `min_frequency = max_frequency`:  
 
 ```python
-plt.title("20180101, Beam 7, CLY")
-pydarn.RTP.plot_time_series(fitacf_data, parameter='cp', date_fmt=('%H:%M'), beam_no=7)
+import pydarn
+import matplotlib.pyplot as plt 
+
+rawacf_file = 'data/20201001.0200.00.sas.0.rawacf.hdf5'
+rawacf_data = pydarn.SuperDARNRead().read_borealis(rawacf_file)
+pydarn.Power.plot_pwr0_statistic(rawacf_data, beam_num=3, min_frequency=10500, max_frequency=10500)
 plt.show()
 ```    
-![](../imgs/cpid_eg.png)
+![](../imgs/power_plot2.png)
+
+!!! Warning
+    If the radar is running non-normal scan mode then the this may produce a blank plot or raise an error of **No Data Found**. 
+    Also, **ROS** superDARN radars will vary slightly in a frequency thus causing issues for picking a specific frequency. 
+
+
+You can also split the frequencies to compare by using the `split_frequency`:
+
+``` python
+import pydarn
+import matplotlib.pyplot as plt 
+
+rawacf_file = 'data/20180404.0601.00.lyr.rawacf'
+rawacf_data = pydarn.SuperDARNRead(rawacf_file).read_rawacf()
+pydarn.Power.plot_pwr0_statistic(rawacf_data, beam_num=15, split_frequency=11000, max_frequency=12000)
+plt.show()
+```
+
+![](../imgs/power_plot3.png)
+
+!!! Note
+    Depending on the mode that is being ran, type of radar system, and the frequency range you may get this error `plot_exceptions.NoDataFoundError`. Make sure you know your frequency range for your data as there might be data the parameters need to be tweaked a bit.  
