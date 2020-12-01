@@ -189,7 +189,7 @@ class Power():
 
                 # if min=max=split frequency this is the same as
                 # split and compare = False
-                else:
+                elif max_frequency != min_frequency:
                     # plot all low and high frequencies between
                     # min and max frequency
                     records_of_interest = cls.\
@@ -215,6 +215,14 @@ class Power():
                     plt.subplot(2, 1, 2)
                     cls.__plot_pwr0(high_frequency_records, beam_num,
                                     statistical_method, False)
+                else:
+                    records_of_interest = cls.\
+                        __apply_stat2pwr0(records, statistical_method,
+                                          beam_num, '==', split_frequency)
+                    cls.__plot_pwr0(records_of_interest, beam_num,
+                                    statistical_method)
+
+
 
     @staticmethod
     def __plot_pwr0(records: list, beam_num: int, statistical_method: object,
