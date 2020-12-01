@@ -22,3 +22,5 @@ If you have any questions or concerns please submit an **Issue** on the SuperDAR
         - [Time-Series plots](user/time_series.md)
         - [Summary plots](user/summary.md)
     - [Logging](user/logging.md)
+  - pyDARN Team 
+    - [Testing Pull Requests](dev/testing.md) 
