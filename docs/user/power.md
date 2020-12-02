@@ -1,6 +1,6 @@
 ### Statistical Power Plots
 
-`plot_pwr0_statistic` simply plots statistical calculation of `pwr0`, lag 0, in the loaded in RAWACF file. 
+`plot_pwr0_statistic` plots various statistical calculations of `pwr0`, lag 0, in the selected RAWACF file. 
 
 Basic code to plot lag 0, will plot the mean of `pwr0` for all frequencies at beam 0, from a RAWACF file would look like:
 ```python
@@ -22,7 +22,7 @@ You also have access to numerous plotting options:
 
 | Parameter                  | Action                                                   |
 | -------------------------- | -------------------------------------------------------- |
-| beam_bum=0                 | beam number to plot                                      |
+| beam_num=0                 | beam number to plot                                      |
 | min_frequency              | minimum Frequency (inclusive) to plot                    |
 | max_frequency              | maximum Frequency (inclusive) to plot                    |
 | split_frequency            | specific frequency to look for or split between          |
@@ -34,7 +34,7 @@ If you want display only one frequency set `min_frequency = max_frequency`:
 import pydarn
 import matplotlib.pyplot as plt 
 
-rawacf_file = 'data/20201001.0200.00.sas.0.rawacf.hdf5'
+rawacf_file = '20201001.0200.00.sas.0.rawacf.hdf5'
 rawacf_data = pydarn.SuperDARNRead().read_borealis(rawacf_file)
 pydarn.Power.plot_pwr0_statistic(rawacf_data, beam_num=3, min_frequency=10500, max_frequency=10500)
 plt.show()
@@ -46,7 +46,7 @@ plt.show()
     Also, **ROS** superDARN radars will vary slightly in a frequency thus causing issues for picking a specific frequency. 
 
 
-You can also split the frequencies to compare by using the `split_frequency`:
+To compare data above and below a specific frequency, you can compare by using the `split_frequency` option:
 
 ``` python
 import pydarn
@@ -61,4 +61,4 @@ plt.show()
 ![](../imgs/power_plot3.png)
 
 !!! Note
-    Depending on the mode that is being ran, type of radar system, and the frequency range you may get this error `plot_exceptions.NoDataFoundError`. Make sure you know your frequency range for your data as there might be data the parameters need to be tweaked a bit.  
+    Depending on the mode that is being run, type of radar system, and the frequency range you may get this error `plot_exceptions.NoDataFoundError`. Make sure you know the frequency range for your data as there might be data at a different frequency range, the parameters just need to be tweaked a bit.  
