@@ -38,7 +38,7 @@ You also have access to numerous plotting options:
 
 
 
-For example, to plot blanked lags:
+If blank lags are present in the data, it will look similar to the following: 
 
 ```python
 import pydarn
