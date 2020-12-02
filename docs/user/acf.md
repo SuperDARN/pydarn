@@ -50,4 +50,5 @@ rawacf_data = pydarn.SuperDARNRead(rawacf_file).read_rawacf()
 pydarn.ACF.plot_acfs(rawacf_data, beam_num=15, gate_num=16, start_time=datetime(2014, 1, 5, 13, 30))
 plt.show()
 ```    
+
 ![](../imgs/plot_acf_2.png)
