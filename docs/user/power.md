@@ -1,6 +1,14 @@
 ### Statistical Power Plots
 
-`plot_pwr0_statistic` plots various statistical calculations of `pwr0`, lag 0, in the selected RAWACF file. 
+This function will calculate and plot a statistic of the lag-0 power of each record as a function of time.
+
+This function applies the statistical function (ex. numpy.mean) to the pwr0 vector (lag-0 power for each range) for each record
+before plotting the results from all records chronologically.
+
+This code can be used to study background interference in rawacf data
+when the radar has been operating in a receive-only mode such as
+"politescan" (cpid -3380), or during periods without any obvious
+coherent scatter returns from any range.
 
 Basic code to plot lag 0, will plot the mean of `pwr0` for all frequencies at beam 0, from a RAWACF file would look like:
 ```python
