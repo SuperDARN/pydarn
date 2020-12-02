@@ -7,7 +7,7 @@ Basic code to plot ACFs from a RAWACF file would look like:
 import matplotlib.pyplot as plt
 import pydarn
 
-file = "20190831."
+file = "20180101.0000.01.rkn.rawacf"
 sdarn_read = pydarn.SuperDARNRead(file)
 rawacf_data = sdarn_read.read_rawacf()
  
