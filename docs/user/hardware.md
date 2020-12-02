@@ -77,7 +77,7 @@ _Radar(name='Prince George', institution='University of Saskatchewan', hemispher
 
 # Updating Radar and Hardware Information
 
-Radar hardware is infrequently updated or changed. To update your hardware files without updating or reinstalling pyDARN use the following command:
+pyDARN does not release new versions based on hardware file changes. Because hardware files change infrequently you can update the hardware files in pyDARN by using the following command:
 ``` python
 import pydarn
 pydarn.get_hdw_files()
