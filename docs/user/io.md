@@ -61,6 +61,19 @@ map_data = SDarn_read.read_map()
 
 cpcps=[i['pot.drop'] for i in map_data]
 ```
+## Converting Borealis Files
+Borealis data is often kept in RAWACF or BFIQ data formats. To be able to plot this data they must be converted into a SuperDARN data format.
+In pyDARN, you can use the following example code to convert:
+
+```python
+import pydarn
+borealis_file = "path/to/file"
+sdarn_data = SuperDARNRead.read_borealis(borealis_file)
+```
+You can then use the dictionary of data in sdarn_data for your plotting needs.  
+In addition, you can select a specific *slice* to convert by assigning `slice_id = 0` in the options. This option is required for files produced before Borealis v0.5 was released.
+
+
 ## Other Examples
 
 Other examples of using pyDARN with file reading is for reading in multiple 2-hour files, sorting them, and concatenating the data together.
