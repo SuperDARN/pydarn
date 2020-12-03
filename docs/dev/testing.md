@@ -8,6 +8,11 @@ Every contribution helps!
 
 ## Setting up the testing environment
 
+If you haven't cloned pyDARN before this will get you the correct branch installed to just test:
+`pip install git+https://github.com/superdarn/pydarn@<branchname>`
+
+
+If you wish to clone pyDARN for multi-branch comparison or testing in the future: 
 1. Clone the [pyDARN repository](https://github.com/SuperDARN/pydarn.git) by typing 
   `git clone https://github.com/SuperDARN/pydarn.git`
   into the terminal or command line.
@@ -26,9 +31,7 @@ These lines *fetch* metadata on any new branches made, *checkout* the right bran
     python3 -m virtual <environment name>
     source <environment name>/bin/activate
     ```
-    
-    !!! Note
-        To install python's virtual environment library `https://github.com/SuperDARN/pydarn.git`
+    for more information on [python virtual environment](https://docs.python.org/3.6/tutorial/venv.html) or to use conda with pyDARN see the [installation documentation](../user/install.md)
 
 4. Next install the branch you are testing: `cd cloned/pydarn/` and `pip3 install . --user`
 5. Once this is complete follow any test cases the documentation and Pull Request the author describes. 
