@@ -1,22 +1,23 @@
 # Testing Pull Requests 
 
-One way to help pyDARN get developed faster and smoothly is by testing [Pull Requests](https://github.com/SuperDARN/pydarn/pulls). 
-Sometimes this can take fifteen minutes to do which helps the developer merge their code in 
-and allowing you on the author list. 
+One way to help pyDARN get developed faster and smoother is by testing [Pull Requests](https://github.com/SuperDARN/pydarn/pulls). 
+This can take fifteen minutes or less to do, helps the developer merge their code,
+and allows you to be on the author list!
 
 Every contribution helps! 
 
 ## Setting up the testing environment
 
-1. clone the [pyDARN repository](https://github.com/SuperDARN/pydarn.git)
+1. Clone the [pyDARN repository](https://github.com/SuperDARN/pydarn.git) by typing 
   `git clone https://github.com/SuperDARN/pydarn.git`
+  into the terminal or command line.
 2. Then checkout the branch you need to test or test against. The author of the Pull Request should give you some information on how to test the code and if you need to checkout other branches to compare results. To checkout a branch you want to test use this git commands:
     ```bash
     git fetch 
     git checkout <branch name>
     git pull origin <branch name>
     ```
-
+These lines *fetch* metadata on any new branches made, *checkout* the right branch you want to test and then *pull* changes to that branch so you're not behind any new changes made.
     !!! Note 
         if you are unaware what the branch name is at the top of the page below the Pull Request title and number shows the branch name and which branch it will be merged into. 
 
