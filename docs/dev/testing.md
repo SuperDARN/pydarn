@@ -34,7 +34,7 @@ These lines *fetch* metadata on any new branches made, *checkout* the right bran
     ```
     for more information on [python virtual environment](https://docs.python.org/3.6/tutorial/venv.html) or to use conda with pyDARN see the [installation documentation](../user/install.md)
 
-4. Next install the branch you are testing: `cd cloned/pydarn/` and `pip3 install . --user`
+4. Next install the branch you are testing by moving to the pyDARN directory you just cloned and running `pip3 install . --user`
 5. Once this is complete follow any test cases the documentation and Pull Request the author describes. 
 Report anything in the Pull Request comments about how you tested the code, what your output is, and any feedback, or information.
 6. Once you are satisfied with the Pull Request, **approve** it by clicking on the top `Files changed` then clicking Review changes and select *Approve*
