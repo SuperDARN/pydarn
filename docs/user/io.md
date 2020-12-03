@@ -45,6 +45,15 @@ with bz2.open(fitacf_file) as fp:
 reader = pydarn.SuperDARNRead(fitacf_stream, True)
 records = reader.read_fitacf()
 ```
+## Generic SuperDARN File Reading
+In the previous sections, you needed to tell the code which file you want to open, i.e. `read_fitacf` for a FITACF file. The following method will check to see which file type the file is and open it for you. 
+
+```python
+import pydarn
+file = "path/to/file"
+data = pydarn.SuperDARNRead.read_dmap(file)
+```
+Currently, this method will open FITACF, RAWACF and IQDAT format files. The method also unzips .bz2 files.
 
 ## Accessing data fields
 To see the names of the variables you've loaded in and now have access to, try using the `keys()` method:
@@ -67,8 +76,9 @@ In pyDARN, you can use the following example code to convert:
 
 ```python
 import pydarn
+
 borealis_file = "path/to/file"
-sdarn_data = SuperDARNRead.read_borealis(borealis_file)
+sdarn_data = pydarn.SuperDARNRead.read_borealis(borealis_file)
 ```
 You can then use the dictionary of data in sdarn_data for your plotting needs.  
 In addition, you can select a specific *slice* to convert by assigning `slice_id = 0` in the options. This option is required for files produced before Borealis v0.5 was released.
