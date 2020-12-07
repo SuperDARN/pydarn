@@ -37,6 +37,7 @@ These lines *fetch* metadata on any new branches made, *checkout* the right bran
 4. Next install the branch you are testing by moving to the pyDARN directory you just cloned and running `pip3 install . --user`
 5. Once this is complete follow any test cases the documentation and Pull Request the author describes. 
 Report anything in the Pull Request comments about how you tested the code, what your output is, and any feedback, or information.
+Note: To suggest changes to and/or comment on certain sections of code, navigate to the Files Changed tab where it is possible to select multiple lines of code by clicking and dragging the '+' symbol next to line of code.
 6. Once you are satisfied with the Pull Request, **approve** it by clicking on the top `Files changed` then clicking Review changes and select *Approve*
 
 !!! Note
