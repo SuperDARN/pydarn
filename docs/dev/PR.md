@@ -1,7 +1,7 @@
 # Pull Requests 
 
 Pull Requests in GitHub are a nice means of allowing others to review and test your code. 
-This allows community to know what is coming up in pyDARN and be part of the collaboration.  
+This allows members of the community to know what is coming up in new releases of pyDARN and be part of the collaboration.  
 
 
 ## Code Check List
@@ -10,7 +10,7 @@ Before submitting a PR check the code check list first:
 - [ ] copyright and disclaimer, or modification line is added 
 - [ ] the code installs with python 3.6 and higher 
 - [ ] documentation is updated or in another PR for users 
-- [ ] Follows PEP8 and padas code/doc style
+- [ ] Follows PEP8 and pandas code/doc style
 - [ ] unit tests or various testing has been added/done 
 - [ ] code is on its own *git* branch
 - [ ] all code is pushed to the branch 
@@ -29,7 +29,7 @@ When in doubt merge to `develop`! Otherwise here are some other options:
 
 ### Writing a PR
 
-Follow the template to fill out the required sections if not here is a check list to ensure you have all the information: 
+Follow the template to fill out the required sections. If there is no template, here is a check list to ensure you have all the information: 
 - [ ] Informative title 
 - [ ] Description of the changes you made 
 - [ ] Scope on what people should focus on 
@@ -49,7 +49,7 @@ Here are some things you can do to get more attention:
 
 ### Draft or not to Draft? 
 
-Draft Pull Requests are a way to ensure reviewers no this code is not intended to be `merged` right away. 
+Draft Pull Requests are a way to tell reviewers that this code is not intended to be `merged` right away. 
 These kinds of pull requestions are handy for the following situations:
 - It has multiple other PRs that are merging to it that needed to be tested/reviewed first 
 - Has a major bug or need further work but you are looking for input and want to show others the changes you have done
@@ -61,6 +61,5 @@ Here are some general guidelines to follow with Pull Requests:
 - Make sure your code is fully complete before making a PR to avoid commit emails occurring frequently 
 - Make sure your code is tested on various operating systems if needed 
 - Make sure your code is reviewed in a Code Review 
-
 
 
