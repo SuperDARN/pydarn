@@ -23,4 +23,6 @@ If you have any questions or concerns please submit an **Issue** on the SuperDAR
         - [Summary plots](user/summary.md)
     - [Logging](user/logging.md)
   - pyDARN Team 
-    - [Testing Pull Requests](dev/testing.md) 
+    - Pull Requests
+      - [Testing](dev/testing.md)
+      - [Creating and Guidelines](dev/PR.md)
