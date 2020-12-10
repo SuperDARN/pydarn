@@ -12,7 +12,7 @@ author(s) Marina Schmidt-->
 
 ## Prerequisites
 
-PyDARN requires **python 3.6** or later.
+pyDARN requires **python 3.6** or later.
 
 Depending on your operating system or distribution, the following package installers, development environments or data parsers are required: 
  

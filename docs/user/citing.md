@@ -24,37 +24,10 @@ Possible services:
 
 # Citing pyDARN
 
-## Bibtex
-
-```latex
-@Misc = [pydarn,
-author={Schmidt, M.T. and Detwiller, M.H. and
-Billet, D.D. and 
-Bland, E. C. and 
-Burrell, A. G. and
-Herlingshaw, K. and
-Krieger, K. and 
-Kotyk, K. and
-Martin, C. J. and
-Peters, D. GO. and 
-Reimer, A. S. and
-Reistad, J. P. and
-Robertson, C. R. and 
-Sterne, K. T. and
-Thomas, E. G.}, 
-title={pyDARN},
-month=jan(*update before release*),
-year=2020(*update before release*),
-doi=[],
-url={}
-] 
-```
-
 ## DOI's 
 
 - Release 1.0.0 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3727270.svg)](https://doi.org/10.5281/zenodo.3727270)
 - Release 1.1.0 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3978643.svg)](https://doi.org/10.5281/zenodo.3978643)
-- Release 1.2.0 [![DOI](add new zenodo link here)]()
 
 ## Acknowledgements
 

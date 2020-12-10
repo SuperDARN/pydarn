@@ -1,8 +1,8 @@
 ![pydarn](imgs/pydarn_logo.png)
 
-PyDARN is an open source python library for 
+pyDARN is an open source python library for 
 data visualization of SuperDARN data.
-PyDARN also includes support of Input/Output reading of SuperDARN DMAP format files via the io package [pyDARNio](https://pydarnio.readthedocs.io/en/latest/). 
+pyDARN also includes support of Input/Output reading of SuperDARN DMAP format files via the io package [pyDARNio](https://pydarnio.readthedocs.io/en/latest/). 
 
 ## Source Code 
 
@@ -23,3 +23,5 @@ If you have any questions or concerns please submit an **Issue** on the SuperDAR
         - [Summary plots](user/summary.md)
         - [ACF plotting](user/acf.md)
     - [Logging](user/logging.md)
+  - pyDARN Team 
+    - [Testing Pull Requests](dev/testing.md) 
