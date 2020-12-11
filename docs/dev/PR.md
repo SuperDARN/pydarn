@@ -34,7 +34,7 @@ Follow the template to fill out the required sections. If there is no template, 
 - [ ] Description of the changes you made 
 - [ ] Scope on what people should focus on 
 - [ ] How to install the code if there is any changes 
-- [ ] How to test the code and expected output 
+- [ ] Code fragments showing how to test the code and expected output/plots
 - [ ] Extra details 
 
 ### Extra Tidbits
@@ -61,5 +61,4 @@ Here are some general guidelines to follow with Pull Requests:
 - Make sure your code is fully complete before making a PR to avoid commit emails occurring frequently 
 - Make sure your code is tested on various operating systems if needed 
 - Make sure your code is reviewed in a Code Review 
-
 
