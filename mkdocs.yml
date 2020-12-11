@@ -20,6 +20,8 @@ nav:
             - Time-Series plots: user/time_series.md 
             - Summary plots: user/summary.md
             - Power plots: user/power.md
+            - ACF plots: user/acf.md
         - Logging: user/logging.md
     - pyDARN Team:
-       - Testing Pull Requests: dev/testing.md
+        - Testing Pull Requests: dev/testing.md
+
