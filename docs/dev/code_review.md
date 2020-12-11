@@ -1,43 +1,43 @@
 # Code Reviews 
 
-Reviewing code is like proof reading a paper, it essential to ensure the followig: 
+Reviewing code is like proof reading a paper, it is essential to ensure the following: 
 
 - code is user readable
-- follows consistency
-- helps create collaboration
-- structure is proper
+- enforces consistency
+- helps encourage collaboration
+- code has a proper structure
 
 !!! Note
     Code review is not meant for debugging or finding bugs
 
-Anyone can code review even if you don't program in the native language, which is python for pyDARN. 
-Doing code reviews can also be good learning experiences to better understand the software and how to program. 
+Anyone can code review even if you don't program in the native language, which for pyDARN is python. 
+Code reviewing is also an excellent learning experience which helps you better understand the software and how to program in general. 
 
 Code reviews should not take more than an hour and Pull Requests should be less than 400 lines.
-However, this is challenging for new features and major changes. 
-If this is the case, then code review parts or specific files to reduce your time spent. 
+However, these restrictions can be challenging for new features and major changes. 
+If this is the case, then you can code review parts of a file or specific files to reduce your time spent. 
 
 ## How to start a Code Review 
 
 1. Pick a Pull Request to code review, which can be found [here](https://github.com/SuperDARN/pydarn/pulls)
-2. Click on `files chaned` at the top of the PR conversation below the title on the right side 
-3. Now review the changes that occurred in this PR - avoid commenting on other lines as this is scope creep.
+2. Click on `files changed` at the top of the PR conversation below the title on the right side 
+3. Now review the changes that occurred in this PR - avoid commenting on other lines not included in the changes as this is `scope creep`.
 4. If you want to make a comment hover the cursor over the line numbers on the left side and a **+** button will appear. Click it!
-5. Now right any feedback or questions in the box and hit `Start a review` on the bottom right in the pop up window. 
+5. Now write any feedback or questions in the box and hit `Start a review` on the bottom right in the pop up window. 
     
     !!! Warning
         Do not make several single comments as this can cause a lot of email notifications
 
-6. If you want to change a line in the code use [suggestion](https://haacked.com/archive/2019/06/03/suggested-changes/)
-7. If you wish comment on several consecutive lines hold **+** down and drag the cursor down to select multiple lines
-8. Once you are done, click on `Finish your changes` or `Review channges` (if no comments made) then comment on any general feedback in the text box
+6. If you want to change a line in the code use a [suggestion](https://haacked.com/archive/2019/06/03/suggested-changes/)
+7. If you wish to comment on several consecutive lines hold **+** down and drag the cursor down to select multiple lines
+8. Once you are done, click on `Finish your changes` or `Review changes` (if no comments made) then comment on any general feedback in the text box
 9. Select:  
   - Comment: general comments to be fixed up but nothing major
   - Approve: everything looks good no changes needed
   - Request Changes: major changes to make
       
     !!! Warning
-        Request changes, present anyone from merging the code. Generally you will need to approve the changes that were addressed. 
+        Request changes, prevents anyone from merging the code. Generally you will need to approve the changes that were addressed. 
         Generally if you cannot do this then do not use Request changes.
 
 10. Submit! 
@@ -53,16 +53,16 @@ Here is a list of what to look for
 - Does it follow [PEP8](https://www.python.org/dev/peps/pep-0008/) style?
 - Is the copyright and license disclaimer in the file?
 - Did they add the modification line if they made updates?
-- Are there doc strings for the class and or functions?
-- Are there confusing variable, function, and/or class names? 
+- Are there doc strings for the class and for functions?
+- Are there confusing variables, functions, and/or class names? 
 - Are there defaults and do they make sense for the function? 
 - Is the code too complex? Could it be simpler? 
 - Do the error messages/exceptions make sense and are helpful?
 - Could there be more comments on certain sections?
 - Are hard coded values documented? 
 - Are algorithms or mathematical equations cited to publication, webpage, or book? 
-- Nomenclature make sense? 
-- Are there any cases they may need to consider? 
+- Does the nomenclature make sense? 
+- Are there any cases they may need to reconsider? 
 - Would comments or documentation make sense to the general user?
 
 ## How to speed up code reviews
@@ -70,22 +70,22 @@ Here is a list of what to look for
 Here are some tips and tricks:
 
 - Dedicated a certain amount of time and just review what you can in that time period 
-- Scan missing doc string and obvious mistakes 
+- Scan for missing doc strings and obvious mistakes 
 - Focus on what has been changed 
-- If the issue repeats then make a comment for them to fix the rest and add in the general feedback when submitting the comments 
+- If an issue repeats then make a comment for them to fix the rest and add in the general feedback when submitting the comments 
 - Do not get too pedantic!
 - Break up the reviews if you can only review a few files or functions then do it and mention it. 
 
 ## Reviewing a review 
   
-As a developer you will need to address any comments that come up from code reviews like you would with reviewers comments in paper submission. 
+As a developer you will need to address any comments that come up from code reviews like you would with reviewers comments in a paper submission. 
 Comments should addressed and resolved before merging the code. 
 
 If you do step 2 and look at the comments in `files changed` view you can address multiple comments in one batch. 
 
 ### Batch Committing of Suggestions 
 
-First look for all the suggestion comments and if you agree then add to `batch ssugestions`, once you have gone through all them 
+First look for all the suggestion comments and if you agree then add to `batch suggestions`, once you have gone through all them 
 then at the top in the middle there is `commit suggestions` and this commit all the suggestions for you. 
 
 ### Responding to Comments 
@@ -95,27 +95,27 @@ Remember to hit `Start a review` to prevent multiple email notifications.
 
 If you made the change requested, then select `resolve conflict` so they know you addressed their comment.
 
-If you are answer question or responding to some feedback remember to acknowledge their time, then address it in collaborative manner. 
+If you are answering a question or responding to some feedback, remember to acknowledge their time and effort, then address it in collaborative manner. 
 Remember to hit `Start a review` to prevent multiple email notifications. 
 
-Once all comments are addressed then follow steps 9-10 in the above steps. 
+Once all comments are addressed then follow steps 9-10 in the `How to start a Code Review` section. 
 
 ## General Guidelines
 
 Here are some general guidelines to follow when code reviewing or responding to one: 
 
-- Dedicate time to review of a given period, avoid being distracted 
+- Dedicate time to review in a given period, avoid being distracted 
 - Ask questions instead of stating 
 - Remember to comment on the code 
-- Acknowledge time spent and saying "Thank you" 
+- Acknowledge time spent and say "Thank you" 
 - Suggest solutions or help
 - Avoid aggressive terminology 
 - Avoid reviewing in a bad mood or feeling pressured/rush 
 - Review all comments to make sure it sounds helpful and not demeaning 
 - Avoid pedantic points, focus on what is needed and not personal preferences 
-- Any amount of reviewing small or large is welcoming! 
-- Approve! If things look good approve  the PR this helps with merging to happen
+- Any amount of reviewing small or large is welcome! 
+- Approve! If things look good approve the PR! Approvals take us one step closer to being able to merge the code!
 
 !!! Note
-    If you approve the PR and your the second to approve or there are already 2 approvals and all concerns addressed 
-    please merge the PR! Unless it is a release PR or a PR looking for more approvals. 
+    If you approve the PR and you are the second to approve, or there are already 2 approvals and all concerns are addressed 
+    please merge the PR! Unless it is a release PR or a PR specifically looking for more than two approvals. 
