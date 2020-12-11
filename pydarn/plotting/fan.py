@@ -77,8 +77,20 @@ class Fan():
                 Default: True
             colorbar_label: str
                 the label that appears next to the colour bar. Requires colorbar to be true
-                Default: ''              
-            
+                Default: '' 
+        Returns
+        -----------	
+	    beam_corners_aacgm_lats 
+	        n_beams x n_gates numpy array of AACGMv2 latitudes
+	    beam_corners_aacgm_lons
+	    	n_beams x n_gates numpy array of AACGMv2 longitudes
+	    scan 
+	    	n_beams x n_gates numpy array of the scan data (for the selected parameter)
+	    grndsct
+	    	n_beams x n_gates numpy array of the scan data (for the selected parameter)
+	    dtime
+	    	datetime object for the scan plotted
+             
         """
 		
 		my_path = os.path.abspath(os.path.dirname(__file__))
@@ -143,7 +155,6 @@ class Fan():
 			zmax = defaultzminmax[parameter][1]
 
         # Setup plot
-        # TODO: eek! remeber there is an option to pass in a variable called ax
         # This may screw up references
 		if ax is None:
 			ax = plt.axes(polar=True)
@@ -213,4 +224,4 @@ class Fan():
 			if colorbar_label != '':
 				cb.set_label(colorbar_label)
 
-		return dtime, beam_corners_aacgm_lats, beam_corners_aacgm_lons, scan, grndsct
+		return beam_corners_aacgm_lats, beam_corners_aacgm_lons, scan, grndsct, dtime
