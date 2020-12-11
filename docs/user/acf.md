@@ -7,6 +7,7 @@ Basic code to plot ACFs from a RAWACF file would look like:
 import matplotlib.pyplot as plt
 import pydarn
 
+
 file = "20180101.0000.01.rkn.rawacf"
 sdarn_read = pydarn.SuperDARNRead(file)
 rawacf_data = sdarn_read.read_rawacf()
@@ -35,7 +36,6 @@ You also have access to numerous plotting options:
 | blank_marker='o'       | Choice of marker to indicate blanked lags are a dot (general python markers accepted)             |
 | legend=True            | plot a legend                                                                   |
 | kwargs                 | arguments passed in matplotlib line_plot for real and imaginary plots           |
-
 
 
 If blank lags are present in the data, it will look similar to the following: 
