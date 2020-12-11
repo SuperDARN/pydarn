@@ -1,6 +1,7 @@
 # Code Reviews 
 
 Reviewing code is like proof reading a paper, it essential to ensure the followig: 
+
 - code is user readable
 - follows consistency
 - helps create collaboration
@@ -23,8 +24,10 @@ If this is the case, then code review parts or specific files to reduce your tim
 3. Now review the changes that occurred in this PR - avoid commenting on other lines as this is scope creep.
 4. If you want to make a comment hover the cursor over the line numbers on the left side and a **+** button will appear. Click it!
 5. Now right any feedback or questions in the box and hit `Start a review` on the bottom right in the pop up window. 
+    
     !!! Warning
         Do not make several single comments as this can cause a lot of email notifications
+
 6. If you want to change a line in the code use [suggestion](https://haacked.com/archive/2019/06/03/suggested-changes/)
 7. If you wish comment on several consecutive lines hold **+** down and drag the cursor down to select multiple lines
 8. Once you are done, click on `Finish your changes` or `Review channges` (if no comments made) then comment on any general feedback in the text box
@@ -32,9 +35,11 @@ If this is the case, then code review parts or specific files to reduce your tim
   - Comment: general comments to be fixed up but nothing major
   - Approve: everything looks good no changes needed
   - Request Changes: major changes to make
-  !!! Warning
-      Request changes, present anyone from merging the code. Generally you will need to approve the changes that were addressed. 
-      Generally if you cannot do this then do not use Request changes.
+      
+    !!! Warning
+        Request changes, present anyone from merging the code. Generally you will need to approve the changes that were addressed. 
+        Generally if you cannot do this then do not use Request changes.
+
 10. Submit! 
 
 !!! Note
@@ -44,30 +49,33 @@ If this is the case, then code review parts or specific files to reduce your tim
 ### What to look for?
 
 Here is a list of what to look for 
-- [ ] Does it follow PEP8 style?
-- [ ] Is the copyright and license disclaimer in the file?
-- [ ] Did they add the modification line if they made updates?
-- [ ] Are there doc strings for the class and or functions?
-- [ ] Are there confusing variable, function, and/or class names? 
-- [ ] Are there defaults and do they make sense for the function? 
-- [ ] Is the code too complex? Could it be simpler? 
-- [ ] Do the error messages/exceptions make sense and are helpful?
-- [ ] Could there be more comments on certain sections?
-- [ ] Are hard coded values documented? 
-- [ ] Are algorithms or mathematical equations cited to publication, webpage, or book? 
-- [ ] Nomenclature make sense? 
-- [ ] Are there any cases they may need to consider? 
-- [ ] Would comments or documentation make sense to the general user?
+
+- Does it follow [PEP8](https://www.python.org/dev/peps/pep-0008/) style?
+- Is the copyright and license disclaimer in the file?
+- Did they add the modification line if they made updates?
+- Are there doc strings for the class and or functions?
+- Are there confusing variable, function, and/or class names? 
+- Are there defaults and do they make sense for the function? 
+- Is the code too complex? Could it be simpler? 
+- Do the error messages/exceptions make sense and are helpful?
+- Could there be more comments on certain sections?
+- Are hard coded values documented? 
+- Are algorithms or mathematical equations cited to publication, webpage, or book? 
+- Nomenclature make sense? 
+- Are there any cases they may need to consider? 
+- Would comments or documentation make sense to the general user?
 
 ## How to speed up code reviews
 
 Here are some tips and tricks:
+
 - Dedicated a certain amount of time and just review what you can in that time period 
 - Scan missing doc string and obvious mistakes 
 - Focus on what has been changed 
 - If the issue repeats then make a comment for them to fix the rest and add in the general feedback when submitting the comments 
 - Do not get too pedantic!
 - Break up the reviews if you can only review a few files or functions then do it and mention it. 
+
 ## Reviewing a review 
   
 As a developer you will need to address any comments that come up from code reviews like you would with reviewers comments in paper submission. 
@@ -95,6 +103,7 @@ Once all comments are addressed then follow steps 9-10 in the above steps.
 ## General Guidelines
 
 Here are some general guidelines to follow when code reviewing or responding to one: 
+
 - Dedicate time to review of a given period, avoid being distracted 
 - Ask questions instead of stating 
 - Remember to comment on the code 
