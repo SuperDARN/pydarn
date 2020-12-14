@@ -48,6 +48,11 @@ If this is the case, then you can code review parts of a file or specific files 
         If you did a partial review please select comment. Approve is only done for complete reviews or complete testing 
 
   - Approve: everything looks good no changes needed
+    
+    !!! Note
+        This should only be done on complete code reviews. You can also, revert your approval after it is made if you find something else later. 
+        Do this by going down to the merge button and find your name under approvals and click the three dots and select `re-review` 
+  
   - Request Changes: major changes to make
       
     !!! Warning
