@@ -23,29 +23,35 @@ and click on `New pull request`. If templates are available select which one is 
 ### Merging Direction 
 
 When in doubt merge to `develop`! Otherwise here are some other options:
+
 - merge to another branch if you `checkout` from that branch this helps to break things into smaller parts for quicker review and testing
 - merge to `master` **ONLY** if it is a **HOTFIX** or **RELEASE** branch. 
+  
+  !!! Note
+      **HOTFIX** is a substantial bug fix that prevents users from installing/using pyDARN or giving in accurate data. Document fixes can 
+      also be seen as a **HOTFIX** as they do not require release and DOI'ing on the code. 
+
 - In some cases, documentation can be merged to `master` if it is fixing some typos. 
 
 ### Writing a PR
 
 Follow the template to fill out the required sections. If there is no template, here is a check list to ensure you have all the information: 
-- [ ] Informative title 
-- [ ] Description of the changes you made 
-- [ ] Scope on what people should focus on 
-- [ ] How to install the code if there is any changes 
-- [ ] Code fragments showing how to test the code and expected output/plots
-- [ ] Extra details 
+- Informative title 
+- Description of the changes you made 
+- Scope on what people should focus on 
+- How to install the code if there is any changes 
+- Code fragments showing how to test the code and expected output/plots
+- Extra details 
 
 ### Extra Tidbits
 
 Pull requests on GitHub have other ways to help users know what your PR is all about. 
 Here are some things you can do to get more attention:
-- [ ] assign reviewers you want feedback from 
-- [ ] add labels
-- [ ] assign a project to it if applicable 
-- [ ] assign a milestone if applicable 
-- [ ] Linking issues if applicable
+- assign reviewers you want feedback from 
+- add labels
+- assign a project to it if applicable 
+- assign a milestone if applicable 
+- Linking issues if applicable
 
 ### Draft or not to Draft? 
 
