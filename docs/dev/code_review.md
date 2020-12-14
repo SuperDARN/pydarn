@@ -56,7 +56,7 @@ If this is the case, then you can code review parts of a file or specific files 
       
     !!! Warning
         Request changes, prevents anyone from merging the code. Generally you will need to approve the changes that were addressed. 
-        Generally if you cannot do this then do not use Request changes.
+        If you cannot do this then do not use Request changes.
 
 10. Submit! 
 
@@ -87,7 +87,7 @@ Here is a list of what to look for
 
 Here are some tips and tricks:
 
-- Dedicated a certain amount of time and just review what you can in that time period 
+- Dedicate a certain amount of time and just review what you can in that time period 
 - Scan for missing doc strings and obvious mistakes 
 - Focus on what has been changed 
 - If an issue repeats then make a comment for them to fix the rest and add in the general feedback when submitting the comments 
@@ -136,7 +136,7 @@ Here are some general guidelines to follow when code reviewing or responding to 
 
 !!! Note
     If you approve the PR and you are the second to approve, or there are already 2 approvals and all concerns are addressed 
-    with one approval on testing and one approval on code review, please merge the PR! An exception to this is if  it is a release PR or if more than two approvals are requested in the PR instructions. 
+    with one approval on testing and one approval on code review, please merge the PR! An exception to this is if it is a release PR or if more than two approvals are requested in the PR instructions. 
 
 !!! Note
     Do not be scared to `approve` or `merge` code as it can be reverted quite easily if it needs to be. Also, reach out and ask if you are unsure! 
