@@ -38,7 +38,7 @@ These lines *fetch* metadata on any new branches made, *checkout* the right bran
 5. Once this is complete follow any test cases the documentation and Pull Request the author describes. 
 Report anything in the Pull Request comments about how you tested the code, what your output is, and any feedback, or information.
 Note: To suggest changes to and/or comment on certain sections of code, navigate to the Files Changed tab where it is possible to select multiple lines of code by clicking and dragging the '+' symbol next to line of code.
-6. Once you are satisfied with the Pull Request, **approve** it by clicking on the top `Files changed` then clicking Review changes and select *Approve*
+6. Once you are satisfied with the Pull Request, **approve** it by clicking on the top `Files changed` then clicking Review changes and select *Approve*. Make sure to comment what you did in testing for your approval. 
 
 !!! Note
-    If the Pull Request has more than two approvals with no comments to respond to, then please merge the code. Merge button is at the bottom of the Pull Request page. 
+    If the Pull Request has more than two approvals (one for code review and another for testing) with no comments to respond to, then please merge the code. Merge button is at the bottom of the Pull Request page. 

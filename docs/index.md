@@ -21,8 +21,10 @@ If you have any questions or concerns please submit an **Issue** on the SuperDAR
         - [Range-Time plots](user/range_time.md)
         - [Time-Series plots](user/time_series.md)
         - [Summary plots](user/summary.md)
+        - [Power plots](user/power.md)
+        - [ACF plotting](user/acf.md)
     - [Logging](user/logging.md)
-  - pyDARN Team 
+  - pyDARN Team
     - Pull Requests
-      - [Testing](dev/testing.md)
-      - [Creating and Guidelines](dev/PR.md)
+        - [Testing](dev/testing.md)
+        - [Creating and Guidelines](dev/PR.md)

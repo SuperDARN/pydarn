@@ -45,14 +45,6 @@ class Power():
         "politescan" (cpid -3380), or during periods without any obvious
         coherent scatter returns from any range.
 
-        If you wish to compare the background interference associated with two
-        different frequencies then let compare=true. The frequencies will be
-        organized by the 'frequency' input. For example, if politescan ran
-        with 10.3 and 12.2 MHz then you could let 'frequency' equal 11000.
-        All records with tfreq below 11000 will be separated from those records
-        with tfreq above 11000. If compare = False then frequency is simply
-        the frequency that politescan ran with i.e 12.2 MHz exclusively.
-
         Future Work
         -----------
         Allow for multi-beam comparison to get a directional
@@ -189,7 +181,7 @@ class Power():
 
                 # if min=max=split frequency this is the same as
                 # split and compare = False
-                else:
+                elif max_frequency != min_frequency:
                     # plot all low and high frequencies between
                     # min and max frequency
                     records_of_interest = cls.\
@@ -215,6 +207,14 @@ class Power():
                     plt.subplot(2, 1, 2)
                     cls.__plot_pwr0(high_frequency_records, beam_num,
                                     statistical_method, False)
+                else:
+                    records_of_interest = cls.\
+                        __apply_stat2pwr0(records, statistical_method,
+                                          beam_num, '==', split_frequency)
+                    cls.__plot_pwr0(records_of_interest, beam_num,
+                                    statistical_method)
+
+
 
     @staticmethod
     def __plot_pwr0(records: list, beam_num: int, statistical_method: object,
