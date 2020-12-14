@@ -28,3 +28,5 @@ If you have any questions or concerns please submit an **Issue** on the SuperDAR
     - Pull Requests
         - [Testing](dev/testing.md)
         - [Creating and Guidelines](dev/PR.md)
+        - [Code Reviews](dev/code_review.md)
+
