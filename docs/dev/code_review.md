@@ -6,12 +6,13 @@ Reviewing code is like proof reading a paper, it is essential to ensure the foll
 - enforces consistency
 - helps encourage collaboration
 - code has a proper structure
-
-!!! Note
-    Code review is not meant for debugging or finding bugs
+- Reviewing/Verifying algorithms 
 
 Anyone can code review even if you don't program in the native language, which for pyDARN is python. 
 Code reviewing is also an excellent learning experience which helps you better understand the software and how to program in general. 
+
+If you are more advanced in the native programming language or science being implemented in the code, a short code review on finding any mistakes, or bugs in the code is more than welcome. 
+This is not a requirement as it can be tedious and time consuming, and testing code should show these mistakes/bugs. If you wish to do this you can focus on one portion of the code to comb through. 
 
 Code reviews should not take more than an hour and Pull Requests should be less than 400 lines.
 However, these restrictions can be challenging for new features and major changes. 
@@ -21,6 +22,11 @@ If this is the case, then you can code review parts of a file or specific files 
 
 1. Pick a Pull Request to code review, which can be found [here](https://github.com/SuperDARN/pydarn/pulls)
 2. Click on `files changed` at the top of the PR conversation below the title on the right side 
+    
+    !!! Note 
+        Before starting a code review always check for others comments, if something you have stated is already stated 
+        then you can leave it alone or give a "thumbs up :+1" to the comment to show support. 
+
 3. Now review the changes that occurred in this PR - avoid commenting on other lines not included in the changes as this is `scope creep`.
 4. If you want to make a comment hover the cursor over the line numbers on the left side and a **+** button will appear. Click it!
 5. Now write any feedback or questions in the box and hit `Start a review` on the bottom right in the pop up window. 
@@ -30,9 +36,17 @@ If this is the case, then you can code review parts of a file or specific files 
 
 6. If you want to change a line in the code use a [suggestion](https://haacked.com/archive/2019/06/03/suggested-changes/)
 7. If you wish to comment on several consecutive lines hold **+** down and drag the cursor down to select multiple lines
-8. Once you are done, click on `Finish your changes` or `Review changes` (if no comments made) then comment on any general feedback in the text box
+8. Once you are done, click on `Finish your changes` or `Review changes` (if no comments made) then comment on any general feedback in the text box. This should include what type of review you did:
+  - Testing and a bit of code review to find the bug 
+  - Code review on style/formatting 
+  - Partial code review 
+  - Report if you will be able to continue reviewing or want to test the code as well. 
 9. Select:  
   - Comment: general comments to be fixed up but nothing major
+    
+    !!! Note
+        If you did a partial review please select comment. Approve is only done for complete reviews or complete testing 
+
   - Approve: everything looks good no changes needed
   - Request Changes: major changes to make
       
@@ -114,8 +128,11 @@ Here are some general guidelines to follow when code reviewing or responding to 
 - Review all comments to make sure it sounds helpful and not demeaning 
 - Avoid pedantic points, focus on what is needed and not personal preferences 
 - Any amount of reviewing small or large is welcome! 
-- Approve! If things look good approve the PR! Approvals take us one step closer to being able to merge the code!  Be sure to include in the approval comment what was tested and is being approved.
+- Approve! Make sure to comment what type of approval you are giving, complete testing or a complete reviewing of the code. This will help others know what needs to be done to get the PR closer to `merge` 
 
 !!! Note
     If you approve the PR and you are the second to approve, or there are already 2 approvals and all concerns are addressed 
-    please merge the PR! Unless it is a release PR or a PR specifically looking for more than two approvals. 
+    and one approval is testing and one is code review, please merge the PR! Unless it is a release PR or a PR specifically looking for more than two approvals. 
+
+!!! Note
+    Do not be scared to `approve` or `merge` code as it can be reverted quite easily if it needs to be. Also, reach out and ask if you are unsure! 
