@@ -114,7 +114,7 @@ Here are some general guidelines to follow when code reviewing or responding to 
 - Review all comments to make sure it sounds helpful and not demeaning 
 - Avoid pedantic points, focus on what is needed and not personal preferences 
 - Any amount of reviewing small or large is welcome! 
-- Approve! If things look good approve the PR! Approvals take us one step closer to being able to merge the code!
+- Approve! If things look good approve the PR! Approvals take us one step closer to being able to merge the code!  Be sure to include in the approval comment what was tested and is being approved.
 
 !!! Note
     If you approve the PR and you are the second to approve, or there are already 2 approvals and all concerns are addressed 
