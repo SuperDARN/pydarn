@@ -6,7 +6,7 @@ Reviewing code is like proof reading a paper, it is essential to ensure the foll
 - enforces consistency
 - helps encourage collaboration
 - code has a proper structure
-- Reviewing/Verifying algorithms 
+- The algorithms and software are tested and verified 
 
 Anyone can code review even if you don't program in the native language, which for pyDARN is python. 
 Code reviewing is also an excellent learning experience which helps you better understand the software and how to program in general. 
@@ -36,11 +36,10 @@ If this is the case, then you can code review parts of a file or specific files 
 
 6. If you want to change a line in the code use a [suggestion](https://haacked.com/archive/2019/06/03/suggested-changes/)
 7. If you wish to comment on several consecutive lines hold **+** down and drag the cursor down to select multiple lines
-8. Once you are done, click on `Finish your changes` or `Review changes` (if no comments made) then comment on any general feedback in the text box. This should include what type of review you did:
-  - Testing and a bit of code review to find the bug 
+8. Once you are done, click on `Finish your changes` or `Review changes` (if no comments made) then comment on any general feedback in the text box. This should include what type of review you did and if you will be continuing your review at a later time/date.  Some examples include:
+  - Testing and code review to find a bug 
   - Code review on style/formatting 
   - Partial code review 
-  - Report if you will be able to continue reviewing or want to test the code as well. 
 9. Select:  
   - Comment: general comments to be fixed up but nothing major
     
@@ -137,7 +136,7 @@ Here are some general guidelines to follow when code reviewing or responding to 
 
 !!! Note
     If you approve the PR and you are the second to approve, or there are already 2 approvals and all concerns are addressed 
-    and one approval is testing and one is code review, please merge the PR! Unless it is a release PR or a PR specifically looking for more than two approvals. 
+    with one approval on testing and one approval on code review, please merge the PR! An exception to this is if  it is a release PR or if more than two approvals are requested in the PR instructions. 
 
 !!! Note
     Do not be scared to `approve` or `merge` code as it can be reverted quite easily if it needs to be. Also, reach out and ask if you are unsure! 
