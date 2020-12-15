@@ -29,7 +29,7 @@ When in doubt merge to `develop`! Otherwise here are some other options:
 - merge to `master` **ONLY** if it is a **HOTFIX** or **RELEASE** branch. 
 
     !!! Note
-        **HOTFIX** is a substantial bug fix that prevents users from installing/using pyDARN or giving in accurate data. Document fixes can 
+        **HOTFIX** is a substantial fix for a bug that prevents users from installing or using pyDARN or gives inaccurate data. Document fixes can 
         also be seen as a **HOTFIX** as they do not require release and DOI'ing on the code. 
 
 - In some cases, documentation can be merged to `master` if it is fixing some typos. 
@@ -72,4 +72,3 @@ Here are some general guidelines to follow with Pull Requests:
 - Make sure your code is fully complete before making a PR to avoid commit emails occurring frequently 
 - Make sure your code is tested on various operating systems if needed 
 - Make sure your code is reviewed in a Code Review 
-
