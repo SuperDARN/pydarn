@@ -1,7 +1,7 @@
 # Copyright (C) 2020 SuperDARN Canada, University of Saskatchewan
 # Author: Daniel Billett, Marina Schmidt
 """
-Fan plots, mapped to AACGM coordinates
+Fan plots, mapped to AACGM coordinates in a polar format
 """
 
 import datetime as dt
@@ -12,13 +12,19 @@ import os
 from matplotlib import ticker, cm, colors
 from typing import List
 
-# third part libs
+# Third party libraries
 import aacgmv2
 
 from pydarn import PyDARNColormaps, build_scan, radar_fov
 
 class Fan():
-    # TODO: Add class documentation
+    """
+    	Fan plots for SuperDARN data
+    	This class inherits from matplotlib to generate the figures
+    	Methods
+    	-------
+    	plot_fan
+    	"""
 
 	def __str__(self):
 		return "This class is static class that provides"\
