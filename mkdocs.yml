@@ -25,5 +25,5 @@ nav:
     - pyDARN Team:
         - Pull Requests:
             - Testing: dev/testing.md
+            - Creating and Guidelines: dev/PR.md
             - Code Reviews: dev/code_review.md
-
