@@ -89,8 +89,52 @@ produces:
 
 Feel free to choose a color map which is palatable for your needs.
 
+!!! Warning
+    If the data contains `-inf` or `inf` a warning will be presented and the following parameters will be defaults to the scale:
+
+| Parameter | Name            | Scale       |
+| --------- | --------------- | ----------- |
+| `v`       | velocity        | (-200, 200) |
+| `p_l`     | Signal to Noise | (0, 45)     |
+| `w_l`     | Spectral Width  | (0, 250)    |
+| `elv`     | Elevation       | (0, 45)     |
+
+Example:
+
+```python
+import pydarn
+import pydarnio
+import matplotlib.pyplot as plt 
+
+fitacf_file = 'data/20161014.1401.00.rkn.lmfit2'
+fitacf_reader = pydarnio.SDarnRead(fitacf_file)
+fitacf_data = fitacf_reader.read_fitacf()
+pydarn.RTP.plot_range_time(fitacf_data, beam_num=7, parameter='p_l')
+plt.show()
+```
+
+***console output***
+
+```bash
+UserWarning: Warning: zmin is -inf, set zmin to 0. You canset zmin and zmax in the functions options
+```
+
+![](../imgs/rtp_rkn_lmfit2.png)
+
+!!! Warning
+    When using filters on data you may remove all data or some data which causes a `NoDataError` or stripping in the plot
 
 
+Example of data looking stripping from filtering setting
+
+```python
+filts = {'min_scalar_filter':{'tfreq': 11000}}
+pydarn.RTP.plot_range_time(fitacf_data, beam_num=7, parameter='p_l', 
+                           filter_settings=filts)
+plt.show()
+```
+
+![](../imgs/rtp_stripping.png)
 
 
 
