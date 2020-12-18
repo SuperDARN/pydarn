@@ -57,7 +57,7 @@ class RTP():
                         colorbar: plt.colorbar = None, ymax: int = None,
                         slant: bool = True, colorbar_label: str = '',
                         norm=colors.Normalize,
-                        cmap: str = PyDARNColormaps.PYDARN_VELOCITY,
+                        cmap: str = None,
                         filter_settings: dict = {},
                         date_fmt: str = '%y/%m/%d\n %H:%M', **kwargs):
         """
@@ -333,9 +333,33 @@ class RTP():
             y = gate2slant(cls.dmap_data[0], y_max)
         time_axis, y_axis = np.meshgrid(x, y)
         z_data = np.ma.masked_where(np.isnan(z.T), z.T)
+        Default = {'noise.sky': (1e0, 1e5),
+          'tfreq': (8, 22),
+          'nave': (0, 60),
+          'p_l': (0, 45),
+          'v': (-200, 200),
+          'w_l': (0, 250),
+          'elv': (0, 45)}
+
+        if np.isinf(zmin) and zmin < 0:
+            zmin = Default[parameter][0]
+            warnings.warn("Warning: zmin is -inf, set zmin to {}. You can"
+                          "set zmin and zmax in the functions"
+                          " options".format(zmin))
+        if np.isinf(zmax) and zmax > 0:
+            zmax = Default[parameter][1]
+            warnings.warn("Warning: zmin is inf, set zmax to {}. You can"
+                          "set zmin and zmax in the functions"
+                          " options".format(zmax))
         norm = norm(zmin, zmax)
         if isinstance(cmap, str):
             cmap = cm.get_cmap(cmap)
+        else:
+            cmaps = {'p_l': 'plasma',
+                    'v': PyDARNColormaps.PYDARN_VELOCITY,
+                    'w_l': PyDARNColormaps.PYDARN_VIRIDIS,
+                    'elv': PyDARNColormaps.PYDARN}
+            cmap=cmaps[parameter]
 
         if isinstance(groundscatter, str):
             cmap.set_under(groundscatter, 1.0)
@@ -403,7 +427,6 @@ class RTP():
                                                       norm) from None
         if colorbar_label != '':
             cb.set_label(colorbar_label)
-
         warnings.warn("Please make sure to cite pyDARN in publications that"
                       " use plots created by pyDARN using DOI:"
                       " https://zenodo.org/record/3978643. Citing information"
