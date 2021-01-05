@@ -344,7 +344,7 @@ class RTP():
         if np.isinf(zmin) and zmin < 0:
             zmin = Default[parameter][0]
             warnings.warn("Warning: zmin is -inf, set zmin to {}. You can"
-                          "set zmin and zmax in the functions"
+                          "set zmin and zmax in the function"
                           " options".format(zmin))
         if np.isinf(zmax) and zmax > 0:
             zmax = Default[parameter][1]
