@@ -1,9 +1,22 @@
 <!--Copyright (C) SuerDARN Canada, University of Saskatchewan 
-Author(s): Marina Schmidt -->
+Author(s): Marina Schmidt 
+Modifications:
+2020-12-01 Carley Martin added git_hdw_file
+2020-01-05 Marin Schmidt switched VT hardware repo to SuperDARN hardware repo
+
+Disclaimer:
+pyDARN is under the LGPL v3 license found in the root directory LICENSE.md 
+Everyone is permitted to copy and distribute verbatim copies of this license 
+document, but changing it is not allowed.
+
+This version of the GNU Lesser General Public License incorporates the terms
+and conditions of version 3 of the GNU General Public License, supplemented by
+the additional permissions listed below.
+-->
 # Accessing Hardware File Information 
 
-SuperDARN Radar hardware information is stored in hardware files located [here](https://github.com/vtsuperdarn/hdw.dat). 
-pyDARN pulls down the hardware files from the `master` branch on the [repository](https://github.com/vtsuperdarn/hdw.dat) to obtain geographical and hardware information for plotting functionality. 
+SuperDARN Radar hardware information is stored in hardware files located [here](https://github.com/SuperDARN/hdw). 
+pyDARN pulls down the hardware files from the `master` branch on the [repository](https://github.com/SuperDARN/hdw) to obtain geographical and hardware information for plotting functionality. 
 
 Users can also read and access these hardware files information by using the function `read_hdw_file`.
 ``` python 
@@ -28,7 +41,7 @@ hdw_data = pydarn.read_hdw_file('gbr', datetime(2003 3, 20))
 print(hdw_data.gates)
 ```
 
-expected output: 
+Expected output: 
 ``` python
 75
 ```
@@ -53,7 +66,7 @@ Other information a user can access from the `_HdwInfo` object is:
 | `beams`                 | Maximum beams the radar has                                                                                                                                                     |
 
 !!! Note
-    For more detailed information on all the fields in a hardware file, please read the hardware file found on the [Virginia Tech SuperDARN repository](https://github.com/vtsuperdarn/hdw.dat).
+    For more detailed information on all the fields in a hardware file, please read the [hardware repo README.md](https://github.com/SuperDARN/hdw).
 
 # Accessing Radar and Hardware Information
 
