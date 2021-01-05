@@ -96,3 +96,7 @@ import pydarn
 pydarn.get_hdw_files()
 ```
 This should also replace any missing files.
+
+# Troubleshooting
+
+If you get an error on importing pyDARN regarding hardware files or the `get_hdw_files()` is not getting the required files to run pyDARN please create an [issue](https://github.com/SuperDARN/pydarn/issues) detailing your computer specifications, commands used to get the error, and output of the error. 
