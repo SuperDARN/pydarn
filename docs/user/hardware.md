@@ -1,4 +1,4 @@
-<!--Copyright (C) SuerDARN Canada, University of Saskatchewan 
+<!--Copyright (C) SuperDARN Canada, University of Saskatchewan 
 Author(s): Marina Schmidt 
 Modifications:
 2020-12-01 Carley Martin added git_hdw_file
