@@ -71,6 +71,7 @@ which gives:
 You can change the boundaries on all of the panels by adding more keys to the dictionary. The keys must be named correctly to work, using the strings at the top of this tutorial.
 
 Other common options include:
+
 | Parameter        | Action                                                                   |
 |------------------|--------------------------------------------------------------------------|
 | channel=(int)    | Specify channel number (default=all)                                     |
