@@ -1,3 +1,19 @@
+<!--Copyright (C) SuerDARN Canada, University of Saskatchewan 
+Author(s): Marina Schmidt 
+Modifications:
+2020-12-01 Carley Martin updated documentation
+
+Disclaimer:
+pyDARN is under the LGPL v3 license found in the root directory LICENSE.md 
+Everyone is permitted to copy and distribute verbatim copies of this license 
+document, but changing it is not allowed.
+
+This version of the GNU Lesser General Public License incorporates the terms
+and conditions of version 3 of the GNU General Public License, supplemented by
+the additional permissions listed below.
+-->
+
+
 # Summary plots 
 
 Summary plots in SuperDARN are a collection of set parameter plots from a FITACF file. The parameters typically in the plots are:
