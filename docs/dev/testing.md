@@ -29,6 +29,7 @@ Make sure to install any new instances of pyDARN, or branches that are not maste
 
 
 If you wish to clone pyDARN for multi-branch comparison or testing in the future: 
+
 1. Clone the [pyDARN repository](https://github.com/SuperDARN/pydarn.git) by typing 
   `git clone https://github.com/SuperDARN/pydarn.git`
   into the terminal or command line.
