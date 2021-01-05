@@ -1,3 +1,18 @@
+<!--Copyright (C) 2020 SuerDARN Canada, University of Saskatchewan 
+Author(s): Marina Schmidt 
+Modifications:
+
+Disclaimer:
+pyDARN is under the LGPL v3 license found in the root directory LICENSE.md 
+Everyone is permitted to copy and distribute verbatim copies of this license 
+document, but changing it is not allowed.
+
+This version of the GNU Lesser General Public License incorporates the terms
+and conditions of version 3 of the GNU General Public License, supplemented by
+the additional permissions listed below.
+-->
+
+
 # Testing Pull Requests 
 
 One way to help pyDARN get developed faster and smoother is by testing [Pull Requests](https://github.com/SuperDARN/pydarn/pulls). 
