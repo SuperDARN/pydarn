@@ -1,4 +1,4 @@
-<!--Copyright (C) SuerDARN Canada, University of Saskatchewan 
+<!--Copyright (C) SuperDARN Canada, University of Saskatchewan 
 Author(s): Marina Schmidt 
 Modifications:
 
