@@ -29,25 +29,25 @@ Make sure to install any new instances of pyDARN, or branches that are not maste
 
 
 If you wish to clone pyDARN for multi-branch comparison or testing in the future: 
+
 1. Clone the [pyDARN repository](https://github.com/SuperDARN/pydarn.git) by typing 
-  `git clone https://github.com/SuperDARN/pydarn.git`
-  into the terminal or command line.
-2. Then checkout the branch you need to test or test against. The author of the Pull Request should give you some information on how to test the code and if you need to checkout other branches to compare results. To checkout a branch you want to test use this git commands:
-    ```bash
-    git fetch 
-    git checkout <branch name>
-    git pull origin <branch name>
-    ```
-These lines *fetch* metadata on any new branches made, *checkout* the right branch you want to test and then *pull* changes to that branch so you're not behind any new changes made.
+`git clone https://github.com/SuperDARN/pydarn.git` into the terminal or command line.
+
+2. Then checkout the branch you need to test or test against. The author of the Pull Request should give you some information on how to test the code and if you need to checkout other branches to compare results. To checkout a branch you want to test use this git commands:\ 
+
+        git fetch 
+        git checkout <branch name>
+        git pull origin <branch name>
+    These lines *fetch* metadata on any new branches made, *checkout* the right branch you want to test and then *pull* changes to that branch so you're not behind any new changes made.\
+  
     !!! Note 
         if you are unaware what the branch name is at the top of the page below the Pull Request title and number shows the branch name and which branch it will be merged into. 
 
-3. From here you just need to install the code run the normal installation steps in a python environment (this ensures it doesn't mix with your current pyDARN version)
-    ```bash
-    python3 -m virtual <environment name>
-    source <environment name>/bin/activate
-    ```
-    for more information on [python virtual environment](https://docs.python.org/3.6/tutorial/venv.html) or to use conda with pyDARN see the [installation documentation](../user/install.md)
+3. From here you just need to install the code run the normal installation steps in a python environment (this ensures it doesn't mix with your current pyDARN version)\
+
+        python3 -m virtual <environment name>
+        source <environment name>/bin/activate
+   for more information on [python virtual environment](https://docs.python.org/3.6/tutorial/venv.html) or to use conda with pyDARN see the [installation documentation](../user/install.md)
 
 4. Next install the branch you are testing by moving to the pyDARN directory you just cloned and running `pip3 install . --user`
 5. Once this is complete follow any test cases the documentation and Pull Request the author describes. 
