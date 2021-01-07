@@ -32,7 +32,7 @@ Before submitting a PR check the code check list first:
 
 ## Creating the PR 
 
-Once you have confirmed the above is done you can go to [pyDARN's Pull Requests](https://github.com/SuperDARN/dswg/pulls)
+Once you have confirmed the above is done you can go to [pyDARN's Pull Requests](https://github.com/SuperDARN/pydarn/pulls)
 and click on `New pull request`. If templates are available select which one is most appropriate. Otherwise make your own. 
 
 ### Merging Direction 
