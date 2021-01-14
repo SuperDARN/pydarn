@@ -19,7 +19,7 @@ _Coord(lat=52.16, lon=-106.53, alt=494.0)
 ```
 
 A user also has the ability to pull down hardware information for a specific date:
-```
+``` python
 import pydarn
 from datetime import datetime
 
@@ -74,3 +74,12 @@ _Radar(name='Prince George', institution='University of Saskatchewan', hemispher
 
 !!! Warning
     The hardware information obtained via this class contains most recent updates to the hardware file as it does not take a specific date as an input. To get specific hardware information, please use `read_hdw_file`.
+
+# Updating Radar and Hardware Information
+
+pyDARN does not release new versions based on hardware file changes. Because hardware files change infrequently you can update the hardware files in pyDARN by using the following command:
+``` python
+import pydarn
+pydarn.get_hdw_files()
+```
+This should also replace any missing files.

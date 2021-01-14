@@ -12,7 +12,7 @@ import matplotlib.ticker as ticker
 from datetime import datetime
 from typing import List
 
-from pydarn import (dmap2dict, plot_exceptions, SuperDARNRadars,
+from pydarn import (plot_exceptions, SuperDARNRadars,
                     standard_warning_format, time2datetime,
                     check_data_type)
 
@@ -80,7 +80,7 @@ class ACF():
         real_color: str
             line color of the real part of the paramter
             default: red
-        plot_blanked: bool
+        plot_blank: bool
             boolean to determine if blanked lags should be plotted
             default: False
         blank_marker: str
@@ -141,8 +141,7 @@ class ACF():
                         raise plot_exceptions.IncorrectDateError(time,
                                                                  start_time)
 
-                if (scan_count == scan_num and start_time is None) or\
-                   start_time < time:
+                if cls.__found_scan(scan_num, scan_count, start_time, time):
                     if gate_num >= record['nrang'] or gate_num < 0:
                         raise plot_exceptions.\
                                 OutOfRangeGateError(parameter, gate_num,
@@ -231,6 +230,8 @@ class ACF():
 
         # plot blanked lags
         if plot_blank:
+            print("plotting")
+            print(blanked_lags)
             for blank in blanked_lags:
                 # I use scatter here to make points not lines
                 # also shows up in the legend nicer
@@ -261,6 +262,38 @@ class ACF():
                       " https://zenodo.org/record/3978643. Citing information"
                       " for SuperDARN data is found at"
                       " https://pydarn.readthedocs.io/en/master/user/citing/")
+    @classmethod
+    def __found_scan(cls, scan_num: int, count_num: int,
+                     start_time: datetime, time: datetime):
+        """
+            method to help do the complicated if statement
+            for scan/time check
+
+            Parameter
+            ---------
+                scan_num: int
+                    scan number the user passed in
+                count_num: int
+                    the current scan count
+                start_time: datetime
+                    a datetime object the user passes in
+                time: datetime
+                    current time the record is at
+
+            Return:
+            ------
+                Bool
+                If the scan is found return True
+                else False
+        """
+        if start_time is None:
+            if scan_num==count_num:
+                return True
+        elif start_time < time:
+            return True
+
+        return False
+
 
     @classmethod
     def __blanked_lags(cls, record: dict, lags: list, gate: int):

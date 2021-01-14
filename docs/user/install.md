@@ -12,13 +12,15 @@ author(s) Marina Schmidt-->
 
 ## Prerequisites
 
-**python 3.6+**
+pyDARN requires **python 3.6** or later.
 
-| Ubuntu      | OpenSuse       | Fedora        | OSX           |
-| ----------- | -------------- | ------------- | ------------- |
-| libyaml-dev | python3-PyYAML | libyaml-devel | Xcode/pip     |
+Depending on your operating system or distribution, the following package installers, development environments or data parsers are required: 
+ 
+| Ubuntu      | OpenSuse       | Fedora        | OSX           | Windows       |
+| ----------- | -------------- | ------------- | ------------- | ------------- |
+| libyaml-dev | python3-PyYAML | libyaml-devel | Xcode/pip     | pip           |
 
-You can check your python version with  
+You can check your python version using
 
 `$ python --version` or 
 `$ python3 --version`
@@ -44,10 +46,11 @@ The following virtual environments have been tested by pyDARN developers:"
 ### pip Virtual Environment
 Instructions can be found here [virtual environment](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/)
 
-1. `$ python3 -m pip install --user virtualenv`  
-2. `$ python3 -m virtualenv <environment name>`  
-* `$ source <environment name>/bin/activate`
-* `$ pip install pydarn`
+Option 1:
+1. `$ python3 -m pip install --user virtualenv` (Install virtual environment package)
+2. `$ python3 -m virtualenv <environment name>`  (Make your virtual environment)
+3. `$ source <environment name>/bin/activate`  (Activate the virtual environment)
+4. `$ pip install pydarn`    (Install pyDARN)
 
 !!! Note
     If you have multiple versions of python 3 on your machine, you can access a specific version by: `python<version number>`. 
@@ -119,4 +122,4 @@ Then open a new terminal and you should see `(pyy38)` in the prompt.
 Credit to this solution is Ashton Reimer, more details on the [issue #37](https://github.com/SuperDARN/pydarn/issues/37)
 
 
-> If you find any problems/solutions, please make a [github issue](https://github.com/superdarn/pydarn/issues/new) so the community can help you or add it to the documentation
+> If you find any problems/solutions, please make a [github issue](https://github.com/superdarn/pydarn/issues/new) so the community can help you or add it to the documentation 

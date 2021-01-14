@@ -7,10 +7,9 @@ Basic code to plot a time series from a FITACF file would look like:
 import matplotlib.pyplot as plt
 
 import pydarn
-import pydarnio
 
 file = "20190831.C0.cly.fitacf"
-sdarn_read = pydarnio.SDarnRead(file)
+sdarn_read = pydarn.SuperDARNRead(file)
 fitacf_data = sdarn_read.read_fitacf()
  
 pydarn.RTP.plot_time_series(fitacf_data)
