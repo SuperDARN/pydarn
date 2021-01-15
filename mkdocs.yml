@@ -8,7 +8,6 @@ markdown_extensions:
 
 nav:
     - Home: index.md
-    - About: about.md
     - Installation: user/install.md  
     - SuperDARN Data Access: user/superdarn_data.md 
     - Citing: user/citing.md
