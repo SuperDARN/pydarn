@@ -1,4 +1,4 @@
-site_name: PyDARN Documentation
+site_name: pyDARN Documentation
 repo_url: https://github.com/superdarn/pydarn
 theme: readthedocs
 markdown_extensions:
@@ -16,14 +16,14 @@ nav:
         - Radar and Hardware Information: user/hardware.md 
         - Reading Files: user/io.md
         - Plotting:
-            - Range-Time plots: user/range_time.md 
-            - Time-Series plots: user/time_series.md 
-            - Summary plots: user/summary.md
-            - Power plots: user/power.md
-            - ACF plots: user/acf.md
+        - Range-Time plots: user/range_time.md 
+        - Time-Series plots: user/time_series.md 
+        - Summary plots: user/summary.md
+        - Power plots: user/power.md
+        - ACF plots: user/acf.md
         - Logging: user/logging.md
     - pyDARN Team:
-        - Pull Requests: 
+            - Pull Requests: 
             - Creating and Guidelines: dev/PR.md
             - Testing: dev/testing.md
             - Code Reviews: dev/code_review.md

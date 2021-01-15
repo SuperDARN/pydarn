@@ -34,7 +34,7 @@ file = "20180101.0000.01.rkn.rawacf"
 sdarn_read = pydarn.SuperDARNRead(file)
 rawacf_data = sdarn_read.read_rawacf()
 
-pydarn.ACF.plot_acfs(rawacf_data)
+pydarn.Power.plot_pwr0_statistic(rawacf_data)
 plt.show()
 ```  
 
