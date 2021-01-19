@@ -144,7 +144,7 @@ If you cannot comment a line that was not changed in the PR but affects the over
 
 If this line is not within scope of the PR then select *Reference in new issue* to create an issue around the problem. 
 
-If you are find multiple issues in your review unable to be in a code review then use [GitHub's checklist](https://docs.github.com/en/github/managing-your-work-on-github/about-task-lists) syntax to make a list for the developer to know what to focus on and keep track what they have fixed. 
+If you find multiple issues in your review that are unable to be in a code review, use [GitHub's checklist](https://docs.github.com/en/github/managing-your-work-on-github/about-task-lists) syntax to make a list for the developer to keep track of the issues to fix. 
 
 
 ## General Guidelines
