@@ -134,7 +134,7 @@ Once all comments are addressed then follow steps 9-10 in the `How to start a Co
 
 ## What If You Cannot Comment the Line?
 
-If you cannot comment a line that was not changed in the PR but affects the overall scope of the PR the leave a comment in the conversation box. If you want to highlight the line(s) you are referencing two, open another tab of the repository:
+If you cannot comment a line that was not changed in the PR but affects the overall scope of the PR the leave a comment in the conversation box. If you want to highlight the line(s) you are referencing, open another tab of the repository:
 
 1. Go to the code by clicking on the directories in main body of the GitHub repo page. If its specific to a branch make sure to switch branches at the top left corner. 
 2. Click the file you are look at, then go to the line you want to reference
