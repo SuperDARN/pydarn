@@ -54,13 +54,13 @@ Other information a user can access from the `_HdwInfo` object is:
 | `abbrev`                | 3 letter radar abbreviation                                                                                                                                                     |
 | `geographic`            | Geographic coordinates of the radar and altitude in meters (lat, long, alt)                                                                                                     |
 | `boresight`             | Boresight of the centre beam                                                                                                                                                    |
-| `beam_speration`        | Angular seperation between radar beams in degrees                                                                                                                               |
+| `beam_seperation`       | Angular seperation between radar beams in degrees                                                                                                                               |
 | `velocity_sign`         | To help identify backscatter velocities which the signs can be reversed based on receiver design                                                                                |
 | `rx_attenuator`         | Analog Rx attenuator step in dB                                                                                                                                                 |
 | `tdiff`                 | propagation time from interferometer array antenna to phasing matrix input minus propagation time from main array antenna through transmitter in phasing matrix in microseconds |
 | `phase_sign`            | Account for cable error in analyzing data                                                                                                                                       |
 | `interferometer_offset` | Cartesian coordinates (x,y,z) from midpoint interferometer array to midpoint main array in meters                                                                               |
-| `rx_rise`               | Analog Rx rise time measured in microseconds                                                                                                                                    |
+| `rx_rise_time`          | Analog Rx rise time measured in microseconds                                                                                                                                    |
 | `attenuation_stages`    | Analog Attenuation stages are used for gain control of an analog receiver or front-end                                                                                          |
 | `gates`                 | Maximum range gates the radar has                                                                                                                                               |
 | `beams`                 | Maximum beams the radar has                                                                                                                                                     |
