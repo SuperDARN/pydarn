@@ -132,7 +132,7 @@ Remember to hit `Start a review` to prevent multiple email notifications.
 
 Once all comments are addressed then follow steps 9-10 in the `How to start a Code Review` section. 
 
-## What If You Cannot Comment the Line?
+## What If You Cannot Comment on a Specific Line of Code?
 
 If you cannot comment a line that was not changed in the PR but affects the overall scope of the PR the leave a comment in the conversation box. If you want to highlight the line(s) you are referencing, open another tab of the repository:
 
