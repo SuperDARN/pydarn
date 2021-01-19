@@ -194,9 +194,9 @@ class ACF():
                     break
                 scan_count += 1
         if record['cp'] == 503:
-            warnings.warn("Please note this data is from Tauscan which has "
-                          "different lag properties to other control problems "
-                          "this ACF plot may not be correct. "
+            warnings.warn("Please note that this data is from Tauscan which has "
+                          "different lag properties compared to other control "
+                          "programs. The ACF plot may not be correct. "
                           "Please contact the PI of the radar to "
                           "confirm if the data looks correct.")
         if re == [] or im == []:
