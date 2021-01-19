@@ -132,6 +132,21 @@ Remember to hit `Start a review` to prevent multiple email notifications.
 
 Once all comments are addressed then follow steps 9-10 in the `How to start a Code Review` section. 
 
+## What If You Cannot Comment the Line?
+
+If you cannot comment a line that was not changed in the PR but affects the overall scope of the PR the leave a comment in the conversation box. If you want to highlight the line(s) you are referencing two, open another tab of the repository:
+
+1. Go to the code by clicking on the directories in main body of the GitHub repo page. If its specific to a branch make sure to switch branches at the top left corner. 
+2. Click the file you are look at, then go to the line you want to reference
+3. Click on the line (hold shift and click on the last line to select multiple)
+4. Click on the `...` box that appeared left to the line number 
+5. Select *copy permalink*
+
+If this line is not within scope of the PR then select *Reference in new issue* to create an issue around the problem. 
+
+If you are find multiple issues in your review unable to be in a code review then use [GitHub's checklist](https://docs.github.com/en/github/managing-your-work-on-github/about-task-lists) syntax to make a list for the developer to know what to focus on and keep track what they have fixed. 
+
+
 ## General Guidelines
 
 Here are some general guidelines to follow when code reviewing or responding to one: 
