@@ -51,25 +51,25 @@ If this is the case, then you can code review parts of a file or specific files 
 6. If you want to change a line in the code use a [suggestion](https://haacked.com/archive/2019/06/03/suggested-changes/)
 7. If you wish to comment on several consecutive lines hold **+** down and drag the cursor down to select multiple lines
 8. Once you are done, click on `Finish your changes` or `Review changes` (if no comments made) then comment on any general feedback in the text box. This should include what type of review you did and if you will be continuing your review at a later time/date.  Some examples include:
-  - Testing and code review to find a bug 
-  - Code review on style/formatting 
-  - Partial code review 
+    - Testing and code review to find a bug 
+    - Code review on style/formatting 
+    - Partial code review 
 9. Select:  
-  - Comment: general comments to be fixed up but nothing major
-    
-    !!! Note
-        If you did a partial review please select comment. Approve is only done for complete reviews or complete testing 
+    - Comment: general comments to be fixed up but nothing major
+      
+        !!! Note
+            If you did a partial review please select comment. Approve is only done for complete reviews or complete testing 
 
-  - Approve: everything looks good no changes needed
+    - Approve: everything looks good no changes needed
     
-    !!! Note
-        This should only be done on complete code reviews. You can also revert your approval after it is made if you find something else later. 
+        !!! Note
+            This should only be done on complete code reviews. You can also revert your approval after it is made if you find something else later. 
         Do this by going down to the merge button and find your name under approvals and click the three dots and select `re-review` 
   
-  - Request Changes: major changes to make
+    - Request Changes: major changes to make
       
-    !!! Warning
-        Request changes, prevents anyone from merging the code. Generally you will need to approve the changes that were addressed. 
+        !!! Warning
+            Request changes, prevents anyone from merging the code. Generally you will need to approve the changes that were addressed. 
         If you cannot do this then do not use Request changes.
 
 10. Submit! 
