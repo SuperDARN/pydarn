@@ -1,3 +1,17 @@
+<!--Copyright (C) 2020 SuperDARN Canada, University of Saskatchewan 
+Author(s): Marina Schmidt 
+Modifications:
+
+Disclaimer:
+pyDARN is under the LGPL v3 license found in the root directory LICENSE.md 
+Everyone is permitted to copy and distribute verbatim copies of this license 
+document, but changing it is not allowed.
+
+This version of the GNU Lesser General Public License incorporates the terms
+and conditions of version 3 of the GNU General Public License, supplemented by
+the additional permissions listed below.
+-->
+
 # Code Reviews 
 
 Reviewing code is like proof reading a paper, it is essential to ensure the following: 
@@ -37,25 +51,25 @@ If this is the case, then you can code review parts of a file or specific files 
 6. If you want to change a line in the code use a [suggestion](https://haacked.com/archive/2019/06/03/suggested-changes/)
 7. If you wish to comment on several consecutive lines hold **+** down and drag the cursor down to select multiple lines
 8. Once you are done, click on `Finish your changes` or `Review changes` (if no comments made) then comment on any general feedback in the text box. This should include what type of review you did and if you will be continuing your review at a later time/date.  Some examples include:
-  - Testing and code review to find a bug 
-  - Code review on style/formatting 
-  - Partial code review 
+    - Testing and code review to find a bug 
+    - Code review on style/formatting 
+    - Partial code review 
 9. Select:  
-  - Comment: general comments to be fixed up but nothing major
-    
-    !!! Note
-        If you did a partial review please select comment. Approve is only done for complete reviews or complete testing 
+    - Comment: general comments to be fixed up but nothing major
+      
+        !!! Note
+            If you did a partial review please select comment. Approve is only done for complete reviews or complete testing 
 
-  - Approve: everything looks good no changes needed
+    - Approve: everything looks good no changes needed
     
-    !!! Note
-        This should only be done on complete code reviews. You can also revert your approval after it is made if you find something else later. 
+        !!! Note
+            This should only be done on complete code reviews. You can also revert your approval after it is made if you find something else later. 
         Do this by going down to the merge button and find your name under approvals and click the three dots and select `re-review` 
   
-  - Request Changes: major changes to make
+    - Request Changes: major changes to make
       
-    !!! Warning
-        Request changes, prevents anyone from merging the code. Generally you will need to approve the changes that were addressed. 
+        !!! Warning
+            Request changes, prevents anyone from merging the code. Generally you will need to approve the changes that were addressed. 
         If you cannot do this then do not use Request changes.
 
 10. Submit! 
@@ -117,6 +131,21 @@ If you are answering a question or responding to some feedback, remember to ackn
 Remember to hit `Start a review` to prevent multiple email notifications. 
 
 Once all comments are addressed then follow steps 9-10 in the `How to start a Code Review` section. 
+
+## What If You Cannot Comment on a Specific Line of Code?
+
+If you cannot comment on a line of code that was not changed in the PR but affects the overall scope of the PR then leave a comment in the conversation box. If you want to highlight the line(s) you are referencing, open another tab of the repository:
+
+1. Go to the code by clicking on the directories in main body of the GitHub repo page. If its specific to a branch make sure to switch branches at the top left corner. 
+2. Click the file you are look at, then go to the line you want to reference
+3. Click on the line (hold shift and click on the last line to select multiple)
+4. Click on the `...` box that appeared left to the line number 
+5. Select *copy permalink*
+
+If this line is not within scope of the PR then select *Reference in new issue* to create an issue around the problem. 
+
+If you find multiple issues in your review that are unable to be in a code review, use [GitHub's checklist](https://docs.github.com/en/github/managing-your-work-on-github/about-task-lists) syntax to make a list for the developer to keep track of the issues to fix. 
+
 
 ## General Guidelines
 

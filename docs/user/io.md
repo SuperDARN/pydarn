@@ -1,3 +1,20 @@
+<!--Copyright (C) SuperDARN Canada, University of Saskatchewan 
+Author(s): Marina Schmidt 
+Modifications:
+2020-09-01 Marina Schmidt removed pyDARN IO methods due to deprecation
+2020-12-01 Carley Martin add new io method documenation
+
+Disclaimer:
+pyDARN is under the LGPL v3 license found in the root directory LICENSE.md 
+Everyone is permitted to copy and distribute verbatim copies of this license 
+document, but changing it is not allowed.
+
+This version of the GNU Lesser General Public License incorporates the terms
+and conditions of version 3 of the GNU General Public License, supplemented by
+the additional permissions listed below.
+-->
+
+
 # Reading in DMap structured SuperDARN data files
 ---
 
@@ -51,7 +68,7 @@ In the previous sections, you needed to tell the code which file you want to ope
 ```python
 import pydarn
 file = "path/to/file"
-data = pydarn.SuperDARNRead.read_dmap(file)
+data = pydarn.SuperDARNRead().read_dmap(file)
 ```
 Currently, this method will open FITACF, RAWACF and IQDAT format files. The method also unzips .bz2 files.
 
@@ -78,7 +95,7 @@ In pyDARN, you can use the following example code to convert:
 import pydarn
 
 borealis_file = "path/to/file"
-sdarn_data = pydarn.SuperDARNRead.read_borealis(borealis_file)
+sdarn_data = pydarn.SuperDARNRead().read_borealis(borealis_file)
 ```
 You can then use the dictionary of data in sdarn_data for your plotting needs.  
 In addition, you can select a specific *slice* to convert by assigning `slice_id = 0` in the options. This option is required for files produced before Borealis v0.5 was released.

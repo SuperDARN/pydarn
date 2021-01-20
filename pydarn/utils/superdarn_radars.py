@@ -124,7 +124,7 @@ def read_hdw_file(abbrv, date: datetime = None, update: bool = False):
                             the centre beam,
                             measured in degrees relative to geographic north.
                             Counter clockwise rotations are negative.
-                            7: Beam separation (Angular seperation in degrees)
+                            7: Beam separation (Angular separation in degrees)
                             8: velocity sign - at radar level,
                             backscattered signal with
                             frequencies above the transmitted frequency
@@ -250,7 +250,7 @@ class _HdwInfo(NamedTuple):
         Named Tuple containing geographic latitude longitude and altitude
     boresight : float
         boresight center beam in degrees
-    beam_seperation : float
+    beam_separation : float
         angular separation between radar beams
     velocity_sign : float
         at radar level, backscattered signal with
@@ -290,7 +290,7 @@ class _HdwInfo(NamedTuple):
     abbrev: str
     geographic: _Coord
     boresight: float
-    beam_seperation: float
+    beam_separation: float
     velocity_sign: float
     rx_attenuator: float
     tdiff: float

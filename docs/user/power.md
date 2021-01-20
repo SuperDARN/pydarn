@@ -1,3 +1,18 @@
+<!--Copyright (C) SuperDARN Canada, University of Saskatchewan 
+Author(s): Marina Schmidt 
+Modifications:
+
+Disclaimer:
+pyDARN is under the LGPL v3 license found in the root directory LICENSE.md 
+Everyone is permitted to copy and distribute verbatim copies of this license 
+document, but changing it is not allowed.
+
+This version of the GNU Lesser General Public License incorporates the terms
+and conditions of version 3 of the GNU General Public License, supplemented by
+the additional permissions listed below.
+-->
+
+
 ### Statistical Power Plots
 
 This function will calculate and plot a statistic of the lag-0 power of each record as a function of time.
@@ -19,7 +34,7 @@ file = "20180101.0000.01.rkn.rawacf"
 sdarn_read = pydarn.SuperDARNRead(file)
 rawacf_data = sdarn_read.read_rawacf()
 
-pydarn.ACF.plot_acfs(rawacf_data)
+pydarn.Power.plot_pwr0_statistic(rawacf_data)
 plt.show()
 ```  
 

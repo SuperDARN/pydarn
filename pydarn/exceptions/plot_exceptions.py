@@ -56,7 +56,7 @@ class NoDataFoundError(Exception):
             if opt_parameter_value is None:
                 self.message = "There is no Data for beam number {beam_num}"\
                         " for the parameter type {parameter}. "\
-                        "Try another beam, for example: {opt_beam} or"\
+                        "Try beam, for example: {opt_beam} or"\
                         " another parameter for the given"\
                         " time range.".format(parameter=self.parameter,
                                               beam_num=self.beam_num,
@@ -64,7 +64,7 @@ class NoDataFoundError(Exception):
             else:
                 self.message = "There is no Data for the beam number"\
                         " {beam_num} for the parameter {parameter}. Try"\
-                        " another beam {opt_beam} or {parameter} at"\
+                        " beam {opt_beam} or {parameter} at"\
                         " {parameter_value}"\
                         "".format(beam_num=self.beam_num,
                                   parameter=self.parameter,
@@ -77,7 +77,7 @@ class NoDataFoundError(Exception):
                 self.message = "There is no Data for beam number {beam_num}"\
                     " for the parameter type {parameter} between the"\
                     " time range {start_time} to"\
-                    " {end_time}. Try another beam, for example: {opt_beam}"\
+                    " {end_time}. Try beam, for example: {opt_beam}"\
                     " or another parameter for the given time range."\
                     "".format(parameter=self.parameter,
                               beam_num=self.beam_num,
@@ -93,7 +93,7 @@ class NoDataFoundError(Exception):
                         " another beam {opt_beam} or {parameter} at"\
                         " {parameter_value} between the time range"\
                         " {start_time} to"\
-                        " {end_time}. Try another beam, "\
+                        " {end_time}. Try beam, "\
                         "for example: {opt_beam} or another parameter"\
                         " for the given time range."\
                         "".format(beam_num=self.beam_num,
