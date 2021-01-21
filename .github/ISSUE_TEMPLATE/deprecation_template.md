@@ -1,3 +1,8 @@
+---
+name: Deprecation 
+about: to suggest removing an option or a feature
+---
+
 # DEPRECATION 
 
 **Feature:**

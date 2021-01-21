@@ -1,3 +1,8 @@
+---
+name: Documentation
+about: propose updates to documentation
+---
+
 # Documentation 
 
 *title or suggestion of documentation*

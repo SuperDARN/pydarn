@@ -1,3 +1,8 @@
+---
+name: Question
+about: Ask for help or advice on using RST
+---
+
 # Question
 
 **Question:**
