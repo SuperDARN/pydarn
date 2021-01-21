@@ -1,5 +1,18 @@
 # Copyright (C) 2020 SuperDARN Canada, University of Saskatchewan
 # Author: Daniel Billett, Marina Schmidt
+#
+# Modifications:
+#
+# Disclaimer:
+# pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
+# Everyone is permitted to copy and distribute verbatim copies of this license
+# document, but changing it is not allowed.
+#
+# This version of the GNU Lesser General Public License incorporates the terms
+# and conditions of version 3 of the GNU General Public License, supplemented by
+# the additional permissions listed below.
+
+
 """
 Fan plots, mapped to AACGM coordinates in a polar format
 """
@@ -62,7 +75,7 @@ class Fan():
             ranges: list
                 Set to a two element list of the lower and upper ranges to plot
                 Default: [0,75]
-            boundary: bool    
+            boundary: bool
                 Set to false to not plot the outline of the FOV
                 Default: True
             cmap: matplotlib.cm
@@ -83,22 +96,22 @@ class Fan():
                 Default: True
             colorbar_label: str
                 the label that appears next to the colour bar. Requires colorbar to be true
-                Default: '' 
+                Default: ''
         Returns
-        ----------- 
-        beam_corners_aacgm_lats 
+        -----------
+        beam_corners_aacgm_lats
             n_beams x n_gates numpy array of AACGMv2 latitudes
         beam_corners_aacgm_lons
             n_beams x n_gates numpy array of AACGMv2 longitudes
-        scan 
+        scan
             n_beams x n_gates numpy array of the scan data (for the selected parameter)
         grndsct
             n_beams x n_gates numpy array of the scan data (for the selected parameter)
         dtime
             datetime object for the scan plotted
-             
+
         """
-        
+
         my_path = os.path.abspath(os.path.dirname(__file__))
         base_path = os.path.join(my_path, '..')
 
@@ -115,9 +128,9 @@ class Fan():
                             dmap_data[plot_beams[0][0]]['time.sc'])
 
         # Get radar beam/gate locations
-        beam_corners_aacgm_lats, beam_corners_aacgm_lons=radar_fov(dmap_data[0]['stid'], 
+        beam_corners_aacgm_lats, beam_corners_aacgm_lons=radar_fov(dmap_data[0]['stid'],
             coords='aacgm', date=dtime)
-        fan_shape = beam_corners_aacgm_lons.shape   
+        fan_shape = beam_corners_aacgm_lons.shape
 
         # Work out shift due in MLT
         beam_corners_mlts = np.zeros((fan_shape[0], fan_shape[1]))
