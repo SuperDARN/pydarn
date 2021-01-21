@@ -9,22 +9,22 @@ Python data visualization library for the Super Dual Auroral Radar Network (Supe
 
 ## Changelog
 
-## Version 1.1 - Release!
+## Version 2.0 - Release!
 
-**pyDARN will be removing the IO package in the next release. Please use [pyDARNio](https://github.com/SuperDARN/pyDARNio)**
 
-pyDARN release v1.2 includes the following features:
-- Removal of IO reading of pyDARN
-- Added JME and DCN to the hardware list 
-- Plots ACFs 
-- updated logging in pyDARN
+pyDARN release v2.0includes the following features:
+- Integration with pyDARNio to read files
+- Updates to Hardware utility
+- **Fan Plots**
+- **Statistical Power Plots**
+- Slant range option for plotting 
+- updated documentation
 
 ## Documentation
 
 pyDARN's documentation can found [here](https://pydarn.readthedocs.io/en/master)
 
 ## Getting Started
-
 
 `pip install pydarn`
 
@@ -48,7 +48,7 @@ import pydarnop
 fitacf_file = '20190831.C0.cly.fitacf'
 
 # pyDARN functions to read a fitacf file
-reader = pydarnio.SDarnRead(fitacf_file)
+reader = pydarn.SuperDARNRead(fitacf_file)
 fitacf_data = reader.read_fitacf()
 
 pydarn.RTP.plot_summary(fitacf_data, beam_num=2)
