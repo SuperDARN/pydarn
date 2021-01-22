@@ -100,6 +100,8 @@ sdarn_data = pydarn.SuperDARNRead().read_borealis(borealis_file)
 You can then use the dictionary of data in sdarn_data for your plotting needs.  
 In addition, you can select a specific *slice* to convert by assigning `slice_id = 0` in the options. This option is required for files produced before Borealis v0.5 was released.
 
+!!! Warning 
+    There may be some issues with using `hdf5` libraries on a Windows machine. pyDARNio will be looking into this bug. 
 
 ## Other Examples
 
