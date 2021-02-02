@@ -385,12 +385,17 @@ class RTP():
         ax.xaxis.set_major_formatter(dates.DateFormatter(date_fmt))
         if ymax is None:
                 ymax = max(y)
-        ax.set_ylim(0, ymax)
+        if slant:
+                ymin = min(y)
+        else:
+            ymin = 0
+        ax.set_ylim(ymin, ymax)
 
         if slant:
-            ax.yaxis.set_ticks(np.arange(0, ymax+1), 200)
+            #ax.set_yticks(np.arange(0, ymax+1), 200)
+            ax.yaxis.set_ticks(np.arange(ymin, ymax+1, 200))
         else:
-            ax.yaxis.set_ticks(np.arange(0, ymax+1, (ymax)/5))
+            ax.yaxis.set_ticks(np.arange(ymin, ymax+1, (ymax)/5))
 
         # SuperDARN file typically are in 2hr or 24 hr files
         # to make the minute ticks sensible, the time length is detected
