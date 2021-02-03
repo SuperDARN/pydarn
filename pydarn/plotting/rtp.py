@@ -54,7 +54,8 @@ class RTP():
                         background: str = 'w', groundscatter: bool = False,
                         zmin: int = None, zmax: int = None,
                         start_time: datetime = None, end_time: datetime = None,
-                        colorbar: plt.colorbar = None, ymax: int = None,
+                        colorbar: plt.colorbar = None, ymin: int = None,
+                        ymax: int = None, yspacing: int = 200,
                         slant: bool = True, colorbar_label: str = '',
                         norm=colors.Normalize,
                         cmap: str = None,
@@ -102,6 +103,12 @@ class RTP():
         ymax: int
             Sets the maximum y value
             Default: None, uses 'nrang' from data
+        ymin: int
+            sets the minimum y value
+            Default: None, uses 0 range gate or minimum slant-range value
+        yspacing: int
+            sets the spacing between ticks
+            Default: 200
         slant: boolean
             set the y-axis to slant range (km)
             if false will show gate numbers.
@@ -385,15 +392,14 @@ class RTP():
         ax.xaxis.set_major_formatter(dates.DateFormatter(date_fmt))
         if ymax is None:
                 ymax = max(y)
-        if slant:
+
+        if ymin is None:
                 ymin = min(y)
-        else:
-            ymin = 0
+
         ax.set_ylim(ymin, ymax)
 
         if slant:
-            #ax.set_yticks(np.arange(0, ymax+1), 200)
-            ax.yaxis.set_ticks(np.arange(ymin, ymax+1, 200))
+            ax.yaxis.set_ticks(np.arange(ymin, ymax+1, yspacing))
         else:
             ax.yaxis.set_ticks(np.arange(ymin, ymax+1, (ymax)/5))
 
@@ -989,6 +995,7 @@ class RTP():
                                             zmin=boundary_ranges[axes_parameters[i]][0],
                                             zmax=boundary_ranges[axes_parameters[i]][1],
                                             ymax=ymax,
+                                            yspacing=500,
                                             background=background_color)
                 # Overwriting velocity ticks to get a better pleasing
                 # look on the colorbar
