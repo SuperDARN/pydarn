@@ -1,5 +1,5 @@
 <!--Copyright (C) SuperDARN Canada, University of Saskatchewan 
-Author(s): Marina Schmidt 
+Author(s): Marina Schmidt, Daniel Billett
 Modifications:
 2020-12-01 Carley Martin added git_hdw_file
 2020-01-05 Marin Schmidt switched VT hardware repo to SuperDARN hardware repo
@@ -87,6 +87,29 @@ _Radar(name='Prince George', institution='University of Saskatchewan', hemispher
 
 !!! Warning
     The hardware information obtained via this class contains most recent updates to the hardware file as it does not take a specific date as an input. To get specific hardware information, please use `read_hdw_file`.
+    
+# Obtaining coordinates for radar fields-of-view
+
+The `radar_fov` function in pyDARN is an easy way to grab the coordinates of a specific radars field-of-view. All you need is the station id (key: `stid`) of the radar of interest.
+
+Example code:
+```python
+import pydarn
+
+# Geographic coordinates for Clyde River (STID: 66) FOV
+geo_lats, geo_lons=pydarn.radar_fov(66, coords='geo')
+```
+
+You also have the option to set the `coords` keyword to `aacgm`. In this case, [Altitude adjusted corrected geomagnetic](http://superdarn.thayer.dartmouth.edu/aacgm.html) latitude and longitude are returned instead of geographic. Because AACGM requires a date to convert coordinates accurately, a python datetime object is also required to be passed in to `radar_fov` under this circumstance:
+```python
+import pydarn
+import datetime as dt
+
+# AACGMv2 coordinates for Dome C (STID: 96), valid for November 26th, 2005
+aacgm_lats, aacgm_lons=pydarn.radar_fov(96, coords='aacgm', date=dt.datetime(2005,11,26))
+```
+
+The outputs for `radar_fov` are two numpy arrays of latitude and longitude coordinates with dimensions (number_of_beams+1 x number_of_gates+1). They correspond to the corners of each range gate.
 
 # Updating Radar and Hardware Information
 
