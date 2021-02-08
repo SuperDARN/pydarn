@@ -18,6 +18,7 @@ pyDARN release v2.0includes the following features:
 - **Fan Plots**
 - **Statistical Power Plots**
 - Slant range option for plotting 
+- getting beam/gate geographic/geomagnetic locations 
 - updated documentation
 
 ## Documentation
@@ -35,21 +36,17 @@ Please make sure to also read the documentation on [**citing superDARN and pydar
 
 As a quick tutorial on using pydarn to read a non-compressed file: 
 
-!!! Warning 
-    pyDARN removed the IO package in the next release. Please use [pyDARNio](https://github.com/SuperDARN/pyDARNio)
 
 ```python
 import matplotlib.pyplot as plt
 
 import pydarn
-import pydarnop
 
 # read a non-compressed file
 fitacf_file = '20190831.C0.cly.fitacf'
 
 # pyDARN functions to read a fitacf file
-reader = pydarn.SuperDARNRead(fitacf_file)
-fitacf_data = reader.read_fitacf()
+fitacf_data = pydarn.SuperDARNRead(fitacf_file).read_fitacf()
 
 pydarn.RTP.plot_summary(fitacf_data, beam_num=2)
 plt.show()
