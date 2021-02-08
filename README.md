@@ -42,7 +42,7 @@ As a quick tutorial on using pydarn to read a non-compressed file:
 import matplotlib.pyplot as plt
 
 import pydarn
-import pydarnop
+import pydarnio
 
 # read a non-compressed file
 fitacf_file = '20190831.C0.cly.fitacf'
