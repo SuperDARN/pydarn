@@ -48,7 +48,7 @@ class Fan():
     @classmethod
     def plot_fan(cls, dmap_data: List[dict], ax=None, scan_index: int = 1,
                        ranges: List = [0,75], boundary: bool = True,
-                       parameter: str = 'v', lowlat: int = 50, cmap: str = None,
+                       parameter: str = 'v', lowlat: int = 30, cmap: str = None,
                        groundscatter: bool = False,
                        zmin: int = None, zmax: int = None,
                        colorbar: bool = True,
