@@ -181,8 +181,8 @@ class Fan():
                 ax.set_ylim(90, lowlat)
                 ax.set_yticks(np.arange(lowlat, 90, 10))
             else:
-                ax.set_ylim(-90, -lowlat)
-                ax.set_yticks(np.arange(-lowlat, -90, -10))
+                ax.set_ylim(-90, -abs(lowlat))
+                ax.set_yticks(np.arange(-abs(lowlat), -90, -10))
             ax.set_xticklabels(['00', '', '06', '', '12', '', '18', ''])
             ax.set_theta_zero_location("S")
 
