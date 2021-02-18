@@ -81,7 +81,7 @@ Here is a list of all the current options than can be used with `plot_fan`
 | scan_index=(int)        | Scan number, from start of records in file                                                          |
 | lowlat=(int)            | Control the lower latitude boundary of the plot (default 50/-50 AACGM lat)                          |
 | groundscatter=(bool)    | True or false to showing ground scatter as grey                                                     |
-| ranges=(list)           | Two element list giving the lower and upper ranges to ploy (default [0,75]                          |
+| ranges=(list)           | Two element list giving the lower and upper ranges to plot (default [0,75]                          |
 | cmap=matplotlib.cm      | A matplotlib color map object. Will override the pyDARN defaults for chosen parameter               |
 | zmin=(int)              | Minimum data value for colouring                                                                    |
 | zmax=(int)              | Maximum data value for colouring                                                                    |
@@ -100,4 +100,3 @@ lats2,lons2,data2,grndsct2 = pydarn.Fan.plot_fan(fitacf_data, scan_index=140, pa
 plt.show()
 ```
 ![](../imgs/fan_3.png)
-
