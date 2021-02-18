@@ -20,6 +20,7 @@ Fan plots are a way to visualise data from the entire scan of a SuperDARN radar.
 All beams and ranges for a given parameter (such as line-of-sight velocity, backscatter power, etc) and a particular scan are projected onto a polar format plot in [AACGMv2](http://superdarn.thayer.dartmouth.edu/aacgm.html) coordinates.
 
 Currently, fan plots in pyDARN get the geographic positions of a radar's range gates by reading in pre-generated files (found in the `/pydarn/radar_fov_files` folder), and then [converts](https://pypi.org/project/aacgmv2/) them to AACGMv2 coordinates. In the future, pyDARN will generate the geographical position, which will bring support for not standard range/beam layouts.
+The mapping of the range gate corners was based on [rbpos in RST](https://github.com/SuperDARN/rst/blob/0aa1fffed4cc48c1eb6372dfc9effa688af95624/codebase/superdarn/src.idl/lib/legacy.1.6/rbposlib.pro).
 
 ### Basic usage
 pyDARN and pyplot need to be imported, as well as any FITACF file needs to be [read in](https://pydarn.readthedocs.io/en/master/user/SDarnRead/):
