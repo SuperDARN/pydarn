@@ -43,6 +43,7 @@ Possible services:
 
 - Release 1.0.0 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3727270.svg)](https://doi.org/10.5281/zenodo.3727270)
 - Release 1.1.0 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3978643.svg)](https://doi.org/10.5281/zenodo.3978643)
+- Release 2.0 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4549096.svg)](https://doi.org/10.5281/zenodo.4549096)
 
 ## Acknowledgements
 
