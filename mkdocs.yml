@@ -1,4 +1,4 @@
-site_name: PyDARN Documentation
+site_name: pyDARN Documentation
 repo_url: https://github.com/superdarn/pydarn
 theme: readthedocs
 markdown_extensions:
@@ -8,20 +8,21 @@ markdown_extensions:
 
 nav:
     - Home: index.md
-    - About: about.md
     - Installation: user/install.md  
     - SuperDARN Data Access: user/superdarn_data.md 
     - Citing: user/citing.md
     - Tutorials:
-        - IO:
-            - Read SuperDARN files: user/SDarnRead.md 
-            - Write SuperDARN files: user/SDarnWrite.md 
-            - Read/Write Borealis files: user/BorealisIO.md 
-        - Convert: 
-            - Borealis to SuperDARN: user/Borealis2SuperDARN.md 
-        - Radar and Hardware Information: user/hardware.md 
-        - Plotting:
+            - Radar and Hardware Information: user/hardware.md 
+            - Reading Files: user/io.md
             - Range-Time plots: user/range_time.md 
             - Time-Series plots: user/time_series.md 
             - Summary plots: user/summary.md
-        - Logging: user/logging.md 
+            - Fan plots: user/fan.md
+            - Power plots: user/power.md
+            - ACF plots: user/acf.md
+            - Logging: user/logging.md
+    - pyDARN Team:
+        - Pull Requests: 
+            - Creating and Guidelines: dev/PR.md
+            - Testing: dev/testing.md
+            - Code Reviews: dev/code_review.md

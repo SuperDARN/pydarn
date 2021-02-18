@@ -1,3 +1,19 @@
+<!--Copyright (C) SuperDARN Canada, University of Saskatchewan 
+Author(s): Marina Schmidt 
+Modifications:
+2020-12-01 Carley Martin updated documentation
+
+Disclaimer:
+pyDARN is under the LGPL v3 license found in the root directory LICENSE.md 
+Everyone is permitted to copy and distribute verbatim copies of this license 
+document, but changing it is not allowed.
+
+This version of the GNU Lesser General Public License incorporates the terms
+and conditions of version 3 of the GNU General Public License, supplemented by
+the additional permissions listed below.
+-->
+
+
 # Logging
 
 pyDARN supports python [logging library](https://docs.python.org/3/library/logging.html) and can be used in debugging or checking on the status of the library. 
@@ -7,7 +23,7 @@ pyDARN supports python [logging library](https://docs.python.org/3/library/loggi
 Use `logging.basicConfig()` to set various configurations include logging levels. 
 pyDARN supports various levels of logging:
 
-- `INFO`: provided info and status of where the pyDARN are at in functionality 
+- `INFO`: provided info and status of where pyDARN is at in functionality 
 - `DEBUG`: provides extra information useful for debugging 
 - `ERROR`: provides exceptions error information 
 
@@ -21,7 +37,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 #Load in dmap file
 file = "20170410.1801.00.sas.fitacf_30"
-SDarn_read = pydarn.SDarnRead(file)
+SDarn_read = pydarn.SuperDARNRead(file)
 fitacf_data = SDarn_read.read_fitacf()
 ```
 

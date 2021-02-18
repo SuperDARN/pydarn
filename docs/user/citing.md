@@ -1,8 +1,23 @@
+<!--Copyright (C) SuperDARN Canada, University of Saskatchewan 
+Author(s): Marina Schmidt 
+Modifications:
+2020-12-01 Carley Martin updated documentation
+
+Disclaimer:
+pyDARN is under the LGPL v3 license found in the root directory LICENSE.md 
+Everyone is permitted to copy and distribute verbatim copies of this license 
+document, but changing it is not allowed.
+
+This version of the GNU Lesser General Public License incorporates the terms
+and conditions of version 3 of the GNU General Public License, supplemented by
+the additional permissions listed below.
+-->
+
 If pyDARN contributes to a project that leads to a scientific publication, please acknowledge this fact by citing the software and SuperDARN.  
 
 # How to cite SuperDARN
 
-Super Dual Auroral Radar Network (SuperDARN) is a made up of 36 radars 20 institutions, to cite general SuperDARN you can use: 
+Super Dual Auroral Radar Network (SuperDARN) is a made up of 35+ radars and 20 institutions, to generally cite SuperDARN you can use: 
 
 - Greenwald, R.A., Baker, K.B., Dudeney, J.R. et al. Space Sci Rev (1995) 71: 761. [doi:10.1007/BF00751350](https://doi.org/10.1007/BF00751350)
 
@@ -23,27 +38,6 @@ Possible services:
   - [zenodo](https://help.zenodo.org/features/) 
 
 # Citing pyDARN
-
-## Bibtex
-
-```latex
-@Misc = [pydarn,
-author={Schmidt, M.T. and Detwiller, M.H. and
-Billet, D.D. and 
-Bland, E. C. and 
-Burrell, A. G. and 
-Kotyk, K. and
-Peters, D. GO. and 
-Reimer, A. S. and 
-Sterne, K. T. and
-Thomas, E. G.}, 
-title={pyDARN},
-month=jan,
-year=2020,
-doi=[],
-url={}
-] 
-```
 
 ## DOI's 
 

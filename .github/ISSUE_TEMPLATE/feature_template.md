@@ -1,4 +1,9 @@
-# Requesting New Feature
+---
+name: New Feature
+about: Notify that a new feature is being planned
+---
+
+# New Feature
 
 **Name**: *Feature name*
 

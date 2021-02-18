@@ -45,33 +45,62 @@ class NoDataFoundError(Exception):
     This error is raised when no data is found for
     the given beam and parameter
     """
-    def __init__(self, parameter: str, beam_num: int, start_time: int,
-                 end_time: datetime.datetime, opt_beam_num: int):
+    def __init__(self, parameter: str, beam_num: int,  opt_beam_num: int,
+                 opt_parameter_value: int = None,
+                 start_time: datetime.datetime = None,
+                 end_time: datetime.datetime = None):
         self.parameter = parameter
         self.beam_num = beam_num
+        self.opt_beam_num = opt_beam_num
         if start_time is None or end_time is None:
-            self.message = "There is no Data for beam number {beam_num}"\
-            " for the parameter type {parameter}. Try another beam, for"\
-            " example: {opt_beam} or another parameter for the given"\
-            " time range.".format(parameter=self.parameter,
-                                  beam_num=self.beam_num,
-                                  opt_beam=opt_beam_num)
+            if opt_parameter_value is None:
+                self.message = "There is no Data for beam number {beam_num}"\
+                        " for the parameter type {parameter}. "\
+                        "Try beam, for example: {opt_beam} or"\
+                        " another parameter for the given"\
+                        " time range.".format(parameter=self.parameter,
+                                              beam_num=self.beam_num,
+                                              opt_beam=opt_beam_num)
+            else:
+                self.message = "There is no Data for the beam number"\
+                        " {beam_num} for the parameter {parameter}. Try"\
+                        " beam {opt_beam} or {parameter} at"\
+                        " {parameter_value}"\
+                        "".format(beam_num=self.beam_num,
+                                  parameter=self.parameter,
+                                  opt_beam=self.opt_beam_num,
+                                  parameter_value=opt_parameter_value)
         else:
-            self.start_time = start_time
-            self.end_time = end_time
-            self.message = "There is no Data for beam number {beam_num}"\
-                " for the parameter type {parameter} between the"\
-                " time range {start_time} to"\
-                " {end_time}. Try another beam, for example: {opt_beam}"\
-                " or another parameter for the given time range."\
-                "".format(parameter=self.parameter,
-                          beam_num=self.beam_num,
-                          opt_beam=opt_beam_num,
-                          start_time=self.start_time.strftime("%Y %m"
-                                                              " %d %H"
-                                                              ":%M"),
-                          end_time=self.end_time.strftime("%Y %m"
-                                                          " %d %H:%M"))
+            if opt_parameter_value is None:
+                self.start_time = start_time
+                self.end_time = end_time
+                self.message = "There is no Data for beam number {beam_num}"\
+                    " for the parameter type {parameter} between the"\
+                    " time range {start_time} to"\
+                    " {end_time}. Try beam, for example: {opt_beam}"\
+                    " or another parameter for the given time range."\
+                    "".format(parameter=self.parameter,
+                              beam_num=self.beam_num,
+                              opt_beam=opt_beam_num,
+                              start_time=self.start_time.strftime("%Y %m"
+                                                                  " %d %H"
+                                                                  ":%M"),
+                              end_time=self.end_time.strftime("%Y %m"
+                                                              " %d %H:%M"))
+            else:
+                self.message = "There is no Data for the beam number"\
+                        " {beam_num} for the parameter {parameter}. Try"\
+                        " another beam {opt_beam} or {parameter} at"\
+                        " {parameter_value} between the time range"\
+                        " {start_time} to"\
+                        " {end_time}. Try beam, "\
+                        "for example: {opt_beam} or another parameter"\
+                        " for the given time range."\
+                        "".format(beam_num=self.beam_num,
+                                  parameter=self.parameter,
+                                  opt_beam=self.opt_beam_num,
+                                  parameter_value=opt_parameter_value)
+
         super().__init__(self.message)
         pydarn_log.error(self.message)
 
@@ -101,7 +130,7 @@ class OutOfRangeGateError(Exception):
         self.message = "The range gate {gate_num} is out of range for this"\
             " parameter {param}. Please pick a range gate number"\
             " between 0 - {max_gate}".format(gate_num=self.gate_num,
-                                            param=self.parameter,
-                                            max_gate=self.max_range_gate-1)
+                                             param=self.parameter,
+                                             max_gate=self.max_range_gate-1)
         super().__init__(self.message)
         pydarn_log.error(self.message)

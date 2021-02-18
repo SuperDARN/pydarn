@@ -14,6 +14,16 @@
             "orcid": "0000-0002-8905-8609"
         },
         {
+            "affiliation": "University of Saskatchewan",
+            "name": "Martin, C.J.",
+            "orcid": "0000-0002-8278-9783"
+        },
+        {
+            "affiliation": "University of Saskatchewan",
+            "name": "Huyghebaert, D.",
+            "orcid": "0000-0002-4257-4235"
+        },
+        {
             "affiliation": "The University Centre in Svalbard",
             "name": "Bland, E.C.",
             "orcid": "0000-0002-0252-0400"
@@ -37,15 +47,6 @@
             "name": "Krieger, K."
         },
         {
-            "affiliation": "University of Saskatchewan",
-            "name": "Kotyk, K."
-        },
-        {
-            "affiliation": "University of Saskatchewan",
-            "name": "Martin, C.J.",
-            "orcid": "0000-0002-8278-9783"
-        },
-        {
             "affiliation": "University of Saskatchewan", 
             "name": "Peters, D.GO."
         },
@@ -67,10 +68,5 @@
             "affiliation": "Virginia Tech",
             "name": "Sterne, K.T.",
             "orcid": "0000-0002-1076-0009"
-        },
-        {
-            "affiliation": "Dartmouth College",
-            "name": "Thomas, E.G.",
-            "orcid": "0000-0001-8036-8793"
         }]
 }
