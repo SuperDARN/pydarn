@@ -48,7 +48,7 @@ class Fan():
     @classmethod
     def plot_fan(cls, dmap_data: List[dict], ax=None, scan_index: int = 1,
                  ranges: List = [0, 75], boundary: bool = True,
-                 fov_color: str = None, alpha: int = 0.5, parameter: str = 'v',
+                 alpha: int = 0.5, parameter: str = 'v',
                  lowlat: int = 50, cmap: str = None,
                  groundscatter: bool = False,
                  zmin: int = None, zmax: int = None,
@@ -82,9 +82,6 @@ class Fan():
             boundary: bool
                 Set to false to not plot the outline of the FOV
                 Default: True
-            fov_color: str
-                color to fill in the boundary
-                default: None
             alpha: int
                 alpha controls the transparency of
                 the fov color
@@ -140,9 +137,10 @@ class Fan():
                             dmap_data[plot_beams[0][0]]['time.mt'],
                             dmap_data[plot_beams[0][0]]['time.sc'])
         # Plot FOV outline
-        beam_corners_aacgm_lats, beam_corners_aacgm_lons, thetas, rs = \
-            cls.plot_fov(dmap_data[0]['stid'], dtime, lowlat,
-                         ranges, boundary, fov_color, alpha)
+        beam_corners_aacgm_lats, beam_corners_aacgm_lons, thetas, rs, ax = \
+            cls.plot_fov(stid=dmap_data[0]['stid'], dtime=dtime, lowlat=lowlat,
+                         ranges=ranges, boundary=boundary,
+                         alpha=alpha)
         fan_shape = beam_corners_aacgm_lons.shape
 
         # Get range-gate data and groundscatter array for given scan
@@ -227,7 +225,7 @@ class Fan():
     @classmethod
     def plot_fov(cls, stid: str, dtime: dt.datetime, ax=None,
                  lowlat: int = 50, ranges: List = [0, 75],
-                 boundary: bool = True, color: str = None,
+                 boundary: bool = True, fov_color: str = None,
                  alpha: int = 0.5):
         """
         plots only the field of view (FOV) for a given radar station ID (stid)
@@ -253,8 +251,8 @@ class Fan():
             boundary: bool
                 Set to false to not plot the outline of the FOV
                 Default: True
-            color: str
-                color to fill in the boundary
+            fov_color: str
+                fov color to fill in the boundary
                 default: None
             alpha: int
                 alpha controls the transparency of
@@ -313,15 +311,15 @@ class Fan():
                       rs[0, 0:thetas.shape[1] - 2], color='black',
                       linewidth=0.5)
 
-        if color:
+        if fov_color is not None:
             theta = [thetas[0, 0], thetas[ranges[1]-1, 0],
                      thetas[ranges[1]-1, thetas.shape[1]-2],
                      thetas[0, thetas.shape[1]-2]]
             r = [rs[0, 0], rs[ranges[1]-1, 0],
                  rs[ranges[1]-1, thetas.shape[1]-2],
                  rs[0, thetas.shape[1]-2]]
-            plt.fill(theta, r, color=color, alpha=alpha)
-            plt.fill(thetas[ranges[1]-1, 0:thetas.shape[1]-1],
-                     rs[ranges[1]-1, 0:thetas.shape[1]-1],
-                     color=color, alpha=alpha)
-        return beam_corners_aacgm_lats, beam_corners_aacgm_lons, thetas, rs
+            ax.fill(theta, r, color=fov_color, alpha=alpha)
+            ax.fill(thetas[ranges[1]-1, 0:thetas.shape[1]-1],
+                    rs[ranges[1]-1, 0:thetas.shape[1]-1],
+                    color=fov_color, alpha=alpha)
+        return beam_corners_aacgm_lats, beam_corners_aacgm_lons, thetas, rs, ax
