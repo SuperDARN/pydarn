@@ -201,7 +201,7 @@ class Fan():
 
                 # Check for zero values (white) and groundscatter (gray)
                 if scan[gates, beams] == 0:
-                    colour_rgba = 'w'
+                    colour_rgba = (1,1,1,0)
 
                 if groundscatter and grndsct[gates, beams] == 1:
                     colour_rgba = 'gray'
