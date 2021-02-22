@@ -214,7 +214,6 @@ class Power():
                     cls.__plot_pwr0(records_of_interest, beam_num,
                                     statistical_method)
 
-
     @staticmethod
     def __plot_pwr0(records: list, beam_num: int, statistical_method: object,
                     title: bool = True):

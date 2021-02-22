@@ -391,10 +391,10 @@ class RTP():
         ax.set_xlim([rounded_down_start_time, x[-1]])
         ax.xaxis.set_major_formatter(dates.DateFormatter(date_fmt))
         if ymax is None:
-                ymax = max(y)
+            ymax = max(y)
 
         if ymin is None:
-                ymin = min(y)
+            ymin = min(y)
 
         ax.set_ylim(ymin, ymax)
 
