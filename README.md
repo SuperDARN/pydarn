@@ -9,13 +9,13 @@ Python data visualization library for the Super Dual Auroral Radar Network (Supe
 
 ## Changelog
 
-## Version 2.0 - Release!
+## Version 2.0.1 - Release!
 
 
 pyDARN release v2.0includes the following features:
 - Integration with pyDARNio to read files
 - Updates to Hardware utility
-- **Fan Plots**
+- **Fan Plots** with transparent fix
 - **Statistical Power Plots**
 - Slant range option for plotting 
 - getting beam/gate geographic/geomagnetic locations 
