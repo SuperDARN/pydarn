@@ -341,12 +341,12 @@ class RTP():
         time_axis, y_axis = np.meshgrid(x, y)
         z_data = np.ma.masked_where(np.isnan(z.T), z.T)
         Default = {'noise.sky': (1e0, 1e5),
-          'tfreq': (8, 22),
-          'nave': (0, 60),
-          'p_l': (0, 45),
-          'v': (-200, 200),
-          'w_l': (0, 250),
-          'elv': (0, 45)}
+                   'tfreq': (8, 22),
+                   'nave': (0, 60),
+                   'p_l': (0, 45),
+                   'v': (-200, 200),
+                   'w_l': (0, 250),
+                   'elv': (0, 45)}
 
         if np.isinf(zmin) and zmin < 0:
             zmin = Default[parameter][0]
@@ -363,10 +363,10 @@ class RTP():
             cmap = cm.get_cmap(cmap)
         else:
             cmaps = {'p_l': 'plasma',
-                    'v': PyDARNColormaps.PYDARN_VELOCITY,
-                    'w_l': PyDARNColormaps.PYDARN_VIRIDIS,
-                    'elv': PyDARNColormaps.PYDARN}
-            cmap=cmaps[parameter]
+                     'v': PyDARNColormaps.PYDARN_VELOCITY,
+                     'w_l': PyDARNColormaps.PYDARN_VIRIDIS,
+                     'elv': PyDARNColormaps.PYDARN}
+            cmap = cmaps[parameter]
 
         if isinstance(groundscatter, str):
             cmap.set_under(groundscatter, 1.0)
@@ -578,7 +578,8 @@ class RTP():
                                 if dmap_record['cp'] < 0:
                                     cpID_name = 'discretionary \n{}'\
                                             ''.format(SuperDARNCpids.cpids.
-                                                      get(abs(dmap_record['cp']),
+                                                      get(abs(
+                                                          dmap_record['cp']),
                                                           'unknown'))
                                 else:
                                     cpID_name =\
@@ -594,7 +595,8 @@ class RTP():
                         NoDataFoundError(parameter, beam_num,
                                          start_time=start_time,
                                          end_time=end_time,
-                                         opt_beam_num=cls.dmap_data[0]['bmnum'])
+                                         opt_beam_num=cls.
+                                         dmap_data[0]['bmnum'])
 
             # to get rid of y-axis numbers
             ax.set_yticks([])
@@ -628,7 +630,8 @@ class RTP():
                         NoDataFoundError(parameter, beam_num,
                                          start_time=start_time,
                                          end_time=end_time,
-                                         opt_beam_num=cls.dmap_data[0]['bmnum'])
+                                         opt_beam_num=cls.
+                                         dmap_data[0]['bmnum'])
 
             # using masked arrays to create gaps in the plot
             # otherwise the lines will connect in gapped data
