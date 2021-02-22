@@ -268,7 +268,7 @@ class Fan():
         """
         # Get radar beam/gate locations
         beam_corners_aacgm_lats, beam_corners_aacgm_lons = \
-                radar_fov(stid, coords='aacgm', date=dtime)
+            radar_fov(stid, coords='aacgm', date=dtime)
         fan_shape = beam_corners_aacgm_lons.shape
 
         # Work out shift due in MLT
