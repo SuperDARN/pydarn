@@ -99,6 +99,11 @@ class NoDataFoundError(Exception):
                         "".format(beam_num=self.beam_num,
                                   parameter=self.parameter,
                                   opt_beam=self.opt_beam_num,
+                                  start_time=self.start_time.strftime("%Y %m"
+                                                                      " %d %H"
+                                                                      ":%M"),
+                                  end_time=self.end_time.strftime("%Y %m"
+                                                                  " %d %H:%M"))
                                   parameter_value=opt_parameter_value)
 
         super().__init__(self.message)
