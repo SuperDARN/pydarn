@@ -56,6 +56,7 @@ DMAP_CASTING_TYPES = {'c': np.int8,  # RST defined char
                       'I': np.uint32,  # Unsigned int
                       'Q': np.uint64}  # Unsigned long int
 
+
 def dmap2dict(dmap_records: List[dict]) -> List[dict]:
     """
     This method converts dmap records containing dmap data structures
