@@ -312,14 +312,17 @@ class Fan():
                       linewidth=0.5)
 
         if fov_color is not None:
-            theta = [thetas[0, 0], thetas[ranges[1]-1, 0],
-                     thetas[ranges[1]-1, thetas.shape[1]-2],
-                     thetas[0, thetas.shape[1]-2]]
-            r = [rs[0, 0], rs[ranges[1]-1, 0],
-                 rs[ranges[1]-1, thetas.shape[1]-2],
-                 rs[0, thetas.shape[1]-2]]
+            theta = thetas[0:ranges[1], 0]
+            theta = np.append(theta, thetas[ranges[1]-1, 0:thetas.shape[1]-1])
+            theta = np.append(theta, np.flip(thetas[0:ranges[1], thetas.shape[1]-2]))
+            theta = np.append(theta, np.flip(thetas[0, 0:thetas.shape[1]-2]))
+
+            r = rs[0:ranges[1], 0]
+            r = np.append(r, rs[ranges[1]-1, 0:thetas.shape[1]-1])
+            r = np.append(r, np.flip(rs[0:ranges[1], thetas.shape[1]-2]))
+            r = np.append(r, np.flip(rs[0, 0:thetas.shape[1]-2]))
             ax.fill(theta, r, color=fov_color, alpha=alpha)
-            ax.fill(thetas[ranges[1]-1, 0:thetas.shape[1]-1],
-                    rs[ranges[1]-1, 0:thetas.shape[1]-1],
-                    color=fov_color, alpha=alpha)
+            #ax.fill(thetas[ranges[1]-1, 0:thetas.shape[1]-1],
+            #        rs[ranges[1]-1, 0:thetas.shape[1]-1],
+            #        color=fov_color, alpha=alpha)
         return beam_corners_aacgm_lats, beam_corners_aacgm_lons, thetas, rs, ax
