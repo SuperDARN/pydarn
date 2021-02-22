@@ -103,7 +103,8 @@ class NoDataFoundError(Exception):
                                                                       " %d %H"
                                                                       ":%M"),
                                   end_time=self.end_time.strftime("%Y %m"
-                                                                  " %d %H:%M"))
+                                                                  " %d %H:%M"),
+                                  parameter_value=opt_parameter_value)
 
         super().__init__(self.message)
         pydarn_log.error(self.message)
