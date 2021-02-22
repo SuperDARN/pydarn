@@ -20,6 +20,7 @@ Fan plots are a way to visualise data from the entire scan of a SuperDARN radar.
 All beams and ranges for a given parameter (such as line-of-sight velocity, backscatter power, etc) and a particular scan are projected onto a polar format plot in [AACGMv2](http://superdarn.thayer.dartmouth.edu/aacgm.html) coordinates.
 
 Currently, fan plots in pyDARN get the geographic positions of a radar's range gates by reading in pre-generated files (found in the `/pydarn/radar_fov_files` folder), and then [converts](https://pypi.org/project/aacgmv2/) them to AACGMv2 coordinates. In the future, pyDARN will generate the geographical position, which will bring support for not standard range/beam layouts.
+The mapping of the range gate corners was based on [rbpos in RST](https://github.com/SuperDARN/rst/blob/0aa1fffed4cc48c1eb6372dfc9effa688af95624/codebase/superdarn/src.idl/lib/legacy.1.6/rbposlib.pro).
 
 ### Basic usage
 pyDARN and pyplot need to be imported, as well as any FITACF file needs to be [read in](https://pydarn.readthedocs.io/en/master/user/SDarnRead/):
@@ -80,7 +81,7 @@ Here is a list of all the current options than can be used with `plot_fan`
 | scan_index=(int)        | Scan number, from start of records in file                                                          |
 | lowlat=(int)            | Control the lower latitude boundary of the plot (default 50/-50 AACGM lat)                          |
 | groundscatter=(bool)    | True or false to showing ground scatter as grey                                                     |
-| ranges=(list)           | Two element list giving the lower and upper ranges to ploy (default [0,75]                          |
+| ranges=(list)           | Two element list giving the lower and upper ranges to plot (default [0,75]                          |
 | cmap=matplotlib.cm      | A matplotlib color map object. Will override the pyDARN defaults for chosen parameter               |
 | zmin=(int)              | Minimum data value for colouring                                                                    |
 | zmax=(int)              | Maximum data value for colouring                                                                    |
@@ -99,4 +100,3 @@ lats2,lons2,data2,grndsct2 = pydarn.Fan.plot_fan(fitacf_data, scan_index=140, pa
 plt.show()
 ```
 ![](../imgs/fan_3.png)
-
