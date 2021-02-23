@@ -1,7 +1,6 @@
 # Copyright (C) SuperDARN Canada, Universtiy of Saskatchewan
 # Authors: Marina Schmidt
 import logging
-import datetime
 
 pydarn_log = logging.getLogger('pydarn')
 

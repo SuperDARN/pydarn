@@ -194,11 +194,11 @@ class ACF():
                     break
                 scan_count += 1
         if record['cp'] == 503:
-            warnings.warn("Please note that this data is from Tauscan which has "
-                          "different lag properties compared to other control "
-                          "programs. The ACF plot may not be correct. "
-                          "Please contact the PI of the radar to "
-                          "confirm if the data looks correct.")
+            warnings.warn("Please note that this data is from Tauscan "
+                          "which has different lag properties compared "
+                          "to other control programs. The ACF plot may "
+                          "not be correct. Please contact the PI of the "
+                          "radar to confirm if the data looks correct.")
         if re == [] or im == []:
             if gate_num > 0 and gate_num < record['nrang']:
                 time = time2datetime(record)
@@ -262,6 +262,7 @@ class ACF():
                       " https://zenodo.org/record/3978643. Citing information"
                       " for SuperDARN data is found at"
                       " https://pydarn.readthedocs.io/en/master/user/citing/")
+
     @classmethod
     def __found_scan(cls, scan_num: int, count_num: int,
                      start_time: datetime, time: datetime):
@@ -287,13 +288,12 @@ class ACF():
                 else False
         """
         if start_time is None:
-            if scan_num==count_num:
+            if scan_num == count_num:
                 return True
         elif start_time < time:
             return True
 
         return False
-
 
     @classmethod
     def __blanked_lags(cls, record: dict, lags: list, gate: int):
