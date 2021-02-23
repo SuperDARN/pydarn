@@ -226,7 +226,7 @@ class Fan():
 
     @classmethod
     def plot_fov(cls, stid: str, dtime: dt.datetime, ax=None,
-                 lowlat: int = 50, ranges: List = [0, 75],
+                 lowlat: int = 30, ranges: List = [0, 75],
                  boundary: bool = True, fov_color: str = None,
                  alpha: int = 0.5):
         """
