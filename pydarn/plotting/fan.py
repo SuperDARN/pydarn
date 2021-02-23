@@ -49,7 +49,7 @@ class Fan():
     def plot_fan(cls, dmap_data: List[dict], ax=None, scan_index: int = 1,
                  ranges: List = [0, 75], boundary: bool = True,
                  alpha: int = 0.5, parameter: str = 'v',
-                 lowlat: int = 50, cmap: str = None,
+                 lowlat: int = 30, cmap: str = None,
                  groundscatter: bool = False,
                  zmin: int = None, zmax: int = None,
                  colorbar: bool = True,
@@ -67,6 +67,7 @@ class Fan():
                 polar projection
                 Default: Generates a polar projection for the user
                 with MLT/latitude labels
+
             scan_index: int
                 Scan number from beginning of first record in file
                 Default: 1
@@ -118,11 +119,14 @@ class Fan():
         grndsct
             n_beams x n_gates numpy array of the scan data
             (for the selected parameter)
+        dtime
+            datetime object for the scan plotted
 
         See Also
         --------
             plot_fov
         """
+
         # Get scan numbers for each record
         beam_scan = build_scan(dmap_data)
 
@@ -160,8 +164,6 @@ class Fan():
 
         # Colour table and max value selection depending on parameter plotted
         # Load defaults if none given
-        # TODO: use cmaps as over writing cmap is bad practice...
-        # did I do that in my code ... hmm
         if cmap is None:
             cmap = {'p_l': 'plasma', 'v': PyDARNColormaps.PYDARN_VELOCITY,
                     'w_l': PyDARNColormaps.PYDARN_VIRIDIS,
@@ -191,7 +193,7 @@ class Fan():
 
                 # Check for zero values (white) and groundscatter (gray)
                 if scan[gates, beams] == 0:
-                    colour_rgba = 'w'
+                    colour_rgba = (1, 1, 1, 0)
 
                 if groundscatter and grndsct[gates, beams] == 1:
                     colour_rgba = 'gray'

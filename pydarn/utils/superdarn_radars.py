@@ -91,7 +91,7 @@ def read_hdw_file(abbrv, date: datetime = None, update: bool = False):
     hdw_file = "{path}/hdw.dat.{radar}".format(path=hdw_path, radar=abbrv)
     # if the file does not exist then try
     # and download it
-    if os.path.exists(hdw_file) == False:
+    if os.path.exists(hdw_file) is False:
         get_hdw_files()
     try:
         with open(hdw_file, 'r') as reader:
