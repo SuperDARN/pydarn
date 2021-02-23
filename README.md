@@ -9,7 +9,7 @@ Python data visualization library for the Super Dual Auroral Radar Network (Supe
 
 ## Changelog
 
-## Version 2.0 - Release!
+## Version 2.0.1 - Release!
 
 
 pyDARN release v2.0includes the following features:
