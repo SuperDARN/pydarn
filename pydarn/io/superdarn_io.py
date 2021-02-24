@@ -13,7 +13,7 @@ class SuperDARNRead(pydarnio.SDarnRead):
     Methods
     -------
     read_dmap : reads superDARN DMap formats
-    read_borealis: Reads Borealis hdf5 formats and converts 
+    read_borealis: Reads Borealis hdf5 formats and converts
         Borealis' data dictionary to SDARN data dictionary
     """
     def __init__(self, filename: str = None, stream: bool = False):
@@ -83,8 +83,8 @@ class SuperDARNRead(pydarnio.SDarnRead):
                 string name of the file, make sure "rawacf" or "bfiq" is in
                 the name
             slice_id: int
-                the Borealis slice id of the file, required if reading Borealis data
-                produced prior to when Borealis v0.5 was released
+                the Borealis slice id of the file, required if reading Borealis
+                data produced prior to when Borealis v0.5 was released
 
         Post
         ----

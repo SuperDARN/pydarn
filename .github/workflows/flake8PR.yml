@@ -26,4 +26,4 @@ jobs:
         pip3 install flake8
         pip3 install --upgrade flake8
         # stop the build if there are Python syntax errors or undefined names
-        flake8 --exit-zero
+        flake8 --exit-zero --ignore=E501

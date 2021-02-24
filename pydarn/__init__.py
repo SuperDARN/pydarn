@@ -43,3 +43,4 @@ from .plotting.fan import Fan
 from .plotting.grid import Grid
 from .plotting.acf import ACF
 from .plotting.power import Power
+from .plotting.grid import Grid

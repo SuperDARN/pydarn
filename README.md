@@ -3,19 +3,19 @@
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPLv3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0) 
 [![Python 3.6](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/downloads/release/python-360/) 
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/superdarn/pydarn)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4549096.svg)](https://doi.org/10.5281/zenodo.4549096)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4558130.svg)](https://doi.org/10.5281/zenodo.4558130)
 
 Python data visualization library for the Super Dual Auroral Radar Network (SuperDARN).
 
 ## Changelog
 
-## Version 2.0 - Release!
+## Version 2.0.1 - Release!
 
 
-pyDARN release v2.0includes the following features:
+pyDARN release v2.0.1 includes the following features:
 - Integration with pyDARNio to read files
 - Updates to Hardware utility
-- **Fan Plots**
+- **Fan Plots** with transparent fix
 - **Statistical Power Plots**
 - Slant range option for plotting 
 - getting beam/gate geographic/geomagnetic locations 
