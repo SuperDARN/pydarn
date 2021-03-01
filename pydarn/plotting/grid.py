@@ -127,18 +127,17 @@ class Grid():
                             dmap_data[0]['start.day'],
                             dmap_data[0]['start.hour'],
                             dmap_data[0]['start.minute'])
-        _, _, _, _, ax = Fan.plot_fov(dmap_data[record]['stid'][0], dtime, boundary=fov)
+        _, aacgm_lons, _, _, ax = Fan.plot_fov(dmap_data[record]['stid'][0],
+                                               dtime, boundary=fov)
 
         data_lons = dmap_data[record]['vector.mlon']
         data_lats = dmap_data[record]['vector.mlat']
-        print(data_lons[0])
         # Hold the beam positions
-        shifted_mlts = data_lons[0] - \
-            (aacgmv2.convert_mlt(data_lons[0], dtime) * 15)
+        shifted_mlts = aacgm_lons[0, 0] - \
+            (aacgmv2.convert_mlt(aacgm_lons[0, 0], dtime) * 15)
         shifted_lons = data_lons - shifted_mlts
         thetas = np.radians(shifted_lons)
         rs = data_lats
-
         # Colour table and max value selection depending on parameter plotted
         # Load defaults if none given
         if cmap is None:
@@ -156,13 +155,41 @@ class Grid():
         if zmax is None:
             zmax = defaultzminmax[parameter][1]
 
-        data = dmap_data[record]['vector.vel.median']
-        ax.scatter(thetas, rs, c=dmap_data[record]['vector.vel.median'],
-                   s=1, cmap=cmap)
-
         norm = colors.Normalize
         norm = norm(zmin, zmax)
-        # Create color bar if True
+
+        data = dmap_data[record]['vector.vel.median']
+        # plot the magnitude
+        ax.scatter(thetas, rs, c=dmap_data[record]['vector.vel.median'],
+                   s=2.0, zorder=5, cmap=cmap)
+        if parameter is "v":
+            # list of velocities the magnitude
+            mag_v = dmap_data[record]['vector.vel.median']
+            azm_v = dmap_data[record]['vector.kvect']
+            num_pts = range(len(mag_v))
+            # calculate the sock of the mag velocities
+            # TODO: put these in their own file to be shared
+            len_factor = 500.0
+            rE = 6371.0
+            # obtained this code from DaVitpy
+            sock_len = [(v * len_factor / rE) / 1000.0 for v in mag_v]
+            end_lat = [np.arcsin(np.sin(np.radians(rs[i])) *
+                                 np.cos(sock_len[i]) +
+                                 np.cos(np.radians(rs[i])) *
+                                 np.sin(sock_len[i]) *
+                                 np.cos(np.radians(azm_v[i])))
+                       for i in num_pts]
+            end_lat = np.degrees(end_lat)
+            del_lon = [np.arctan2(np.sin(np.radians(azm_v[i])) *
+                                  np.sin(sock_len[i]) * np.cos(rs[i]),
+                                  np.cos(sock_len[i]) - np.sin(rs[i]) *
+                                  np.cos(end_lat[i]))
+                       for i in num_pts]
+            end_lon = [thetas[i] + del_lon[i] for i in num_pts]
+            for i in num_pts:
+                plt.polar([thetas[i], end_lon[i]], [rs[i], end_lat[i]],
+                          c=cmap(norm(mag_v[i])), linewidth=0.5)
+
         if colorbar is True:
             mappable = cm.ScalarMappable(norm=norm, cmap=cmap)
             locator = ticker.MaxNLocator(symmetric=True, min_n_ticks=3,
