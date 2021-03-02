@@ -20,6 +20,7 @@ Fan plots, mapped to AACGM coordinates in a polar format
 import datetime as dt
 import matplotlib.pyplot as plt
 import numpy as np
+import cmocean
 
 from matplotlib import ticker, cm, colors
 from typing import List
@@ -47,9 +48,10 @@ class Grid():
 
     @classmethod
     def plot_grid(cls, dmap_data: List[dict], record: int = 0,
+                  start_time: dt.datetime = None,
                   ax=None, scan_index: int = 1,
                   ranges: List = [0, 75], fov: bool = True,
-                  parameter: str = 'v',
+                  parameter: str = 'vel',
                   lowlat: int = 50, cmap: str = None,
                   groundscatter: bool = False,
                   zmin: int = None, zmax: int = None,
@@ -68,34 +70,25 @@ class Grid():
                 be polar projection
                 Default: Generates a polar projection for the user
                 with MLT/latitude labels
-            scan_index: int
-                Scan number from beginning of first record in file
-                Default: 1
             parameter: str
                 Key name indicating which parameter to plot.
-                Default: v (Velocity). Alternatives: 'p_l', 'w_l', 'elv'
+                Default: vel (Velocity). Alternatives: 'pwr', 'wdt'
             lowlat: int
                 Lower AACGM latitude boundary for the polar plot
                 Default: 50
-            ranges: list
-                Set to a two element list of the lower and upper ranges to plot
-                Default: [0,75]
             boundary: bool
                 Set to false to not plot the outline of the FOV
                 Default: True
             cmap: matplotlib.cm
                 matplotlib colour map
                 https://matplotlib.org/tutorials/colors/colormaps.html
-                Default: Official pyDARN colour map for given parameter
-            groundscatter : bool
-                Set true to indicate if groundscatter should be plotted in grey
-                Default: False
+                 Default: Official pyDARN colour map for given parameter
             zmin: int
                 The minimum parameter value for coloring
-                Default: {'p_l': [0], 'v': [-200], 'w_l': [0], 'elv': [0]}
+                Default: {'pwr': [0], 'vel': [0], 'wdt': [0]}
             zmax: int
                 The maximum parameter value for  coloring
-                Default: {'p_l': [50], 'v': [200], 'w_l': [250], 'elv': [50]}
+                Default: {'pwr': [50], 'vel': [1000], 'wdt': [250]}
             colorbar: bool
                 Draw a colourbar if True
                 Default: True
@@ -103,6 +96,10 @@ class Grid():
                 the label that appears next to the colour bar.
                 Requires colorbar to be true
                 Default: ''
+            title: str
+                adds a title to the plot if no title is specified
+                one will be provided
+                default: ''
         Returns
         -----------
         beam_corners_aacgm_lats
@@ -119,14 +116,21 @@ class Grid():
             datetime object for the scan plotted
 
         """
+        # Short hand for the parameters in GRID files
+        if parameter == 'vel' or parameter == 'pwr' or parameter == 'wdt':
+            parameter = "vector.{param}.median".format(param=parameter)
 
-        # Get radar beam/gate locations
-        # Time for coordinate conversion
-        dtime = dt.datetime(dmap_data[0]['start.year'],
-                            dmap_data[0]['start.month'],
-                            dmap_data[0]['start.day'],
-                            dmap_data[0]['start.hour'],
-                            dmap_data[0]['start.minute'])
+        # find the record corresponding to the start time
+        if start_time is not None:
+            for record in range(len(dmap_data)):
+                dtime = dt.datetime(dmap_data[record]['start.year'],
+                                    dmap_data[record]['start.month'],
+                                    dmap_data[record]['start.day'],
+                                    dmap_data[record]['start.hour'],
+                                    dmap_data[record]['start.minute'])
+                if dtime == start_time:
+                    break
+
         _, aacgm_lons, _, _, ax = Fan.plot_fov(dmap_data[record]['stid'][0],
                                                dtime, boundary=fov)
 
@@ -141,15 +145,15 @@ class Grid():
         # Colour table and max value selection depending on parameter plotted
         # Load defaults if none given
         if cmap is None:
-            cmap = {'p_l': 'plasma',
-                    'v': PyDARNColormaps.PYDARN_VELOCITY,
-                    'w_l': PyDARNColormaps.PYDARN_VIRIDIS,
-                    'elv': PyDARNColormaps.PYDARN}
+            cmap = {'vector.pwr.median': 'plasma',
+                    'vector.vel.median': cmocean.cm.haline_r,
+                    'vector.wdt.median': PyDARNColormaps.PYDARN_VIRIDIS}
             cmap = plt.cm.get_cmap(cmap[parameter])
 
         # Setting zmin and zmax
-        defaultzminmax = {'p_l': [0, 50], 'v': [-200, 200],
-                          'w_l': [0, 250], 'elv': [0, 50]}
+        defaultzminmax = {'vector.pwr.median': [0, 50],
+                          'vector.vel.median': [0, 1000],
+                          'vector.wdt.median': [0, 250]}
         if zmin is None:
             zmin = defaultzminmax[parameter][0]
         if zmax is None:
@@ -158,23 +162,24 @@ class Grid():
         norm = colors.Normalize
         norm = norm(zmin, zmax)
 
-        data = dmap_data[record]['vector.vel.median']
+        data = dmap_data[record][parameter]
         # plot the magnitude
-        ax.scatter(thetas, rs, c=dmap_data[record]['vector.vel.median'],
-                   s=2.0, zorder=5, cmap=cmap)
-        if parameter is "v":
+        ax.scatter(thetas, rs, c=data,
+                   s=2.0, vmin=zmin, vmax=zmax, zorder=5, cmap=cmap)
+        if parameter == "vector.vel.median":
             # list of velocities the magnitude
-            mag_v = dmap_data[record]['vector.vel.median']
             azm_v = dmap_data[record]['vector.kvect']
-            num_pts = range(len(mag_v))
+            num_pts = range(len(data))
             # calculate the sock of the mag velocities
             # TODO: put these in their own file to be shared
+            # TODO: not sure on why 500
             len_factor = 500.0
+            # Earths radius
             rE = 6371.0
             # obtained this code from DaVitpy
-            sock_len = [(v * len_factor / rE) / 1000.0 for v in mag_v]
-            end_lat = [np.arcsin(np.sin(np.radians(rs[i])) *
-                                 np.cos(sock_len[i]) +
+            # Not sure on 1000.0 - convert m/s to km/s
+            sock_len = [(v * len_factor / rE) / 1000.0 for v in data]
+            end_lat = [np.arcsin(np.sin(np.radians(rs[i])) * np.cos(sock_len[i]) +
                                  np.cos(np.radians(rs[i])) *
                                  np.sin(sock_len[i]) *
                                  np.cos(np.radians(azm_v[i])))
@@ -188,7 +193,7 @@ class Grid():
             end_lon = [thetas[i] + del_lon[i] for i in num_pts]
             for i in num_pts:
                 plt.polar([thetas[i], end_lon[i]], [rs[i], end_lat[i]],
-                          c=cmap(norm(mag_v[i])), linewidth=0.5)
+                          c=cmap(norm(data[i])), linewidth=0.5)
 
         if colorbar is True:
             mappable = cm.ScalarMappable(norm=norm, cmap=cmap)
@@ -201,3 +206,13 @@ class Grid():
 
             if colorbar_label != '':
                 cb.set_label(colorbar_label)
+
+        title = "{year} {month} {day} {start_hour}:{start_minute} -"\
+                " {end_hour}:{end_minute}".format(year=dtime.year,
+                                                  month=dtime.month,
+                                                  day=dtime.day,
+                                                  start_hour=dtime.hour,
+                                                  start_minute=dtime.minute,
+                                                  end_hour=dmap_data[record]['end.hour'],
+                                                  end_minute=dmap_data[record]['end.minute'])
+        plt.title(title)
