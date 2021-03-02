@@ -48,42 +48,25 @@ class Fan():
     @classmethod
     def plot_fan(cls, dmap_data: List[dict], ax=None, scan_index: int = 1,
                  ranges: List = [0, 75], boundary: bool = True,
-<<<<<<< HEAD
                  alpha: int = 0.5, parameter: str = 'v',
-                 lowlat: int = 50, cmap: str = None,
+                 lowlat: int = 30, cmap: str = None,
                  groundscatter: bool = False,
-=======
-                 parameter: str = 'v', lowlat: int = 30,
-                 cmap: str = None, groundscatter: bool = False,
->>>>>>> develop
                  zmin: int = None, zmax: int = None,
                  colorbar: bool = True,
                  colorbar_label: str = ''):
         """
-<<<<<<< HEAD
-        Plots a radar's Field Of View (FOV) fan plot for the given data and
-        scan number
-=======
         Plots a radar's Field Of View (FOV)
         fan plot for the given data and scan number
->>>>>>> develop
 
         Parameters
         -----------
             dmap_data: List[dict]
                 Named list of dictionaries obtained from SDarn_read
             ax: matplotlib.pyplot axis
-<<<<<<< HEAD
-                Pre-defined axis object to pass in, must currently be
-                polar projection
-                Default: Generates a polar projection for the user
-                with MLT/latitude labels
-=======
                 Pre-defined axis object to pass in,
                 must currently be polar projection
                 Default: Generates a polar projection for
                 the user with MLT/latitude labels
->>>>>>> develop
             scan_index: int
                 Scan number from beginning of first record in file
                 Default: 1
@@ -135,20 +118,13 @@ class Fan():
         grndsct
             n_beams x n_gates numpy array of the scan data
             (for the selected parameter)
-<<<<<<< HEAD
-=======
         dtime
             datetime object for the scan plotted
->>>>>>> develop
 
         See Also
         --------
             plot_fov
         """
-<<<<<<< HEAD
-=======
-
->>>>>>> develop
         # Get scan numbers for each record
         beam_scan = build_scan(dmap_data)
 
@@ -162,18 +138,11 @@ class Fan():
                             dmap_data[plot_beams[0][0]]['time.hr'],
                             dmap_data[plot_beams[0][0]]['time.mt'],
                             dmap_data[plot_beams[0][0]]['time.sc'])
-<<<<<<< HEAD
         # Plot FOV outline
         beam_corners_aacgm_lats, beam_corners_aacgm_lons, thetas, rs, ax = \
             cls.plot_fov(stid=dmap_data[0]['stid'], dtime=dtime, lowlat=lowlat,
                          ranges=ranges, boundary=boundary,
                          alpha=alpha)
-=======
-
-        # Get radar beam/gate locations
-        beam_corners_aacgm_lats, beam_corners_aacgm_lons = \
-            radar_fov(dmap_data[0]['stid'], coords='aacgm', date=dtime)
->>>>>>> develop
         fan_shape = beam_corners_aacgm_lons.shape
 
         # Get range-gate data and groundscatter array for given scan
@@ -193,11 +162,7 @@ class Fan():
 
         # Colour table and max value selection depending on parameter plotted
         # Load defaults if none given
-<<<<<<< HEAD
-        # TODO: use cmaps as over writing cmap is bad practice...
-        # did I do that in my code ... hmm
-=======
->>>>>>> develop
+
         if cmap is None:
             cmap = {'p_l': 'plasma', 'v': PyDARNColormaps.PYDARN_VELOCITY,
                     'w_l': PyDARNColormaps.PYDARN_VIRIDIS,
@@ -212,26 +177,8 @@ class Fan():
         if zmax is None:
             zmax = defaultzminmax[parameter][1]
 
-<<<<<<< HEAD
         # Begin plotting by iterating over ranges and beams
         for gates in range(ranges[0], ranges[1]-1):
-=======
-        # Setup plot
-        # This may screw up references
-        if ax is None:
-            ax = plt.axes(polar=True)
-            if beam_corners_aacgm_lats[0, 0] > 0:
-                ax.set_ylim(90, lowlat)
-                ax.set_yticks(np.arange(lowlat, 90, 10))
-            else:
-                ax.set_ylim(-90, -abs(lowlat))
-                ax.set_yticks(np.arange(-abs(lowlat), -90, -10))
-            ax.set_xticklabels(['00', '', '06', '', '12', '', '18', ''])
-            ax.set_theta_zero_location("S")
-
-        # Begin plotting by iterating over ranges and beams
-        for gates in range(ranges[0], ranges[1] - 1):
->>>>>>> develop
             for beams in range(thetas.shape[1] - 2):
                 # Index colour table correctly
                 cmapindex = (scan[gates, beams] + abs(zmin)) /\
@@ -258,23 +205,6 @@ class Fan():
                 r = [rs[gates, beams], rs[gates + 1, beams],
                      rs[gates + 1, beams + 1], rs[gates, beams + 1]]
                 ax.fill(theta, r, color=colour_rgba)
-<<<<<<< HEAD
-=======
-
-        # Plot FOV outline
-        if boundary is True:
-            plt.polar(thetas[0:ranges[1], 0], rs[0:ranges[1], 0],
-                      color='black', linewidth=0.5)
-            plt.polar(thetas[ranges[1] - 1, 0:thetas.shape[1] - 1],
-                      rs[ranges[1] - 1, 0:thetas.shape[1] - 1], color='black',
-                      linewidth=0.5)
-            plt.polar(thetas[0:ranges[1], thetas.shape[1] - 2],
-                      rs[0:ranges[1], thetas.shape[1] - 2],
-                      color='black', linewidth=0.5)
-            plt.polar(thetas[0, 0:thetas.shape[1] - 2],
-                      rs[0, 0:thetas.shape[1] - 2], color='black',
-                      linewidth=0.5)
->>>>>>> develop
 
         norm = colors.Normalize
         norm = norm(zmin, zmax)
@@ -291,7 +221,6 @@ class Fan():
             if colorbar_label != '':
                 cb.set_label(colorbar_label)
 
-<<<<<<< HEAD
         return beam_corners_aacgm_lats, beam_corners_aacgm_lons, scan, grndsct
 
     @classmethod
@@ -398,6 +327,4 @@ class Fan():
             #        rs[ranges[1]-1, 0:thetas.shape[1]-1],
             #        color=fov_color, alpha=alpha)
         return beam_corners_aacgm_lats, beam_corners_aacgm_lons, thetas, rs, ax
-=======
-        return beam_corners_aacgm_lats, beam_corners_aacgm_lons,
->>>>>>> develop
+
