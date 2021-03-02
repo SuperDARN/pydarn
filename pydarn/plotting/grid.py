@@ -49,14 +49,10 @@ class Grid():
     @classmethod
     def plot_grid(cls, dmap_data: List[dict], record: int = 0,
                   start_time: dt.datetime = None,
-                  ax=None, scan_index: int = 1,
-                  ranges: List = [0, 75], fov: bool = True,
-                  parameter: str = 'vel',
-                  lowlat: int = 50, cmap: str = None,
-                  groundscatter: bool = False,
-                  zmin: int = None, zmax: int = None,
-                  colorbar: bool = True,
-                  colorbar_label: str = ''):
+                  ax=None, fov: bool = True, parameter: str = 'vel',
+                  lowlat: int = 50, cmap: str = None, zmin: int = None,
+                  zmax: int = None, colorbar: bool = True,
+                  colorbar_label: str = '', title: str = ''):
         """
         Plots a radar's Field Of View (FOV) fan plot for the
         given data and scan number
@@ -65,6 +61,13 @@ class Grid():
         -----------
             dmap_data: List[dict]
                 Named list of dictionaries obtained from SDarn_read
+            record: int
+                record number to plot
+                default: 0
+            start_time: datetime.datetime
+                datetime object as the start time of the record to plot
+                if none then record will be used
+                default: none
             ax: matplotlib.pyplot axis
                 Pre-defined axis object to pass in, must currently
                 be polar projection
@@ -76,9 +79,9 @@ class Grid():
             lowlat: int
                 Lower AACGM latitude boundary for the polar plot
                 Default: 50
-            boundary: bool
+            fov: bool
                 Set to false to not plot the outline of the FOV
-                Default: True
+                 Default: True
             cmap: matplotlib.cm
                 matplotlib colour map
                 https://matplotlib.org/tutorials/colors/colormaps.html
@@ -102,18 +105,12 @@ class Grid():
                 default: ''
         Returns
         -----------
-        beam_corners_aacgm_lats
-            n_beams x n_gates numpy array of AACGMv2 latitudes
-        beam_corners_aacgm_lons
-            n_beams x n_gates numpy array of AACGMv2 longitudes
-        scan
-            n_beams x n_gates numpy array of the scan data
-            (for the selected parameter)
-        grndsct
-            n_beams x n_gates numpy array of the scan data
-            (for the selected parameter)
-        dtime
-            datetime object for the scan plotted
+        if parameter is vector.vel.median:
+        thetas - list of data point longitudes in polar coordinates shifted
+        rs - list of data point latitudes
+        else:
+        thetas - list of data point longitudes in polar coordinates shifted
+        rs - list of data point latitudes
 
         """
         # Short hand for the parameters in GRID files
@@ -132,7 +129,8 @@ class Grid():
                     break
 
         _, aacgm_lons, _, _, ax = Fan.plot_fov(dmap_data[record]['stid'][0],
-                                               dtime, boundary=fov)
+                                               dtime, boundary=fov,
+                                               lowlat=lowlat)
 
         data_lons = dmap_data[record]['vector.mlon']
         data_lats = dmap_data[record]['vector.mlat']
@@ -163,34 +161,44 @@ class Grid():
         norm = norm(zmin, zmax)
 
         data = dmap_data[record][parameter]
-        # plot the magnitude
+        # plot the magnitude of the parameters
         ax.scatter(thetas, rs, c=data,
                    s=2.0, vmin=zmin, vmax=zmax, zorder=5, cmap=cmap)
+        # if the parameter is velocity then plot the vector directional socks
+        # TODO: put this equation in utils
         if parameter == "vector.vel.median":
-            # list of velocities the magnitude
+            # get the azimuths from the data
             azm_v = dmap_data[record]['vector.kvect']
+            # number of data points
             num_pts = range(len(data))
-            # calculate the sock of the mag velocities
+            # calculate the sock of the magnitude of velocities
             # TODO: put these in their own file to be shared
-            # TODO: not sure on why 500
+            # used for scaling the plot window
             len_factor = 500.0
             # Earths radius
             rE = 6371.0
             # obtained this code from DaVitpy
             # Not sure on 1000.0 - convert m/s to km/s
+            # calculate the sock length
             sock_len = [(v * len_factor / rE) / 1000.0 for v in data]
-            end_lat = [np.arcsin(np.sin(np.radians(rs[i])) * np.cos(sock_len[i]) +
+            # calculate end latitude of the sock
+            end_lat = [np.arcsin(np.sin(np.radians(rs[i])) *
+                                 np.cos(sock_len[i]) +
                                  np.cos(np.radians(rs[i])) *
                                  np.sin(sock_len[i]) *
                                  np.cos(np.radians(azm_v[i])))
                        for i in num_pts]
+            # convert to degrees as need to plot in polar plots
             end_lat = np.degrees(end_lat)
+            # calculate the change in longitude
             del_lon = [np.arctan2(np.sin(np.radians(azm_v[i])) *
                                   np.sin(sock_len[i]) * np.cos(rs[i]),
                                   np.cos(sock_len[i]) - np.sin(rs[i]) *
                                   np.cos(end_lat[i]))
                        for i in num_pts]
+            # calculate end longitude for socks
             end_lon = [thetas[i] + del_lon[i] for i in num_pts]
+            # plot the socks
             for i in num_pts:
                 plt.polar([thetas[i], end_lon[i]], [rs[i], end_lat[i]],
                           c=cmap(norm(data[i])), linewidth=0.5)
@@ -207,12 +215,17 @@ class Grid():
             if colorbar_label != '':
                 cb.set_label(colorbar_label)
 
-        title = "{year} {month} {day} {start_hour}:{start_minute} -"\
-                " {end_hour}:{end_minute}".format(year=dtime.year,
-                                                  month=dtime.month,
-                                                  day=dtime.day,
-                                                  start_hour=dtime.hour,
-                                                  start_minute=dtime.minute,
-                                                  end_hour=dmap_data[record]['end.hour'],
-                                                  end_minute=dmap_data[record]['end.minute'])
+        if title == '':
+            title = "{year} {month} {day} {start_hour}:{start_minute} -"\
+                " {end_hour}:{end_minute}"\
+                    "".format(year=dtime.year,
+                              month=dtime.month,
+                              day=dtime.day,
+                              start_hour=dtime.hour,
+                              start_minute=dtime.minute,
+                              end_hour=dmap_data[record]['end.hour'],
+                              end_minute=dmap_data[record]['end.minute'])
         plt.title(title)
+        if parameter == 'vector.vel.median':
+            return thetas, end_lon, rs, end_lat, data, sock_len
+        return thetas, rs, data
