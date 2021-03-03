@@ -60,11 +60,11 @@ class NoDataFoundError(Exception):
                 self.message = "There is no record with the start time:"\
                     " {starttime} and parameter {param}. Try another"\
                     " start time, parameter, or increase time_delta"\
-                    " option".format(start_time=self.start_time.strftime("%Y"
-                                                                         "%m"
-                                                                         " %d"
-                                                                         " %H:"
-                                                                         "%M"),
+                    " option".format(starttime=self.start_time.strftime("%Y"
+                                                                        "%m"
+                                                                        " %d"
+                                                                        " %H:"
+                                                                        "%M"),
                                      param=self.parameter)
             elif opt_parameter_value is None:
                 self.message = "There is no Data for beam number {beam_num}"\
