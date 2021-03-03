@@ -38,12 +38,11 @@ class Grid():
         Methods
         -------
         plot_grid
-        """
-
+    """
     def __str__(self):
         return "This class is static class that provides"\
                 " the following methods: \n"\
-                "   - plot_grid()\n"\
+                "   - plot_grid()\n"
 
     @classmethod
     def plot_grid(cls, dmap_data: List[dict], record: int = 0,
@@ -51,8 +50,8 @@ class Grid():
                   ax=None, fov: bool = True, parameter: str = 'vel',
                   lowlat: int = 50, cmap: str = None, zmin: int = None,
                   zmax: int = None, colorbar: bool = True,
-                  colorbar_label: str = '', title: str = '', len_factor: float = 150.0,
-                  ref_vector: int = 300):
+                  colorbar_label: str = '', title: str = '',
+                  len_factor: float = 150.0, ref_vector: int = 300):
         """
         Plots a radar's gridded vectors from a GRID file
 
@@ -201,29 +200,31 @@ class Grid():
 
             # Angle to "rotate" each vector by to get into same reference frame
             # Controlled by longitude, or "mltitude"
-            alpha=thetas
+            alpha = thetas
 
-            # Convert initial positions to cartesian
-            start_pos_x=(90-rs)*np.cos(thetas)
-            start_pos_y=(90-rs)*np.sin(thetas)
+            # Convert initial positions to Cartesian
+            start_pos_x = (90 - rs) * np.cos(thetas)
+            start_pos_y = (90 - rs) * np.sin(thetas)
 
-            # Resolve LOS vector in x and y directions, with respect to mag pole
+            # Resolve LOS vector in x and y directions,
+            # with respect to mag pole
             # Gives zonal and meridional components of LOS vector
-            los_x=-data*np.cos(np.radians(-azm_v))
-            los_y=-data*np.sin(np.radians(-azm_v))
+            los_x = -data * np.cos(np.radians(-azm_v))
+            los_y = -data * np.sin(np.radians(-azm_v))
 
-            # Rotate each vector into same reference frame following vector rotation matrix
+            # Rotate each vector into same reference frame
+            # following vector rotation matrix
             # https://en.wikipedia.org/wiki/Rotation_matrix
-            vec_x=(los_x*np.cos(alpha))-(los_y*np.sin(alpha))
-            vec_y=(los_x*np.sin(alpha))+(los_y*np.cos(alpha))
+            vec_x = (los_x * np.cos(alpha)) - (los_y * np.sin(alpha))
+            vec_y = (los_x * np.sin(alpha)) + (los_y * np.cos(alpha))
 
-            # New vector end points, in cartesian
-            end_pos_x=start_pos_x+(vec_x/len_factor)
-            end_pos_y=start_pos_y+(vec_y/len_factor)
+            # New vector end points, in Cartesian
+            end_pos_x = start_pos_x + (vec_x / len_factor)
+            end_pos_y = start_pos_y + (vec_y / len_factor)
 
             # Convert back to polar for plotting
-            end_rs=90-(np.sqrt(end_pos_x**2+end_pos_y**2))
-            end_thetas=np.arctan2(end_pos_y,end_pos_x)
+            end_rs = 90 - (np.sqrt(end_pos_x**2 + end_pos_y**2))
+            end_thetas = np.arctan2(end_pos_y, end_pos_x)
 
             # Plot the vectors
             for i in num_pts:
