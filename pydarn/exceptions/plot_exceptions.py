@@ -45,7 +45,8 @@ class NoDataFoundError(Exception):
     This error is raised when no data is found for
     the given beam and parameter
     """
-    def __init__(self, parameter: str, beam_num: int,  opt_beam_num: int,
+    def __init__(self, parameter: str, beam_num: int = None,
+                 opt_beam_num: int = None,
                  opt_parameter_value: int = None,
                  start_time: datetime.datetime = None,
                  end_time: datetime.datetime = None):
@@ -53,7 +54,19 @@ class NoDataFoundError(Exception):
         self.beam_num = beam_num
         self.opt_beam_num = opt_beam_num
         if start_time is None or end_time is None:
-            if opt_parameter_value is None:
+            if start_time is not None and beam_num is None:
+                self.parameter = parameter
+                self.start_time = start_time
+                self.message = "There is no record with the start time:"\
+                    " {starttime} and parameter {param}. Try another"\
+                    " start time, parameter, or increase time_delta"\
+                    " option".format(start_time=self.start_time.strftime("%Y"
+                                                                         "%m"
+                                                                         " %d"
+                                                                         " %H:"
+                                                                         "%M"),
+                                     param=self.parameter)
+            elif opt_parameter_value is None:
                 self.message = "There is no Data for beam number {beam_num}"\
                         " for the parameter type {parameter}. "\
                         "Try beam, for example: {opt_beam} or"\

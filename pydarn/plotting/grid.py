@@ -28,7 +28,7 @@ from typing import List
 # Third party libraries
 import aacgmv2
 
-from pydarn import PyDARNColormaps, Fan
+from pydarn import PyDARNColormaps, Fan, plot_exceptions
 
 
 class Grid():
@@ -48,7 +48,7 @@ class Grid():
 
     @classmethod
     def plot_grid(cls, dmap_data: List[dict], record: int = 0,
-                  start_time: dt.datetime = None,
+                  start_time: dt.datetime = None, time_delta: int = 1,
                   ax=None, fov: bool = True, parameter: str = 'vel',
                   lowlat: int = 50, cmap: str = None, zmin: int = None,
                   zmax: int = None, colorbar: bool = True,
@@ -69,6 +69,10 @@ class Grid():
                 datetime object as the start time of the record to plot
                 if none then record will be used
                 default: none
+            time_delta: int
+                How close the start_time has to be start_time of the record
+                in minutes
+                default: 1
             ax: matplotlib.pyplot axis
                 Pre-defined axis object to pass in, must currently
                 be polar projection
@@ -107,7 +111,7 @@ class Grid():
             len_factor: float
                 Normalisation factor for the vectors, to control size on plot
                 Larger number means smaller vectors on plot
-                Default: 150.0   
+                Default: 150.0
             ref_vector: int
                 Velocity value to be used for the reference vector, in m/s
                 Default: 300
@@ -133,8 +137,12 @@ class Grid():
                                     dmap_data[record]['start.day'],
                                     dmap_data[record]['start.hour'],
                                     dmap_data[record]['start.minute'])
-                if dtime == start_time:
+                time_diff = dtime - start_time
+                if time_diff.seconds/60 <= time_delta:
                     break
+            if time_diff.seconds/60 > time_delta:
+                raise plot_exceptions.NoDataFoundError(parameter,
+                                                       start_time=start_time)
 
         _, aacgm_lons, _, _, ax = Fan.plot_fov(dmap_data[record]['stid'][0],
                                                dtime, boundary=fov,
@@ -142,14 +150,14 @@ class Grid():
 
         data_lons = dmap_data[record]['vector.mlon']
         data_lats = dmap_data[record]['vector.mlat']
-        
+
         # Hold the beam positions
         shifted_mlts = aacgm_lons[0, 0] - \
             (aacgmv2.convert_mlt(aacgm_lons[0, 0], dtime) * 15)
         shifted_lons = data_lons - shifted_mlts
         thetas = np.radians(shifted_lons)
         rs = data_lats
-        
+
         # Colour table and max value selection depending on parameter plotted
         # Load defaults if none given
         if cmap is None:
@@ -171,17 +179,17 @@ class Grid():
         norm = norm(zmin, zmax)
 
         data = dmap_data[record][parameter]
-        
+
         # Plot the magnitude of the parameter
         ax.scatter(thetas, rs, c=data,
                    s=2.0, vmin=zmin, vmax=zmax, zorder=5, cmap=cmap)
-                   
+
         # If the parameter is velocity then plot the LOS vectors
         if parameter == "vector.vel.median":
-        
+
             # Get the azimuths from the data
             azm_v = dmap_data[record]['vector.kvect']
-            
+
             # Number of data points
             num_pts = range(len(data))
 
@@ -190,33 +198,33 @@ class Grid():
             alpha=thetas
 
             # Convert initial positions to cartesian
-            start_pos_x=(90-rs)*np.cos(thetas) 
+            start_pos_x=(90-rs)*np.cos(thetas)
             start_pos_y=(90-rs)*np.sin(thetas)
-        
+
             # Resolve LOS vector in x and y directions, with respect to mag pole
             # Gives zonal and meridional components of LOS vector
             los_x=-data*np.cos(np.radians(-azm_v))
             los_y=-data*np.sin(np.radians(-azm_v))
-            
+
             # Rotate each vector into same reference frame following vector rotation matrix
             # https://en.wikipedia.org/wiki/Rotation_matrix
             vec_x=(los_x*np.cos(alpha))-(los_y*np.sin(alpha))
             vec_y=(los_x*np.sin(alpha))+(los_y*np.cos(alpha))
-            
+
             # New vector end points, in cartesian
             end_pos_x=start_pos_x+(vec_x/len_factor)
             end_pos_y=start_pos_y+(vec_y/len_factor)
-            
+
             # Convert back to polar for plotting
             end_rs=90-(np.sqrt(end_pos_x**2+end_pos_y**2))
             end_thetas=np.arctan2(end_pos_y,end_pos_x)
-            
+
             # Plot the vectors
             for i in num_pts:
                 plt.polar([thetas[i], end_thetas[i]], [rs[i], end_rs[i]],
                           c=cmap(norm(data[i])), linewidth=0.5)
-                          
-            # TODO: Add a velocity reference vector          
+
+            # TODO: Add a velocity reference vector
 
         if colorbar is True:
             mappable = cm.ScalarMappable(norm=norm, cmap=cmap)
