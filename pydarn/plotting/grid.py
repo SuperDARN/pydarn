@@ -21,6 +21,7 @@ import datetime as dt
 import matplotlib.pyplot as plt
 import numpy as np
 import cmocean
+import pdb
 
 from matplotlib import ticker, cm, colors
 from typing import List
@@ -52,7 +53,8 @@ class Grid():
                   ax=None, fov: bool = True, parameter: str = 'vel',
                   lowlat: int = 50, cmap: str = None, zmin: int = None,
                   zmax: int = None, colorbar: bool = True,
-                  colorbar_label: str = '', title: str = ''):
+                  colorbar_label: str = '', title: str = '', len_factor: float = 150.0,
+                  ref_vector: int = 300):
         """
         Plots a radar's Field Of View (FOV) fan plot for the
         given data and scan number
@@ -81,11 +83,11 @@ class Grid():
                 Default: 50
             fov: bool
                 Set to false to not plot the outline of the FOV
-                 Default: True
+                Default: True
             cmap: matplotlib.cm
                 matplotlib colour map
                 https://matplotlib.org/tutorials/colors/colormaps.html
-                 Default: Official pyDARN colour map for given parameter
+                Default: Official pyDARN colour map for given parameter
             zmin: int
                 The minimum parameter value for coloring
                 Default: {'pwr': [0], 'vel': [0], 'wdt': [0]}
@@ -96,13 +98,20 @@ class Grid():
                 Draw a colourbar if True
                 Default: True
             colorbar_label: str
-                the label that appears next to the colour bar.
+                The label that appears next to the colour bar.
                 Requires colorbar to be true
                 Default: ''
             title: str
-                adds a title to the plot if no title is specified
+                Adds a title to the plot. If no title is specified,
                 one will be provided
-                default: ''
+                Default: ''
+            len_factor: float
+                Normalisation factor for the vectors, to control size on plot
+                Larger number means smaller vectors on plot
+                Default: 150.0   
+            ref_vector: int
+                Velocity value to be used for the reference vector, in m/s
+                Default: 300
         Returns
         -----------
         if parameter is vector.vel.median:
@@ -117,7 +126,7 @@ class Grid():
         if parameter == 'vel' or parameter == 'pwr' or parameter == 'wdt':
             parameter = "vector.{param}.median".format(param=parameter)
 
-        # find the record corresponding to the start time
+        # Find the record corresponding to the start time
         if start_time is not None:
             for record in range(len(dmap_data)):
                 dtime = dt.datetime(dmap_data[record]['start.year'],
@@ -134,12 +143,14 @@ class Grid():
 
         data_lons = dmap_data[record]['vector.mlon']
         data_lats = dmap_data[record]['vector.mlat']
+        
         # Hold the beam positions
         shifted_mlts = aacgm_lons[0, 0] - \
             (aacgmv2.convert_mlt(aacgm_lons[0, 0], dtime) * 15)
         shifted_lons = data_lons - shifted_mlts
         thetas = np.radians(shifted_lons)
         rs = data_lats
+        
         # Colour table and max value selection depending on parameter plotted
         # Load defaults if none given
         if cmap is None:
@@ -161,47 +172,52 @@ class Grid():
         norm = norm(zmin, zmax)
 
         data = dmap_data[record][parameter]
-        # plot the magnitude of the parameters
+        
+        # Plot the magnitude of the parameter
         ax.scatter(thetas, rs, c=data,
                    s=2.0, vmin=zmin, vmax=zmax, zorder=5, cmap=cmap)
-        # if the parameter is velocity then plot the vector directional socks
-        # TODO: put this equation in utils
+                   
+        # If the parameter is velocity then plot the LOS vectors
         if parameter == "vector.vel.median":
-            # get the azimuths from the data
+        
+            # Get the azimuths from the data
             azm_v = dmap_data[record]['vector.kvect']
-            # number of data points
+            
+            # Number of data points
             num_pts = range(len(data))
-            # calculate the sock of the magnitude of velocities
-            # TODO: put these in their own file to be shared
-            # used for scaling the plot window
-            len_factor = 500.0
-            # Earths radius
-            rE = 6371.0
-            # obtained this code from DaVitpy
-            # Not sure on 1000.0 - convert m/s to km/s
-            # calculate the sock length
-            sock_len = [(v * len_factor / rE) / 1000.0 for v in data]
-            # calculate end latitude of the sock
-            end_lat = [np.arcsin(np.sin(np.radians(rs[i])) *
-                                 np.cos(sock_len[i]) +
-                                 np.cos(np.radians(rs[i])) *
-                                 np.sin(sock_len[i]) *
-                                 np.cos(np.radians(azm_v[i])))
-                       for i in num_pts]
-            # convert to degrees as need to plot in polar plots
-            end_lat = np.degrees(end_lat)
-            # calculate the change in longitude
-            del_lon = [np.arctan2(np.sin(np.radians(azm_v[i])) *
-                                  np.sin(sock_len[i]) * np.cos(rs[i]),
-                                  np.cos(sock_len[i]) - np.sin(rs[i]) *
-                                  np.cos(end_lat[i]))
-                       for i in num_pts]
-            # calculate end longitude for socks
-            end_lon = [thetas[i] + del_lon[i] for i in num_pts]
-            # plot the socks
+
+            # Angle to "rotate" each vector by to get into same reference frame
+            # Controlled by longitude, or "mltitude"
+            alpha=thetas
+
+            # Convert initial positions to cartesian
+            start_pos_x=(90-rs)*np.cos(thetas) 
+            start_pos_y=(90-rs)*np.sin(thetas)
+        
+            # Resolve LOS vector in x and y directions, with respect to mag pole
+            # Gives zonal and meridional components of LOS vector
+            los_x=-data*np.cos(np.radians(-azm_v))
+            los_y=-data*np.sin(np.radians(-azm_v))
+            
+            # Rotate each vector into same reference frame following vector rotation matrix
+            # https://en.wikipedia.org/wiki/Rotation_matrix
+            vec_x=(los_x*np.cos(alpha))-(los_y*np.sin(alpha))
+            vec_y=(los_x*np.sin(alpha))+(los_y*np.cos(alpha))
+            
+            # New vector end points, in cartesian
+            end_pos_x=start_pos_x+(vec_x/len_factor)
+            end_pos_y=start_pos_y+(vec_y/len_factor)
+            
+            # Convert back to polar for plotting
+            end_rs=90-(np.sqrt(end_pos_x**2+end_pos_y**2))
+            end_thetas=np.arctan2(end_pos_y,end_pos_x)
+            
+            # Plot the vectors
             for i in num_pts:
-                plt.polar([thetas[i], end_lon[i]], [rs[i], end_lat[i]],
+                plt.polar([thetas[i], end_thetas[i]], [rs[i], end_rs[i]],
                           c=cmap(norm(data[i])), linewidth=0.5)
+                          
+            # TODO: Add a velocity reference vector          
 
         if colorbar is True:
             mappable = cm.ScalarMappable(norm=norm, cmap=cmap)
@@ -227,5 +243,5 @@ class Grid():
                               end_minute=dmap_data[record]['end.minute'])
         plt.title(title)
         if parameter == 'vector.vel.median':
-            return thetas, end_lon, rs, end_lat, data, sock_len
+            return thetas, end_thetas, rs, end_rs, data
         return thetas, rs, data
