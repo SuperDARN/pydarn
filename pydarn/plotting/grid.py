@@ -14,7 +14,7 @@
 
 
 """
-Fan plots, mapped to AACGM coordinates in a polar format
+Grid plots, mapped to AACGM coordinates in a polar format
 """
 
 import datetime as dt
@@ -33,18 +33,17 @@ from pydarn import PyDARNColormaps, Fan, plot_exceptions
 
 class Grid():
     """
-        Fan plots for SuperDARN data
+        Grid plots for SuperDARN data
         This class inherits from matplotlib to generate the figures
         Methods
         -------
-        plot_fan
+        plot_grid
         """
 
     def __str__(self):
         return "This class is static class that provides"\
                 " the following methods: \n"\
-                "   - plot_fan()\n"\
-                "   - return_beam_pos()\n"
+                "   - plot_grid()\n"\
 
     @classmethod
     def plot_grid(cls, dmap_data: List[dict], record: int = 0,
@@ -55,8 +54,7 @@ class Grid():
                   colorbar_label: str = '', title: str = '', len_factor: float = 150.0,
                   ref_vector: int = 300):
         """
-        Plots a radar's Field Of View (FOV) fan plot for the
-        given data and scan number
+        Plots a radar's gridded vectors from a GRID file
 
         Parameters
         -----------
@@ -115,15 +113,23 @@ class Grid():
             ref_vector: int
                 Velocity value to be used for the reference vector, in m/s
                 Default: 300
+
+        See Also
+        --------
+        plot_fov - plots the field of view found in fan.py
+
         Returns
         -----------
         if parameter is vector.vel.median:
         thetas - list of data point longitudes in polar coordinates shifted
+        end_thetas - list of vector tails theta
         rs - list of data point latitudes
+        end_rs - list of vector tails radius (latitude)
+        data - Line of Sight points of parameter chosen
         else:
         thetas - list of data point longitudes in polar coordinates shifted
         rs - list of data point latitudes
-
+        data - gridded vector points of the parameter chosen
         """
         # Short hand for the parameters in GRID files
         if parameter == 'vel' or parameter == 'pwr' or parameter == 'wdt':
