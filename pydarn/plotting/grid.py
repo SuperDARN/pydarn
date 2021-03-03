@@ -21,7 +21,6 @@ import datetime as dt
 import matplotlib.pyplot as plt
 import numpy as np
 import cmocean
-import pdb
 
 from matplotlib import ticker, cm, colors
 from typing import List
