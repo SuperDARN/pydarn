@@ -20,7 +20,6 @@ Grid plots, mapped to AACGM coordinates in a polar format
 import datetime as dt
 import matplotlib.pyplot as plt
 import numpy as np
-import cmocean
 
 from matplotlib import ticker, cm, colors
 from typing import List
@@ -125,6 +124,7 @@ class Grid():
         rs - List of gridded data point radius' (AACGM latitude)
         end_rs - List of radius end points for vector plotting (AACGM latitude)
         data - List of magnitudes of line-of-sight velocity
+        azm_v -  List of azimuths of line-of-sight velocity
         else:
         thetas - List of gridded data point magnetic local times (degrees)
         rs - List of gridded data point radius' (AACGM latitude)
@@ -148,6 +148,13 @@ class Grid():
             if time_diff.seconds/60 > time_delta:
                 raise plot_exceptions.NoDataFoundError(parameter,
                                                        start_time=start_time)
+        else:
+            dtime = dt.datetime(dmap_data[record]['start.year'],
+                                dmap_data[record]['start.month'],
+                                dmap_data[record]['start.day'],
+                                dmap_data[record]['start.hour'],
+                                dmap_data[record]['start.minute'])
+
 
         _, aacgm_lons, _, _, ax = Fan.plot_fov(dmap_data[record]['stid'][0],
                                                dtime, boundary=fov,
@@ -167,7 +174,7 @@ class Grid():
         # Load defaults if none given
         if cmap is None:
             cmap = {'vector.pwr.median': 'plasma',
-                    'vector.vel.median': cmocean.cm.haline_r,
+                    'vector.vel.median': 'plasma_r',
                     'vector.wdt.median': PyDARNColormaps.PYDARN_VIRIDIS}
             cmap = plt.cm.get_cmap(cmap[parameter])
 
@@ -257,5 +264,5 @@ class Grid():
                               end_minute=dmap_data[record]['end.minute'])
         plt.title(title)
         if parameter == 'vector.vel.median':
-            return thetas, end_thetas, rs, end_rs, data
+            return thetas, end_thetas, rs, end_rs, data, azm_v
         return thetas, rs, data
