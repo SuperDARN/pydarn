@@ -120,7 +120,8 @@ class Grid():
         -----------
         If parameter is 'vel':
         thetas - List of gridded data point magnetic local times (degrees)
-        end_thetas - List of magnetic local time end points used for vector plotting (degrees)
+        end_thetas - List of magnetic local time end points used for vector
+                     plotting (degrees)
         rs - List of gridded data point radius' (AACGM latitude)
         end_rs - List of radius end points for vector plotting (AACGM latitude)
         data - List of magnitudes of line-of-sight velocity
@@ -154,7 +155,6 @@ class Grid():
                                 dmap_data[record]['start.day'],
                                 dmap_data[record]['start.hour'],
                                 dmap_data[record]['start.minute'])
-
 
         _, aacgm_lons, _, _, ax = Fan.plot_fov(dmap_data[record]['stid'][0],
                                                dtime, boundary=fov,
