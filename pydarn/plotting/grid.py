@@ -121,14 +121,14 @@ class Grid():
         -----------
         If parameter is 'vel':
         thetas - List of gridded data point magnetic local times (degrees)
-        end_thetas - list of vector tails theta
-        rs - list of data point latitudes
-        end_rs - list of vector tails radius (latitude)
-        data - Line of Sight points of parameter chosen
+        end_thetas - List of magnetic local time end points used for vector plotting (degrees)
+        rs - List of gridded data point radius' (AACGM latitude)
+        end_rs - List of radius end points for vector plotting (AACGM latitude)
+        data - List of magnitudes of line-of-sight velocity
         else:
-        thetas - list of data point longitudes in polar coordinates shifted
-        rs - list of data point latitudes
-        data - gridded vector points of the parameter chosen
+        thetas - List of gridded data point magnetic local times (degrees)
+        rs - List of gridded data point radius' (AACGM latitude)
+        data - List of data magnitudes plotted, for parameter chosen
         """
         # Short hand for the parameters in GRID files
         if parameter == 'vel' or parameter == 'pwr' or parameter == 'wdt':
@@ -246,7 +246,7 @@ class Grid():
                 cb.set_label(colorbar_label)
 
         if title == '':
-            title = "{year} {month} {day} {start_hour}:{start_minute} -"\
+            title = "{year}-{month}-{day} {start_hour}:{start_minute} -"\
                 " {end_hour}:{end_minute}"\
                     "".format(year=dtime.year,
                               month=dtime.month,
