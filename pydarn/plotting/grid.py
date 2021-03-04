@@ -120,7 +120,7 @@ class Grid():
         Returns
         -----------
         If parameter is 'vel':
-        thetas - list of data point longitudes in polar coordinates shifted
+        thetas - List of gridded data point magnetic local times (degrees)
         end_thetas - list of vector tails theta
         rs - list of data point latitudes
         end_rs - list of vector tails radius (latitude)
