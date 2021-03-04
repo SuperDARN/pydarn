@@ -119,7 +119,7 @@ class Grid():
 
         Returns
         -----------
-        if parameter is vector.vel.median:
+        If parameter is 'vel':
         thetas - list of data point longitudes in polar coordinates shifted
         end_thetas - list of vector tails theta
         rs - list of data point latitudes
