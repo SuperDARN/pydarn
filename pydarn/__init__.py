@@ -42,4 +42,3 @@ from .plotting.rtp import RTP
 from .plotting.fan import Fan
 from .plotting.acf import ACF
 from .plotting.power import Power
-from .plotting.grid import Grid
