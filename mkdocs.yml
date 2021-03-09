@@ -21,7 +21,7 @@ nav:
             - Power plots: user/power.md
             - ACF plots: user/acf.md
             - Logging: user/logging.md
-    - pyDARN Team:
+    - pyDARN Team: dev/team.md
         - Pull Requests: 
             - Creating and Guidelines: dev/PR.md
             - Testing: dev/testing.md
