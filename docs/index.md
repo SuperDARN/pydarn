@@ -25,6 +25,7 @@ If you have any questions or concerns please submit an **Issue** on the SuperDAR
     - [ACF plotting](user/acf.md)
     - [Logging](user/logging.md)
   - pyDARN Team
+    - [Communication Guidelines](dev/communication.md)
     - Pull Requests 
         - [Creating and Guidelines](dev/PR.md)
         - [Testing](dev/testing.md)

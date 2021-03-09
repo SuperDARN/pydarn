@@ -22,6 +22,7 @@ nav:
             - ACF plots: user/acf.md
             - Logging: user/logging.md
     - pyDARN Team:
+        - Communication Guidelines: dev/communication.md 
         - Pull Requests: 
             - Creating and Guidelines: dev/PR.md
             - Testing: dev/testing.md
