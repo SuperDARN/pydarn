@@ -55,18 +55,19 @@ class Fan():
                  colorbar: bool = True,
                  colorbar_label: str = ''):
         """
-        Plots a radar's Field Of View (FOV)
-        fan plot for the given data and scan number
+        Plots a radar's Field Of View (FOV) fan plot for the given data and
+        scan number
 
         Parameters
         -----------
             dmap_data: List[dict]
                 Named list of dictionaries obtained from SDarn_read
             ax: matplotlib.pyplot axis
-                Pre-defined axis object to pass in,
-                must currently be polar projection
-                Default: Generates a polar projection for
-                the user with MLT/latitude labels
+                Pre-defined axis object to pass in, must currently be
+                polar projection
+                Default: Generates a polar projection for the user
+                with MLT/latitude labels
+
             scan_index: int
                 Scan number from beginning of first record in file
                 Default: 1
@@ -162,7 +163,6 @@ class Fan():
 
         # Colour table and max value selection depending on parameter plotted
         # Load defaults if none given
-
         if cmap is None:
             cmap = {'p_l': 'plasma', 'v': PyDARNColormaps.PYDARN_VELOCITY,
                     'w_l': PyDARNColormaps.PYDARN_VIRIDIS,
@@ -225,7 +225,7 @@ class Fan():
 
     @classmethod
     def plot_fov(cls, stid: str, dtime: dt.datetime, ax=None,
-                 lowlat: int = 50, ranges: List = [0, 75],
+                 lowlat: int = 30, ranges: List = [0, 75],
                  boundary: bool = True, fov_color: str = None,
                  alpha: int = 0.5):
         """
@@ -290,8 +290,8 @@ class Fan():
                 ax.set_ylim(90, lowlat)
                 ax.set_yticks(np.arange(lowlat, 90, 10))
             else:
-                ax.set_ylim(-90, -lowlat)
-                ax.set_yticks(np.arange(-lowlat, -90, -10))
+                ax.set_ylim(-90, -abs(lowlat))
+                ax.set_yticks(np.arange(-abs(lowlat), -90, -10))
             ax.set_xticklabels(['00', '', '06', '', '12', '', '18', ''])
             ax.set_theta_zero_location("S")
 

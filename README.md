@@ -23,16 +23,16 @@ pyDARN release v2.0.1 includes the following features:
 
 ## Documentation
 
-pyDARN's documentation can found [here](https://pydarn.readthedocs.io/en/master)
+pyDARN's documentation can found [here](https://pydarn.readthedocs.io/en/latest)
 
 ## Getting Started
 
 `pip install pydarn`
 
-Or read the [installation guide](https://pydarn.readthedocs.io/en/master/user/install/).
+Or read the [installation guide](https://pydarn.readthedocs.io/en/latest/user/install/).
 
-If wish to get access to SuperDARN data please read the [SuperDARN data access documentation](https://pydarn.readthedocs.io/en/master/user/superdarn_data/).
-Please make sure to also read the documentation on [**citing superDARN and pydarn**](https://pydarn.readthedocs.io/en/master/user/citing/). 
+If wish to get access to SuperDARN data please read the [SuperDARN data access documentation](https://pydarn.readthedocs.io/en/latest/user/superdarn_data/).
+Please make sure to also read the documentation on [**citing superDARN and pydarn**](https://pydarn.readthedocs.io/en/latest/user/citing/). 
 
 As a quick tutorial on using pydarn to read a non-compressed file: 
 
