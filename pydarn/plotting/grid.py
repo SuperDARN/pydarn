@@ -156,87 +156,88 @@ class Grid():
                                 dmap_data[record]['start.hour'],
                                 dmap_data[record]['start.minute'])
 
-        _, aacgm_lons, _, _, ax = Fan.plot_fov(dmap_data[record]['stid'][0],
-                                               dtime, boundary=fov,
-                                               lowlat=lowlat)
+        for stid in dmap_data[record]['stid']:
+            _, aacgm_lons, _, _, ax = Fan.plot_fov(stid, dtime,
+                                                   boundary=fov,
+                                                   lowlat=lowlat)
 
-        data_lons = dmap_data[record]['vector.mlon']
-        data_lats = dmap_data[record]['vector.mlat']
+            data_lons = dmap_data[record]['vector.mlon']
+            data_lats = dmap_data[record]['vector.mlat']
 
-        # Hold the beam positions
-        shifted_mlts = aacgm_lons[0, 0] - \
-            (aacgmv2.convert_mlt(aacgm_lons[0, 0], dtime) * 15)
-        shifted_lons = data_lons - shifted_mlts
-        thetas = np.radians(shifted_lons)
-        rs = data_lats
+            # Hold the beam positions
+            shifted_mlts = aacgm_lons[0, 0] - \
+                (aacgmv2.convert_mlt(aacgm_lons[0, 0], dtime) * 15)
+            shifted_lons = data_lons - shifted_mlts
+            thetas = np.radians(shifted_lons)
+            rs = data_lats
 
-        # Colour table and max value selection depending on parameter plotted
-        # Load defaults if none given
-        if cmap is None:
-            cmap = {'vector.pwr.median': 'plasma',
-                    'vector.vel.median': 'plasma_r',
-                    'vector.wdt.median': PyDARNColormaps.PYDARN_VIRIDIS}
-            cmap = plt.cm.get_cmap(cmap[parameter])
+            # Colour table and max value selection depending on parameter plotted
+            # Load defaults if none given
+            if cmap is None:
+                cmap = {'vector.pwr.median': 'plasma',
+                        'vector.vel.median': 'plasma_r',
+                        'vector.wdt.median': PyDARNColormaps.PYDARN_VIRIDIS}
+                cmap = plt.cm.get_cmap(cmap[parameter])
 
-        # Setting zmin and zmax
-        defaultzminmax = {'vector.pwr.median': [0, 50],
-                          'vector.vel.median': [0, 1000],
-                          'vector.wdt.median': [0, 250]}
-        if zmin is None:
-            zmin = defaultzminmax[parameter][0]
-        if zmax is None:
-            zmax = defaultzminmax[parameter][1]
+            # Setting zmin and zmax
+            defaultzminmax = {'vector.pwr.median': [0, 50],
+                              'vector.vel.median': [0, 1000],
+                              'vector.wdt.median': [0, 250]}
+            if zmin is None:
+                zmin = defaultzminmax[parameter][0]
+            if zmax is None:
+                zmax = defaultzminmax[parameter][1]
 
-        norm = colors.Normalize
-        norm = norm(zmin, zmax)
+            norm = colors.Normalize
+            norm = norm(zmin, zmax)
 
-        data = dmap_data[record][parameter]
+            data = dmap_data[record][parameter]
 
-        # Plot the magnitude of the parameter
-        ax.scatter(thetas, rs, c=data,
-                   s=2.0, vmin=zmin, vmax=zmax, zorder=5, cmap=cmap)
+            # Plot the magnitude of the parameter
+            ax.scatter(thetas, rs, c=data,
+                       s=2.0, vmin=zmin, vmax=zmax, zorder=5, cmap=cmap)
 
-        # If the parameter is velocity then plot the LOS vectors
-        if parameter == "vector.vel.median":
+            # If the parameter is velocity then plot the LOS vectors
+            if parameter == "vector.vel.median":
 
-            # Get the azimuths from the data
-            azm_v = dmap_data[record]['vector.kvect']
+                # Get the azimuths from the data
+                azm_v = dmap_data[record]['vector.kvect']
 
-            # Number of data points
-            num_pts = range(len(data))
+                # Number of data points
+                num_pts = range(len(data))
 
-            # Angle to "rotate" each vector by to get into same reference frame
-            # Controlled by longitude, or "mltitude"
-            alpha = thetas
+                # Angle to "rotate" each vector by to get into same reference frame
+                # Controlled by longitude, or "mltitude"
+                alpha = thetas
 
-            # Convert initial positions to Cartesian
-            start_pos_x = (90 - rs) * np.cos(thetas)
-            start_pos_y = (90 - rs) * np.sin(thetas)
+                # Convert initial positions to Cartesian
+                start_pos_x = (90 - rs) * np.cos(thetas)
+                start_pos_y = (90 - rs) * np.sin(thetas)
 
-            # Resolve LOS vector in x and y directions,
-            # with respect to mag pole
-            # Gives zonal and meridional components of LOS vector
-            los_x = -data * np.cos(np.radians(-azm_v))
-            los_y = -data * np.sin(np.radians(-azm_v))
+                # Resolve LOS vector in x and y directions,
+                # with respect to mag pole
+                # Gives zonal and meridional components of LOS vector
+                los_x = -data * np.cos(np.radians(-azm_v))
+                los_y = -data * np.sin(np.radians(-azm_v))
 
-            # Rotate each vector into same reference frame
-            # following vector rotation matrix
-            # https://en.wikipedia.org/wiki/Rotation_matrix
-            vec_x = (los_x * np.cos(alpha)) - (los_y * np.sin(alpha))
-            vec_y = (los_x * np.sin(alpha)) + (los_y * np.cos(alpha))
+                # Rotate each vector into same reference frame
+                # following vector rotation matrix
+                # https://en.wikipedia.org/wiki/Rotation_matrix
+                vec_x = (los_x * np.cos(alpha)) - (los_y * np.sin(alpha))
+                vec_y = (los_x * np.sin(alpha)) + (los_y * np.cos(alpha))
 
-            # New vector end points, in Cartesian
-            end_pos_x = start_pos_x + (vec_x / len_factor)
-            end_pos_y = start_pos_y + (vec_y / len_factor)
+                # New vector end points, in Cartesian
+                end_pos_x = start_pos_x + (vec_x / len_factor)
+                end_pos_y = start_pos_y + (vec_y / len_factor)
 
-            # Convert back to polar for plotting
-            end_rs = 90 - (np.sqrt(end_pos_x**2 + end_pos_y**2))
-            end_thetas = np.arctan2(end_pos_y, end_pos_x)
+                # Convert back to polar for plotting
+                end_rs = 90 - (np.sqrt(end_pos_x**2 + end_pos_y**2))
+                end_thetas = np.arctan2(end_pos_y, end_pos_x)
 
-            # Plot the vectors
-            for i in num_pts:
-                plt.polar([thetas[i], end_thetas[i]], [rs[i], end_rs[i]],
-                          c=cmap(norm(data[i])), linewidth=0.5)
+                # Plot the vectors
+                for i in num_pts:
+                    plt.polar([thetas[i], end_thetas[i]], [rs[i], end_rs[i]],
+                              c=cmap(norm(data[i])), linewidth=0.5)
 
             # TODO: Add a velocity reference vector
 
