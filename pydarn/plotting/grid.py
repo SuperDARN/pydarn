@@ -257,12 +257,12 @@ class Grid():
             title = "{year}-{month}-{day} {start_hour}:{start_minute} -"\
                 " {end_hour}:{end_minute}"\
                     "".format(year=dtime.year,
-                              month=dtime.month,
-                              day=dtime.day,
-                              start_hour=dtime.hour,
-                              start_minute=dtime.minute,
-                              end_hour=dmap_data[record]['end.hour'],
-                              end_minute=dmap_data[record]['end.minute'])
+                              month=str(dtime.month).zfill(2),
+                              day=str(dtime.day).zfill(2),
+                              start_hour=str(dtime.hour).zfill(2),
+                              start_minute=str(dtime.minute).zfill(2),
+                              end_hour=str(dmap_data[record]['end.hour']).zfill(2),
+                              end_minute=str(dmap_data[record]['end.minute']).zfill(2))
         plt.title(title)
         if parameter == 'vector.vel.median':
             return thetas, end_thetas, rs, end_rs, data, azm_v
