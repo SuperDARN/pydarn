@@ -136,12 +136,26 @@ class UnknownParameterError(Exception):
     """
     Error raised when the parameter is not found in the data passed in
     """
-    def __init__(self, parameter: str):
+    def __init__(self, parameter: str, grid: bool = False):
+        """
+        parameters
+            parameter: KeyError parameter that is not found in the data
+            grid: indicating if its called within grid plot or map plot
+            that may not have parameters due to how the file was processed
+        """
         self.parameter = parameter
-        self.message = "The following parameter {parameter}"\
-            " was not found in the"\
-            " data set. Please make sure it is typed correctly or"\
-            " you are using the correct data.".format(parameter=self.parameter)
+        if grid:
+            self.message = "The following parameter {parameter}"\
+                    " was not found in the"\
+                    " data set. Please make sure you used -xtd"\
+                    " if you are trying to plot pwd or wdt"\
+                    "".format(parameter=self.parameter)
+        else:
+            self.message = "The following parameter {parameter}"\
+                    " was not found in the"\
+                    " data set. Please make sure it is typed correctly or"\
+                    " you are using the correct data."\
+                    "".format(parameter=self.parameter)
         super().__init__(self.message)
         pydarn_log.error(self.message)
 

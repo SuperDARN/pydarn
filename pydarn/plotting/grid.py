@@ -171,8 +171,8 @@ class Grid():
             thetas = np.radians(shifted_lons)
             rs = data_lats
 
-            # Colour table and max value selection depending on parameter plotted
-            # Load defaults if none given
+            # Colour table and max value selection depending on
+            # parameter plotted Load defaults if none given
             if cmap is None:
                 cmap = {'vector.pwr.median': 'plasma',
                         'vector.vel.median': 'plasma_r',
@@ -191,8 +191,13 @@ class Grid():
             norm = colors.Normalize
             norm = norm(zmin, zmax)
 
-            data = dmap_data[record][parameter]
-
+            # check to make sure the parameter is present in the file
+            # this may not be the case for wdt and pwr as you need -xtd
+            # option in make_grid
+            try:
+                data = dmap_data[record][parameter]
+            except KeyError:
+                raise plot_exceptions.UnknownParameterError(parameter, grid=True)
             # Plot the magnitude of the parameter
             ax.scatter(thetas, rs, c=data,
                        s=2.0, vmin=zmin, vmax=zmax, zorder=5, cmap=cmap)
@@ -206,8 +211,8 @@ class Grid():
                 # Number of data points
                 num_pts = range(len(data))
 
-                # Angle to "rotate" each vector by to get into same reference frame
-                # Controlled by longitude, or "mltitude"
+                # Angle to "rotate" each vector by to get into same
+                # reference frame Controlled by longitude, or "mltitude"
                 alpha = thetas
 
                 # Convert initial positions to Cartesian
@@ -261,8 +266,10 @@ class Grid():
                               day=str(dtime.day).zfill(2),
                               start_hour=str(dtime.hour).zfill(2),
                               start_minute=str(dtime.minute).zfill(2),
-                              end_hour=str(dmap_data[record]['end.hour']).zfill(2),
-                              end_minute=str(dmap_data[record]['end.minute']).zfill(2))
+                              end_hour=str(dmap_data[record]['end.hour']).
+                              zfill(2),
+                              end_minute=str(dmap_data[record]['end.minute']).
+                              zfill(2))
         plt.title(title)
         if parameter == 'vector.vel.median':
             return thetas, end_thetas, rs, end_rs, data, azm_v
