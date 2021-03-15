@@ -27,7 +27,7 @@ from typing import List
 # Third party libraries
 import aacgmv2
 
-from pydarn import PyDARNColormaps, build_scan, radar_fov
+from pydarn import PyDARNColormaps, build_scan, radar_fov, SuperDARNRadars
 
 
 class Fan():
@@ -224,8 +224,8 @@ class Fan():
         return beam_corners_aacgm_lats, beam_corners_aacgm_lons, scan, grndsct
 
     @classmethod
-    def plot_fov(cls, stid: str, dtime: dt.datetime, ax=None,
-                 lowlat: int = 30, ranges: List = [0, 75],
+    def plot_fov(cls, stid: int, dtime: dt.datetime, ax=None,
+                 lowlat: int = 30, ranges: List = [],
                  boundary: bool = True, fov_color: str = None,
                  alpha: int = 0.5):
         """
@@ -233,7 +233,7 @@ class Fan():
 
         Parameters
         -----------
-            stid: str
+            stid: int
                 Radar station ID
             ax: matplotlib.pyplot axis
                 Pre-defined axis object to pass in, must currently be
@@ -268,6 +268,9 @@ class Fan():
             rs - radius polar coordinates
         """
         # Get radar beam/gate locations
+        if ranges == []:
+            max_ranges = SuperDARNRadars.radars[stid].hardware_info.gates
+            ranges = [0, max_ranges]
         beam_corners_aacgm_lats, beam_corners_aacgm_lons = \
             radar_fov(stid, coords='aacgm', date=dtime)
         fan_shape = beam_corners_aacgm_lons.shape
