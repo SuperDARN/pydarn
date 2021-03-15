@@ -47,7 +47,7 @@ class Grid():
     def plot_grid(cls, dmap_data: List[dict], record: int = 0,
                   start_time: dt.datetime = None, time_delta: int = 1,
                   ax=None, fov: bool = True, parameter: str = 'vel',
-                  lowlat: int = 50, cmap: str = None, zmin: int = None,
+                  lowlat: int = 30, cmap: str = None, zmin: int = None,
                   zmax: int = None, colorbar: bool = True,
                   colorbar_label: str = '', title: str = '',
                   len_factor: float = 150.0, ref_vector: int = 300):
