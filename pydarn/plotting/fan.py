@@ -248,7 +248,9 @@ class Fan():
                 Default: 50
             ranges: list
                 Set to a two element list of the lower and upper ranges to plot
-                Default: [0,75]
+                If an empty array will obtain the max range gate from the
+                hardware file.
+                Default: []
             boundary: bool
                 Set to false to not plot the outline of the FOV
                 Default: True
