@@ -22,7 +22,11 @@ nav:
             - ACF plots: user/acf.md
             - Logging: user/logging.md
     - pyDARN Team:
-        - Pull Requests: 
-            - Creating and Guidelines: dev/PR.md
+        - Copyright and Licensing: dev/copright_licensing.md
+        - Workflow:
+            - Projectts: dev/projects.md
+            - Issues: dev/issues.md
+            - Branches: dev/branching.md
+            - Pull Requests: dev/PR.md 
             - Testing: dev/testing.md
             - Code Reviews: dev/code_review.md
