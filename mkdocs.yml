@@ -22,7 +22,7 @@ nav:
             - ACF plots: user/acf.md
             - Logging: user/logging.md
     - pyDARN Team:
-        - Copyright and Licensing: dev/copright_licensing.md
+        - Copyright and Licensing: dev/copyright_license.md
         - Workflow:
                 - Projectts: dev/projects.md
                 - Issues: dev/issues.md
