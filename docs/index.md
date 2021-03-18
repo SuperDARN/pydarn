@@ -27,10 +27,10 @@ If you have any questions or concerns please submit an **Issue** on the SuperDAR
   - pyDARN Team
     - [Copyrighting and Licensing](dev/copyright_license.md)
     - Workflow
-      - [Projects](dev/projects.md)
-      - [Issues](dev/issues.md)
-      - [Branches](dev/branching.md)
-      - [Pull Requests](dev/PR.md) 
-      - [Testing](dev/testing.md)
-      - [Code Reviews](dev/code_review.md)
+        - [Projects](dev/projects.md)
+        - [Issues](dev/issues.md)
+        - [Branches](dev/branching.md)
+        - [Pull Requests](dev/PR.md) 
+        - [Testing](dev/testing.md)
+        - [Code Reviews](dev/code_review.md)
 

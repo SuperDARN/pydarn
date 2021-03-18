@@ -24,9 +24,9 @@ nav:
     - pyDARN Team:
         - Copyright and Licensing: dev/copright_licensing.md
         - Workflow:
-            - Projectts: dev/projects.md
-            - Issues: dev/issues.md
-            - Branches: dev/branching.md
-            - Pull Requests: dev/PR.md 
-            - Testing: dev/testing.md
-            - Code Reviews: dev/code_review.md
+                - Projectts: dev/projects.md
+                - Issues: dev/issues.md
+                - Branches: dev/branching.md
+                - Pull Requests: dev/PR.md 
+                - Testing: dev/testing.md
+                - Code Reviews: dev/code_review.md
