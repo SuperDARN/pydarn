@@ -1,3 +1,17 @@
+<!--Copyright (C) 2021 SuperDARN Canada, University of Saskatchewan 
+Author(s): Marina Schmidt 
+Modifications:
+
+Disclaimer:
+pyDARN is under the LGPL v3 license found in the root directory LICENSE.md 
+Everyone is permitted to copy and distribute verbatim copies of this license 
+document, but changing it is not allowed.
+
+This version of the GNU Lesser General Public License incorporates the terms
+and conditions of version 3 of the GNU General Public License, supplemented by
+the additional permissions listed below.
+-->
+
 # Releasing 
 
 pyDARN is an open source library thus has various versions with updates. By releasing the code in versions it helps with reproducibility in paper publications, and allow changes to be done a batch update of a version and not make the user update every few weeks. 
