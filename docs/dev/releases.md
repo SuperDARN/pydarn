@@ -12,9 +12,9 @@ However, one way to plan for a release associated to your work is using [milesto
 Anyone can [create a milestone](https://github.com/SuperDARN/pydarn/milestones) on GitHub for pyDARN. 
 Go to pull requests on GitHub, select `milestone` top right above the list of pull requests. Then select [New milestone](https://github.com/SuperDARN/pydarn/milestones/new)
 
-- Title: pyDARN *(See version numbers below)*
-- Date: due date pick something a couple months away (takes roughly 3-4 weeks of testing and getting the release branch out)
-- Description: describe any specific changes focusing on for this release 
+- **Title:** pyDARN *(See version numbers below)*
+- **Date:** due date pick something a couple months away (takes roughly 3-4 weeks of testing and getting the release branch out)
+- **Description:** describe any specific changes focusing on for this release 
 
 Then click on **Create milestone**
 
@@ -29,13 +29,14 @@ Before creating a release issue/pull request determine what the [version type](h
 - Patch: bug fixes and documentation updates
 
 !!! NOTE
-    Documentation doesn't need to be associated with a release unless it companies a new change to the code. 
+    Documentation doesn't need to be associated with a release unless it a companies a new change to the code. 
 
 Then take the previous pyDARN version number and add one to the associated type location. 
 For example, if we are on pyDARN 2.0 and:
-- it's a *Major* release then the number will be: 3.0
-- it's a *Minor* release then the number will be: 2.1
-- it's a *patch* release then the number will be: 2.0.1 
+
+- it's a ***Major*** release then the number will be: 3.0
+- it's a ***Minor*** release then the number will be: 2.1
+- it's a ***patch*** release then the number will be: 2.0.1 
 
 
 ## Workflow
@@ -43,28 +44,30 @@ For example, if we are on pyDARN 2.0 and:
 1. Once a version number is determined, create an [issue](issue.md) using the discussion template. This issue will give some heads up to testers and developers that a release will be made soon 
 and to confirm the version number is correct. State why a release is needed and what pull requests should be included that have not been **merged** yet using [GitHubs checklist feature](https://docs.github.com/en/github/managing-your-work-on-github/about-task-lists)
 2. Once the pull requests needed for the releases are merged into `develop` then create a release branch:
+        
         git checkout develop
         git checkout -b release/<version number>
+
 3. See Pre-Release Checklist to make some minor changes for the pull request
 4. Now create a pull request for the release branch, should merge into `master`
 5. Add the following to the PR info: 
-  - Title: Release pyDARN <version>
-  - Scope: add information on the main focus of this release
-  - include link to readthedocs on this release (ask for pyDARN lead developer or DAWG Chair to do this)
-  - Changes: history of what has changed, look at the [milestones closed tasks](https://github.com/SuperDARN/pydarn/milestones?state=open)
-  - Approvals: 3 (reviews+testing)
-  - Testing: Using Github Checklists to include what needs to be tested, tested on what kind of data, and operating systems
-      - For example: 
-        - Test summary plotting 
-        - Test fan plots 
-        - test grid plotting 
-        - test grabbing hardware information 
-        - test on North and South hemisphere data
-        - test on Borealis data 
-        - test using RPM linux machine (OpenSuse, Fedora, RedHat)
-        - test using Debian linux machine (Ubuntu)
-        - test using MacOsX
-        - test using Windows 
+    - **Title**: Release pyDARN <version>
+    - **Scope**: add information on the main focus of this release
+    - **Include link to readthedocs** on this release (ask for pyDARN lead developer or DAWG Chair to do this)
+    - **Changes:** history of what has changed, look at the [milestones closed tasks](https://github.com/SuperDARN/pydarn/milestones?state=open)
+    - **Approvals:** 3 (reviews+testing)
+    - **Testing:** Using Github Checklists to include what needs to be tested, tested on what kind of data, and operating systems
+        - For example: 
+            - Test summary plotting 
+            - Test fan plots 
+            - test grid plotting 
+            - test grabbing hardware information 
+            - test on North and South hemisphere data
+            - test on Borealis data 
+            - test using RPM linux machine (OpenSuse, Fedora, RedHat)
+            - test using Debian linux machine (Ubuntu)
+            - test using MacOsX
+            - test using Windows 
 
 
 
@@ -82,8 +85,8 @@ and to confirm the version number is correct. State why a release is needed and 
 Once the test is complete and at least three approvals are done make sure the following above is done.  
 The pyDARN lead developer or DAWG chairs should do this step; however, if you request to do it and get approval then go ahead! 
 
-- **merge** the release branch in `master` and confirm the above updates are there
-- [tag and release the code](https://github.com/SuperDARN/pydarn/releases/new)
+1. **merge** the release branch in `master` and confirm the above updates are there
+2. [tag and release the code](https://github.com/SuperDARN/pydarn/releases/new)
 - tag: v<version number>
 - target: `master`
 - Release Title: pyDARN v<version number>
@@ -92,31 +95,46 @@ The pyDARN lead developer or DAWG chairs should do this step; however, if you re
 - Once a release has been made check on the [pyDARN Zenodo](https://zenodo.org/record/4558130) and look for the version you just released on the right hand side under **Versions**. Please note this may take some time. If this does not work Contact Lead Developer and DAWG Chairs on the matter 
 - Once the Zenodo DOI is made for the new release select the DOI markdown tag on the right hand side below **publication date**. Copy the markdown syntax. 
 - `git checkout master` and `git pull origin master`
-- Paste this syntax in README.md at the top and in `docs/user/citing.md` under DOI's. `git add README.md docs/user/citing.md` `git commit -m "updated DOI links"` `git push origin master`
+- Paste this syntax in README.md at the top and in `docs/user/citing.md` under DOI's.       
+    
+        git add README.md docs/user/citing.md
+        git commit -m "updated DOI links"
+        git push origin master
+
 - Once this is done and double check everything looks correct
 
 #### Uploading to PyPi 
 This step requires the lead developers help as they have access to the pyDARN PyPi account. 
-- Update to make sure everything looks good:
-    git checkout master
-    git fetch
-    git pull origin master 
-- Remove old builds
-    cd dist 
-    rm -rf <old versions>
-    cd ..
+
+1. Update to make sure everything looks good:
+      
+        git checkout master
+        git fetch
+        git pull origin master 
+
+2. Remove old builds
+        
+        cd dist 
+        rm -rf <old versions>
+        cd ..
+
 - [Build pyDARN package](https://packaging.python.org/tutorials/packaging-projects/)
-    python3 -m pip install --upgrade build
-    python3 -m build
+        
+        python3 -m pip install --upgrade build
+        python3 -m build
+
 - checked it build the correct version
-    cd dist
-    ls
-  
+        
+        cd dist
+        ls
   Should see `pyDARN-pydarn-version.number-py3-none-any.whl  pydarn-version.number.tar.gz`
+
 - Install twine `python3 -m pip install --user --upgrade twine`
 - Upload to testpypi `python3 -m twine upload --repository testpypi dist/*` 
+    
     !!! NOTE
         you will need an account with testpypi for this to work
+
 - View the pyDARN package on the link provided in the `twine upload` output, should have the README.md as the front description page. If not contact pyDARN lead developer. 
 - Once the test page looks good and you can download `pydarn` from the test pypi: `python3 -m pip install --index-url https://test.pypi.org/simple/ --no-deps example-pkg-YOUR-USERNAME-HERE`
 - **Upload to PyPi**, this should be done by the pyDARN lead developer as it needs the pyDARN PyPi account: 
@@ -127,9 +145,11 @@ This step requires the lead developers help as they have access to the pyDARN Py
 ### Post Release Checklist
 
 After the above is done do the following to make sure everything is up to date: 
+
 - Let the DAWG chairs a pyDARN release has been made to update the DAWG website 
 - Email [DARN-users](darn-users@isee.nagoya-u.ac.jp) about the new release of pyDARN 
 - Merge `master` back into `develop`:
-    git checkout develop
-    git pull origin develop
-    git merge master
+        
+        git checkout develop
+        git pull origin develop
+        git merge master
