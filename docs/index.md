@@ -33,4 +33,5 @@ If you have any questions or concerns please submit an **Issue** on the SuperDAR
         - [Pull Requests](dev/PR.md) 
         - [Testing](dev/testing.md)
         - [Code Reviews](dev/code_review.md)
+    - [Release Guidelines](dev/releases.md)
 
