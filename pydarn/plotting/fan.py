@@ -295,6 +295,9 @@ class Fan():
             else:
                 ax.set_ylim(-90, -abs(lowlat))
                 ax.set_yticks(np.arange(-abs(lowlat), -90, -10))
+            ax.set_xticks([0, np.radians(45), np.radians(90), np.radians(135),
+                           np.radians(180), np.radians(225), np.radians(270),
+                           np.radians(315)])
             ax.set_xticklabels(['00', '', '06', '', '12', '', '18', ''])
             ax.set_theta_zero_location("S")
 
