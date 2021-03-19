@@ -18,7 +18,7 @@ GitHub Issues are a convenient way to communicate with pydarn developers about f
 
 - Notify others that a new feature is being planned
 - Ask for help or advice on using/installing pydarn
-- Initiate open discussions about an pydarn-related topic
+- Initiate open discussions about a pydarn-related topic
 
 When opening a new issue on the pydarn Github page, you will be prompted to use a template to describe your issue. These templates are designed to help you provide enough detail for other developers to respond.
 
@@ -134,5 +134,4 @@ Then click on *Create Label*.
 Sometimes Issues can be open-ended, especially discussion issues. Here are some steps to make progress on the issue and prevent it going **stale**:
 - Label it with *telecon* if needs to be further discussed in a telecon with DAWG members 
 - Once a general idea is established, close the issue and create a project to break it into a defined tasks. Open the first task as an issue, see [projects](projects.md).
-
 

@@ -14,20 +14,20 @@ the additional permissions listed below.
 
 # GitHub Projects
 
-[Projects on GitHub](https://docs.github.com/en/github/managing-your-work-on-github/about-project-boards) are an easy way to organize task for a general or specific project/feature. 
+[Projects on GitHub](https://docs.github.com/en/github/managing-your-work-on-github/about-project-boards) are an easy way to organize tasks for a general or specific project/feature. 
 
 ## Getting Started 
 
 Click on [New project](https://github.com/SuperDARN/pydarn/projects/new) to start with a new project. 
 If you want to see other projects click on [pydarn projects](https://github.com/SuperDARN/pydarn/projects) for examples of the types of projects. 
 
-When selecting a template it is recommended to use [Automated Kanban](https://docs.github.com/en/github/managing-your-work-on-github/about-automation-for-project-boards) as it will move tasks throughout the workflow. 
+When selecting a template it is recommended to use [Automated Kanban](https://docs.github.com/en/github/managing-your-work-on-github/about-automation-for-project-boards) as it will move tasks through the workflow automatically. 
 
-Once you create the project several columns will appear that can be edited or renamed; however, it is recommend to keep them as is for consistency. In the `To Do` column you can create cards that have tasks to do on this project these later can be turned into issues by clicking on the `...` three dots top right corner of the card and selecting `convert to issue`. Convert cards to issues when you are ready to work on the issue so the issue doesn't get stale. 
+Once you create the project several columns will appear that can be edited or renamed; however, it is recommend to keep them as is for consistency. In the `To Do` column, you can create cards that have tasks to do on this project. These later can be turned into issues by clicking on the `...` three dots in the top right corner of the card and selecting `convert to issue`. Convert cards to issues when you are ready to work on the issue so the issue doesn't get stale. 
 
-If an [issue](issue.md) and/or [pull request](PR.md) is made you can add the project on the right side column and will be placed in the one of the columns in the project. 
+If an [issue](issue.md) and/or [pull request](PR.md) is made, you can add the project in the right side column on the issue or pull request page, and it will be placed in the one of the columns of the project. 
 
-Other useful features of projects is [progress tracking](https://docs.github.com/en/github/managing-your-work-on-github/tracking-progress-on-your-project-board), as cards, issues, and pull requests are opened and closed/merged they will be moved alone the columns in the project which will show up in the progress bar. This is very helpful for specific project boards for features or have a set goal. 
+Other useful features of projects are [progress tracking](https://docs.github.com/en/github/managing-your-work-on-github/tracking-progress-on-your-project-board), as cards, issues, and pull requests are opened and closed/merged they will be moved along the columns in the project, which will show up in the progress bar. This is very helpful for specific project boards or features that have a set goal. 
 
 ## General Project
 

@@ -45,7 +45,7 @@ In git, "branches" are used to make changes to the code without affecting the ma
     * Removing legacy code then branch from `develop`
     * Code based on another branch then branch from that branch name
   
-        git checkout <brach name>
+        git checkout <branch name>
 
 * Decide on the new branch name. It is recommended to use the following Prefixes:  
     * HOTFIX/ : a bug that needs to be fixed ASAP and pushed to `master`
@@ -66,4 +66,4 @@ In git, "branches" are used to make changes to the code without affecting the ma
         git push origin <branch name>
 
 * Repeat the above commands above as you work on the code changes 
-* Once you are completed, documented, and tested your code then you can create a pull request, see [pull request](PR.md)
+* Once you have completed, documented, and tested your code then you can create a pull request, see [pull request](PR.md)
