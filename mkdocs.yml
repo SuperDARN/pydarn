@@ -24,7 +24,7 @@ nav:
     - pyDARN Team:
         - Copyright and Licensing: dev/copyright_license.md
         - Workflow:
-                - Projectts: dev/projects.md
+                - Projects: dev/projects.md
                 - Issues: dev/issues.md
                 - Branches: dev/branching.md
                 - Pull Requests: dev/PR.md 
