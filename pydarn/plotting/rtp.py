@@ -415,7 +415,7 @@ class RTP():
             tick_interval = 1
         ax.xaxis.set_minor_locator(dates.MinuteLocator(interval=tick_interval))
         if slant:
-            ax.yaxis.set_minor_locator(ticker.MultipleLocator(100))
+            ax.yaxis.set_minor_locator(ticker.AutoMinorLocator(2))
         else:
             ax.yaxis.set_minor_locator(ticker.MultipleLocator(5))
         # so the plots gets to the ends
