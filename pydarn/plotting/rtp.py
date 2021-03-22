@@ -399,7 +399,8 @@ class RTP():
         ax.set_ylim(ymin, ymax)
 
         if slant:
-            ax.yaxis.set_ticks(np.arange(np.ceil(ymin / 100.0) * 100, ymax+1, yspacing))
+            ax.yaxis.set_ticks(np.arange(np.ceil(ymin/100.0)*100,
+                                         ymax+1, yspacing))
         else:
             ax.yaxis.set_ticks(np.arange(ymin, ymax+1, (ymax)/5))
 
