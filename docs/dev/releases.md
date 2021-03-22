@@ -14,17 +14,17 @@ the additional permissions listed below.
 
 # Releasing 
 
-pyDARN is an open source library thus has various versions with updates. By releasing the code in versions it helps with reproducibility in paper publications, and allow changes to be done a batch update of a version and not make the user update every few weeks. 
+pyDARN is an open source library thus has various versions with updates. By releasing the code in versions it helps with reproducibility in paper publications, and allows changes to be done as a batch update of a version and not make the user update every few weeks. 
 
 ## Scheduling 
 
-pyDARN does not follow a strict release schedule because of volunteer effort of the SuperDARN community and stability it may achieve over time. 
-However, if bug fixes, documentation updates, enhancements, new feature, or deprecations are on the `develop` branch for over a few months it is 
+pyDARN does not follow a strict release schedule because development of pyDARN is mainly driven by volunteers in the SuperDARN community.  
+However, if bug fixes, documentation updates, enhancements, new features, or deprecations are on the `develop` branch for over a few months it is 
 best to make a release to get it out to the community. 
 
-However, one way to plan for a release associated to your work is using [milestones](https://docs.github.com/en/github/managing-your-work-on-github/about-milestones). In pyDARN, we use milestones for planning releases and organizing [issues](issues.md) and [pull requests](PR.md) to respect releases so we know to hold off or what version we are aiming to release. 
+However, one way to plan for a release associated with your work is using [milestones](https://docs.github.com/en/github/managing-your-work-on-github/about-milestones). In pyDARN, we use milestones for planning releases and organizing [issues](issues.md) and [pull requests](PR.md) to respective releases, so we know to hold off, or to what version we are aiming to release. 
 Anyone can [create a milestone](https://github.com/SuperDARN/pydarn/milestones) on GitHub for pyDARN. 
-Go to pull requests on GitHub, select `milestone` top right above the list of pull requests. Then select [New milestone](https://github.com/SuperDARN/pydarn/milestones/new)
+Go to pull requests on GitHub, select `milestone` top right above the list of pull requests. Then select [New milestone](https://github.com/SuperDARN/pydarn/milestones/new) and fill in the following information:
 
 - **Title:** pyDARN *(See version numbers below)*
 - **Date:** due date pick something a couple months away (takes roughly 3-4 weeks of testing and getting the release branch out)
@@ -38,18 +38,18 @@ Before creating a release issue/pull request determine what the [version type](h
 
 **Major.minor.patch**
 
-- Major: change to the user interface or large structural change to the library. Deprecations typically lead to the major release.  
+- Major: change to the user interface or large structural change to the library. Deprecations typically lead to a major release.  
 - Minor: new feature, enhancement or default change has been made 
 - Patch: bug fixes and documentation updates
 
 !!! NOTE
-    Documentation doesn't need to be associated with a release unless it a companies a new change to the code. 
+    Documentation doesn't need to be associated with a release unless it accompanies a new change to the code. 
 
 Then take the previous pyDARN version number and add one to the associated type location. 
 For example, if we are on pyDARN 2.0 and:
 
-- it's a ***Major*** release then the number will be: 3.0
-- it's a ***Minor*** release then the number will be: 2.1
+- it's a ***major*** release then the number will be: 3.0
+- it's a ***minor*** release then the number will be: 2.1
 - it's a ***patch*** release then the number will be: 2.0.1 
 
 
@@ -62,7 +62,7 @@ and to confirm the version number is correct. State why a release is needed and 
         git checkout develop
         git checkout -b release/<version number>
 
-3. See Pre-Release Checklist to make some minor changes for the pull request
+3. Complete the Pre-Release Checklist below to make some minor changes before opening the pull request
 4. Now create a pull request for the release branch, should merge into `master`
 5. Add the following to the PR info: 
     - **Title**: Release pyDARN <version>
@@ -72,8 +72,8 @@ and to confirm the version number is correct. State why a release is needed and 
     - **Approvals:** 3 (reviews+testing)
     - **Testing:** Using Github Checklists to include what needs to be tested, tested on what kind of data, and operating systems
         - For example: 
-            - Test summary plotting 
-            - Test fan plots 
+            - test summary plotting 
+            - test fan plots 
             - test grid plotting 
             - test grabbing hardware information 
             - test on North and South hemisphere data
@@ -90,7 +90,7 @@ and to confirm the version number is correct. State why a release is needed and 
 !!! IMPORTANT
     Do this before the pull request to make it part of the review process 
 
-- Update `.zenod.json` file is updated to reflect the [DAWG authorship guidelines]() and everyone is okay with the order. Please confirm with additional new members if their name and orchid is correct. 
+- Make sure the `.zenodo.json` file is updated to reflect the [DAWG authorship guidelines]() and everyone is okay with the order. Please confirm with additional new members if their name and ORCHID iD is correct. 
 - Update `setup.py` file to have the new version number on the line `version=""`
 - Update `README.md` file to reflect the new changes of the release and version number 
 
@@ -100,12 +100,12 @@ Once the test is complete and at least three approvals are done make sure the fo
 The pyDARN lead developer or DAWG chairs should do this step; however, if you request to do it and get approval then go ahead! 
 
 1. **merge** the release branch in `master` and confirm the above updates are there
-2. [tag and release the code](https://github.com/SuperDARN/pydarn/releases/new)
+2. [Tag and release the code](https://github.com/SuperDARN/pydarn/releases/new)
 - tag: v<version number>
 - target: `master`
 - Release Title: pyDARN v<version number>
 - Description: Header "Version *number* - Release!" then add "pyDARN release v*number* includes the following features:" listing all the new changes to the code. Please see other [releases](https://github.com/SuperDARN/pydarn/releases) to keep with consistency
-- hit Publish release
+- Hit Publish Release!
 - Once a release has been made check on the [pyDARN Zenodo](https://zenodo.org/record/4558130) and look for the version you just released on the right hand side under **Versions**. Please note this may take some time. If this does not work Contact Lead Developer and DAWG Chairs on the matter 
 - Once the Zenodo DOI is made for the new release select the DOI markdown tag on the right hand side below **publication date**. Copy the markdown syntax. 
 - `git checkout master` and `git pull origin master`
