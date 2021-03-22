@@ -106,7 +106,7 @@ The pyDARN lead developer or DAWG chairs should do this step; however, if you re
 - Release Title: pyDARN v<version number>
 - Description: Header "Version *number* - Release!" then add "pyDARN release v*number* includes the following features:" listing all the new changes to the code. Please see other [releases](https://github.com/SuperDARN/pydarn/releases) to keep with consistency
 - Hit Publish Release!
-- Once a release has been made check on the [pyDARN Zenodo](https://zenodo.org/record/4558130) and look for the version you just released on the right hand side under **Versions**. Please note this may take some time. If this does not work Contact Lead Developer and DAWG Chairs on the matter 
+- Once a release has been made check on the [pyDARN Zenodo](https://zenodo.org/record/3727269) and look for the version you just released on the right hand side under **Versions**. Please note this may take some time. If this does not work Contact Lead Developer and DAWG Chairs on the matter 
 - Once the Zenodo DOI is made for the new release select the DOI markdown tag on the right hand side below **publication date**. Copy the markdown syntax. 
 - `git checkout master` and `git pull origin master`
 - Paste this syntax in README.md at the top and in `docs/user/citing.md` under DOI's.       
