@@ -274,7 +274,7 @@ class Fan():
             radar_fov(stid, coords='aacgm', date=dtime)
         fan_shape = beam_corners_aacgm_lons.shape
         if ranges == []:
-            ranges = [0, fan_shape[-1]]
+            ranges = [0, fan_shape[0]]
         # Work out shift due in MLT
         beam_corners_mlts = np.zeros((fan_shape[0], fan_shape[1]))
         mltshift = beam_corners_aacgm_lons[0, 0] - \
