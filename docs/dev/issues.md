@@ -14,13 +14,13 @@ the additional permissions listed below.
 
 # Issues 
 
-GitHub Issues are a convenient way to communicate with pydarn developers about future changes to the pydarn codebase. Issue are not just for bug reporting. They can also be used to:
+GitHub Issues are a convenient way to communicate with pydarn developers about future changes to the pydarn codebase. Issues are not just for bug reporting. They can also be used to:
 
 - Notify others that a new feature is being planned
-- Ask for help or advice on using/installing pydarn
+- Ask for help or advice on using/installing pyDARN
 - Initiate open discussions about a pydarn-related topic
 
-When opening a new issue on the pydarn Github page, you will be prompted to use a template to describe your issue. These templates are designed to help you provide enough detail for other developers to respond.
+When opening a new issue on the pyDARN Github page, you will be prompted to use a template to describe your issue. These templates are designed to help you provide enough detail for other developers to respond.
 
 !!! IMPORTANT
     pyDARN no longer maintains reading and writing SuperDARN data formats. Please address all issues on reading and writing to [pyDARNio](https://github.com/SuperDARN/pyDARNio)
@@ -34,11 +34,11 @@ Please only open issues related to the pydarn. Questions on the following topics
 - Corrupt or missing RAWACF files: [Data Distribution Working Group (DDWG)](https://github.com/SuperDARN/DDWG)
 - Radar data formats, hardware files and other metadata: [Data Standards Working Group (DSWG)](https://github.com/superdarn/dswg-published-docs)
 - Radar control programs and operating schedules: [Scheduling Working Group (SWG)](http://superdarn.thayer.dartmouth.edu/wg-scd.html)
-- General questions for the Data Analysis Working Group (DAWG) that are not specifically about the pydarn: open an issue on the [internal DAWG Github repo](https://github.com/SuperDARN/dawg) (requires access rights) or email the [DAWG mailing list](mailto:darn-dawg@isee.nagoya-u.ac.jp)
+- General questions for the Data Analysis Working Group (DAWG) that are not specifically about pyDARN: open an issue on the [internal DAWG Github repo](https://github.com/SuperDARN/dawg) (requires access rights) or email the [DAWG mailing list](mailto:darn-dawg@isee.nagoya-u.ac.jp)
 
 ## Submit an Issue
 
-To open a new issue, follow these steps from the [pydarn repository](https://github.com/SuperDARN/pydarn)
+To open a new issue, follow these steps from the [pyDARN repository](https://github.com/SuperDARN/pydarn)
 
 1. Click the [issues tab](https://github.com/SuperDARN/pydarn/issues) on the top left side of the page 
 2. Check whether there is already an open issue on your topic. You can use the search bar to find similar issues. 
@@ -51,7 +51,7 @@ To open a new issue, follow these steps from the [pydarn repository](https://git
     - Projects: Indicate if this issue is part of a [project](projects.md)
     - Milestone: Please leave this blank. The DAWG chairs will fill in this information later when a timeline emerges (e.g. working towards a new release)
     - Linked Pull Request: Leave this blank for now. This can be filled out when a pull request that solves this issue is created (see [pull requests](pull_request.md))
-* Click *Submit new issue*. At this point, everyone who is subscribed to the pydarn repository will receive an email. Depending on your notification settings, you may receive emails when others comment on the issue. Check your user settings to subscribe or unsubscribe to email notifications.
+* Click *Submit new issue*. At this point, everyone who is subscribed to the pyDARN repository will receive an email. Depending on your notification settings, you may receive emails when others comment on the issue. Check your user settings to subscribe or unsubscribe to email notifications.
 
 
 ## Following The Issue
@@ -59,7 +59,7 @@ To open a new issue, follow these steps from the [pydarn repository](https://git
 Please follow the ongoing conversation about your issue, especially if other developers request more information. 
 If you do not respond for a while, the issue will go **stale** and may be closed. DAWG tries to keep issues open and contact users if their issues have gone stale. 
 
-Please keep in mind that DAWG members have priorities other than pydarn, and they live in many different time zones, so be patient while waiting for a response. If nobody has responded in 1-2 weeks, it's fine to ask again.
+Please keep in mind that DAWG members have priorities other than pyDARN, and they live in many different time zones, so be patient while waiting for a response. If nobody has responded in 1-2 weeks, it's fine to ask again.
 
 ## Closing Issues
 
@@ -72,7 +72,7 @@ If new issues emerge during a discussion, open a new issue and discuss it there.
 
 ## Stale Issues
 
-If an issue goes stale (no progress for over 3 months), pyDARN lead developer may follow this procedure:
+If an issue goes stale (no progress for over 3 months), the pyDARN lead developer may follow this procedure:
 
 1. Ask about the issue's status in the conversation
 2. Email the user who opened the issue
@@ -83,12 +83,12 @@ If an issue goes stale (no progress for over 3 months), pyDARN lead developer ma
 
 ## Assignees
 
-The Assignees section is used to indicate who (if anyone) is actively working on each issue. This helps to avoid duplicated work, and to identify issues that nobody is currently working on (if you are looking for something to do!)
+The Assignees section is used to indicate who (if anyone) is actively working on each issue. This helps to avoid duplicated work, and to identify issues that nobody is currently working on (if you are looking for something to do!).
 If you would like to offer assistance on an issue that someone else is assigned to, please ask them first. If you agree to take over the issue from them, assign yourself to it.
 
 ## Labels 
 
-pydarn supports the following [labels](https://github.com/SuperDARN/pydarn/labels):
+pyDARN supports the following [labels](https://github.com/SuperDARN/pydarn/labels):
 
 | Label             | Definition                                                  |
 | ----------------- | ----------------------------------------------------------- |
@@ -120,7 +120,7 @@ pydarn supports the following [labels](https://github.com/SuperDARN/pydarn/label
 
 ### Creating A New Label
 
-To create a new label got [pydarn labels](https://github.com/SuperDARN/pydarn/labels) and click on [New label](https://github.com/SuperDARN/pydarn/labels)
+To create a new label go to [pydarn labels](https://github.com/SuperDARN/pydarn/labels) and click on [New label](https://github.com/SuperDARN/pydarn/labels)
 
 Give a concise name for the label and provide a description. A color can be randomly generated or chosen based on the hex value. Please avoid similar colors to other labels if possible. 
 
@@ -134,4 +134,3 @@ Then click on *Create Label*.
 Sometimes Issues can be open-ended, especially discussion issues. Here are some steps to make progress on the issue and prevent it going **stale**:
 - Label it with *telecon* if needs to be further discussed in a telecon with DAWG members 
 - Once a general idea is established, close the issue and create a project to break it into a defined tasks. Open the first task as an issue, see [projects](projects.md).
-
