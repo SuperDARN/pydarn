@@ -20,7 +20,7 @@ Modifications:
 -->
 
 
-# Licensing of the pyDARN
+Licensing of pyDARN
 
 The SuperDARN pyDARN library is licensed under the [GNU Lesser General Public License (LGPL) v3.0](https://www.gnu.org/licenses/lgpl-3.0.html). This license guarantees that end users have the freedom to use, modify and share the software. The *Free Software Foundation*, which published the LGPL, explains that:
 
@@ -165,4 +165,3 @@ pyDARN outputs belong to the end user who created them. The user is free to shar
 
 __I have more questions about the LGPL__<br/>
 There's lots of helpful information [here](https://www.gnu.org/licenses/gpl-faq.html).
-
