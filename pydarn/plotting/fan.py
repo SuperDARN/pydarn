@@ -27,7 +27,7 @@ from typing import List
 # Third party libraries
 import aacgmv2
 
-from pydarn import PyDARNColormaps, build_scan, radar_fov, SuperDARNRadars
+from pydarn import PyDARNColormaps, build_scan, radar_fov
 
 
 class Fan():
