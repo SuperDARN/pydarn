@@ -17,7 +17,7 @@ from typing import List
 from pydarn import (gate2slant, check_data_type, time2datetime,
                     rtp_exceptions, plot_exceptions, SuperDARNCpids,
                     SuperDARNRadars, standard_warning_format,
-                    PyDARNColormaps)
+                    PyDARNColormaps, citting_warning)
 
 warnings.formatwarning = standard_warning_format
 
@@ -439,11 +439,7 @@ class RTP():
                                                       norm) from None
         if colorbar_label != '':
             cb.set_label(colorbar_label)
-        warnings.warn("Please make sure to cite pyDARN in publications that"
-                      " use plots created by pyDARN using DOI:"
-                      " https://zenodo.org/record/3978643. Citing information"
-                      " for SuperDARN data is found at"
-                      " https://pydarn.readthedocs.io/en/master/user/citing/")
+        citting_warning()
         return im, cb, cmap, x, y, z_data
 
     @classmethod
@@ -675,11 +671,7 @@ class RTP():
         ax.margins(x=0)
         ax.tick_params(axis='y', which='minor')
 
-        warnings.warn("Please make sure to cite pyDARN in publications that"
-                      " use plots created by pyDARN using DOI:"
-                      " https://zenodo.org/record/3978643. Citing information"
-                      " for SuperDARN data is found at"
-                      " https://pydarn.readthedocs.io/en/master/user/citing/")
+        citting_warning()
         return lines, x, y
 
     @classmethod
@@ -1036,12 +1028,7 @@ class RTP():
                      color='gray', ha='right', va='top',
                      rotation=-38, alpha=0.3)
 
-        warnings.warn("Please make sure to cite pyDARN in publications that"
-                      " use plots created by pyDARN using DOI:"
-                      " https://zenodo.org/record/3978643. Citing information"
-                      " for SuperDARN data is found at"
-                      " https://pydarn.readthedocs.io/en/master/user/citing/")
-
+        citting_warning()
         return fig, axes
 
     @classmethod
