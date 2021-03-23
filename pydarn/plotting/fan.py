@@ -224,8 +224,8 @@ class Fan():
         return beam_corners_aacgm_lats, beam_corners_aacgm_lons, scan, grndsct
 
     @classmethod
-    def plot_fov(cls, stid: str, dtime: dt.datetime, ax=None,
-                 lowlat: int = 30, ranges: List = [0, 75],
+    def plot_fov(cls, stid: int, dtime: dt.datetime, ax=None,
+                 lowlat: int = 30, ranges: List = [],
                  boundary: bool = True, fov_color: str = None,
                  alpha: int = 0.5):
         """
@@ -233,7 +233,7 @@ class Fan():
 
         Parameters
         -----------
-            stid: str
+            stid: int
                 Radar station ID
             ax: matplotlib.pyplot axis
                 Pre-defined axis object to pass in, must currently be
@@ -248,7 +248,9 @@ class Fan():
                 Default: 50
             ranges: list
                 Set to a two element list of the lower and upper ranges to plot
-                Default: [0,75]
+                If an empty array will obtain the max range gate from the
+                hardware file.
+                Default: []
             boundary: bool
                 Set to false to not plot the outline of the FOV
                 Default: True
@@ -271,7 +273,8 @@ class Fan():
         beam_corners_aacgm_lats, beam_corners_aacgm_lons = \
             radar_fov(stid, coords='aacgm', date=dtime)
         fan_shape = beam_corners_aacgm_lons.shape
-
+        if ranges == []:
+            ranges = [0, fan_shape[0]]
         # Work out shift due in MLT
         beam_corners_mlts = np.zeros((fan_shape[0], fan_shape[1]))
         mltshift = beam_corners_aacgm_lons[0, 0] - \
