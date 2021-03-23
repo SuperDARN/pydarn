@@ -6,7 +6,7 @@ import numpy as np
 
 from typing import List
 
-from pydarn import SuperDARNRadars, exceptions, RTP, citting_warning
+from pydarn import SuperDARNRadars, exceptions, RTP, citing_warning
 
 
 class Power():

@@ -17,7 +17,7 @@ from typing import List
 from pydarn import (gate2slant, check_data_type, time2datetime,
                     rtp_exceptions, plot_exceptions, SuperDARNCpids,
                     SuperDARNRadars, standard_warning_format,
-                    PyDARNColormaps, citting_warning)
+                    PyDARNColormaps, citing_warning)
 
 warnings.formatwarning = standard_warning_format
 
@@ -439,7 +439,7 @@ class RTP():
                                                       norm) from None
         if colorbar_label != '':
             cb.set_label(colorbar_label)
-        citting_warning()
+        citing_warning()
         return im, cb, cmap, x, y, z_data
 
     @classmethod
@@ -671,7 +671,7 @@ class RTP():
         ax.margins(x=0)
         ax.tick_params(axis='y', which='minor')
 
-        citting_warning()
+        citing_warning()
         return lines, x, y
 
     @classmethod
@@ -1028,7 +1028,7 @@ class RTP():
                      color='gray', ha='right', va='top',
                      rotation=-38, alpha=0.3)
 
-        citting_warning()
+        citing_warning()
         return fig, axes
 
     @classmethod
