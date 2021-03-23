@@ -14,7 +14,7 @@ from typing import List
 
 from pydarn import (plot_exceptions, SuperDARNRadars,
                     standard_warning_format, time2datetime,
-                    check_data_type, citting_warning)
+                    check_data_type, citing_warning)
 
 warnings.formatwarning = standard_warning_format
 
