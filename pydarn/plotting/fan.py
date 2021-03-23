@@ -221,7 +221,7 @@ class Fan():
 
             if colorbar_label != '':
                 cb.set_label(colorbar_label)
-        citting_warning()
+        citing_warning()
         return beam_corners_aacgm_lats, beam_corners_aacgm_lons, scan, grndsct
 
     @classmethod
@@ -327,5 +327,5 @@ class Fan():
             r = np.append(r, np.flip(rs[0:ranges[1], thetas.shape[1]-2]))
             r = np.append(r, np.flip(rs[0, 0:thetas.shape[1]-2]))
             ax.fill(theta, r, color=fov_color, alpha=alpha)
-        citting_warning()
+        citing_warning()
         return beam_corners_aacgm_lats, beam_corners_aacgm_lons, thetas, rs, ax

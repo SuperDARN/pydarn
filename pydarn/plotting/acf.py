@@ -257,7 +257,7 @@ class ACF():
                           date=time.strftime("%Y %b %d %H:%M"),
                           cpid=record['cp'])
         ax.set_title(title)
-        citting_warning()
+        citing_warning()
 
     @classmethod
     def __found_scan(cls, scan_num: int, count_num: int,
