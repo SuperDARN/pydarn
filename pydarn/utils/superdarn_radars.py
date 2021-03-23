@@ -8,8 +8,8 @@
 # document, but changing it is not allowed.
 #
 # This version of the GNU Lesser General Public License incorporates the terms
-# and conditions of version 3 of the GNU Lesser General Public License, supplemented by
-# the additional permissions listed below.
+# and conditions of version 3 of the GNU Lesser General Public License,
+# supplemented by the additional permissions listed below.
 #
 # Modifications:
 #
@@ -331,7 +331,7 @@ class _Radar(NamedTuple):
     name: str
     institution: str
     hemisphere: Hemisphere
-    45_range_gate: int
+    range_gate_45: int
     hardware_info: _HdwInfo
 
 
