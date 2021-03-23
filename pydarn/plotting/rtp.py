@@ -337,7 +337,7 @@ class RTP():
                                      end_time=end_time,
                                      opt_beam_num=cls.dmap_data[0]['bmnum'])
         if slant:
-            y = gate2slant(cls.dmap_data[0], y_max)
+            y = gate2slant(cls.dmap_data[0], y_max, center=False)
         time_axis, y_axis = np.meshgrid(x, y)
         z_data = np.ma.masked_where(np.isnan(z.T), z.T)
         Default = {'noise.sky': (1e0, 1e5),
