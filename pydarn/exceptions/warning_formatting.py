@@ -14,7 +14,7 @@ def citting_warning():
     """
     warnings.warn("Please make sure to cite pyDARN in publications that"
               " use plots created by pyDARN using DOI:"
-              " https://zenodo.org/record/4558130. Citing information"
+              " https://zenodo.org/record/3727269. Citing information"
               " for SuperDARN data is found at"
               " https://pydarn.readthedocs.io/en/master/user/citing/")
 
