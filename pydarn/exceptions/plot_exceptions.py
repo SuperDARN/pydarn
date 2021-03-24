@@ -1,5 +1,14 @@
 # Copyright (C) SuperDARN Canada, University of Saskatchewan
 # Authors: Marina Schmidt
+# Disclaimer:
+# pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
+# Everyone is permitted to copy and distribute verbatim copies of this license
+# document, but changing it is not allowed.
+#
+# This version of the GNU Lesser General Public License incorporates the terms
+# and conditions of version 3 of the GNU General Public License,
+# supplemented by the additional permissions listed below.
+
 import logging
 import datetime
 
@@ -45,7 +54,8 @@ class NoDataFoundError(Exception):
     This error is raised when no data is found for
     the given beam and parameter
     """
-    def __init__(self, parameter: str, beam_num: int,  opt_beam_num: int,
+    def __init__(self, parameter: str, beam_num: int = None,
+                 opt_beam_num: int = None,
                  opt_parameter_value: int = None,
                  start_time: datetime.datetime = None,
                  end_time: datetime.datetime = None):
@@ -53,7 +63,19 @@ class NoDataFoundError(Exception):
         self.beam_num = beam_num
         self.opt_beam_num = opt_beam_num
         if start_time is None or end_time is None:
-            if opt_parameter_value is None:
+            if start_time is not None and beam_num is None:
+                self.parameter = parameter
+                self.start_time = start_time
+                self.message = "There is no record with the start time:"\
+                    " {starttime} and parameter {param}. Try another"\
+                    " start time, parameter, or increase time_delta"\
+                    " option".format(starttime=self.start_time.strftime("%Y"
+                                                                        "%m"
+                                                                        " %d"
+                                                                        " %H:"
+                                                                        "%M"),
+                                     param=self.parameter)
+            elif opt_parameter_value is None:
                 self.message = "There is no Data for beam number {beam_num}"\
                         " for the parameter type {parameter}. "\
                         "Try beam, for example: {opt_beam} or"\
@@ -114,12 +136,26 @@ class UnknownParameterError(Exception):
     """
     Error raised when the parameter is not found in the data passed in
     """
-    def __init__(self, parameter: str):
+    def __init__(self, parameter: str, grid: bool = False):
+        """
+        parameters
+            parameter: KeyError parameter that is not found in the data
+            grid: indicating if its called within grid plot or map plot
+            that may not have parameters due to how the file was processed
+        """
         self.parameter = parameter
-        self.message = "The following parameter {parameter}"\
-            " was not found in the"\
-            " data set. Please make sure it is typed correctly or"\
-            " you are using the correct data.".format(parameter=self.parameter)
+        if grid:
+            self.message = "The following parameter {parameter}"\
+                    " was not found in the"\
+                    " data set. Please make sure you used -xtd"\
+                    " if you are trying to plot pwd or wdt"\
+                    "".format(parameter=self.parameter)
+        else:
+            self.message = "The following parameter {parameter}"\
+                    " was not found in the"\
+                    " data set. Please make sure it is typed correctly or"\
+                    " you are using the correct data."\
+                    "".format(parameter=self.parameter)
         super().__init__(self.message)
         pydarn_log.error(self.message)
 

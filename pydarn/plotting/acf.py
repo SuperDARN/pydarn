@@ -202,8 +202,9 @@ class ACF():
         if re == [] or im == []:
             if gate_num > 0 and gate_num < record['nrang']:
                 time = time2datetime(record)
-                raise plot_exceptions.NoDataFoundError(parameter, beam_num,
-                                                       opt_beam_num=record['bmnum'])
+                raise plot_exceptions.\
+                    NoDataFoundError(parameter, beam_num,
+                                     opt_beam_num=record['bmnum'])
             else:
                 raise plot_exceptions.OutOfRangeGateError(parameter, gate_num,
                                                           record['nrang'])
