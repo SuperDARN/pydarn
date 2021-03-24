@@ -27,7 +27,7 @@ from typing import List
 # Third party libraries
 import aacgmv2
 
-from pydarn import PyDARNColormaps, build_scan, radar_fov, SuperDARNRadars
+from pydarn import PyDARNColormaps, build_scan, radar_fov
 
 
 class Fan():
@@ -270,13 +270,11 @@ class Fan():
             rs - radius polar coordinates
         """
         # Get radar beam/gate locations
-        if ranges == []:
-            max_ranges = SuperDARNRadars.radars[stid].hardware_info.gates
-            ranges = [0, max_ranges]
         beam_corners_aacgm_lats, beam_corners_aacgm_lons = \
             radar_fov(stid, coords='aacgm', date=dtime)
         fan_shape = beam_corners_aacgm_lons.shape
-
+        if ranges == []:
+            ranges = [0, fan_shape[0]]
         # Work out shift due in MLT
         beam_corners_mlts = np.zeros((fan_shape[0], fan_shape[1]))
         mltshift = beam_corners_aacgm_lons[0, 0] - \
