@@ -92,5 +92,6 @@ Here is a list of all the current options than can be used with `plot_grid`
 As an example, the following code plots multiple radar Grid plot:
 ```python
 
+
 ```
-![](../imgs/fan_3.png)
+![](../imgs/grid_2.png)
