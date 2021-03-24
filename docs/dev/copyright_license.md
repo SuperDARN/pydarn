@@ -148,14 +148,14 @@ No, the copyright holder has to be a legal entity or a person. Your employer may
 __Why does every pyDARN source file have license notices at the top? Isn't it sufficient to include the license file in the top-level directory of pyDARN?__<br/>
 Since the LGPL allows users to modify and redistribute portions of the pyDARN library, it is possible that individual source files might become separated from the license file. If this happens, it will be unclear to users what their legal rights are to use/modify/distribute that version of the code (which is a violation of the LGPL). Therefore, all source files should clearly indicate that they are licensed under the LGPL (writing "see license.txt" is not sufficient).
 
-__If I add a new library to the pyDARN, can that library have a different license?__<br/>
-If the new library was originally developed outside of pyDARN, the author of that library can choose to license it under another license as long as it complies with LGPL license when adding it to the pyDARN. Code that has been developed within pyDARN must be licensed under LGPL.
+__If I add a new library to pyDARN, can that library have a different license?__<br/>
+If the new library was originally developed outside of pyDARN, the author of that library can choose to license it under another license as long as it complies with LGPL license when adding it to pyDARN. Code that has been developed within pyDARN must be licensed under LGPL.
 
 
-__I've added code to the pyDARN. Can I also release my code under a different license?__<br/>
+__I've added code to pyDARN. Can I also release my code under a different license?__<br/>
 Yes, provided that you are the copyright holder of the code, and that it is a standalone library (developed outside of pyDARN), you are free to license it under different non-exclusive licenses ([more info](https://www.gnu.org/licenses/gpl-faq.html#ReleaseUnderLGPLAndNF)). Remember that:
 
-__Am I allowed to copy code from the pyDARN into my own software project? What do I have to do to comply with pyDARN's license?__<br/>
+__Am I allowed to copy code from pyDARN into my own software project? What do I have to do to comply with pyDARN's license?__<br/>
 
 - You are free to copy or modify any portion of the pyDARN code
 - You are free to share the software outputs (data files, plots)

@@ -27,7 +27,7 @@ When opening a new issue on the pyDARN Github page, you will be prompted to use 
 
 ## Other Working Group Issues
 
-Please only open issues related to the pydarn. Questions on the following topics should be directed elsewhere:
+Please only open issues related to pyDARN. Questions on the following topics should be directed elsewhere:
 
 - Reading/Writing SuperDARN files into pyDARN: [pyDARNio](https://github.com/SuperDARN/pyDARNio)
 - Processing methods and algorithms of SuperDARN data: [Radar Software Toolkit](https://github.com/SuperDARN/rst)
