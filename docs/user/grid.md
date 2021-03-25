@@ -91,7 +91,16 @@ Here is a list of all the current options than can be used with `plot_grid`
 
 As an example, the following code plots multiple radar Grid plot:
 ```python
+import matplotlib.pyplot as plt 
+import datetime as dt
+import pydarn
 
+#Read in fitACF file
+stime = dt.datetime(2015, 3, 8, 14, 2)
+grid_file = "20150308.n.grd"
+grid_data = pydarn.SuperDARNRead(grid_file).read_grid()
 
+pydarn.Grid.plot_grid(grid_data, start_time=stime, colorbar_label='velocity (m/s)', zmax=800)
+plt.show()
 ```
 ![](../imgs/grid_2.png)
