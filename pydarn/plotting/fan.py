@@ -27,7 +27,7 @@ from typing import List
 # Third party libraries
 import aacgmv2
 
-from pydarn import PyDARNColormaps, build_scan, radar_fov
+from pydarn import PyDARNColormaps, build_scan, radar_fov, citing_warning
 
 
 class Fan():
@@ -221,7 +221,7 @@ class Fan():
 
             if colorbar_label != '':
                 cb.set_label(colorbar_label)
-
+        citing_warning()
         return beam_corners_aacgm_lats, beam_corners_aacgm_lons, scan, grndsct
 
     @classmethod
@@ -327,7 +327,5 @@ class Fan():
             r = np.append(r, np.flip(rs[0:ranges[1], thetas.shape[1]-2]))
             r = np.append(r, np.flip(rs[0, 0:thetas.shape[1]-2]))
             ax.fill(theta, r, color=fov_color, alpha=alpha)
-            #ax.fill(thetas[ranges[1]-1, 0:thetas.shape[1]-1],
-            #        rs[ranges[1]-1, 0:thetas.shape[1]-1],
-            #        color=fov_color, alpha=alpha)
+        citing_warning()
         return beam_corners_aacgm_lats, beam_corners_aacgm_lons, thetas, rs, ax

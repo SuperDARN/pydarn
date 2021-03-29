@@ -22,6 +22,7 @@ from .exceptions import plot_exceptions
 from .exceptions import radar_exceptions
 from .exceptions.warning_formatting import standard_warning_format
 from .exceptions.warning_formatting import only_message_warning_format
+from .exceptions.warning_formatting import citing_warning
 
 # importing utils
 from .utils.conversions import dmap2dict
