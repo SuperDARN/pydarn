@@ -36,6 +36,7 @@ from .utils.superdarn_radars import read_hdw_file
 from .utils.superdarn_radars import get_hdw_files
 from .utils.scan import build_scan
 from .utils.radar_pos import radar_fov
+from .utils.coordinates import Coord
 
 # import plotting
 from .plotting.color_maps import PyDARNColormaps
