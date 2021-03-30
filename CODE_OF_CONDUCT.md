@@ -48,10 +48,10 @@ they deem inappropriate, threatening, offensive, or harmful.
 
 This Code of Conduct applies both within pyDARN spaces and in public spaces
 when an individual is representing the pyDARN/DAWG or its community. Examples of
-representing a pyDARN or DAWG include using an official pyDARN name or logo,
-publish work in an official journal or conference, posting via an official website or online conference, 
+representing pyDARN or DAWG include: using an official pyDARN name or logo,
+publishing work in an official journal or conference, posting via an official website or online conference, 
 or acting as an appointed representative at an online or offline conference or workshop. 
-Representation of a pyDARNN may be further defined and clarified by pyDARN maintainers.
+Representation of pyDARN may be further defined and clarified by pyDARN maintainers.
 
 ## Enforcement
 
