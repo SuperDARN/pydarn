@@ -3,7 +3,7 @@
 ## Our Pledge
 
 In the interest of fostering an open and welcoming environment, we as
-contributors and maintainers pledge to making participation in pyDARNN and
+contributors and maintainers pledge to making participation in pyDARN and
 DAWG a harassment-free experience for everyone, regardless of age, body
 size, disability, ethnicity, sex characteristics, gender identity and expression,
 level of experience, education, socio-economic status, nationality, personal
@@ -56,14 +56,14 @@ Representation of pyDARN may be further defined and clarified by pyDARN maintain
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported by contacting the pydarn team lead at marina.t.schmidt@gmail.com or contacting
+reported by contacting the pydarn team lead at marina.t.schmidt at gmail.com or contacting
 the DAWG chairs. All complaints will be reviewed and investigated and will result in a response that
 is deemed necessary and appropriate to the circumstances. The pyDARN team is
 obligated to maintain confidentiality with regard to the reporter of an incident.
 Further details of specific enforcement policies may be posted separately.
 Please see [communication guidelines]() and [reporting guidelines]() for more information.
 
-pyDARN maintainers who do not follow or enforce the Code of Conduct in good
+pyDARN developers who do not follow or enforce the Code of Conduct in good
 faith may face temporary or permanent repercussions as determined by DAWG chairs.
 
 ## Attribution
