@@ -22,7 +22,7 @@ pyDARN does not follow a strict release schedule because development of pyDARN i
 However, if bug fixes, documentation updates, enhancements, new features, or deprecations are on the `develop` branch for over a few months it is 
 best to make a release to get it out to the community. 
 
-One way to plan for a release associated with your work is using [milestones](https://docs.github.com/en/github/managing-your-work-on-github/about-milestones). In pyDARN, we use milestones for planning releases, and for organizing [issues](issues.md) and [pull requests](PR.md) to respective releases.  This helps create a timeline for version releases. 
+One way to plan for a release associated with your work is by using [milestones](https://docs.github.com/en/github/managing-your-work-on-github/about-milestones). In pyDARN, we use milestones for planning releases, and for organizing [issues](issues.md) and [pull requests](PR.md) to respective releases.  This helps create a timeline for version releases. 
 Anyone can [create a milestone](https://github.com/SuperDARN/pydarn/milestones) on GitHub for pyDARN. 
 Go to pull requests on GitHub, select `milestone` top right above the list of pull requests. Then select [New milestone](https://github.com/SuperDARN/pydarn/milestones/new) and fill in the following information:
 
@@ -34,7 +34,7 @@ Then click on **Create milestone**
 
 ## Version numbers
 
-Before creating a release issue/pull request determine what the [version type](https://semver.org/) will be:
+Before creating a release issue/pull request, determine what the [version type](https://semver.org/) will be:
 
 **Major.minor.patch**
 
@@ -63,7 +63,7 @@ and to confirm the version number is correct. State why a release is needed and 
         git checkout -b release/<version number>
 
 3. Complete the Pre-Release Checklist below to make some minor changes before opening the pull request
-4. Now create a pull request for the release branch, should merge into `master`
+4. Now create a pull request for the release branch.  This should merge into `master`.
 5. Add the following to the PR info: 
     - **Title**: Release pyDARN <version>
     - **Scope**: add information on the main focus of this release
@@ -106,7 +106,7 @@ The pyDARN lead developer or DAWG chairs should do this step; however, if you re
 - Release Title: pyDARN v<version number>
 - Description: Header "Version *number* - Release!" then add "pyDARN release v*number* includes the following features:" listing all the new changes to the code. Please see other [releases](https://github.com/SuperDARN/pydarn/releases) to keep with consistency
 - Hit Publish Release!
-- Once a release has been made check on the [pyDARN Zenodo](https://zenodo.org/record/3727269) and look for the version you just released on the right hand side under **Versions**. Please note this may take some time. If this does not work Contact Lead Developer and DAWG Chairs on the matter 
+- Once a release has been made check on the [pyDARN Zenodo](https://zenodo.org/record/3727269) and look for the version you just released on the right hand side under **Versions**. Please note this may take some time. If this does not work Contact Lead Developer and DAWG Chairs on the matter.
 - Once the Zenodo DOI is made for the new release, select the DOI markdown tag on the right hand side below **publication date**. Copy the markdown syntax. 
 - `git checkout master` and `git pull origin master`
 - Paste this syntax in README.md at the top and in `docs/user/citing.md` under DOI's.       
@@ -150,7 +150,7 @@ This step requires the lead developers help as they have access to the pyDARN Py
         you will need an account with testpypi for this to work
 
 - View the pyDARN package on the link provided in the `twine upload` output, should have the README.md as the front description page. If not contact pyDARN lead developer. 
-- Once the test page looks good and you can download `pydarn` from the test pypi: `python3 -m pip install --index-url https://test.pypi.org/simple/ --no-deps example-pkg-YOUR-USERNAME-HERE`
+- Check that the test page looks good and that you can download `pydarn` from the test pypi: `python3 -m pip install --index-url https://test.pypi.org/simple/ --no-deps example-pkg-YOUR-USERNAME-HERE`
 - **Upload to PyPi**, this should be done by the pyDARN lead developer as it needs the pyDARN PyPi account: 
     python3 -m twine upload dist/*
 - Test that it worked by looking at the [pyDARN PyPi page](https://pypi.org/project/pydarn/)
