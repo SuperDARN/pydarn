@@ -1,7 +1,7 @@
 # Communication Guidelines
 
 pyDARN is under the Data Analysis Working Group that has set up guidelines on [communication](https://superdarn.github.io/dawg/documents/communication-guidelines/) to encourage a positive collaborative environment.
-Please follow these guidelines when commenting on GitHub. 
+Please follow these guidelines when commenting and reviewing code on GitHub. 
 
 Also please read workflow documentation on issues and [pull requests](dev/PR.md) to communicate effectively for collaborative work.
 
@@ -10,4 +10,4 @@ Also please read workflow documentation on issues and [pull requests](dev/PR.md)
 If members have a dispute that violates the communication guidelines, and creates a negative environment in the pyDARN community, please follow this procedure to resolve the conflict:
 1. Please try resolve the matter between each member offline.
 2. If the dispute cannot be resolved, or the environment has become toxic and overwhelming, please contact the [lead developer for pyDARN](marina.t.schmidt@gmail.com).
-3. If the dispute cannot be resolved, involves the lead developer, or breaches the [DAWG charter](https://superdarn.github.io/dawg/documents/DAWG_Charter/) please contact the [chairs of DAWG](https://www.unis.no/staff/emma-bland/).
+3. If the dispute cannot be resolved, involves the lead developer, or breaches the [DAWG charter](https://superdarn.github.io/dawg/documents/DAWG_Charter/) please contact the [chairs of DAWG](https://superdarn.github.io/dawg/about/).
