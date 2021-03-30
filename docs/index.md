@@ -21,6 +21,7 @@ If you have any questions or concerns please submit an **Issue** on the SuperDAR
     - [Time-Series plots](user/time_series.md)
     - [Summary plots](user/summary.md)
     - [Fan plots](user/fan.md)
+    - [Grid plots](user/grid.md)
     - [Power plots](user/power.md)
     - [ACF plotting](user/acf.md)
     - [Logging](user/logging.md)
