@@ -30,3 +30,4 @@ nav:
                 - Pull Requests: dev/PR.md 
                 - Testing: dev/testing.md
                 - Code Reviews: dev/code_review.md
+        - Release Guidelines: dev/releases.md
