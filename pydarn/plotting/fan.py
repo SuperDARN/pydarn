@@ -179,8 +179,8 @@ class Fan():
             zmax = defaultzminmax[parameter][1]
 
         # Begin plotting by iterating over ranges and beams
-        for gates in range(ranges[0], ranges[1]-1):
-            for beams in range(thetas.shape[1] - 2):
+        for gates in range(ranges[0], ranges[1] - 1):
+            for beams in range(thetas.shape[1] - 1):
                 # Index colour table correctly
                 cmapindex = (scan[gates, beams] + abs(zmin)) /\
                         (abs(zmin) + abs(zmax))
@@ -304,16 +304,16 @@ class Fan():
             plt.polar(thetas[0:ranges[1], 0], rs[0:ranges[1], 0],
                       color='black', linewidth=0.5)
             # top radar arc
-            plt.polar(thetas[ranges[1] - 1, 0:thetas.shape[1] - 1],
-                      rs[ranges[1] - 1, 0:thetas.shape[1] - 1],
+            plt.polar(thetas[ranges[1] - 1, 0:thetas.shape[1]],
+                      rs[ranges[1] - 1, 0:thetas.shape[1]],
                       color='black', linewidth=0.5)
             # right boundary line
-            plt.polar(thetas[0:ranges[1], thetas.shape[1] - 2],
-                      rs[0:ranges[1], thetas.shape[1] - 2],
+            plt.polar(thetas[0:ranges[1], thetas.shape[1] - 1],
+                      rs[0:ranges[1], thetas.shape[1] - 1],
                       color='black', linewidth=0.5)
             # bottom arc
-            plt.polar(thetas[0, 0:thetas.shape[1] - 2],
-                      rs[0, 0:thetas.shape[1] - 2], color='black',
+            plt.polar(thetas[0, 0:thetas.shape[1] - 1],
+                      rs[0, 0:thetas.shape[1] - 1], color='black',
                       linewidth=0.5)
 
         if fov_color is not None:
