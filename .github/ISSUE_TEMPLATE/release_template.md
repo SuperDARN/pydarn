@@ -1,9 +1,9 @@
 ---
-name: propose Release
+name: Proposing a Release
 about: propose release to be made 
 ---
 
-# New Feature
+# Release
 
 **Release number**: *Feature name*
 
@@ -15,7 +15,7 @@ about: propose release to be made
 
 *What is the main focus of this release? (e.g. new feature, specific bug fixes, new interface, ...)*
 
-## propose Deadline
+## Propose Deadline
 
 **Date**: *Set a tentative date for the release branch to be made by*
 
