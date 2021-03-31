@@ -5,7 +5,7 @@ about: propose release to be made
 
 # Release
 
-**Release number**: *Feature name*
+**Release number**: v*number*
 
 - [ ] Major - Structural/User interface change
 - [ ] Minor - New feature or Deprecated feature
