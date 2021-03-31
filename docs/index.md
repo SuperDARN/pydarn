@@ -26,8 +26,12 @@ If you have any questions or concerns please submit an **Issue** on the SuperDAR
     - [Logging](user/logging.md)
  - [pyDARN Team](dev/team.md)
     - [Communication Guidelines](dev/communication.md)
-    - Pull Requests 
-        - [Creating and Guidelines](dev/PR.md)
+    - [Copyrighting and Licensing](dev/copyright_license.md)
+    - Workflow
+        - [Projects](dev/projects.md)
+        - [Issues](dev/issues.md)
+        - [Branches](dev/branching.md)
+        - [Pull Requests](dev/PR.md) 
         - [Testing](dev/testing.md)
         - [Code Reviews](dev/code_review.md)
 
