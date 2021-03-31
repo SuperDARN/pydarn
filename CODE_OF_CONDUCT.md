@@ -19,7 +19,7 @@ include:
 * Gracefully accepting constructive criticism
 * Focusing on what is best for the community
 * Showing empathy towards other community members
-* Please see [communication guidelines]() for more examples
+* Please see [communication guidelines](https://pydarn.readthedocs.io/en/latest/dev/communication/) for more examples
 
 Examples of unacceptable behavior by participants include:
 
@@ -34,13 +34,13 @@ Examples of unacceptable behavior by participants include:
 
 ## Our Responsibilities
 
-PyDARN/DAWG leaders/chairs (please see [DAWG charter]() on pyDARN/DAWG leaders) are responsible for clarifying the standards of acceptable
+[PyDARN/DAWG leaders/chairs](https://superdarn.github.io/dawg/about) (please see [DAWG charter](https://superdarn.github.io/dawg/documents/DAWG_Charter/) on pyDARN/DAWG leaders) are responsible for clarifying the standards of acceptable
 behavior and are expected to take appropriate and fair corrective action in
 response to any instances of unacceptable behavior.
 
-PyDARN/DAWG leaders/chairs have the right and responsibility to remove, edit, or
+[PyDARN/DAWG leaders/chairs](https://superdarn.github.io/dawg/about) have the right and responsibility to remove, edit, or
 reject comments, commits, code, wiki edits, README edits, readthedocs edits,
-issues, and other contributions that are not aligned to this Code of Conduct,
+issues, and other contributions that are not aligned to this Code of Conduct or the scope of pyDARN,
 or to ban temporarily or permanently any contributor for other behaviors that
 they deem inappropriate, threatening, offensive, or harmful.
 
@@ -56,15 +56,15 @@ Representation of pyDARN may be further defined and clarified by pyDARN maintain
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported by contacting the pydarn team lead at marina.t.schmidt at gmail.com or contacting
-the DAWG chairs. All complaints will be reviewed and investigated and will result in a response that
+reported by contacting the [pydarn team lead at or contacting
+the DAWG chairs](https://superdarn.github.io/dawg/about). All complaints will be reviewed and investigated and will result in a response that
 is deemed necessary and appropriate to the circumstances. The pyDARN team is
 obligated to maintain confidentiality with regard to the reporter of an incident.
 Further details of specific enforcement policies may be posted separately.
-Please see [communication guidelines]() and [reporting guidelines]() for more information.
+Please see [communication guidelines](https://pydarn.readthedocs.io/en/latest/dev/communication/) and [reporting guidelines](https://pydarn.readthedocs.io/en/latest/dev/communication/#disputes-procedure) for more information.
 
 pyDARN developers who do not follow or enforce the Code of Conduct in good
-faith may face temporary or permanent repercussions as determined by DAWG chairs.
+faith may face temporary or permanent repercussions as determined by [DAWG chairs](https://superdarn.github.io/dawg/about).
 
 ## Attribution
 
