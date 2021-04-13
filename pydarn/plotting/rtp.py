@@ -17,7 +17,7 @@ from typing import List
 from pydarn import (gate2slant, check_data_type, time2datetime,
                     rtp_exceptions, plot_exceptions, SuperDARNCpids,
                     SuperDARNRadars, standard_warning_format,
-                    PyDARNColormaps, coord, citing_warning)
+                    PyDARNColormaps, Coord, citing_warning)
 
 warnings.formatwarning = standard_warning_format
 
@@ -336,7 +336,7 @@ class RTP():
                                      end_time=end_time,
                                      opt_beam_num=cls.dmap_data[0]['bmnum'])
         if coord is Coord.SLANT_RANGE:
-            y = gate2slant(cls.dmap_data[0], y_max)
+            y = gate2slant(cls.dmap_data[0]['frang'], cls.dmap_data[0]['rsep'], cls.dmap_data['rxrise'], y_max)
         time_axis, y_axis = np.meshgrid(x, y)
         z_data = np.ma.masked_where(np.isnan(z.T), z.T)
         Default = {'noise.sky': (1e0, 1e5),

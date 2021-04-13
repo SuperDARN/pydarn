@@ -82,7 +82,7 @@ def dmap2dict(dmap_records: List[dict]) -> List[dict]:
     return dmap_list
 
 
-def gate2slant(record, nrang, center=True):
+def gate2slant(frang, rsep, rxrise, nrang, center=True):
     """
     Calculate the slant range (km) for each range gate for SuperDARN data
 
@@ -107,22 +107,22 @@ def gate2slant(record, nrang, center=True):
     # 2 - two times for there and back
     speed_of_light = 0.3  # TODO: should this be more accurate?
     distance_factor = 2.0
-    lag_first = record['frang'] * distance_factor / speed_of_light
+    lag_first = frang * distance_factor / speed_of_light
 
     # sample separation in microseconds
-    sample_sep = record['rsep'] * distance_factor / speed_of_light
+    sample_sep = rsep * distance_factor / speed_of_light
     # Range offset
     # If center is true, calculate at the center
     if center:
         # 0.5 off set to the centre of the range gate instead of edge
-        range_offset = -0.5 * record['rsep']
+        range_offset = -0.5 * rsep
     else:
         range_offset = 0.0
 
     # Now calculate slant range in km
     slant_ranges = np.zeros(nrang+1)
     for gate in range(nrang+1):
-        slant_ranges[gate] = (lag_first - record['rxrise'] +
+        slant_ranges[gate] = (lag_first - rxrise +
                               gate * sample_sep) * speed_of_light /\
                 distance_factor + range_offset
     return slant_ranges
