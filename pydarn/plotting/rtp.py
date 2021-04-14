@@ -17,7 +17,7 @@ from typing import List
 from pydarn import (gate2slant, check_data_type, time2datetime,
                     rtp_exceptions, plot_exceptions, SuperDARNCpids,
                     SuperDARNRadars, standard_warning_format,
-                    PyDARNColormaps, coord, citing_warning)
+                    PyDARNColormaps, Coords, citing_warning)
 
 warnings.formatwarning = standard_warning_format
 
@@ -56,7 +56,7 @@ class RTP():
                         start_time: datetime = None, end_time: datetime = None,
                         colorbar: plt.colorbar = None, ymin: int = None,
                         ymax: int = None, yspacing: int = 200,
-                        coord: object = Coord.SLANT_RANGE, colorbar_label: str = '',
+                        coord: object = Coords.SLANT_RANGE, colorbar_label: str = '',
                         norm=colors.Normalize,
                         cmap: str = None,
                         filter_settings: dict = {},
@@ -335,8 +335,17 @@ class RTP():
                                      start_time=start_time,
                                      end_time=end_time,
                                      opt_beam_num=cls.dmap_data[0]['bmnum'])
-        if coord is Coord.SLANT_RANGE:
+                   
+        if coord is Coords.SLANT_RANGE:
             y = gate2slant(cls.dmap_data[0], y_max)
+        elif coord is Coords.GROUND_SCATTER_MAPPED_RANGE:
+            y = gate2slant(cls.dmap_data[0], y_max)
+            Re = 6371
+            hgt = 250
+            y = Re*np.arcsin(np.sqrt((y**2/4)-(hgt**2))/Re)  
+            y0inx = np.min(np.where(np.isfinite(y))[0])
+            y = y[y0inx:]
+            z = z[:,y0inx:]
         time_axis, y_axis = np.meshgrid(x, y)
         z_data = np.ma.masked_where(np.isnan(z.T), z.T)
         Default = {'noise.sky': (1e0, 1e5),
@@ -390,14 +399,14 @@ class RTP():
         ax.set_xlim([rounded_down_start_time, x[-1]])
         ax.xaxis.set_major_formatter(dates.DateFormatter(date_fmt))
         if ymax is None:
-            ymax = max(y)
+            ymax = np.max(y)
 
         if ymin is None:
-            ymin = min(y)
+            ymin = np.min(y)
 
         ax.set_ylim(ymin, ymax)
 
-        if coord is Coord.SLANT_RANGE:
+        if coord is Coords.SLANT_RANGE:
             ax.yaxis.set_ticks(np.arange(np.ceil(ymin/100.0)*100,
                                          ymax+1, yspacing))
         else:
@@ -414,7 +423,7 @@ class RTP():
         else:
             tick_interval = 1
         ax.xaxis.set_minor_locator(dates.MinuteLocator(interval=tick_interval))
-        if coord is Coord.SLANT_RANGE:
+        if coord is Coords.SLANT_RANGE:
             ax.yaxis.set_minor_locator(ticker.AutoMinorLocator(2))
         else:
             ax.yaxis.set_minor_locator(ticker.MultipleLocator(5))
@@ -676,7 +685,7 @@ class RTP():
     @classmethod
     def plot_summary(cls, dmap_data: List[dict], beam_num: int = 0,
                      groundscatter: bool = True, channel: int = 'all',
-                     coord: object = Coord.SLANT_RANGE, figsize: tuple = (11, 8.5),
+                     coord: object = Coords.SLANT_RANGE, figsize: tuple = (11, 8.5),
                      watermark: bool = True, boundary: dict = {},
                      background_color: str = 'w', cmaps: dict = {},
                      lines: dict = {}, plot_elv: bool = True, title=None):
@@ -962,7 +971,7 @@ class RTP():
             else:
                 # Current standard is to only have groundscatter
                 # on the velocity plot. This may change in the future.
-                if coord is Coord.SLANT_RANGE:
+                if coord is Coords.SLANT_RANGE:
                     ymax = 3517.5
                 else:
                     ymax = 75
@@ -1004,7 +1013,7 @@ class RTP():
                     if ticks[-1] > boundary_ranges[axes_parameters[i]][1]:
                         ticks[-1] = boundary_ranges[axes_parameters[i]][1]
                     cbar.set_ticks(ticks)
-                if coord is Coord.SLANT_RANGE:
+                if coord is Coords.SLANT_RANGE:
                     axes[i].set_ylabel('Slant Range (km)')
                 else:
                     axes[i].set_ylabel('Range Gates')
