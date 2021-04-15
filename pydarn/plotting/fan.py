@@ -1,7 +1,6 @@
 # Copyright (C) 2020 SuperDARN Canada, University of Saskatchewan
 # Author: Daniel Billett, Marina Schmidt
 #
-# Modifications:
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
@@ -11,7 +10,9 @@
 # This version of the GNU Lesser General Public License incorporates the terms
 # and conditions of version 3 of the GNU General Public License,
 # supplemented by the additional permissions listed below.
-
+#
+# Modifications:
+#
 
 """
 Fan plots, mapped to AACGM coordinates in a polar format
@@ -26,17 +27,18 @@ from typing import List, Union
 
 # Third party libraries
 import aacgmv2
-from pydarn import PyDARNColormaps, build_scan, radar_fov, citing_warning, plot_exceptions
+from pydarn import (PyDARNColormaps, build_scan, radar_fov, citing_warning,
+                    plot_exceptions)
 from pydarn.utils.plotting import time2datetime
 
 # handle cartopy ad-hoc
-import pkg_resources
 try:
     from cartopy.mpl import geoaxes
     import cartopy.crs as ccrs
     cartopyInstalled = True
-except Exception as err:
+except Exception:
     cartopyInstalled = False
+
 
 class Fan():
     """
@@ -54,7 +56,8 @@ class Fan():
             "   - return_beam_pos()\n"
 
     @classmethod
-    def plot_fan(cls, dmap_data: List[dict], ax=None, scan_index: Union[int, dt.datetime] = 1,
+    def plot_fan(cls, dmap_data: List[dict], ax=None,
+                 scan_index: Union[int, dt.datetime] = 1,
                  ranges: List = [0, 75], boundary: bool = True,
                  alpha: int = 0.5, parameter: str = 'v',
                  lowlat: int = 30, cmap: str = None,
@@ -141,16 +144,25 @@ class Fan():
         # Get scan numbers for each record
         beam_scan = build_scan(dmap_data)
 
-        # Check if scan_index is a datetime, then determine which integer scan to fetch
+        # Check if scan_index is a datetime, then determine which
+        # integer scan to fetch
         if type(scan_index) == dt.datetime:
-            # loop through dmap_data records, dump a datetime list where scans start
-            scan_datetimes = np.array([dt.datetime(*[record[time_component] for time_component in [
-                                      'time.yr', 'time.mo', 'time.dy', 'time.hr', 'time.mt', 'time.sc']]) for record in dmap_data if record['scan'] == 1])
+            # loop through dmap_data records, dump a datetime
+            # list where scans start
+            scan_datetimes = np.array([dt.datetime(*[record[time_component]
+                                                     for time_component in
+                                                     ['time.yr', 'time.mo',
+                                                      'time.dy', 'time.hr',
+                                                      'time.mt', 'time.sc']])
+                                       for record in dmap_data
+                                       if record['scan'] == 1])
             # find corresponding scan_index
-            matching_scan_index = np.argwhere(scan_datetimes == scan_index)[..., 0] + 1
+            matching_scan_index = np.argwhere(scan_datetimes ==
+                                              scan_index)[..., 0] + 1
             # handle datetimes out of bounds
             if len(matching_scan_index) != 1:
-                raise plot_exceptions.IncorrectDateError(scan_datetimes[0], scan_index)
+                raise plot_exceptions.IncorrectDateError(scan_datetimes[0],
+                                                         scan_index)
             else:
                 scan_index = matching_scan_index
 
@@ -222,7 +234,8 @@ class Fan():
                 aacgmv2.convert_mlt(beam_corners_aacgm_lons[0, 0], dtime) * 15)
             # implement the lon shift
             beam_corners_mlts = beam_corners_aacgm_lons - mltshift
-            # make it something the polar plots can handle by converting to radians
+            # make it something the polar plots can handle
+            # by converting to radians
             beam_corners_aacgm_lons = np.radians(beam_corners_mlts)
             # handle creating a new plot axes if neccesary
             if ax is None:
@@ -232,7 +245,8 @@ class Fan():
                 ax.set_xticks(np.arange(0, np.radians(360), np.radians(45)))
                 ax.set_xticklabels(['00', '', '06', '', '12', '', '18', ''])
                 ax.set_theta_zero_location("S")
-            # a single* call to pcolormesh to handle all the range gates in the scan
+            # a single* call to pcolormesh to handle all the
+            # range gates in the scan
             ax.pcolormesh(beam_corners_aacgm_lons,
                           beam_corners_aacgm_lats,
                           np.ma.masked_array(scan, ~scan.astype(bool)),
@@ -241,63 +255,90 @@ class Fan():
             if groundscatter:
                 ax.pcolormesh(beam_corners_aacgm_lons,
                               beam_corners_aacgm_lats,
-                              np.ma.masked_array(grndsct, ~grndsct.astype(bool)),
+                              np.ma.masked_array(grndsct,
+                                                 ~grndsct.astype(bool)),
                               norm=norm, cmap='Greys')
             # *There exists a bug in matplotlib pcolormesh when plotting in
             # polar projections that gets rid of the rgrid. Replot them here:
-            for lat in range(pole_lat, lowlat, -10 if northern_hemisphere else 10):
+            for lat in range(pole_lat, lowlat, -10
+                             if northern_hemisphere else 10):
                 ax.plot(np.linspace(0, np.radians(360), 360),
                         [lat] * 360, 'grey', alpha=0.6)
             for lon in range(0, 360, 45):
                 ax.plot([np.radians(lon)] * 2,
                         [pole_lat, lowlat], 'grey', alpha=0.6)
-        
+
         # the alternative is to plot using catropy
         else:
             # first, check if cartopy is installed:
             if not cartopyInstalled:
                 raise plot_exceptions.CartopyMissingError()
             # no need to shift any coords, let cartopy do that
-            # however, we do need to figure out how much to rotate the projection
+            # however, we do need to figure out
+            # how much to rotate the projection
             deg_from_midnight = (dtime.hour + dtime.minute / 60) / 24 * 360
-            noon = -deg_from_midnight if northern_hemisphere else 360 - deg_from_midnight
+            if northern_hemisphere:
+                noon = -deg_from_midnight
+            else:
+                noon = 360 - deg_from_midnight
             # handle none types or wrongly built axes
             if type(ax) != geoaxes.GeoAxesSubplot:
                 proj = ccrs.Orthographic(noon, pole_lat)
                 ax = plt.subplot(111, projection=proj, aspect='auto')
                 ax.coastlines()
-                ax.gridlines(ylocs=np.arange(pole_lat, 0, -5 if northern_hemisphere else 5))
+                ax.gridlines(ylocs=np.arange(pole_lat, 0, -5
+                                             if northern_hemisphere else 5))
                 ax.pcolormesh(beam_corners_aacgm_lons,
                               beam_corners_aacgm_lats,
                               np.ma.masked_array(scan, ~scan.astype(bool)),
-                              norm=norm, cmap=cmap, transform=ccrs.PlateCarree())
+                              norm=norm, cmap=cmap,
+                              transform=ccrs.PlateCarree())
                 if groundscatter:
                     ax.pcolormesh(beam_corners_aacgm_lons,
                                   beam_corners_aacgm_lats,
-                                  np.ma.masked_array(grndsct, ~grndsct.astype(bool)),
-                                  norm=norm, cmap='Greys', transform=ccrs.PlateCarree())
-                
-                # For some reason, cartopy won't allow extents much greater than this
+                                  np.ma.masked_array(grndsct,
+                                                     ~grndsct.astype(bool)),
+                                  norm=norm, cmap='Greys',
+                                  transform=ccrs.PlateCarree())
+
+                # For some reason, cartopy won't allow extents
+                # much greater than this
                 # - there should probably be an option to allow autscaling
                 # - perhaps this is a projection issue?
-                extent = min(45e5, (abs(proj.transform_point(noon, lowlat, ccrs.PlateCarree())[1])))
-                ax.set_extent(extents=(-extent, extent, -extent, extent), crs=proj)
+                extent = min(45e5,
+                             (abs(proj.transform_point(noon, lowlat,
+                                                       ccrs.PlateCarree())
+                                  [1])))
+                ax.set_extent(extents=(-extent, extent, -extent, extent),
+                              crs=proj)
             else:
                 ax.pcolormesh(beam_corners_aacgm_lons,
                               beam_corners_aacgm_lats,
                               np.ma.masked_array(scan, ~scan.astype(bool)),
-                              norm=norm, cmap=cmap, transform=ccrs.PlateCarree())
-                extent = min(45e5, (abs(proj.transform_point(noon, lowlat, ccrs.PlateCarree())[1])))
-                ax.set_extent(extents=(-extent, extent, -extent, extent), crs=proj)
+                              norm=norm, cmap=cmap,
+                              transform=ccrs.PlateCarree())
+                extent = min(45e5,
+                             (abs(proj.transform_point(noon, lowlat,
+                                                       ccrs.PlateCarree())
+                                  [1])))
+                ax.set_extent(extents=(-extent, extent, -extent, extent),
+                              crs=proj)
 
         if boundary:
-            # create flat arrays of the lat/lon points for the FOV (bottom, left, -top, -right)
+            # create flat arrays of the lat/lon points for the FOV
+            # (bottom, left, -top, -right)
             boundary_lons = np.concatenate(
-                (beam_corners_aacgm_lons[ranges[0], :], beam_corners_aacgm_lons[ranges[0]:ranges[1], -1],
-                 beam_corners_aacgm_lons[ranges[1], ::-1], beam_corners_aacgm_lons[ranges[1]:ranges[0]:-1, 0], [beam_corners_aacgm_lons[0, 0]]))
+                (beam_corners_aacgm_lons[ranges[0], :],
+                 beam_corners_aacgm_lons[ranges[0]:ranges[1], -1],
+                 beam_corners_aacgm_lons[ranges[1], ::-1],
+                 beam_corners_aacgm_lons[ranges[1]:ranges[0]:-1, 0],
+                 [beam_corners_aacgm_lons[0, 0]]))
             boundary_lats = np.concatenate(
-                (beam_corners_aacgm_lats[ranges[0], :], beam_corners_aacgm_lats[ranges[0]:ranges[1], -1],
-                 beam_corners_aacgm_lats[ranges[1], ::-1], beam_corners_aacgm_lats[ranges[1]:ranges[0]:-1, 0], [beam_corners_aacgm_lats[0, 0]]))
+                (beam_corners_aacgm_lats[ranges[0], :],
+                 beam_corners_aacgm_lats[ranges[0]:ranges[1], -1],
+                 beam_corners_aacgm_lats[ranges[1], ::-1],
+                 beam_corners_aacgm_lats[ranges[1]:ranges[0]:-1, 0],
+                 [beam_corners_aacgm_lats[0, 0]]))
             # plot the boundary
             ax.plot(boundary_lons, boundary_lats, 'k', linewidth=0.5)
 
@@ -411,7 +452,8 @@ class Fan():
         if fov_color is not None:
             theta = thetas[0:ranges[1], 0]
             theta = np.append(theta, thetas[ranges[1]-1, 0:thetas.shape[1]-1])
-            theta = np.append(theta, np.flip(thetas[0:ranges[1], thetas.shape[1]-2]))
+            theta = np.append(theta, np.flip(thetas[0:ranges[1],
+                                                    thetas.shape[1]-2]))
             theta = np.append(theta, np.flip(thetas[0, 0:thetas.shape[1]-2]))
 
             r = rs[0:ranges[1], 0]

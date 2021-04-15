@@ -51,11 +51,11 @@ class NoDataFoundError(Exception):
         self.beam_num = beam_num
         if start_time is None or end_time is None:
             self.message = "There is no Data for beam number {beam_num}"\
-            " for the parameter type {parameter}. Try another beam, for"\
-            " example: {opt_beam} or another parameter for the given"\
-            " time range.".format(parameter=self.parameter,
-                                  beam_num=self.beam_num,
-                                  opt_beam=opt_beam_num)
+                " for the parameter type {parameter}. Try another beam, for"\
+                " example: {opt_beam} or another parameter for the given"\
+                " time range.".format(parameter=self.parameter,
+                                      beam_num=self.beam_num,
+                                      opt_beam=opt_beam_num)
         else:
             self.start_time = start_time
             self.end_time = end_time
@@ -113,7 +113,7 @@ class OutOfRangeGateError(Exception):
         self.message = "The range gate {gate_num} is out of range for this"\
             " parameter {param}. Please pick a range gate number"\
             " between 0 - {max_gate}".format(gate_num=self.gate_num,
-                                            param=self.parameter,
-                                            max_gate=self.max_range_gate-1)
+                                             param=self.parameter,
+                                             max_gate=self.max_range_gate-1)
         super().__init__(self.message)
         pydarn_log.error(self.message)
