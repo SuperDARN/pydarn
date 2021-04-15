@@ -17,7 +17,7 @@ from typing import List
 from pydarn import (gate2slant, check_data_type, time2datetime,
                     rtp_exceptions, plot_exceptions, SuperDARNCpids,
                     SuperDARNRadars, standard_warning_format,
-                    PyDARNColormaps, coord, citing_warning)
+                    PyDARNColormaps, Coord, citing_warning)
 
 warnings.formatwarning = standard_warning_format
 
