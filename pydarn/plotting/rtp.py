@@ -56,7 +56,8 @@ class RTP():
                         start_time: datetime = None, end_time: datetime = None,
                         colorbar: plt.colorbar = None, ymin: int = None,
                         ymax: int = None, yspacing: int = 200,
-                        coord: object = Coords.SLANT_RANGE, colorbar_label: str = '',
+                        coord: object = Coords.SLANT_RANGE, hgt = 250, 
+                        colorbar_label: str = '',
                         norm=colors.Normalize,
                         cmap: str = None,
                         filter_settings: dict = {},
@@ -109,9 +110,13 @@ class RTP():
         yspacing: int
             sets the spacing between ticks
             Default: 200
-        coord: Coord
+        coord: Coords
             set the y-axis to a desired coordinate system
-            Default: Coord.SLANT_RANGE
+            Default: Coords.SLANT_RANGE
+        hgt: int
+            set the ionosphere virtual reflection height
+            this only applies to Coords.GROUND_SCATTER_MAPPED_RANGE
+            Default: 250 (km)
         norm: matplotlib.colors.Normalization object
             This object use dependency injection to use any normalization
             method with the zmin and zmax.
@@ -341,7 +346,6 @@ class RTP():
         elif coord is Coords.GROUND_SCATTER_MAPPED_RANGE:
             y = gate2slant(cls.dmap_data[0], y_max)
             Re = 6371
-            hgt = 250
             y = Re*np.arcsin(np.sqrt((y**2/4)-(hgt**2))/Re)  
             y0inx = np.min(np.where(np.isfinite(y))[0])
             y = y[y0inx:]
