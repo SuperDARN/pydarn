@@ -82,7 +82,7 @@ def dmap2dict(dmap_records: List[dict]) -> List[dict]:
     return dmap_list
 
 
-def gate2slant(record, nrang, center=True):
+def gate2slant(record, nrang, cente=False):
     """
     Calculate the slant range (km) for each range gate for SuperDARN data
 
