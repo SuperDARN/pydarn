@@ -336,7 +336,10 @@ class RTP():
                                      end_time=end_time,
                                      opt_beam_num=cls.dmap_data[0]['bmnum'])
         if coord is Coord.SLANT_RANGE:
-            y = gate2slant(cls.dmap_data[0], y_max)
+            # Get rxrise from hardware files (consistent with RST)
+            rxrise = SuperDARNRadars.radars[cls.dmap_data[0]['stid']]\
+                                    .hardware_info.rx_rise_time
+            y = gate2slant(cls.dmap_data[0], y_max, rxrise=rxrise)
         time_axis, y_axis = np.meshgrid(x, y)
         z_data = np.ma.masked_where(np.isnan(z.T), z.T)
         Default = {'noise.sky': (1e0, 1e5),
