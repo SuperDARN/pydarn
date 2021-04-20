@@ -14,7 +14,7 @@ from typing import List
 
 from pydarn import (plot_exceptions, SuperDARNRadars,
                     standard_warning_format, time2datetime,
-                    check_data_type)
+                    check_data_type, citing_warning)
 
 warnings.formatwarning = standard_warning_format
 
@@ -257,11 +257,7 @@ class ACF():
                           date=time.strftime("%Y %b %d %H:%M"),
                           cpid=record['cp'])
         ax.set_title(title)
-        warnings.warn("Please make sure to cite pyDARN in publications that"
-                      " use plots created by pyDARN using DOI:"
-                      " https://zenodo.org/record/3978643. Citing information"
-                      " for SuperDARN data is found at"
-                      " https://pydarn.readthedocs.io/en/master/user/citing/")
+        citing_warning()
 
     @classmethod
     def __found_scan(cls, scan_num: int, count_num: int,

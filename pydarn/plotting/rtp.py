@@ -17,7 +17,7 @@ from typing import List
 from pydarn import (gate2slant, check_data_type, time2datetime,
                     rtp_exceptions, plot_exceptions, SuperDARNCpids,
                     SuperDARNRadars, standard_warning_format,
-                    PyDARNColormaps)
+                    PyDARNColormaps, Coord, citing_warning)
 
 warnings.formatwarning = standard_warning_format
 
@@ -56,7 +56,7 @@ class RTP():
                         start_time: datetime = None, end_time: datetime = None,
                         colorbar: plt.colorbar = None, ymin: int = None,
                         ymax: int = None, yspacing: int = 200,
-                        slant: bool = True, colorbar_label: str = '',
+                        coord: object = Coord.SLANT_RANGE, colorbar_label: str = '',
                         norm=colors.Normalize,
                         cmap: str = None,
                         filter_settings: dict = {},
@@ -109,10 +109,9 @@ class RTP():
         yspacing: int
             sets the spacing between ticks
             Default: 200
-        slant: boolean
-            set the y-axis to slant range (km)
-            if false will show gate numbers.
-            Default: True
+        coord: Coord
+            set the y-axis to a desired coordinate system
+            Default: Coord.SLANT_RANGE
         norm: matplotlib.colors.Normalization object
             This object use dependency injection to use any normalization
             method with the zmin and zmax.
@@ -336,8 +335,8 @@ class RTP():
                                      start_time=start_time,
                                      end_time=end_time,
                                      opt_beam_num=cls.dmap_data[0]['bmnum'])
-        if slant:
-            y = gate2slant(cls.dmap_data[0], y_max, center=False)
+        if coord is Coord.SLANT_RANGE:
+            y = gate2slant(cls.dmap_data[0], y_max)
         time_axis, y_axis = np.meshgrid(x, y)
         z_data = np.ma.masked_where(np.isnan(z.T), z.T)
         Default = {'noise.sky': (1e0, 1e5),
@@ -398,7 +397,7 @@ class RTP():
 
         ax.set_ylim(ymin, ymax)
 
-        if slant:
+        if coord is Coord.SLANT_RANGE:
             ax.yaxis.set_ticks(np.arange(np.ceil(ymin/100.0)*100,
                                          ymax+1, yspacing))
         else:
@@ -415,7 +414,7 @@ class RTP():
         else:
             tick_interval = 1
         ax.xaxis.set_minor_locator(dates.MinuteLocator(interval=tick_interval))
-        if slant:
+        if coord is Coord.SLANT_RANGE:
             ax.yaxis.set_minor_locator(ticker.AutoMinorLocator(2))
         else:
             ax.yaxis.set_minor_locator(ticker.MultipleLocator(5))
@@ -439,11 +438,7 @@ class RTP():
                                                       norm) from None
         if colorbar_label != '':
             cb.set_label(colorbar_label)
-        warnings.warn("Please make sure to cite pyDARN in publications that"
-                      " use plots created by pyDARN using DOI:"
-                      " https://zenodo.org/record/3978643. Citing information"
-                      " for SuperDARN data is found at"
-                      " https://pydarn.readthedocs.io/en/master/user/citing/")
+        citing_warning()
         return im, cb, cmap, x, y, z_data
 
     @classmethod
@@ -675,17 +670,13 @@ class RTP():
         ax.margins(x=0)
         ax.tick_params(axis='y', which='minor')
 
-        warnings.warn("Please make sure to cite pyDARN in publications that"
-                      " use plots created by pyDARN using DOI:"
-                      " https://zenodo.org/record/3978643. Citing information"
-                      " for SuperDARN data is found at"
-                      " https://pydarn.readthedocs.io/en/master/user/citing/")
+        citing_warning()
         return lines, x, y
 
     @classmethod
     def plot_summary(cls, dmap_data: List[dict], beam_num: int = 0,
                      groundscatter: bool = True, channel: int = 'all',
-                     slant: bool = True, figsize: tuple = (11, 8.5),
+                     coord: object = Coord.SLANT_RANGE, figsize: tuple = (11, 8.5),
                      watermark: bool = True, boundary: dict = {},
                      background_color: str = 'w', cmaps: dict = {},
                      lines: dict = {}, plot_elv: bool = True, title=None):
@@ -697,7 +688,6 @@ class RTP():
         Future Work
         ------------
         day-night terminators
-        slant ranges
 
         Parameters
         ----------
@@ -718,10 +708,9 @@ class RTP():
             channel number that will be plotted
             in the summary plot.
             Default: 'all'
-        slant: bool
-            calculate slant range for range-gates if true.
-            False will use range-gate numbers
-            Default: True
+        coord: Coord
+            set the y-axis to a desired coordinate system
+            Default: Coord.SLANT_RANGE
         figsize : (int,int)
             tuple containing (height, width) figure size
             Default: 11 x 8.5
@@ -973,7 +962,7 @@ class RTP():
             else:
                 # Current standard is to only have groundscatter
                 # on the velocity plot. This may change in the future.
-                if slant:
+                if coord is Coord.SLANT_RANGE:
                     ymax = 3517.5
                 else:
                     ymax = 75
@@ -994,7 +983,7 @@ class RTP():
                                             ax=axes[i],
                                             groundscatter=grndflg,
                                             channel=channel,
-                                            slant=slant,
+                                            coord=coord,
                                             cmap=cmap[axes_parameters[i]],
                                             zmin=boundary_ranges[axes_parameters[i]][0],
                                             zmax=boundary_ranges[axes_parameters[i]][1],
@@ -1015,7 +1004,7 @@ class RTP():
                     if ticks[-1] > boundary_ranges[axes_parameters[i]][1]:
                         ticks[-1] = boundary_ranges[axes_parameters[i]][1]
                     cbar.set_ticks(ticks)
-                if slant:
+                if coord is Coord.SLANT_RANGE:
                     axes[i].set_ylabel('Slant Range (km)')
                 else:
                     axes[i].set_ylabel('Range Gates')
@@ -1036,12 +1025,7 @@ class RTP():
                      color='gray', ha='right', va='top',
                      rotation=-38, alpha=0.3)
 
-        warnings.warn("Please make sure to cite pyDARN in publications that"
-                      " use plots created by pyDARN using DOI:"
-                      " https://zenodo.org/record/3978643. Citing information"
-                      " for SuperDARN data is found at"
-                      " https://pydarn.readthedocs.io/en/master/user/citing/")
-
+        citing_warning()
         return fig, axes
 
     @classmethod
