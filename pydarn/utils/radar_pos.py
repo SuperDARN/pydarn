@@ -1,5 +1,36 @@
 # Copyright (C) 2020 SuperDARN Canada, University of Saskatchewan
 # Author(s): Daniel Billett, Marina Schmidt
+#
+# Copyright (C) 2012 Johns Hopkins University/Applied Physics Laboratory
+# Author: K.Baker, R.J.Barnes & D. Andre
+#
+# The following methods:
+# - geographic_cell_positions
+# - geocentric_coordinates
+# - cell_geocentric_coordinates
+# - geocentric2flattening
+# - geodetic2geocentric
+# - geocentric2geodetic
+# was copied from
+# https://github.com/SuperDARN/rst/superdarn/src.lib/tk/rpos.1.7/src/cnvtcoord.c
+# and converted to python for usage in pyDARN
+#
+# Modifications:
+#   2020-04-20 Marina Schmidt converted the above link to python and changed
+#              variable and function names to readability
+#
+# Disclaimer:
+# pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
+# Everyone is permitted to copy and distribute verbatim copies of this license
+# document, but changing it is not allowed.
+#
+# This version of the GNU Lesser General Public License incorporates the terms
+# and conditions of version 3 of the GNU General Public License,
+# supplemented by the additional permissions listed below.
+#
+#
+
+
 """
 This module is used for handling coordinates of a specified radar
 in AACGMv2 or geographic coordinates
@@ -11,7 +42,7 @@ import os
 
 import aacgmv2
 
-from pydarn import SuperDARNRadars, gate2slant
+from pydarn import SuperDARNRadars
 from pydarn.utils.const import EARTH_RADIUS
 
 
@@ -84,32 +115,82 @@ def radar_fov(stid: int, coords: str = 'aacgm', date: datetime = None):
 
 
 # RPosGeo line 335
-def geographic_cell_positions(stid: int, beam: int, range_gate: int, rsep: int = 45,
-                              frang: int = 180, nrang: int = 75,
+def geographic_cell_positions(stid: int, beam: int, range_gate: int,
+                              rsep: int = 45, frang: int = 180,
                               height: int = None, elv_angle: int = 0,
                               center: bool = True, chisham: bool = False):
+    """
+    determines the geographic cell position for a given range gate and beam
 
-    # centre of the field of view units?
+    parameters
+    ----------
+        stid: int
+            station id of the radar to use
+        beam: int
+            beam number (indexing at 0)
+        range_gate: int
+            range gate number (indexing at 0)
+        rsep: int
+            range seperation, determined by the mode the
+            radar is using, in [km]
+            default: 45 - normalscan mode
+        frang: int
+            frequency range from the radar to the front edge of the range gate
+            Please note: this definition may be changed, currently defined in
+            RST code to keep consistency
+        height: int
+            transmutation height [km]
+            default: none
+            if none then it uses elevation angle
+        elv_angle: int
+            elevation angle in [deg]
+            default: 0
+        center: bool
+            obtain geographic location of the centre of the range gates
+            False obtains the front edge of the range gates.
+            default: True
+        chisham: bool
+            use the Gareth Chisham virtual height model
+            default: False
+
+    returns
+    -------
+        lat: int
+            latitude of the range gate in geographic coordinates [deg]
+        lon: int
+            longitude of the range gate in geographic coordinates [deg]
+    """
+    # centre of the field of view
     offset = SuperDARNRadars.radars[stid].hardware_info.beams / 2.0 - 0.5
-    boresight = SuperDARNRadars.radars[stid].hardware_info.boresight
-    radar_lat = SuperDARNRadars.radars[stid].hardware_info.geographic.lat
-    radar_lon = SuperDARNRadars.radars[stid].hardware_info.geographic.lon
-    beam_sep = SuperDARNRadars.radars[stid].hardware_info.beam_separation
 
-    # TODO: Is this correct?
+    # Obtain radar information from hardware files all converted to [rad]
+    # radians are needed for numpy geometry calculations and to reduce
+    # too much converting back and forth.
+    boresight = np.radians(SuperDARNRadars.
+                           radars[stid].hardware_info.boresight)
+    radar_lat = np.radians(SuperDARNRadars.
+                           radars[stid].hardware_info.geographic.lat)
+    radar_lon = np.radians(SuperDARNRadars.
+                           radars[stid].hardware_info.geographic.lon)
+    beam_sep = np.radians(SuperDARNRadars.
+                          radars[stid].hardware_info.beam_separation)
+
+    # TODO: fix after slant range change
     if center is True:
+        # beam edge in [rad]
         beam_edge = -beam_sep * 0.5
+        # range_edge in [km]
         range_edge = -0.5 * rsep * 20/3
     else:
         beam_edge = 0
         range_edge = 0
 
+    # psi in [rad]
     psi = beam_sep * (beam - offset) + beam_edge
     # Calculate the slant range [km]
-    # TODO: not sure about this +1 on the range gate?
     slant_range = rst_slant_range(frang, rsep, range_edge, range_gate)
 
-    if height is None and elv_angle < 90:
+    if height is None:
         height = -EARTH_RADIUS + np.sqrt(EARTH_RADIUS**2 + 2 * slant_range *
                                          EARTH_RADIUS *
                                          np.sin(np.radians(elv_angle)) +
@@ -117,28 +198,66 @@ def geographic_cell_positions(stid: int, beam: int, range_gate: int, rsep: int =
 
     lat, lon = geocentric_coordinates(radar_lat, radar_lon, slant_range,
                                       height, psi, boresight, chisham)
-    return lat, lon
 
+    # convert back degrees as preferred units to use?
+    return np.degrees(lat), np.degrees(lon)
+
+
+# TODO: remove once we fix ours
 def rst_slant_range(frang, rsep, range_edge, range_gate, rxrise=100):
     lagfr = frang * 20/3
     smsep = rsep * 20/3
 
     return (lagfr - rxrise + (range_gate) * smsep + range_edge) * 0.15
 
+
 # fldpnth line 90
 def geocentric_coordinates(radar_lat, radar_lon, slant_range: int,
                            cell_height: int, psi: int, boresight: int,
                            chisham: bool = False):
     """
-     Parameters:
-         slant_range: int
-            slant range distance (km)
+    Calculates the geocentric coordinates of gate cell  point,
+    using either the standard or Chisham virtual height model.
+
+    Parameters
+    ----------
+        radar_lat : int
+            radars site latitude [rad]
+        radar_lon : int
+            radars site longitude [lon]
+        slant_range: int
+            slant range distance [km]
+        cell_height : int
+            virtual height of the gate cell [km]
+        psi: int
+            [rad]
+        boresight: int
+            boresight of the radar beam [rad]
+        chisham: bool
+            use the virtual height chisham model
+            default: False
+
+    Returns
+    -------
+        cell_lat: int
+            latitude of the range gate in geographic coordinates [rad]
+        cell_lon: int
+            longitude of the range gate in geographic coordinates [rad]
+
+    """
+    # Gareth Chisham Virtual height model:
+    """
+    Mapping ionospheric backscatter measured by the SuperDARN HF
+    radars – Part 1: A new empirical virtual height model by
+    G. Chisham 2008
     """
     if chisham:
+        # Model constants
         A_const = (108.974, 384.416, 1098.28)
         B_const = (0.0191271, -0.178640, -0.354557)
         C_const = (6.68283e-5, 1.81405e-4, 9.39961e-5)
 
+        # determine which region of ionosphere the gate
         if slant_range < 115:
             x_height = (slant_range / 115.0) * 112.0
         elif slant_range < 787.5:
@@ -182,31 +301,27 @@ def geocentric_coordinates(radar_lat, radar_lon, slant_range: int,
     rlat, rlon, r_radar, delta = geodetic2geocentric(radar_lat, radar_lon)
     r_cell = r_radar
 
-    # TODO: turn into a helper do-while loop
     while_flag = True
-    #for i in range(0,10):
     while while_flag:
         # distance between the gate cell to the earth's centre [km]
         cell_rho = r_cell + x_height
-        # elevation angle relative to local horizon [radians]
+        # elevation angle relative to local horizon [rad]
         rel_elv = np.arcsin(((cell_rho**2) - (r_radar**2) - slant_range**2) /
                             (2.0 * r_radar * slant_range))
-        # TODO: what is 2137.5 km represent?
         if chisham and slant_range > 2137.5:
             gamma = np.arccos((r_radar**2 + cell_rho**2 - slant_range**2) /
                               (2.0 * r_radar * cell_rho))
             beta = np.arcsin(r_radar * np.sin(gamma/3.0) /
                              (slant_range/3.0))
             # Elevation angle used for estimating off-array normal
-            # azimuth [radians]
+            # azimuth [rad]
             xelv = (np.pi/2) - beta - (gamma/3.0)
         else:
             xelv = rel_elv
 
         # Estimate the off-array-normal azimuth in radians
-        psi_r = np.radians(psi)
-        psi_cos_2 = np.cos(psi_r)**2
-        psi_sin_2 = np.sin(psi_r)**2
+        psi_cos_2 = np.cos(psi)**2
+        psi_sin_2 = np.sin(psi)**2
         elv_sin_2 = np.sin(xelv)**2
 
         est_azimuth = psi_cos_2 - elv_sin_2
@@ -222,17 +337,18 @@ def geocentric_coordinates(radar_lat, radar_lon, slant_range: int,
         else:
             azimuth = -np.arctan(tan_azimuth)
 
-        # azimuth of the gate cell [deg]
-        cell_azimuth = np.degrees(azimuth) + boresight
-        flatten_azimuth, _ = geocentric2flattening(delta, cell_azimuth, np.degrees(xelv))
-        cell_rho , cell_lat, cell_lon = cell_geocentric_coordinates(rlat, rlon,
-                                                                    r_radar,
-                                                                    flatten_azimuth,
-                                                                    np.degrees(rel_elv),
-                                                                    slant_range)
+        # azimuth of the gate cell [rad]
+        cell_azimuth = azimuth + boresight
+        flatten_azimuth = geocentric2flattening(delta, cell_azimuth, xelv)
+        cell_rho, cell_lat, cell_lon = \
+            cell_geocentric_coordinates(rlat, rlon, r_radar,
+                                        flatten_azimuth, rel_elv,
+                                        slant_range)
 
+        # recalculate the radius under the gate cell and centre of earth
         _, _, r_cell, _ = geocentric2geodetic(cell_lat, cell_lon)
         cell_heightx = cell_rho - r_cell
+        # this ensures convergence on the cell point
         while_flag = abs(cell_heightx - x_height) > 0.5
 
     return cell_lat, cell_lon
@@ -241,30 +357,53 @@ def geocentric_coordinates(radar_lat, radar_lon, slant_range: int,
 # fldpnt
 def cell_geocentric_coordinates(lat: int, lon: int, rho: int, azimuth: int,
                                 elv: int, r: int):
+    """
+    Calculates the geocentric coordinates of a gate cell point given the
+    angular geocentric coordinates of the point of origin,
+    the azimuth, elevation, and slant range.
 
-    lat_r = np.radians(lat)
-    lon_r = np.radians(lon)
-    azimuth_r = np.radians(azimuth)
-    elv_r = np.radians(elv)
+    parameters
+    ----------
+        lat: int
+            geocentric latitude [rad] of the radar site
+        lon : int
+            geocentric longitude [rad] of the radar site
+        rho: int
+            radius from the radar site to the centre of the earth [km]
+        azimuth: int
+            azimuth with corrected earth flattening in [rad] for the cell
+        elv: int
+            relative elevation angle [rad]
+        r: int
+            slant range of the cell [km]
 
-    sin_theta = np.sin(np.pi/2 - lat_r)
+    returns
+    -------
+        rho: int
+            radius from cell point to centre of the earth [km]
+        lat: int
+            geocentric cell latitude [rad]
+        lon: int
+            geocentric cell longitude [rad]
+    """
+    cos_lat = np.cos(np.pi/2 - lat)
+    sin_lat = np.sin(np.pi/2 - lat)
 
-    cos_lat = np.cos(np.pi/2 - lat_r)
-    sin_lat = np.sin(np.pi/2 - lat_r)
+    cos_lon = np.cos(lon)
+    sin_lon = np.sin(lon)
 
-    cos_lon = np.cos(lon_r)
-    sin_lon = np.sin(lon_r)
+    cos_azimuth = np.cos(azimuth)
+    sin_azimuth = np.sin(azimuth)
+
+    sin_elv = np.sin(elv)
+    cos_elv = np.cos(elv)
 
     # earth centered spherical coordinates [km*rad]
-    rx = rho * sin_theta * np.cos(lon_r)
-    ry = rho * sin_theta * np.sin(lon_r)
+    rx = rho * sin_lat * cos_lon
+    ry = rho * sin_lat * sin_lon
     rz = rho * cos_lat
 
     # earth local Cartesian (x-south, y-east, z-up)
-    cos_azimuth = np.cos(azimuth_r)
-    cos_elv = np.cos(elv_r)
-    sin_azimuth = np.sin(azimuth_r)
-    sin_elv = np.sin(elv_r)
 
     # [km*rad]
     local_x = -r * cos_elv * cos_azimuth
@@ -293,46 +432,71 @@ def cell_geocentric_coordinates(lat: int, lon: int, rho: int, azimuth: int,
     else:
         lon = np.arctan2(global_y, global_x)
 
-    return rho, np.degrees(lat), np.degrees(lon)
+    return rho, lat, lon
 
 
 # goecnvrt
-#TODO clean up function
-def geocentric2flattening(delta, azimuth, elv):
+def geocentric2flattening(delta: int, azimuth: int, elv: int):
     """
-    Adjust azimuth and elevation for the oblateness of the Earth
+    Adjust azimuth for the oblateness of the Earth
+
+    Parameters
+    ----------
+        delta: int
+            distance before geodetic and geocentric latitude [rad]
+        azimuth: int
+            azimuth of geocentric cell point [rad]
+        elv: int
+            elevation angle [rad]
+
+    Returns
+    -------
+        azimuth_flattening: int
+            adjusted azimuth due the earths oblateness
+
     """
-    elv_r = np.radians(elv)
-    azimuth_r = np.radians(azimuth)
-    delta_r = np.radians(delta)
+    cos_elv = np.cos(elv)
+    sin_elv = np.sin(elv)
 
-    cos_xelv = np.cos(elv_r)
-    sin_xelv = np.sin(elv_r)
+    cos_azimuth = np.cos(azimuth)
+    sin_azimuth = np.sin(azimuth)
 
-    cos_xal = np.cos(azimuth_r)
-    sin_xal = np.sin(azimuth_r)
+    cos_delta = np.cos(delta)
+    sin_delta = np.sin(delta)
 
-    cos_delta = np.cos(delta_r)
-    sin_delta = np.sin(delta_r)
-
-    kxg = cos_xelv * sin_xal
-    kyg = cos_xelv * cos_xal
-    kzg = sin_xelv
+    kxg = cos_elv * sin_azimuth
+    kyg = cos_elv * cos_azimuth
+    kzg = sin_elv
 
     kxr = kxg
     kyr = kyg * cos_delta + kzg * sin_delta
-    kzr = -kyg * sin_delta + kzg * cos_delta
 
     azimuth_flattening = np.arctan2(kxr, kyr)
 
-    elv_flattening = np.arctan(kzr / np.sqrt(kxr**2 + kyr**2))
-
-    return np.degrees(azimuth_flattening), np.degrees(elv_flattening)
+    return azimuth_flattening
 
 
 # geodtgc, iopt > 0
 def geodetic2geocentric(lat: int, lon: int):
     """
+    convert geodetic coordinates to geocentric
+
+    parameters
+    ----------
+        lat: int
+            geodetic latitude [rad]
+        lon: int
+            geodetic longitude [rad]
+    returns
+    -------
+        glat: int
+            geocentric latitude [rad]
+        glon: int
+            geocentric longitude [rad]
+        rho: int
+            distance from the latitude to the centre of the earth [km]
+        delta: int
+            difference between geodetic and geocentric latitude [rad]
     """
     # WGS 84 oblate spheroid defining parameters
     # reciprocal flattening
@@ -341,33 +505,50 @@ def geodetic2geocentric(lat: int, lon: int):
     b = EARTH_RADIUS * (1.0 - f)
     # e2 is the ellipticity
     e2 = EARTH_RADIUS**2 / b**2 - 1
-    lat_r = np.radians(lat)
 
-    glat_r = np.arctan(b**2 / EARTH_RADIUS**2 * np.tan(lat_r))
-    # glon is in degress
+    glat = np.arctan(b**2 / EARTH_RADIUS**2 * np.tan(lat))
+    # glon [rad]
     glon = lon
 
-    if glon > 180:
-        glon = glon - 360
+    if glon > np.pi:
+        glon = glon - 2 * np.pi
     # grho is km?
-    grho = EARTH_RADIUS / np.sqrt(1 + e2 * np.sin(glat_r)**2)
-    glat = np.degrees(glat_r)
+    rho = EARTH_RADIUS / np.sqrt(1 + e2 * np.sin(glat)**2)
+    # delta in [rad]
     delta = lat - glat
-    return glat, glon, grho, delta
+    return glat, glon, rho, delta
 
 
 # geodtgc, iopt < 0
 def geocentric2geodetic(lat: int, lon: int):
+    """
+    convert geocentric coordinates to geodetic
+
+    parameters
+    ----------
+        lat: int
+            geocentric latitude [rad]
+        lon: int
+            geocentric longitude [rad]
+    returns
+    -------
+        dlat: int
+            geodetic latitude [rad]
+        dlon: int
+            geodetic longitude [rad]
+        rho: int
+            distance from the latitude to the centre of the earth [km]
+        delta: int
+            difference between geocentric and geodetic latitude [rad]
+    """
     # WGS 84 oblate spheroid defining parameters
     f = 1.0 / 298.257223563
     b = EARTH_RADIUS * (1.0 - f)
-    lat_r = np.radians(lat)
     e2 = EARTH_RADIUS**2 / b**2 - 1
 
-    r_radar = EARTH_RADIUS / np.sqrt(1+e2*np.sin(lat_r)**2)
-    dlat_r = np.arctan(EARTH_RADIUS**2/b**2 * np.tan(lat_r))
+    rho = EARTH_RADIUS / np.sqrt(1+e2*np.sin(lat)**2)
+    dlat = np.arctan(EARTH_RADIUS**2/b**2 * np.tan(lat))
     dlon = lon
-    dlat = np.degrees(dlat_r)
     delta = dlat - lat
 
-    return dlat, dlon, r_radar, delta
+    return dlat, dlon, rho, delta
