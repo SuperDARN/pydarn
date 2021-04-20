@@ -114,7 +114,7 @@ def gate2slant(record, nrang, center=True):
     # Range offset
     # If center is true, calculate at the center
     if center:
-        range_offset = 0.0
+        range_offset = 0.5 * record['rsep']
     else:
         range_offset = 0.5 * record['rsep']
     # Now calculate slant range in km
