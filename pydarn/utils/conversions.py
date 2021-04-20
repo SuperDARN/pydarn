@@ -116,7 +116,7 @@ def gate2slant(record, nrang, center=True):
     if center:
         range_offset = 0.0
     else:
-        range_offset = -0.5 * record['rsep']
+        range_offset = 0.5 * record['rsep']
     # Now calculate slant range in km
     slant_ranges = np.zeros(nrang+1)
     for gate in range(nrang+1):
