@@ -342,9 +342,14 @@ class RTP():
                                      opt_beam_num=cls.dmap_data[0]['bmnum'])
                    
         if coord is Coords.SLANT_RANGE:
-            y = gate2slant(cls.dmap_data[0], y_max)
+            # Get rxrise from hardware files (consistent with RST)
+            rxrise = SuperDARNRadars.radars[cls.dmap_data[0]['stid']]\
+                                    .hardware_info.rx_rise_time
+            y = gate2slant(cls.dmap_data[0], y_max, rxrise=rxrise)
         elif coord is Coords.GROUND_SCATTER_MAPPED_RANGE:
-            y = gate2slant(cls.dmap_data[0], y_max)
+            rxrise = SuperDARNRadars.radars[cls.dmap_data[0]['stid']]\
+                                    .hardware_info.rx_rise_time
+            y = gate2slant(cls.dmap_data[0], y_max, rxrise=rxrise)
             Re = 6371
             y = Re*np.arcsin(np.sqrt((y**2/4)-(hgt**2))/Re)  
             y0inx = np.min(np.where(np.isfinite(y))[0])
