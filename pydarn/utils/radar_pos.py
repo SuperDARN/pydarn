@@ -42,7 +42,7 @@ import os
 
 import aacgmv2
 
-from pydarn import SuperDARNRadars
+from pydarn import SuperDARNRadars, gate2slant
 from pydarn.utils.const import EARTH_RADIUS
 
 
@@ -174,6 +174,7 @@ def geographic_cell_positions(stid: int, beam: int, range_gate: int,
                            radars[stid].hardware_info.geographic.lon)
     beam_sep = np.radians(SuperDARNRadars.
                           radars[stid].hardware_info.beam_separation)
+    rxrise = SuperDARNRadars.radars[stid].hardware_info.rx_rise_time
 
     # TODO: fix after slant range change
     if center is True:
@@ -188,7 +189,7 @@ def geographic_cell_positions(stid: int, beam: int, range_gate: int,
     # psi in [rad]
     psi = beam_sep * (beam - offset) + beam_edge
     # Calculate the slant range [km]
-    slant_range = rst_slant_range(frang, rsep, range_edge, range_gate)
+    slant_range = gate2slant(frang, rsep, rxrise, gate=range_gate)
 
     if height is None:
         height = -EARTH_RADIUS + np.sqrt(EARTH_RADIUS**2 + 2 * slant_range *
@@ -201,14 +202,6 @@ def geographic_cell_positions(stid: int, beam: int, range_gate: int,
 
     # convert back degrees as preferred units to use?
     return np.degrees(lat), np.degrees(lon)
-
-
-# TODO: remove once we fix ours
-def rst_slant_range(frang, rsep, range_edge, range_gate, rxrise=100):
-    lagfr = frang * 20/3
-    smsep = rsep * 20/3
-
-    return (lagfr - rxrise + (range_gate) * smsep + range_edge) * 0.15
 
 
 # fldpnth line 90

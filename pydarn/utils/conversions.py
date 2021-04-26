@@ -82,16 +82,28 @@ def dmap2dict(dmap_records: List[dict]) -> List[dict]:
     return dmap_list
 
 
-def gate2slant(frang, rsep, rxrise, nrang, center=True):
+def gate2slant(frang:int, rsep:int, rxrise:int, gate: int = 0,
+               nrang: int = None, center: bool = True):
     """
     Calculate the slant range (km) for each range gate for SuperDARN data
 
     Parameters
     ----------
-        record: dict
-            dictionary of superdarn data records
+        frang: int
+            range from the edge of first the gate to the radar [km]
+            This should be given in fitacf record of the control program
+        rsep: int
+            Radar seperation of the gates. Determined by control program.
+        rxrise: int
+            Use hardware value for this, avoid data file values
+        gate: int
+            range gate to determine the slant range [km], if nrang
+            is None
+            default: 0
         nrang: int
-            max number of range gates in the list of records
+            max number of range gates in the list of records. If
+            not None, will calculate all slant ranges
+            default: None
         center: boolean
             Calculate the slant range in the center of range gate
             or edge
@@ -120,9 +132,14 @@ def gate2slant(frang, rsep, rxrise, nrang, center=True):
         range_offset = 0.0
 
     # Now calculate slant range in km
-    slant_ranges = np.zeros(nrang+1)
-    for gate in range(nrang+1):
-        slant_ranges[gate] = (lag_first - rxrise +
-                              gate * sample_sep) * speed_of_light /\
-                distance_factor + range_offset
+    if nrang is None:
+             slant_ranges = (lag_first - rxrise +
+                                  gate * sample_sep) * speed_of_light /\
+                    distance_factor + range_offset
+    else:
+        slant_ranges = np.zeros(nrang+1)
+        for gate in range(nrang+1):
+            slant_ranges[gate] = (lag_first - rxrise +
+                                  gate * sample_sep) * speed_of_light /\
+                    distance_factor + range_offset
     return slant_ranges
