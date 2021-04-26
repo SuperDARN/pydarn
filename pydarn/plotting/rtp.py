@@ -982,6 +982,8 @@ class RTP():
                 # on the velocity plot. This may change in the future.
                 if coord is Coords.SLANT_RANGE:
                     ymax = 3517.5
+                elif coord is Coords.GROUND_SCATTER_MAPPED_RANGE:
+                    ymax = 3517.5/2
                 else:
                     ymax = 75
                 if groundscatter and axes_parameters[i] == 'v':
@@ -1024,6 +1026,8 @@ class RTP():
                     cbar.set_ticks(ticks)
                 if coord is Coords.SLANT_RANGE:
                     axes[i].set_ylabel('Slant Range (km)')
+                elif coord is Coords.GROUND_SCATTER_MAPPED_RANGE:
+                    axes[i].set_ylabel('Ground Scatter\nMapped Range\n(km)')
                 else:
                     axes[i].set_ylabel('Range Gates')
             if i < num_plots-1:
