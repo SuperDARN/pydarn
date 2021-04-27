@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 from matplotlib import dates, colors, cm, ticker
 from typing import List
 
-from pydarn import (gate2slant, check_data_type, time2datetime,
+from pydarn import (gateGroundScatter, gate2slant, check_data_type, time2datetime,
                     rtp_exceptions, plot_exceptions, SuperDARNCpids,
                     SuperDARNRadars, standard_warning_format,
                     PyDARNColormaps, Coords, citing_warning)
@@ -351,7 +351,7 @@ class RTP():
                                     .hardware_info.rx_rise_time
             y = gate2slant(cls.dmap_data[0], y_max, rxrise=rxrise)
             Re = 6371
-            y = Re*np.arcsin(np.sqrt((y**2/4)-(hgt**2))/Re)  
+            y = gateGroundScatter(y, Re, hgt)
             y0inx = np.min(np.where(np.isfinite(y))[0])
             y = y[y0inx:]
             z = z[:,y0inx:]
@@ -416,6 +416,9 @@ class RTP():
         ax.set_ylim(ymin, ymax)
 
         if coord is Coords.SLANT_RANGE:
+            ax.yaxis.set_ticks(np.arange(np.ceil(ymin/100.0)*100,
+                                         ymax+1, yspacing))
+        elif coord is Coords.GROUND_SCATTER_MAPPED_RANGE:
             ax.yaxis.set_ticks(np.arange(np.ceil(ymin/100.0)*100,
                                          ymax+1, yspacing))
         else:

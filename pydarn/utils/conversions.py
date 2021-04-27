@@ -81,7 +81,26 @@ def dmap2dict(dmap_records: List[dict]) -> List[dict]:
         dmap_list.append(OrderedDict(dmap_dict))
     return dmap_list
 
+def gateGroundScatter(y, Re, hgt=250):
+    """
+    Calculate the ground scatter mapped range (km) for each range gate for SuperDARN data
 
+    Parameters
+    ----------
+        Re: int
+            earth's radius
+        hgt: int
+            reflection height
+
+    Returns
+    -------
+        ground_scatter_mapped_ranges : np.array
+            returns an array of ground scatter mapped ranges for the radar
+    """
+    # Ground Scatter equation can be found on Bristow paper at https://doi.org/10.1029/93JA01470 on page 325
+    y = Re*np.arcsin(np.sqrt((y**2/4)-(hgt**2))/Re)  
+
+    return y
 
 def gate2slant(record, nrang, rxrise=0, center=False):
     """
@@ -128,3 +147,5 @@ def gate2slant(record, nrang, rxrise=0, center=False):
                               gate * sample_sep) * speed_of_light /\
                 distance_factor + range_offset
     return slant_ranges
+    
+
