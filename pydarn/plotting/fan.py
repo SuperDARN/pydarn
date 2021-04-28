@@ -226,9 +226,9 @@ class Fan():
         return beam_corners_aacgm_lats, beam_corners_aacgm_lons, scan, grndsct
 
     @classmethod
-    def plot_fov(cls, stid: str, date: dt = None, ax=None, lowlat: int = 30, 
-                ranges: List = [0, 75], boundary: bool = True, fov_color: str = None,
-                alpha: int = 0.5):
+    def plot_fov(cls, stid: str, date: dt = None, ax=None, ranges: List = [0, 75],
+                boundary: bool = True, fov_color: str = None, alpha: int = 0.5,
+                **kwargs):
         """
         plots only the field of view (FOV) for a given radar station ID (stid)
 
@@ -244,9 +244,6 @@ class Fan():
             date: datetime object
                 Sets the datetime used to find the coordinates of the FOV
                 Default: Current time
-            lowlat: int
-                Lower AACGM latitude boundary for the polar plot
-                Default: 50
             ranges: list
                 Set to a two element list of the lower and upper ranges to plot
                 Default: [0,75]
@@ -260,6 +257,9 @@ class Fan():
                 alpha controls the transparency of
                 the fov color
                 Default: 0.5
+            kawrgs: key = value
+                Additional keyword arguments to be passed to axis_polar, e.g. lowlat, 
+                hem, etc
 
         Returns
         -------
@@ -291,21 +291,7 @@ class Fan():
         # Setup plot
         # This may screw up references
         if ax is None:
-        
-            ax = Projections.axis_polar()
-            
-            ax = plt.axes(polar=True)
-            if beam_corners_aacgm_lats[0, 0] > 0:
-                ax.set_ylim(90, lowlat)
-                ax.set_yticks(np.arange(lowlat, 90, 10))
-            else:
-                ax.set_ylim(-90, -abs(lowlat))
-                ax.set_yticks(np.arange(-abs(lowlat), -90, -10))
-            ax.set_xticks([0, np.radians(45), np.radians(90), np.radians(135),
-                           np.radians(180), np.radians(225), np.radians(270),
-                           np.radians(315)])
-            ax.set_xticklabels(['00', '', '06', '', '12', '', '18', ''])
-            ax.set_theta_zero_location("S")
+            ax = Projections.axis_polar(**kwargs)
 
         if boundary:
             # left boundary line
