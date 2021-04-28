@@ -699,7 +699,7 @@ class RTP():
     @classmethod
     def plot_summary(cls, dmap_data: List[dict], beam_num: int = 0,
                      groundscatter: bool = True, channel: int = 'all',
-                     coord: object = Coords.SLANT_RANGE, figsize: tuple = (11, 8.5),
+                     coord: object = Coords.SLANT_RANGE, hgt: float = 250.0, figsize: tuple = (11, 8.5),
                      watermark: bool = True, boundary: dict = {},
                      background_color: str = 'w', cmaps: dict = {},
                      lines: dict = {}, plot_elv: bool = True, title=None):
@@ -734,6 +734,10 @@ class RTP():
         coord: Coord
             set the y-axis to a desired coordinate system
             Default: Coord.SLANT_RANGE
+        hgt: int
+            set the ionosphere virtual reflection height
+            this only applies to Coords.GROUND_SCATTER_MAPPED_RANGE
+            Default: 250 (km)
         figsize : (int,int)
             tuple containing (height, width) figure size
             Default: 11 x 8.5
@@ -1008,7 +1012,8 @@ class RTP():
                                             ax=axes[i],
                                             groundscatter=grndflg,
                                             channel=channel,
-                                            coord=coord,
+                                            coord=coord, 
+                                            hgt = hgt,
                                             cmap=cmap[axes_parameters[i]],
                                             zmin=boundary_ranges[axes_parameters[i]][0],
                                             zmax=boundary_ranges[axes_parameters[i]][1],
