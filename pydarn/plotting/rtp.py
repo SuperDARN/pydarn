@@ -437,6 +437,8 @@ class RTP():
         ax.xaxis.set_minor_locator(dates.MinuteLocator(interval=tick_interval))
         if coord is Coords.SLANT_RANGE:
             ax.yaxis.set_minor_locator(ticker.AutoMinorLocator(2))
+        if coord is Coords.GROUND_SCATTER_MAPPED_RANGE:
+            ax.yaxis.set_minor_locator(ticker.AutoMinorLocator(2))
         else:
             ax.yaxis.set_minor_locator(ticker.MultipleLocator(5))
         # so the plots gets to the ends
