@@ -25,7 +25,9 @@ from .exceptions.warning_formatting import only_message_warning_format
 from .exceptions.warning_formatting import citing_warning
 
 # importing utils
-from .utils import const
+from .utils.constants import Re
+from .utils.constants import EARTH_EQUATORIAL_RADIUS
+from .utils.constants import C
 from .utils.conversions import dmap2dict
 from .utils.conversions import gate2slant
 from .utils.plotting import check_data_type
