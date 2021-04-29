@@ -24,8 +24,6 @@ import numpy as np
 from matplotlib import ticker, cm, colors
 from typing import List
 
-import pdb
-
 # Third party libraries
 import aacgmv2
 
@@ -51,12 +49,10 @@ class Fan():
     @classmethod
     def plot_fan(cls, dmap_data: List[dict], ax=None, scan_index: int = 1,
                  ranges: List = [0, 75], boundary: bool = True,
-                 alpha: int = 0.5, parameter: str = 'v',
-                 lowlat: int = 30, cmap: str = None,
-                 groundscatter: bool = False,
-                 zmin: int = None, zmax: int = None,
-                 colorbar: bool = True,
-                 colorbar_label: str = ''):
+                 alpha: int = 0.5, parameter: str = 'v', cmap: str = None,
+                 groundscatter: bool = False, zmin: int = None, zmax: int = None,
+                 colorbar: bool = True, colorbar_label: str = '',
+                 **kwargs):
         """
         Plots a radar's Field Of View (FOV) fan plot for the given data and
         scan number
@@ -76,9 +72,6 @@ class Fan():
             parameter: str
                 Key name indicating which parameter to plot.
                 Default: v (Velocity). Alternatives: 'p_l', 'w_l', 'elv'
-            lowlat: int
-                Lower AACGM latitude boundary for the polar plot
-                Default: 50
             ranges: list
                 Set to a two element list of the lower and upper ranges to plot
                 Default: [0,75]
@@ -109,6 +102,9 @@ class Fan():
                 the label that appears next to the colour bar.
                 Requires colorbar to be true
                 Default: ''
+            kawrgs: key = value
+                Additional keyword arguments to be passed to axis_polar, e.g. lowlat, 
+                hem, etc                
         Returns
         -----------
         beam_corners_aacgm_lats
@@ -121,9 +117,6 @@ class Fan():
         grndsct
             n_beams x n_gates numpy array of the scan data
             (for the selected parameter)
-        dtime
-            datetime object for the scan plotted
-
         See Also
         --------
             plot_fov
@@ -136,16 +129,17 @@ class Fan():
         plot_beams = np.where(beam_scan == scan_index)
 
         # Time for coordinate conversion
-        dtime = dt.datetime(dmap_data[plot_beams[0][0]]['time.yr'],
+        date = dt.datetime(dmap_data[plot_beams[0][0]]['time.yr'],
                             dmap_data[plot_beams[0][0]]['time.mo'],
                             dmap_data[plot_beams[0][0]]['time.dy'],
                             dmap_data[plot_beams[0][0]]['time.hr'],
                             dmap_data[plot_beams[0][0]]['time.mt'],
                             dmap_data[plot_beams[0][0]]['time.sc'])
+                                           
         # Plot FOV outline
         beam_corners_aacgm_lats, beam_corners_aacgm_lons, thetas, rs, ax = \
-            cls.plot_fov(stid=dmap_data[0]['stid'], dtime=dtime, lowlat=lowlat,
-                         ranges=ranges, boundary=boundary, alpha=alpha)
+            cls.plot_fov(stid=dmap_data[0]['stid'], date=date, ranges=ranges, 
+                        boundary=boundary, alpha=alpha, ax=ax, **kwargs)
         fan_shape = beam_corners_aacgm_lons.shape
 
         # Get range-gate data and groundscatter array for given scan
@@ -291,6 +285,17 @@ class Fan():
         # Setup plot
         # This may screw up references
         if ax is None:
+        
+            # If a hemisphere kwarg wasn't passed in, determine the right hemisphere
+            try:
+                kwargs['hem']
+            except:
+                if beam_corners_aacgm_lats[0,0] > 0:
+                    kwargs['hem']='N'
+                else:
+                    kwargs['hem']='S'
+        
+            # Get a polar projection using any kwarg input
             ax = Projections.axis_polar(**kwargs)
 
         if boundary:

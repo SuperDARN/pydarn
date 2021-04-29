@@ -15,14 +15,8 @@
 Code which generates axis objects for use in plotting functions
 """
 
-import datetime as dt
 import matplotlib.pyplot as plt
 import numpy as np
-from typing import List
-import pdb
-
-# Third party libraries
-import aacgmv2
 
 class Projections():
     """
@@ -35,7 +29,7 @@ class Projections():
     def __str__(self):
         return "This class is static class that provides"\
                 " the following methods: \n"\
-                "   - axis_polar()\n"
+                "   - axis_polar()\n"\
 
     @classmethod
     def axis_polar(cls, lowlat: int = 30, hem: str='N'):
@@ -51,8 +45,7 @@ class Projections():
             hem: str
                 Hemisphere of polar projection. Can be 'N' or 'S' for
                 northern and southern hemispheres, respectively
-                Default: 'N'
-                
+                Default: 'N'         
         """                    
         
         ax = plt.axes(polar=True)
@@ -74,7 +67,4 @@ class Projections():
         ax.set_xticklabels(['00', '', '06', '', '12', '', '18', ''])
         ax.set_theta_zero_location("S")
         
-        return ax       
-                 
-                 
-                 
+        return ax 
