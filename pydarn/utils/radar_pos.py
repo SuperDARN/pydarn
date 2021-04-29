@@ -45,8 +45,9 @@ import aacgmv2
 from pydarn import SuperDARNRadars, gate2slant
 from pydarn.utils.const import EARTH_RADIUS
 
-
-def radar_fov(stid: int, coords: str = 'aacgm', date: datetime = None):
+# TODO: add enum for coords
+def radar_fov(stid: int, nrang: bool = None, read_file: bool = False,
+              coords: str = 'aacgm', date: datetime = None):
     """
     Returning beam/gate coordinates of a specified radar's field-of-view
 
@@ -72,18 +73,25 @@ def radar_fov(stid: int, coords: str = 'aacgm', date: datetime = None):
         for range gate corners
     """
     # Locate base PyDARN directory
-    my_path = os.path.abspath(os.path.dirname(__file__))
-    base_path = os.path.join(my_path, '..')
+    if read_file:
+        my_path = os.path.abspath(os.path.dirname(__file__))
+        base_path = os.path.join(my_path, '..')
 
-    # Find files holding radar beam/gate locations
-    beam_lats = base_path+'/radar_fov_files/' + \
-        str(stid).zfill(3)+'_lats.txt'
-    beam_lons = base_path+'/radar_fov_files/' + \
-        str(stid).zfill(3)+'_lons.txt'
+        # Find files holding radar beam/gate locations
+        beam_lats = base_path+'/radar_fov_files/' + \
+            str(stid).zfill(3)+'_lats.txt'
+        beam_lons = base_path+'/radar_fov_files/' + \
+            str(stid).zfill(3)+'_lons.txt'
 
-    # Read in geographic coordinates
-    beam_corners_lats = np.loadtxt(beam_lats)
-    beam_corners_lons = np.loadtxt(beam_lons)
+        # Read in geographic coordinates
+        beam_corners_lats = np.loadtxt(beam_lats)
+        beam_corners_lons = np.loadtxt(beam_lons)
+    else:
+        beam_corners_lats = []
+        beam_corners_lon = []
+        if nrang is None:
+
+        for gate in range()
 
     # AACGMv2 conversion
     if coords == 'aacgm':
