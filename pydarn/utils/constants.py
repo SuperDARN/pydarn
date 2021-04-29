@@ -13,10 +13,10 @@
 # Modifications:
 #
 
-# Earth's radius (km)
+# Standard accepted IUGG global average of Earth's radius (km)
 Re = 6371
+# Earth radius at the equator (km)
 EARTH_EQUATORIAL_RADIUS = 6378.137
 
 # Speed of light (m/s)
 C = 2.99792458e+8
-
