@@ -144,10 +144,8 @@ class Fan():
         # Plot FOV outline
         if ranges is None:
             ranges = [0, dmap_data[0]['nrang']]
-        print(ranges)
         beam_corners_aacgm_lats, beam_corners_aacgm_lons, thetas, rs, ax = \
-            cls.plot_fov(stid=dmap_data[0]['stid'], max_beams=plot_beams,
-                         data=dmap_data,
+            cls.plot_fov(stid=dmap_data[0]['stid'], data=dmap_data,
                          dtime=dtime, lowlat=lowlat,
                          ranges=ranges, boundary=boundary,
                          alpha=alpha, fov_files=fov_files)
