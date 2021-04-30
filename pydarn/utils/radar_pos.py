@@ -48,7 +48,7 @@ from pydarn.utils.const import EARTH_RADIUS
 
 # TODO: add enum for coords
 def radar_fov(stid: int, rsep: int = 45, frang: int = 180, ranges: tuple = None,
-              read_file: bool = False, coords: str = 'aacgm',
+              read_file: bool = False, coords: str = 'aacgm', max_beams: int = None,
               date: datetime = None):
     """
     Returning beam/gate coordinates of a specified radar's field-of-view
@@ -91,12 +91,15 @@ def radar_fov(stid: int, rsep: int = 45, frang: int = 180, ranges: tuple = None,
     else:
         if ranges is None:
             ranges = [0, SuperDARNRadars.radars[stid].range_gate_45]
+        if max_beams is None:
+            max_beams = SuperDARNRadars.radars[stid].hardware_info.beams
+        # Plus 1 is due to the fact fov files index at 1 so in the plotting
+        # of the boundary there is a subtraction of 1 to offset this as python
+        # converts to index of 0 which my code already accounts for
+        beam_corners_lats = np.zeros((ranges[1], max_beams+1))
+        beam_corners_lons = np.zeros((ranges[1], max_beams+1))
 
-        max_beams = SuperDARNRadars.radars[stid].hardware_info.beams
-        beam_corners_lats = np.zeros((ranges[1], max_beams))
-        beam_corners_lons = np.zeros((ranges[1], max_beams))
-
-        for beam in range(0, max_beams):
+        for beam in range(0, max_beams+1):
             for gate in range(ranges[0], ranges[1]):
                 beam_corners_lats[gate, beam], beam_corners_lons[gate, beam] =\
                         geographic_cell_positions(stid, beam, gate, rsep,

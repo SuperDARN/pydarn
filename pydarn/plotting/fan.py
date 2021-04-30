@@ -146,9 +146,11 @@ class Fan():
             ranges = [0, dmap_data[0]['nrang']]
         print(ranges)
         beam_corners_aacgm_lats, beam_corners_aacgm_lons, thetas, rs, ax = \
-            cls.plot_fov(stid=dmap_data[0]['stid'], dtime=dtime, lowlat=lowlat,
+            cls.plot_fov(stid=dmap_data[0]['stid'], max_beams=plot_beams,
+                         data=dmap_data,
+                         dtime=dtime, lowlat=lowlat,
                          ranges=ranges, boundary=boundary,
-                         alpha=alpha, read_files=fov_files)
+                         alpha=alpha, fov_files=fov_files)
         fan_shape = beam_corners_aacgm_lons.shape
 
         # Get range-gate data and groundscatter array for given scan
@@ -229,10 +231,11 @@ class Fan():
         return beam_corners_aacgm_lats, beam_corners_aacgm_lons, scan, grndsct
 
     @classmethod
-    def plot_fov(cls, stid: str, dtime: dt.datetime, data = None,  ax=None,
-                 lowlat: int = 30, ranges: tuple = None,
+    def plot_fov(cls, stid: str, dtime: dt.datetime, data: List[dict] = None,
+                 ax=None, lowlat: int = 30, ranges: tuple = None,
                  boundary: bool = True, fov_color: str = None,
-                 alpha: int = 0.5, fov_files: bool = False):
+                 alpha: int = 0.5, fov_files: bool = False,
+                 max_beams: int = None, line_color: str = 'b'):
         """
         plots only the field of view (FOV) for a given radar station ID (stid)
 
@@ -278,12 +281,13 @@ class Fan():
         # Get radar beam/gate locations
         if data is None:
             beam_corners_aacgm_lats, beam_corners_aacgm_lons = \
-                radar_fov(stid, coords='aacgm', ranges=ranges, date=dtime)
+                radar_fov(stid, coords='aacgm', ranges=ranges, date=dtime,
+                          max_beams = max_beams, read_file=fov_files)
         else:
             beam_corners_aacgm_lats, beam_corners_aacgm_lons = \
                 radar_fov(stid, rsep=data[0]['rsep'], frang=data[0]['frang'],
                           ranges=ranges, coords='aacgm', date=dtime,
-                          read_files=fov_files)
+                          max_beams = max_beams, read_file=fov_files)
 
         fan_shape = beam_corners_aacgm_lons.shape
 
@@ -316,24 +320,25 @@ class Fan():
         if boundary:
             # left boundary line
             plt.polar(thetas[0:ranges[1], 0], rs[0:ranges[1], 0],
-                      color='black', linewidth=0.5)
+                      color=line_color, linewidth=0.5)
             # top radar arc
             plt.polar(thetas[ranges[1] - 1, 0:thetas.shape[1]],
                       rs[ranges[1] - 1, 0:thetas.shape[1]],
-                      color='black', linewidth=0.5)
+                      color=line_color, linewidth=0.5)
             # right boundary line
             plt.polar(thetas[0:ranges[1], thetas.shape[1] - 1],
                       rs[0:ranges[1], thetas.shape[1] - 1],
-                      color='black', linewidth=0.5)
+                      color=line_color, linewidth=0.5)
             # bottom arc
             plt.polar(thetas[0, 0:thetas.shape[1] - 1],
-                      rs[0, 0:thetas.shape[1] - 1], color='black',
+                      rs[0, 0:thetas.shape[1] - 1], color=line_color,
                       linewidth=0.5)
 
         if fov_color is not None:
             theta = thetas[0:ranges[1], 0]
             theta = np.append(theta, thetas[ranges[1]-1, 0:thetas.shape[1]-1])
-            theta = np.append(theta, np.flip(thetas[0:ranges[1], thetas.shape[1]-2]))
+            theta = np.append(theta, np.flip(thetas[0:ranges[1],
+                                                    thetas.shape[1]-2]))
             theta = np.append(theta, np.flip(thetas[0, 0:thetas.shape[1]-2]))
 
             r = rs[0:ranges[1], 0]
