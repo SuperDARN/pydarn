@@ -27,7 +27,8 @@ from typing import List
 # Third party libraries
 import aacgmv2
 
-from pydarn import PyDARNColormaps, build_scan, radar_fov, citing_warning
+from pydarn import (PyDARNColormaps, build_scan, radar_fov, citing_warning,
+                    SuperDARNRadars)
 
 
 class Fan():
@@ -47,13 +48,13 @@ class Fan():
 
     @classmethod
     def plot_fan(cls, dmap_data: List[dict], ax=None, scan_index: int = 1,
-                 ranges: List = [0, 75], boundary: bool = True,
+                 ranges: List = None, boundary: bool = True,
                  alpha: int = 0.5, parameter: str = 'v',
                  lowlat: int = 30, cmap: str = None,
                  groundscatter: bool = False,
                  zmin: int = None, zmax: int = None,
                  colorbar: bool = True,
-                 colorbar_label: str = ''):
+                 colorbar_label: str = '', fov_files: bool = False):
         """
         Plots a radar's Field Of View (FOV) fan plot for the given data and
         scan number
@@ -141,10 +142,13 @@ class Fan():
                             dmap_data[plot_beams[0][0]]['time.mt'],
                             dmap_data[plot_beams[0][0]]['time.sc'])
         # Plot FOV outline
+        if ranges is None:
+            ranges = [0, dmap_data[0]['nrang']]
+        print(ranges)
         beam_corners_aacgm_lats, beam_corners_aacgm_lons, thetas, rs, ax = \
             cls.plot_fov(stid=dmap_data[0]['stid'], dtime=dtime, lowlat=lowlat,
                          ranges=ranges, boundary=boundary,
-                         alpha=alpha)
+                         alpha=alpha, read_files=fov_files)
         fan_shape = beam_corners_aacgm_lons.shape
 
         # Get range-gate data and groundscatter array for given scan
@@ -225,10 +229,10 @@ class Fan():
         return beam_corners_aacgm_lats, beam_corners_aacgm_lons, scan, grndsct
 
     @classmethod
-    def plot_fov(cls, stid: str, dtime: dt.datetime, ax=None,
-                 lowlat: int = 30, ranges: List = [0, 75],
+    def plot_fov(cls, stid: str, dtime: dt.datetime, data = None,  ax=None,
+                 lowlat: int = 30, ranges: tuple = None,
                  boundary: bool = True, fov_color: str = None,
-                 alpha: int = 0.5):
+                 alpha: int = 0.5, fov_files: bool = False):
         """
         plots only the field of view (FOV) for a given radar station ID (stid)
 
@@ -268,9 +272,19 @@ class Fan():
             thetas - theta polar coordinates
             rs - radius polar coordinates
         """
+        if ranges is None:
+            ranges = [0, SuperDARNRadars.radars[stid].range_gate_45]
+
         # Get radar beam/gate locations
-        beam_corners_aacgm_lats, beam_corners_aacgm_lons = \
-            radar_fov(stid, coords='aacgm', date=dtime)
+        if data is None:
+            beam_corners_aacgm_lats, beam_corners_aacgm_lons = \
+                radar_fov(stid, coords='aacgm', ranges=ranges, date=dtime)
+        else:
+            beam_corners_aacgm_lats, beam_corners_aacgm_lons = \
+                radar_fov(stid, rsep=data[0]['rsep'], frang=data[0]['frang'],
+                          ranges=ranges, coords='aacgm', date=dtime,
+                          read_files=fov_files)
+
         fan_shape = beam_corners_aacgm_lons.shape
 
         # Work out shift due in MLT

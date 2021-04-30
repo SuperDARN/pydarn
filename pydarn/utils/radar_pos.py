@@ -45,9 +45,11 @@ import aacgmv2
 from pydarn import SuperDARNRadars, gate2slant
 from pydarn.utils.const import EARTH_RADIUS
 
+
 # TODO: add enum for coords
-def radar_fov(stid: int, nrang: bool = None, read_file: bool = False,
-              coords: str = 'aacgm', date: datetime = None):
+def radar_fov(stid: int, rsep: int = 45, frang: int = 180, ranges: tuple = None,
+              read_file: bool = False, coords: str = 'aacgm',
+              date: datetime = None):
     """
     Returning beam/gate coordinates of a specified radar's field-of-view
 
@@ -87,11 +89,18 @@ def radar_fov(stid: int, nrang: bool = None, read_file: bool = False,
         beam_corners_lats = np.loadtxt(beam_lats)
         beam_corners_lons = np.loadtxt(beam_lons)
     else:
-        beam_corners_lats = []
-        beam_corners_lon = []
-        if nrang is None:
+        if ranges is None:
+            ranges = [0, SuperDARNRadars.radars[stid].range_gate_45]
 
-        for gate in range()
+        max_beams = SuperDARNRadars.radars[stid].hardware_info.beams
+        beam_corners_lats = np.zeros((ranges[1], max_beams))
+        beam_corners_lons = np.zeros((ranges[1], max_beams))
+
+        for beam in range(0, max_beams):
+            for gate in range(ranges[0], ranges[1]):
+                beam_corners_lats[gate, beam], beam_corners_lons[gate, beam] =\
+                        geographic_cell_positions(stid, beam, gate, rsep,
+                                                  frang, height=300)
 
     # AACGMv2 conversion
     if coords == 'aacgm':
@@ -189,10 +198,8 @@ def geographic_cell_positions(stid: int, beam: int, range_gate: int,
         # beam edge in [rad]
         beam_edge = -beam_sep * 0.5
         # range_edge in [km]
-        range_edge = -0.5 * rsep * 20/3
     else:
         beam_edge = 0
-        range_edge = 0
 
     # psi in [rad]
     psi = beam_sep * (beam - offset) + beam_edge
