@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 from matplotlib import dates, colors, cm, ticker
 from typing import List
 
-from pydarn import (gateGroundScatter, gate2slant, check_data_type, time2datetime,
+from pydarn import (gate2GroundScatter, gate2slant, check_data_type, time2datetime,
                     rtp_exceptions, plot_exceptions, SuperDARNCpids,
                     SuperDARNRadars, standard_warning_format,
                     PyDARNColormaps, Coords, citing_warning)
