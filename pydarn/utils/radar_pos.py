@@ -260,7 +260,7 @@ def geocentric_coordinates(radar_lat, radar_lon, slant_range: int,
     """
     Mapping ionospheric backscatter measured by the SuperDARN HF
     radars – Part 1: A new empirical virtual height model by
-    G. Chisham 2008
+    G. Chisham 2008 (https://doi.org/10.5194/angeo-26-823-2008)
     """
     if chisham:
         # Model constants
