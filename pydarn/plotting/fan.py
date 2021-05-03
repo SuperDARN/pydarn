@@ -145,8 +145,9 @@ class Fan():
         if ranges is None:
             ranges = [0, dmap_data[0]['nrang']]
         beam_corners_aacgm_lats, beam_corners_aacgm_lons, thetas, rs, ax = \
-            cls.plot_fov(stid=dmap_data[0]['stid'], data=dmap_data,
-                         dtime=dtime, lowlat=lowlat,
+            cls.plot_fov(stid=dmap_data[0]['stid'], dtime=dtime,
+                         rsep=dmap_data[0]['rsep'],
+                         frang=dmap_data[0]['frang'], lowlat=lowlat,
                          ranges=ranges, boundary=boundary,
                          alpha=alpha, fov_files=fov_files)
         fan_shape = beam_corners_aacgm_lons.shape
@@ -229,11 +230,12 @@ class Fan():
         return beam_corners_aacgm_lats, beam_corners_aacgm_lons, scan, grndsct
 
     @classmethod
-    def plot_fov(cls, stid: str, dtime: dt.datetime, data: List[dict] = None,
-                 ax=None, lowlat: int = 30, ranges: tuple = None,
-                 boundary: bool = True, fov_color: str = None,
-                 alpha: int = 0.5, fov_files: bool = False,
-                 max_beams: int = None, line_color: str = 'b'):
+    def plot_fov(cls, stid: str, dtime: dt.datetime, rsep: int = 45,
+                 frang: int = 180,  ax=None, lowlat: int = 30,
+                 ranges: tuple = None, boundary: bool = True,
+                 fov_color: str = None, alpha: int = 0.5,
+                 fov_files: bool = False, max_beams: int = None,
+                 line_color: str = 'black'):
         """
         plots only the field of view (FOV) for a given radar station ID (stid)
 
@@ -277,15 +279,9 @@ class Fan():
             ranges = [0, SuperDARNRadars.radars[stid].range_gate_45]
 
         # Get radar beam/gate locations
-        if data is None:
-            beam_corners_aacgm_lats, beam_corners_aacgm_lons = \
-                radar_fov(stid, coords='aacgm', ranges=ranges, date=dtime,
-                          max_beams = max_beams, read_file=fov_files)
-        else:
-            beam_corners_aacgm_lats, beam_corners_aacgm_lons = \
-                radar_fov(stid, rsep=data[0]['rsep'], frang=data[0]['frang'],
-                          ranges=ranges, coords='aacgm', date=dtime,
-                          max_beams = max_beams, read_file=fov_files)
+        beam_corners_aacgm_lats, beam_corners_aacgm_lons = \
+            radar_fov(stid, rsep, frang, coords='aacgm', ranges=ranges,
+                      date=dtime, max_beams=max_beams, read_file=fov_files)
 
         fan_shape = beam_corners_aacgm_lons.shape
 
