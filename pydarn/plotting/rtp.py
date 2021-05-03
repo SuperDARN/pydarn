@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 from matplotlib import dates, colors, cm, ticker
 from typing import List
 
-from pydarn import (gate2GroundScatter, gate2slant, check_data_type, time2datetime,
+from pydarn import (Re,gate2GroundScatter, gate2slant, check_data_type, time2datetime,
                     rtp_exceptions, plot_exceptions, SuperDARNCpids,
                     SuperDARNRadars, standard_warning_format,
                     PyDARNColormaps, Coords, citing_warning)
@@ -350,7 +350,6 @@ class RTP():
             rxrise = SuperDARNRadars.radars[cls.dmap_data[0]['stid']]\
                                     .hardware_info.rx_rise_time
             y = gate2slant(cls.dmap_data[0], y_max, rxrise=rxrise)
-            Re = 6371
             y = gate2GroundScatter(y, Re, reflection_height)
             y0inx = np.min(np.where(np.isfinite(y))[0])
             y = y[y0inx:]
