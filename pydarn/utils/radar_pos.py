@@ -213,11 +213,13 @@ def geographic_cell_positions(stid: int, beam: int, range_gate: int,
     else:
         beam_edge = 0
 
-    # psi in [rad]
+    # psi [rad] in the angle from the boresight
     psi = beam_sep * (beam - offset) + beam_edge
     # Calculate the slant range [km]
     slant_range = gate2slant(frang, rsep, rxrise, gate=range_gate)
 
+    # If no height is specified then use elevation angle (default 0)
+    # to calculate the transmutation height
     if height is None:
         height = -EARTH_RADIUS + np.sqrt(EARTH_RADIUS**2 + 2 * slant_range *
                                          EARTH_RADIUS *
