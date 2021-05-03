@@ -261,7 +261,7 @@ def geocentric_coordinates(radar_lat: float, radar_lon: float,
     """
     Mapping ionospheric backscatter measured by the SuperDARN HF
     radars – Part 1: A new empirical virtual height model by
-    G. Chisham 2008
+    G. Chisham 2008 (https://doi.org/10.5194/angeo-26-823-2008)
     """
     if chisham:
         # Model constants
@@ -320,6 +320,7 @@ def geocentric_coordinates(radar_lat: float, radar_lon: float,
         # elevation angle relative to local horizon [rad]
         rel_elv = np.arcsin(((cell_rho**2) - (r_radar**2) - slant_range**2) /
                             (2.0 * r_radar * slant_range))
+        # estimate elevation for multi-hop propagation
         if chisham and slant_range > 2137.5:
             gamma = np.arccos((r_radar**2 + cell_rho**2 - slant_range**2) /
                               (2.0 * r_radar * cell_rho))
