@@ -351,7 +351,7 @@ class RTP():
                                     .hardware_info.rx_rise_time
             y = gate2slant(cls.dmap_data[0], y_max, rxrise=rxrise)
             Re = 6371
-            y = gateGroundScatter(y, Re, hgt)
+            y = gate2GroundScatter(y, Re, reflection_height)
             y0inx = np.min(np.where(np.isfinite(y))[0])
             y = y[y0inx:]
             z = z[:,y0inx:]
