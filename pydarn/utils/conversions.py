@@ -87,9 +87,9 @@ def gateGroundScatter(y, Re, hgt=250):
 
     Parameters
     ----------
-        Re: int
+        Re: float
             earth's radius
-        hgt: int
+        hgt: float
             reflection height
 
     Returns
@@ -148,4 +148,3 @@ def gate2slant(record, nrang, rxrise=0, center=False):
                 distance_factor + range_offset
     return slant_ranges
     
-
