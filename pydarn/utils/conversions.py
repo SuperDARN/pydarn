@@ -11,6 +11,8 @@ from typing import List
 import numpy as np
 from collections import OrderedDict
 
+from pydarn import C
+
 # key is the format char type defined by python,
 # item is the DMAP int value for the type
 DMAP_FORMAT_TYPES = {'c': 1,  # char = int8 by RST rtypes.h definition
@@ -128,8 +130,9 @@ def gate2slant(record, nrang, rxrise=0, center=False):
     # lag to the first range gate in microseconds
     # 0.3 - speed of light (km/us)
     # 2 - two times for there and back
-    speed_of_light = 0.3  # TODO: should this be more accurate?
     distance_factor = 2.0
+    # C - speed of light m/s to km/us
+    speed_of_light = C * 0.001 * 1e-6
     lag_first = record['frang'] * distance_factor / speed_of_light
 
     # sample separation in microseconds
