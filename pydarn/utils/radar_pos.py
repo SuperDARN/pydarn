@@ -47,8 +47,9 @@ from pydarn.utils.const import EARTH_RADIUS
 
 
 # TODO: add enum for coords
-def radar_fov(stid: int, rsep: int = 45, frang: int = 180, ranges: tuple = None,
-              read_file: bool = False, coords: str = 'aacgm', max_beams: int = None,
+def radar_fov(stid: int, rsep: int = 45, frang: int = 180,
+              ranges: tuple = None, read_file: bool = False,
+              coords: str = 'aacgm', max_beams: int = None,
               date: datetime = None):
     """
     Returning beam/gate coordinates of a specified radar's field-of-view
@@ -88,6 +89,29 @@ def radar_fov(stid: int, rsep: int = 45, frang: int = 180, ranges: tuple = None,
         # Read in geographic coordinates
         beam_corners_lats = np.loadtxt(beam_lats)
         beam_corners_lons = np.loadtxt(beam_lons)
+        # AACGMv2 conversion
+        if coords == 'aacgm':
+            if date is None:
+                date = datetime.datetime.now()
+            # Initialise arrays
+            fan_shape = beam_corners_lons.shape
+            beam_corners_aacgm_lons = \
+                np.zeros((fan_shape[0], fan_shape[1]))
+            beam_corners_aacgm_lats = \
+                np.zeros((fan_shape[0], fan_shape[1]))
+
+            for x in range(fan_shape[0]):
+                for y in range(fan_shape[1]):
+                    # Conversion
+                    geomag = np.array(aacgmv2.
+                                      get_aacgm_coord(beam_corners_lats[x, y],
+                                                      beam_corners_lons[x, y],
+                                                      250, date))
+                    beam_corners_aacgm_lats[x, y] = geomag[0]
+                    beam_corners_aacgm_lons[x, y] = geomag[1]
+
+            # Return AACGMv2 latitudes and longitudes
+            return beam_corners_aacgm_lats, beam_corners_aacgm_lons
     else:
         if ranges is None:
             ranges = [0, SuperDARNRadars.radars[stid].range_gate_45]
@@ -101,37 +125,22 @@ def radar_fov(stid: int, rsep: int = 45, frang: int = 180, ranges: tuple = None,
 
         for beam in range(0, max_beams+1):
             for gate in range(ranges[0], ranges[1]):
-                beam_corners_lats[gate, beam], beam_corners_lons[gate, beam] =\
-                        geographic_cell_positions(stid, beam, gate, rsep,
-                                                  frang, height=300)
+                lat, lon = geographic_cell_positions(stid, beam, gate, rsep,
+                                                     frang, height=300)
 
-    # AACGMv2 conversion
-    if coords == 'aacgm':
-        if not date:
-            date = datetime.datetime.now()
+                if coords == 'aacgm':
+                    if date is None:
+                        date = datetime.datetime.now()
 
-        # Initialise arrays
-        fan_shape = beam_corners_lons.shape
-        beam_corners_aacgm_lons = \
-            np.zeros((fan_shape[0], fan_shape[1]))
-        beam_corners_aacgm_lats = \
-            np.zeros((fan_shape[0], fan_shape[1]))
+                    geomag = np.array(aacgmv2. get_aacgm_coord(lat, lon,
+                                                               250, date))
+                    lat = geomag[0]
+                    lon = geomag[1]
+                beam_corners_lats[gate, beam] = lat
+                beam_corners_lons[gate, beam] = lon
 
-        for x in range(fan_shape[0]):
-            for y in range(fan_shape[1]):
-                # Conversion
-                geomag = np.array(aacgmv2.
-                                  get_aacgm_coord(beam_corners_lats[x, y],
-                                                  beam_corners_lons[x, y],
-                                                  250, date))
-                beam_corners_aacgm_lats[x, y] = geomag[0]
-                beam_corners_aacgm_lons[x, y] = geomag[1]
-
-        # Return AACGMv2 latitudes and longitudes
-        return beam_corners_aacgm_lats, beam_corners_aacgm_lons
-    else:
-        # Return geographic coordinates
-        return beam_corners_lats, beam_corners_lons
+    # Return geographic coordinates
+    return beam_corners_lats, beam_corners_lons
 
 
 # RPosGeo line 335
@@ -313,6 +322,9 @@ def geocentric_coordinates(radar_lat: float, radar_lon: float,
     rlat, rlon, r_radar, delta = geodetic2geocentric(radar_lat, radar_lon)
     r_cell = r_radar
 
+    psi_cos_2 = np.cos(psi)**2
+    psi_sin_2 = np.sin(psi)**2
+
     while_flag = True
     while while_flag:
         # distance between the gate cell to the earth's centre [km]
@@ -333,8 +345,6 @@ def geocentric_coordinates(radar_lat: float, radar_lon: float,
             xelv = rel_elv
 
         # Estimate the off-array-normal azimuth in radians
-        psi_cos_2 = np.cos(psi)**2
-        psi_sin_2 = np.sin(psi)**2
         elv_sin_2 = np.sin(xelv)**2
 
         est_azimuth = psi_cos_2 - elv_sin_2
@@ -359,7 +369,7 @@ def geocentric_coordinates(radar_lat: float, radar_lon: float,
                                         slant_range)
 
         # recalculate the radius under the gate cell and centre of earth
-        _, _, r_cell, _ = geocentric2geodetic(cell_lat, cell_lon)
+        r_cell = geocentric2geodetic(cell_lat, cell_lon)
         cell_heightx = cell_rho - r_cell
         # this ensures convergence on the cell point
         while_flag = abs(cell_heightx - x_height) > 0.5
@@ -560,8 +570,8 @@ def geocentric2geodetic(lat: float, lon: float):
     e2 = EARTH_RADIUS**2 / b**2 - 1
 
     rho = EARTH_RADIUS / np.sqrt(1+e2*np.sin(lat)**2)
-    dlat = np.arctan(EARTH_RADIUS**2/b**2 * np.tan(lat))
-    dlon = lon
-    delta = dlat - lat
+    # dlat = np.arctan(EARTH_RADIUS**2/b**2 * np.tan(lat))
+    # dlon = lon
+    # delta = dlat - lat
 
-    return dlat, dlon, rho, delta
+    return rho
