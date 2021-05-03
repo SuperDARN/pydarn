@@ -137,7 +137,7 @@ def radar_fov(stid: int, rsep: int = 45, frang: int = 180, ranges: tuple = None,
 # RPosGeo line 335
 def geographic_cell_positions(stid: int, beam: int, range_gate: int,
                               rsep: int = 45, frang: int = 180,
-                              height: int = None, elv_angle: int = 0,
+                              height: float = None, elv_angle: float = 0.0,
                               center: bool = True, chisham: bool = False):
     """
     determines the geographic cell position for a given range gate and beam
@@ -158,11 +158,11 @@ def geographic_cell_positions(stid: int, beam: int, range_gate: int,
             frequency range from the radar to the front edge of the range gate
             Please note: this definition may be changed, currently defined in
             RST code to keep consistency
-        height: int
+        height: float
             transmutation height [km]
             default: none
             if none then it uses elevation angle
-        elv_angle: int
+        elv_angle: float
             elevation angle in [deg]
             default: 0
         center: bool
@@ -175,9 +175,9 @@ def geographic_cell_positions(stid: int, beam: int, range_gate: int,
 
     returns
     -------
-        lat: int
+        lat: float
             latitude of the range gate in geographic coordinates [deg]
-        lon: int
+        lon: float
             longitude of the range gate in geographic coordinates [deg]
     """
     # centre of the field of view
@@ -223,8 +223,9 @@ def geographic_cell_positions(stid: int, beam: int, range_gate: int,
 
 
 # fldpnth line 90
-def geocentric_coordinates(radar_lat, radar_lon, slant_range: int,
-                           cell_height: int, psi: int, boresight: int,
+def geocentric_coordinates(radar_lat: float, radar_lon: float,
+                           slant_range: float, cell_height: float,
+                           psi: float, boresight: float,
                            chisham: bool = False):
     """
     Calculates the geocentric coordinates of gate cell  point,
@@ -232,17 +233,17 @@ def geocentric_coordinates(radar_lat, radar_lon, slant_range: int,
 
     Parameters
     ----------
-        radar_lat : int
+        radar_lat : float
             radars site latitude [rad]
-        radar_lon : int
+        radar_lon : float
             radars site longitude [lon]
-        slant_range: int
+        slant_range: float
             slant range distance [km]
-        cell_height : int
+        cell_height : float
             virtual height of the gate cell [km]
         psi: int
             [rad]
-        boresight: int
+        boresight: float
             boresight of the radar beam [rad]
         chisham: bool
             use the virtual height chisham model
@@ -250,9 +251,9 @@ def geocentric_coordinates(radar_lat, radar_lon, slant_range: int,
 
     Returns
     -------
-        cell_lat: int
+        cell_lat: float
             latitude of the range gate in geographic coordinates [rad]
-        cell_lon: int
+        cell_lon: float
             longitude of the range gate in geographic coordinates [rad]
 
     """
@@ -366,8 +367,8 @@ def geocentric_coordinates(radar_lat, radar_lon, slant_range: int,
 
 
 # fldpnt
-def cell_geocentric_coordinates(lat: int, lon: int, rho: int, azimuth: int,
-                                elv: int, r: int):
+def cell_geocentric_coordinates(lat: float, lon: float, rho: float,
+                                azimuth: float, elv: float, r: float):
     """
     Calculates the geocentric coordinates of a gate cell point given the
     angular geocentric coordinates of the point of origin,
@@ -375,26 +376,26 @@ def cell_geocentric_coordinates(lat: int, lon: int, rho: int, azimuth: int,
 
     parameters
     ----------
-        lat: int
+        lat: float
             geocentric latitude [rad] of the radar site
-        lon : int
+        lon : float
             geocentric longitude [rad] of the radar site
-        rho: int
+        rho: float
             radius from the radar site to the centre of the earth [km]
-        azimuth: int
+        azimuth: float
             azimuth with corrected earth flattening in [rad] for the cell
-        elv: int
+        elv: float
             relative elevation angle [rad]
-        r: int
+        r: float
             slant range of the cell [km]
 
     returns
     -------
-        rho: int
+        rho: float
             radius from cell point to centre of the earth [km]
-        lat: int
+        lat: float
             geocentric cell latitude [rad]
-        lon: int
+        lon: float
             geocentric cell longitude [rad]
     """
     cos_lat = np.cos(np.pi/2 - lat)
@@ -447,22 +448,22 @@ def cell_geocentric_coordinates(lat: int, lon: int, rho: int, azimuth: int,
 
 
 # goecnvrt
-def geocentric2flattening(delta: int, azimuth: int, elv: int):
+def geocentric2flattening(delta: float, azimuth: float, elv: float):
     """
     Adjust azimuth for the oblateness of the Earth
 
     Parameters
     ----------
-        delta: int
+        delta: float
             distance before geodetic and geocentric latitude [rad]
-        azimuth: int
+        azimuth: float
             azimuth of geocentric cell point [rad]
-        elv: int
+        elv: float
             elevation angle [rad]
 
     Returns
     -------
-        azimuth_flattening: int
+        azimuth_flattening: float
             adjusted azimuth due the earths oblateness
 
     """
@@ -488,25 +489,25 @@ def geocentric2flattening(delta: int, azimuth: int, elv: int):
 
 
 # geodtgc, iopt > 0
-def geodetic2geocentric(lat: int, lon: int):
+def geodetic2geocentric(lat: float, lon: float):
     """
     convert geodetic coordinates to geocentric
 
     parameters
     ----------
-        lat: int
+        lat: float
             geodetic latitude [rad]
-        lon: int
+        lon: float
             geodetic longitude [rad]
     returns
     -------
-        glat: int
+        glat: float
             geocentric latitude [rad]
-        glon: int
+        glon: float
             geocentric longitude [rad]
-        rho: int
+        rho: float
             distance from the latitude to the centre of the earth [km]
-        delta: int
+        delta: float
             difference between geodetic and geocentric latitude [rad]
     """
     # WGS 84 oblate spheroid defining parameters
@@ -531,25 +532,25 @@ def geodetic2geocentric(lat: int, lon: int):
 
 
 # geodtgc, iopt < 0
-def geocentric2geodetic(lat: int, lon: int):
+def geocentric2geodetic(lat: float, lon: float):
     """
     convert geocentric coordinates to geodetic
 
     parameters
     ----------
-        lat: int
+        lat: float
             geocentric latitude [rad]
-        lon: int
+        lon: float
             geocentric longitude [rad]
     returns
     -------
-        dlat: int
+        dlat: float
             geodetic latitude [rad]
-        dlon: int
+        dlon: float
             geodetic longitude [rad]
-        rho: int
+        rho: float
             distance from the latitude to the centre of the earth [km]
-        delta: int
+        delta: float
             difference between geocentric and geodetic latitude [rad]
     """
     # WGS 84 oblate spheroid defining parameters
