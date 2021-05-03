@@ -113,7 +113,7 @@ class RTP():
         coord: Coords
             set the y-axis to a desired coordinate system
             Default: Coords.SLANT_RANGE
-        hgt: int
+        reflection_height: int
             set the ionosphere virtual reflection height
             this only applies to Coords.GROUND_SCATTER_MAPPED_RANGE
             Default: 250 (km)
