@@ -319,6 +319,7 @@ def geocentric_coordinates(radar_lat, radar_lon, slant_range: int,
         # elevation angle relative to local horizon [rad]
         rel_elv = np.arcsin(((cell_rho**2) - (r_radar**2) - slant_range**2) /
                             (2.0 * r_radar * slant_range))
+        # estimate elevation for multi-hop propagation
         if chisham and slant_range > 2137.5:
             gamma = np.arccos((r_radar**2 + cell_rho**2 - slant_range**2) /
                               (2.0 * r_radar * cell_rho))
