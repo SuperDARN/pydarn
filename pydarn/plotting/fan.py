@@ -27,7 +27,8 @@ from typing import List
 # Third party libraries
 import aacgmv2
 
-from pydarn import PyDARNColormaps, build_scan, radar_fov, citing_warning
+from pydarn import (PyDARNColormaps, build_scan, radar_fov, citing_warning,
+                    SuperDARNRadars)
 
 
 class Fan():
@@ -47,13 +48,13 @@ class Fan():
 
     @classmethod
     def plot_fan(cls, dmap_data: List[dict], ax=None, scan_index: int = 1,
-                 ranges: List = [0, 75], boundary: bool = True,
+                 ranges: List = None, boundary: bool = True,
                  alpha: int = 0.5, parameter: str = 'v',
                  lowlat: int = 30, cmap: str = None,
                  groundscatter: bool = False,
                  zmin: int = None, zmax: int = None,
                  colorbar: bool = True,
-                 colorbar_label: str = ''):
+                 colorbar_label: str = '', fov_files: bool = False):
         """
         Plots a radar's Field Of View (FOV) fan plot for the given data and
         scan number
@@ -79,7 +80,8 @@ class Fan():
                 Default: 50
             ranges: list
                 Set to a two element list of the lower and upper ranges to plot
-                Default: [0,75]
+                If None, then nrang from the data is used
+                Default: None
             boundary: bool
                 Set to false to not plot the outline of the FOV
                 Default: True
@@ -107,6 +109,11 @@ class Fan():
                 the label that appears next to the colour bar.
                 Requires colorbar to be true
                 Default: ''
+            fov_files: bool
+                boolean if the fov data should be read in by a file
+                pyDARN supplies. If false then it uses radar position
+                code.
+                default: False
         Returns
         -----------
         beam_corners_aacgm_lats
@@ -141,10 +148,14 @@ class Fan():
                             dmap_data[plot_beams[0][0]]['time.mt'],
                             dmap_data[plot_beams[0][0]]['time.sc'])
         # Plot FOV outline
+        if ranges is None:
+            ranges = [0, dmap_data[0]['nrang']]
         beam_corners_aacgm_lats, beam_corners_aacgm_lons, thetas, rs, ax = \
-            cls.plot_fov(stid=dmap_data[0]['stid'], dtime=dtime, lowlat=lowlat,
+            cls.plot_fov(stid=dmap_data[0]['stid'], dtime=dtime,
+                         rsep=dmap_data[0]['rsep'],
+                         frang=dmap_data[0]['frang'], lowlat=lowlat,
                          ranges=ranges, boundary=boundary,
-                         alpha=alpha)
+                         alpha=alpha, fov_files=fov_files)
         fan_shape = beam_corners_aacgm_lons.shape
 
         # Get range-gate data and groundscatter array for given scan
@@ -225,10 +236,12 @@ class Fan():
         return beam_corners_aacgm_lats, beam_corners_aacgm_lons, scan, grndsct
 
     @classmethod
-    def plot_fov(cls, stid: str, dtime: dt.datetime, ax=None,
-                 lowlat: int = 30, ranges: List = [0, 75],
-                 boundary: bool = True, fov_color: str = None,
-                 alpha: int = 0.5):
+    def plot_fov(cls, stid: str, dtime: dt.datetime, rsep: int = 45,
+                 frang: int = 180,  ax=None, lowlat: int = 30,
+                 ranges: tuple = None, boundary: bool = True,
+                 fov_color: str = None, alpha: int = 0.5,
+                 fov_files: bool = False, max_beams: int = None,
+                 line_color: str = 'black'):
         """
         plots only the field of view (FOV) for a given radar station ID (stid)
 
@@ -236,6 +249,12 @@ class Fan():
         -----------
             stid: str
                 Radar station ID
+            rsep: int
+                gate seperation [km], set by the radar control program.
+                default: 45 common mode
+            frang: int
+                distance from the radar site to the edge of the range gate [km]
+                default: 180 km
             ax: matplotlib.pyplot axis
                 Pre-defined axis object to pass in, must currently be
                 polar projection
@@ -249,17 +268,25 @@ class Fan():
                 Default: 50
             ranges: list
                 Set to a two element list of the lower and upper ranges to plot
-                Default: [0,75]
+                If None, the  max will be obtained by SuperDARNRadars
+                Default: None
             boundary: bool
                 Set to false to not plot the outline of the FOV
                 Default: True
             fov_color: str
                 fov color to fill in the boundary
                 default: None
+            line_color: str
+                line color of the fov plot
+                default: black
             alpha: int
                 alpha controls the transparency of
                 the fov color
                 Default: 0.5
+            fov_files: bool
+                boolean determine if the fov should be read by the files
+                provided in pyDARN. Else it will use radar position code.
+                Default: False
 
         Returns
         -------
@@ -268,9 +295,14 @@ class Fan():
             thetas - theta polar coordinates
             rs - radius polar coordinates
         """
+        if ranges is None:
+            ranges = [0, SuperDARNRadars.radars[stid].range_gate_45]
+
         # Get radar beam/gate locations
         beam_corners_aacgm_lats, beam_corners_aacgm_lons = \
-            radar_fov(stid, coords='aacgm', date=dtime)
+            radar_fov(stid, rsep, frang, coords='aacgm', ranges=ranges,
+                      date=dtime, max_beams=max_beams, read_file=fov_files)
+
         fan_shape = beam_corners_aacgm_lons.shape
 
         # Work out shift due in MLT
@@ -302,24 +334,25 @@ class Fan():
         if boundary:
             # left boundary line
             plt.polar(thetas[0:ranges[1], 0], rs[0:ranges[1], 0],
-                      color='black', linewidth=0.5)
+                      color=line_color, linewidth=0.5)
             # top radar arc
             plt.polar(thetas[ranges[1] - 1, 0:thetas.shape[1]],
                       rs[ranges[1] - 1, 0:thetas.shape[1]],
-                      color='black', linewidth=0.5)
+                      color=line_color, linewidth=0.5)
             # right boundary line
             plt.polar(thetas[0:ranges[1], thetas.shape[1] - 1],
                       rs[0:ranges[1], thetas.shape[1] - 1],
-                      color='black', linewidth=0.5)
+                      color=line_color, linewidth=0.5)
             # bottom arc
             plt.polar(thetas[0, 0:thetas.shape[1] - 1],
-                      rs[0, 0:thetas.shape[1] - 1], color='black',
+                      rs[0, 0:thetas.shape[1] - 1], color=line_color,
                       linewidth=0.5)
 
         if fov_color is not None:
             theta = thetas[0:ranges[1], 0]
             theta = np.append(theta, thetas[ranges[1]-1, 0:thetas.shape[1]-1])
-            theta = np.append(theta, np.flip(thetas[0:ranges[1], thetas.shape[1]-2]))
+            theta = np.append(theta, np.flip(thetas[0:ranges[1],
+                                                    thetas.shape[1]-2]))
             theta = np.append(theta, np.flip(thetas[0, 0:thetas.shape[1]-2]))
 
             r = rs[0:ranges[1], 0]
