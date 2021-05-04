@@ -70,8 +70,9 @@ class Fan():
                 Default: Generates a polar projection for the user
                 with MLT/latitude labels
 
-            scan_index: int
+            scan_index: int or datetime
                 Scan number from beginning of first record in file
+                or datetime given first record to match the index
                 Default: 1
             parameter: str
                 Key name indicating which parameter to plot.
