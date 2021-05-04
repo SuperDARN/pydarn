@@ -20,7 +20,7 @@ plotting
 """
 import enum
 
-class Coord(enum.Enum):
+class Coords(enum.Enum):
     """
     This coordinate class is to list the current coordinate systems
     a user can pick from
@@ -32,3 +32,5 @@ class Coord(enum.Enum):
 
     RANGE_GATE = enum.auto()
     SLANT_RANGE = enum.auto()
+    GEOGAPHIC = enum.auto()
+    AACGM = enum.auto()
