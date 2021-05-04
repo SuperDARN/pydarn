@@ -22,12 +22,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from matplotlib import ticker, cm, colors
-from typing import List
+from typing import List, Union
 
 # Third party libraries
 import aacgmv2
 
-from pydarn import PyDARNColormaps, build_scan, radar_fov, citing_warning
+from pydarn import (PyDARNColormaps, build_scan, radar_fov, citing_warning,
+                    time2datetime)
 
 
 class Fan():
@@ -46,7 +47,8 @@ class Fan():
                 "   - return_beam_pos()\n"
 
     @classmethod
-    def plot_fan(cls, dmap_data: List[dict], ax=None, scan_index: int = 1,
+    def plot_fan(cls, dmap_data: List[dict], ax=None,
+                 scan_index: Union[int, dt.datetime] = 1,
                  ranges: List = [0, 75], boundary: bool = True,
                  alpha: int = 0.5, parameter: str = 'v',
                  lowlat: int = 30, cmap: str = None,
@@ -130,16 +132,32 @@ class Fan():
         # Get scan numbers for each record
         beam_scan = build_scan(dmap_data)
 
+        if isinstance(scan_index, dt.datetime):
+            # loop through dmap_data records, dump a datetime
+            # list where scans start
+            scan_datetimes = np.array([dt.datetime(*[record[time_component]
+                                                     for time_component in
+                                                     ['time.yr', 'time.mo',
+                                                      'time.dy', 'time.hr',
+                                                      'time.mt', 'time.sc']])
+                                       for record in dmap_data
+                                       if record['scan'] == 1])
+            # find corresponding scan_index
+            matching_scan_index = np.argwhere(scan_datetimes ==
+                                              scan_index)[..., 0] + 1
+            # handle datetimes out of bounds
+            if len(matching_scan_index) != 1:
+                raise plot_exceptions.IncorrectDateError(scan_datetimes[0],
+                                                         scan_index)
+            else:
+                scan_index = matching_scan_index
+
         # Locate scan in loaded data
         plot_beams = np.where(beam_scan == scan_index)
 
         # Time for coordinate conversion
-        dtime = dt.datetime(dmap_data[plot_beams[0][0]]['time.yr'],
-                            dmap_data[plot_beams[0][0]]['time.mo'],
-                            dmap_data[plot_beams[0][0]]['time.dy'],
-                            dmap_data[plot_beams[0][0]]['time.hr'],
-                            dmap_data[plot_beams[0][0]]['time.mt'],
-                            dmap_data[plot_beams[0][0]]['time.sc'])
+        dtime = time2datetime(dmap_data[plot_beams[0][0]])
+
         # Plot FOV outline
         beam_corners_aacgm_lats, beam_corners_aacgm_lons, thetas, rs, ax = \
             cls.plot_fov(stid=dmap_data[0]['stid'], dtime=dtime, lowlat=lowlat,
@@ -150,17 +168,6 @@ class Fan():
         # Get range-gate data and groundscatter array for given scan
         scan = np.zeros((fan_shape[0] - 1, fan_shape[1]-1))
         grndsct = np.zeros((fan_shape[0] - 1, fan_shape[1]-1))
-        for i in np.nditer(plot_beams):
-            try:
-                # get a list of gates where there is data
-                slist = dmap_data[i.astype(int)]['slist']
-                # get the beam number for the record
-                beam = dmap_data[i.astype(int)]['bmnum']
-                scan[slist, beam] = dmap_data[i.astype(int)][parameter]
-                grndsct[slist, beam] = dmap_data[i.astype(int)]['gflg']
-            # if there is no slist field this means partial record
-            except KeyError:
-                continue
 
         # Colour table and max value selection depending on parameter plotted
         # Load defaults if none given
@@ -177,6 +184,18 @@ class Fan():
             zmin = defaultzminmax[parameter][0]
         if zmax is None:
             zmax = defaultzminmax[parameter][1]
+
+        for i in np.nditer(plot_beams):
+            try:
+                # get a list of gates where there is data
+                slist = dmap_data[i.astype(int)]['slist']
+                # get the beam number for the record
+                beam = dmap_data[i.astype(int)]['bmnum']
+                scan[slist, beam] = dmap_data[i.astype(int)][parameter]
+                grndsct[slist, beam] = dmap_data[i.astype(int)]['gflg']
+            # if there is no slist field this means partial record
+            except KeyError:
+                continue
 
         # Begin plotting by iterating over ranges and beams
         for gates in range(ranges[0], ranges[1] - 1):
