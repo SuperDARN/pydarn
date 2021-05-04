@@ -22,7 +22,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from matplotlib import ticker, cm, colors
-from typing import List
+from typing import List, Union
 
 # Third party libraries
 import aacgmv2
@@ -46,7 +46,8 @@ class Fan():
                 "   - return_beam_pos()\n"
 
     @classmethod
-    def plot_fan(cls, dmap_data: List[dict], ax=None, scan_index: int = 1,
+    def plot_fan(cls, dmap_data: List[dict], ax=None,
+                 scan_index: Union[int, dt.datetime]  = 1,
                  ranges: List = [0, 75], boundary: bool = True,
                  alpha: int = 0.5, parameter: str = 'v',
                  lowlat: int = 30, cmap: str = None,
@@ -130,37 +131,40 @@ class Fan():
         # Get scan numbers for each record
         beam_scan = build_scan(dmap_data)
 
+                # Check if scan_index is a datetime, then determine which
+        # integer scan to fetch
+        if isinstance(scan_index, dt.datetime):
+            # loop through dmap_data records, dump a datetime
+            # list where scans start
+            scan_datetimes = np.array([dt.datetime(*[record[time_component]
+                                                     for time_component in
+                                                     ['time.yr', 'time.mo',
+                                                      'time.dy', 'time.hr',
+                                                      'time.mt', 'time.sc']])
+                                       for record in dmap_data
+                                       if record['scan'] == 1])
+            # find corresponding scan_index
+            matching_scan_index = np.argwhere(scan_datetimes ==
+                                              scan_index)[..., 0] + 1
+            # handle datetimes out of bounds
+            if len(matching_scan_index) != 1:
+                raise plot_exceptions.IncorrectDateError(scan_datetimes[0],
+                                                         scan_index)
+            else:
+                scan_index = matching_scan_index
+
         # Locate scan in loaded data
         plot_beams = np.where(beam_scan == scan_index)
 
         # Time for coordinate conversion
-        dtime = dt.datetime(dmap_data[plot_beams[0][0]]['time.yr'],
-                            dmap_data[plot_beams[0][0]]['time.mo'],
-                            dmap_data[plot_beams[0][0]]['time.dy'],
-                            dmap_data[plot_beams[0][0]]['time.hr'],
-                            dmap_data[plot_beams[0][0]]['time.mt'],
-                            dmap_data[plot_beams[0][0]]['time.sc'])
+        dtime = time2datetime(dmap_data[plot_beams[0][0]])
+
         # Plot FOV outline
         beam_corners_aacgm_lats, beam_corners_aacgm_lons, thetas, rs, ax = \
             cls.plot_fov(stid=dmap_data[0]['stid'], dtime=dtime, lowlat=lowlat,
                          ranges=ranges, boundary=boundary,
                          alpha=alpha)
         fan_shape = beam_corners_aacgm_lons.shape
-
-        # Get range-gate data and groundscatter array for given scan
-        scan = np.zeros((fan_shape[0] - 1, fan_shape[1]-1))
-        grndsct = np.zeros((fan_shape[0] - 1, fan_shape[1]-1))
-        for i in np.nditer(plot_beams):
-            try:
-                # get a list of gates where there is data
-                slist = dmap_data[i.astype(int)]['slist']
-                # get the beam number for the record
-                beam = dmap_data[i.astype(int)]['bmnum']
-                scan[slist, beam] = dmap_data[i.astype(int)][parameter]
-                grndsct[slist, beam] = dmap_data[i.astype(int)]['gflg']
-            # if there is no slist field this means partial record
-            except KeyError:
-                continue
 
         # Colour table and max value selection depending on parameter plotted
         # Load defaults if none given
@@ -178,49 +182,104 @@ class Fan():
         if zmax is None:
             zmax = defaultzminmax[parameter][1]
 
+
+        # Get range-gate data and groundscatter array for given scan
+        scan = np.zeros((fan_shape[0] - 1, fan_shape[1]-1))
+        grndsct = np.zeros((fan_shape[0] - 1, fan_shape[1]-1))
+        for i in np.nditer(plot_beams):
+            try:
+                # get a list of gates where there is data
+                slist = dmap_data[i.astype(int)]['slist']
+                # get the beam number for the record
+                beam = dmap_data[i.astype(int)]['bmnum']
+                scan[slist, beam] = dmap_data[i.astype(int)][parameter]
+                grndsct[slist, beam] = dmap_data[i.astype(int)]['gflg']
+            # if there is no slist field this means partial record
+            except KeyError:
+                continue
+
+        # determine mlt shift by calling aacgmv2
+        mltshift = beam_corners_aacgm_lons[0, 0] - (
+            aacgmv2.convert_mlt(beam_corners_aacgm_lons[0, 0], dtime) * 15)
+        # implement the lon shift
+        beam_corners_mlts = beam_corners_aacgm_lons - mltshift
+        # make it something the polar plots can handle
+        # by converting to radians
+        beam_corners_aacgm_lons = np.radians(beam_corners_mlts)
+        # handle creating a new plot axes if neccesary
+        if ax is None:
+            ax = plt.subplot(111, polar=True)
+            ax.set_ylim(pole_lat, lowlat)
+            # fix up the rest of the axes details
+            ax.set_xticks(np.arange(0, np.radians(360), np.radians(45)))
+            ax.set_xticklabels(['00', '', '06', '', '12', '', '18', ''])
+            ax.set_theta_zero_location("S")
+        # a single* call to pcolormesh to handle all the
+        # range gates in the scan
+        ax.pcolormesh(beam_corners_aacgm_lons,
+                      beam_corners_aacgm_lats,
+                      np.ma.masked_array(scan, ~scan.astype(bool)),
+                      norm=norm, cmap=cmap)
+        # plot the groundscatter as grey fill
+        if groundscatter:
+            ax.pcolormesh(beam_corners_aacgm_lons,
+                          beam_corners_aacgm_lats,
+                          np.ma.masked_array(grndsct,
+                                             ~grndsct.astype(bool)),
+                          norm=norm, cmap='Greys')
+        # *There exists a bug in matplotlib pcolormesh when plotting in
+        # polar projections that gets rid of the rgrid. Replot them here:
+        for lat in range(pole_lat, lowlat, -10
+                         if northern_hemisphere else 10):
+            ax.plot(np.linspace(0, np.radians(360), 360),
+                    [lat] * 360, 'grey', alpha=0.6)
+        for lon in range(0, 360, 45):
+            ax.plot([np.radians(lon)] * 2,
+                    [pole_lat, lowlat], 'grey', alpha=0.6)
+
         # Begin plotting by iterating over ranges and beams
-        for gates in range(ranges[0], ranges[1] - 1):
-            for beams in range(thetas.shape[1] - 1):
-                # Index colour table correctly
-                cmapindex = (scan[gates, beams] + abs(zmin)) /\
-                        (abs(zmin) + abs(zmax))
-                if cmapindex < 0:
-                    cmapindex = 0
+        #for gates in range(ranges[0], ranges[1] - 1):
+        #    for beams in range(thetas.shape[1] - 1):
+        #        # Index colour table correctly
+        #        cmapindex = (scan[gates, beams] + abs(zmin)) /\
+        #                (abs(zmin) + abs(zmax))
+        #        if cmapindex < 0:
+        #            cmapindex = 0
 
-                if cmapindex > 1:
-                    cmapindex = 1
-                colour_rgba = cmap(cmapindex)
+        #        if cmapindex > 1:
+        #            cmapindex = 1
+        #        colour_rgba = cmap(cmapindex)
 
-                # Check for zero values (white) and groundscatter (gray)
-                if scan[gates, beams] == 0:
-                    colour_rgba = (1, 1, 1, 0)
+        #        # Check for zero values (white) and groundscatter (gray)
+        #        if scan[gates, beams] == 0:
+        #            colour_rgba = (1, 1, 1, 0)
 
-                if groundscatter and grndsct[gates, beams] == 1:
-                    colour_rgba = 'gray'
+        #        if groundscatter and grndsct[gates, beams] == 1:
+        #            colour_rgba = 'gray'
 
-                # Angle for polar plotting
-                theta = [thetas[gates, beams], thetas[gates + 1, beams],
-                         thetas[gates + 1, beams + 1],
-                         thetas[gates, beams + 1]]
-                # Radius for polar plotting
-                r = [rs[gates, beams], rs[gates + 1, beams],
-                     rs[gates + 1, beams + 1], rs[gates, beams + 1]]
-                ax.fill(theta, r, color=colour_rgba)
+        #        # Angle for polar plotting
+        #        theta = [thetas[gates, beams], thetas[gates + 1, beams],
+        #                 thetas[gates + 1, beams + 1],
+        #                 thetas[gates, beams + 1]]
+        #        # Radius for polar plotting
+        #        r = [rs[gates, beams], rs[gates + 1, beams],
+        #             rs[gates + 1, beams + 1], rs[gates, beams + 1]]
+        #        ax.fill(theta, r, color=colour_rgba)
 
-        norm = colors.Normalize
-        norm = norm(zmin, zmax)
-        # Create color bar if True
-        if colorbar is True:
-            mappable = cm.ScalarMappable(norm=norm, cmap=cmap)
-            locator = ticker.MaxNLocator(symmetric=True, min_n_ticks=3,
-                                         integer=True, nbins='auto')
-            ticks = locator.tick_values(vmin=zmin, vmax=zmax)
+        #norm = colors.Normalize
+        #norm = norm(zmin, zmax)
+        ## Create color bar if True
+        #if colorbar is True:
+        #    mappable = cm.ScalarMappable(norm=norm, cmap=cmap)
+        #    locator = ticker.MaxNLocator(symmetric=True, min_n_ticks=3,
+        #                                 integer=True, nbins='auto')
+        #    ticks = locator.tick_values(vmin=zmin, vmax=zmax)
 
-            cb = ax.figure.colorbar(mappable, ax=ax,
-                                    extend='both', ticks=ticks)
+        #    cb = ax.figure.colorbar(mappable, ax=ax,
+        #                            extend='both', ticks=ticks)
 
-            if colorbar_label != '':
-                cb.set_label(colorbar_label)
+        #    if colorbar_label != '':
+        #        cb.set_label(colorbar_label)
         citing_warning()
         return beam_corners_aacgm_lats, beam_corners_aacgm_lons, scan, grndsct
 
