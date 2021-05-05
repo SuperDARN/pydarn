@@ -43,7 +43,7 @@ class Fan():
         return "This class is static class that provides"\
                 " the following methods: \n"\
                 "   - plot_fan()\n"\
-                "   - return_beam_pos()\n"
+                "   - plot_fov()\n"
 
     @classmethod
     def plot_fan(cls, dmap_data: List[dict], ax=None,
