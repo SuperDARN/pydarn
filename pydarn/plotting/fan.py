@@ -28,7 +28,8 @@ from typing import List, Union
 import aacgmv2
 
 from pydarn import (PyDARNColormaps, build_scan, radar_fov, citing_warning,
-                    time2datetime, plot_exceptions)
+                    time2datetime, plot_exceptions, SuperDARNRadars,
+                    Hemisphere)
 
 
 class Fan():
@@ -175,6 +176,7 @@ class Fan():
         if cmap is None:
             cmap = {'p_l': 'plasma', 'v': PyDARNColormaps.PYDARN_VELOCITY,
                     'w_l': PyDARNColormaps.PYDARN_VIRIDIS,
+
                     'elv': PyDARNColormaps.PYDARN}
             cmap = plt.cm.get_cmap(cmap[parameter])
 
@@ -185,6 +187,9 @@ class Fan():
             zmin = defaultzminmax[parameter][0]
         if zmax is None:
             zmax = defaultzminmax[parameter][1]
+        norm = colors.Normalize
+        norm = norm(zmin, zmax)
+
 
         for i in np.nditer(plot_beams):
             try:
@@ -197,8 +202,23 @@ class Fan():
             # if there is no slist field this means partial record
             except KeyError:
                 continue
-
         # Begin plotting by iterating over ranges and beams
+        #ax.pcolormesh(thetas, rs,
+        #              np.ma.masked_array(scan, ~scan.astype(bool)),
+        #              norm=norm, cmap=cmap)
+
+        ## plot the groundscatter as grey fill
+        #if groundscatter:
+        #    ax.pcolormesh(thetas, rs,
+        #                  np.ma.masked_array(grndsct,
+        #                                     ~grndsct.astype(bool)),
+        #                  norm=norm, cmap='Greys')
+
+        #azm = np.linspace(0, 2 * np.pi, 100)
+        #r, th = np.meshgrid(rs, azm)
+        #plt.plot(azm, r, color='k', ls='none')
+        #plt.grid()
+
         for gates in range(ranges[0], ranges[1] - 1):
             for beams in range(thetas.shape[1] - 1):
                 # Index colour table correctly
@@ -227,8 +247,6 @@ class Fan():
                      rs[gates + 1, beams + 1], rs[gates, beams + 1]]
                 ax.fill(theta, r, color=colour_rgba)
 
-        norm = colors.Normalize
-        norm = norm(zmin, zmax)
         # Create color bar if True
         if colorbar is True:
             mappable = cm.ScalarMappable(norm=norm, cmap=cmap)
@@ -293,6 +311,8 @@ class Fan():
             radar_fov(stid, coords='aacgm', date=dtime)
         fan_shape = beam_corners_aacgm_lons.shape
 
+
+
         # Work out shift due in MLT
         beam_corners_mlts = np.zeros((fan_shape[0], fan_shape[1]))
         mltshift = beam_corners_aacgm_lons[0, 0] - \
@@ -307,15 +327,13 @@ class Fan():
         # This may screw up references
         if ax is None:
             ax = plt.axes(polar=True)
-            if beam_corners_aacgm_lats[0, 0] > 0:
+            if SuperDARNRadars.radars[stid].hemisphere == Hemisphere.North:
                 ax.set_ylim(90, lowlat)
                 ax.set_yticks(np.arange(lowlat, 90, 10))
             else:
                 ax.set_ylim(-90, -abs(lowlat))
                 ax.set_yticks(np.arange(-abs(lowlat), -90, -10))
-            ax.set_xticks([0, np.radians(45), np.radians(90), np.radians(135),
-                           np.radians(180), np.radians(225), np.radians(270),
-                           np.radians(315)])
+            ax.set_xticks(np.arange(0, np.radians(360), np.radians(45)))
             ax.set_xticklabels(['00', '', '06', '', '12', '', '18', ''])
             ax.set_theta_zero_location("S")
 
