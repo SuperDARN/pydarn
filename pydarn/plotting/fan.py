@@ -27,7 +27,8 @@ from typing import List, Union
 # Third party libraries
 import aacgmv2
 
-from pydarn import PyDARNColormaps, build_scan, radar_fov, citing_warning
+from pydarn import (PyDARNColormaps, build_scan, radar_fov, citing_warning,
+                    time2datetime, plot_exceptions)
 
 
 class Fan():
@@ -47,7 +48,7 @@ class Fan():
 
     @classmethod
     def plot_fan(cls, dmap_data: List[dict], ax=None,
-                 scan_index: Union[int, dt.datetime]  = 1,
+                 scan_index: Union[int, dt.datetime] = 1,
                  ranges: List = [0, 75], boundary: bool = True,
                  alpha: int = 0.5, parameter: str = 'v',
                  lowlat: int = 30, cmap: str = None,
@@ -69,8 +70,9 @@ class Fan():
                 Default: Generates a polar projection for the user
                 with MLT/latitude labels
 
-            scan_index: int
+            scan_index: int or datetime
                 Scan number from beginning of first record in file
+                or datetime given first record to match the index
                 Default: 1
             parameter: str
                 Key name indicating which parameter to plot.
@@ -131,8 +133,6 @@ class Fan():
         # Get scan numbers for each record
         beam_scan = build_scan(dmap_data)
 
-                # Check if scan_index is a datetime, then determine which
-        # integer scan to fetch
         if isinstance(scan_index, dt.datetime):
             # loop through dmap_data records, dump a datetime
             # list where scans start
@@ -166,6 +166,10 @@ class Fan():
                          alpha=alpha)
         fan_shape = beam_corners_aacgm_lons.shape
 
+        # Get range-gate data and groundscatter array for given scan
+        scan = np.zeros((fan_shape[0] - 1, fan_shape[1]-1))
+        grndsct = np.zeros((fan_shape[0] - 1, fan_shape[1]-1))
+
         # Colour table and max value selection depending on parameter plotted
         # Load defaults if none given
         if cmap is None:
@@ -182,10 +186,6 @@ class Fan():
         if zmax is None:
             zmax = defaultzminmax[parameter][1]
 
-
-        # Get range-gate data and groundscatter array for given scan
-        scan = np.zeros((fan_shape[0] - 1, fan_shape[1]-1))
-        grndsct = np.zeros((fan_shape[0] - 1, fan_shape[1]-1))
         for i in np.nditer(plot_beams):
             try:
                 # get a list of gates where there is data
