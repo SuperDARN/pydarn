@@ -28,7 +28,7 @@ from typing import List, Union
 import aacgmv2
 
 from pydarn import (PyDARNColormaps, build_scan, radar_fov, citing_warning,
-                    time2datetime)
+                    time2datetime, plot_exceptions)
 
 
 class Fan():
