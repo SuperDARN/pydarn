@@ -185,6 +185,8 @@ class Fan():
             zmin = defaultzminmax[parameter][0]
         if zmax is None:
             zmax = defaultzminmax[parameter][1]
+        norm = colors.Normalize
+        norm = norm(zmin, zmax)
 
         for i in np.nditer(plot_beams):
             try:
@@ -209,7 +211,7 @@ class Fan():
         # handle creating a new plot axes if neccesary
         if ax is None:
             ax = plt.subplot(111, polar=True)
-            ax.set_ylim(pole_lat, lowlat)
+            ax.set_ylim(90, lowlat)
             # fix up the rest of the axes details
             ax.set_xticks(np.arange(0, np.radians(360), np.radians(45)))
             ax.set_xticklabels(['00', '', '06', '', '12', '', '18', ''])
@@ -229,13 +231,13 @@ class Fan():
                           norm=norm, cmap='Greys')
         # *There exists a bug in matplotlib pcolormesh when plotting in
         # polar projections that gets rid of the rgrid. Replot them here:
-        for lat in range(pole_lat, lowlat, -10
+        for lat in range(90, lowlat, -10
                          if northern_hemisphere else 10):
             ax.plot(np.linspace(0, np.radians(360), 360),
                     [lat] * 360, 'grey', alpha=0.6)
         for lon in range(0, 360, 45):
             ax.plot([np.radians(lon)] * 2,
-                    [pole_lat, lowlat], 'grey', alpha=0.6)
+                    [90, lowlat], 'grey', alpha=0.6)
 
         # Begin plotting by iterating over ranges and beams
         #for gates in range(ranges[0], ranges[1] - 1):
@@ -266,8 +268,6 @@ class Fan():
         #             rs[gates + 1, beams + 1], rs[gates, beams + 1]]
         #        ax.fill(theta, r, color=colour_rgba)
 
-        #norm = colors.Normalize
-        #norm = norm(zmin, zmax)
         ## Create color bar if True
         #if colorbar is True:
         #    mappable = cm.ScalarMappable(norm=norm, cmap=cmap)
