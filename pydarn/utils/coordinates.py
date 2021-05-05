@@ -32,5 +32,5 @@ class Coords(enum.Enum):
 
     RANGE_GATE = enum.auto()
     SLANT_RANGE = enum.auto()
-    GEOGAPHIC = enum.auto()
+    GEOGRAPHIC = enum.auto()
     AACGM = enum.auto()
