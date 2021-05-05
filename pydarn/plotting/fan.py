@@ -27,7 +27,8 @@ from typing import List
 # Third party libraries
 import aacgmv2
 
-from pydarn import PyDARNColormaps, build_scan, radar_fov, citing_warning
+from pydarn import (PyDARNColormaps, build_scan, radar_fov, citing_warning,
+                    time2datetime)
 
 
 class Fan():
@@ -53,7 +54,7 @@ class Fan():
                  groundscatter: bool = False,
                  zmin: int = None, zmax: int = None,
                  colorbar: bool = True,
-                 colorbar_label: str = ''):
+                 colorbar_label: str = '', title: str = ''):
         """
         Plots a radar's Field Of View (FOV) fan plot for the given data and
         scan number
@@ -221,6 +222,11 @@ class Fan():
 
             if colorbar_label != '':
                 cb.set_label(colorbar_label)
+        if title == '':
+            start_time = time2datetime(dmap_data[plot_beams[0][0]])
+            end_time = time2datetime(dmap_data[plot_beams[-1][-1]])
+            title = cls.__add_title__(start_time, end_time)
+        plt.title(title)
         citing_warning()
         return beam_corners_aacgm_lats, beam_corners_aacgm_lons, scan, grndsct
 
@@ -329,3 +335,19 @@ class Fan():
             ax.fill(theta, r, color=fov_color, alpha=alpha)
         citing_warning()
         return beam_corners_aacgm_lats, beam_corners_aacgm_lons, thetas, rs, ax
+
+    @classmethod
+    def __add_title__(cls, first_timestamp: dt.datetime,
+                      end_timestamp: dt.datetime):
+            title = "{year}-{month}-{day} {start_hour}:{start_minute} -"\
+                    " {end_hour}:{end_minute}"\
+                    "".format(year=first_timestamp.year,
+                              month=str(first_timestamp.month).zfill(2),
+                              day=str(first_timestamp.day).zfill(2),
+                              start_hour=str(first_timestamp.hour).zfill(2),
+                              start_minute=str(first_timestamp.minute).zfill(2),
+                              end_hour=str(end_timestamp.hour).
+                              zfill(2),
+                              end_minute=str(end_timestamp.minute).
+                              zfill(2))
+            return title
