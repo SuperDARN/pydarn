@@ -17,7 +17,7 @@ from typing import List
 from pydarn import (gate2slant, check_data_type, time2datetime,
                     rtp_exceptions, plot_exceptions, SuperDARNCpids,
                     SuperDARNRadars, standard_warning_format,
-                    PyDARNColormaps, Coord, citing_warning)
+                    PyDARNColormaps, Coords, citing_warning)
 
 warnings.formatwarning = standard_warning_format
 
@@ -56,10 +56,9 @@ class RTP():
                         start_time: datetime = None, end_time: datetime = None,
                         colorbar: plt.colorbar = None, ymin: int = None,
                         ymax: int = None, yspacing: int = 200,
-                        coord: object = Coord.SLANT_RANGE, colorbar_label: str = '',
-                        norm=colors.Normalize,
-                        cmap: str = None,
-                        filter_settings: dict = {},
+                        coord: object = Coords.SLANT_RANGE,
+                        colorbar_label: str = '', norm=colors.Normalize,
+                        cmap: str = None, filter_settings: dict = {},
                         date_fmt: str = '%y/%m/%d\n %H:%M', **kwargs):
         """
         Plots a range-time parameter plot of the given
@@ -335,7 +334,7 @@ class RTP():
                                      start_time=start_time,
                                      end_time=end_time,
                                      opt_beam_num=cls.dmap_data[0]['bmnum'])
-        if coord is Coord.SLANT_RANGE:
+        if coord is Coords.SLANT_RANGE:
             # Get rxrise from hardware files (consistent with RST)
             rxrise = SuperDARNRadars.radars[cls.dmap_data[0]['stid']]\
                                     .hardware_info.rx_rise_time
@@ -400,7 +399,7 @@ class RTP():
 
         ax.set_ylim(ymin, ymax)
 
-        if coord is Coord.SLANT_RANGE:
+        if coord is Coords.SLANT_RANGE:
             ax.yaxis.set_ticks(np.arange(np.ceil(ymin/100.0)*100,
                                          ymax+1, yspacing))
         else:
@@ -417,7 +416,7 @@ class RTP():
         else:
             tick_interval = 1
         ax.xaxis.set_minor_locator(dates.MinuteLocator(interval=tick_interval))
-        if coord is Coord.SLANT_RANGE:
+        if coord is Coords.SLANT_RANGE:
             ax.yaxis.set_minor_locator(ticker.AutoMinorLocator(2))
         else:
             ax.yaxis.set_minor_locator(ticker.MultipleLocator(5))
@@ -679,10 +678,11 @@ class RTP():
     @classmethod
     def plot_summary(cls, dmap_data: List[dict], beam_num: int = 0,
                      groundscatter: bool = True, channel: int = 'all',
-                     coord: object = Coord.SLANT_RANGE, figsize: tuple = (11, 8.5),
-                     watermark: bool = True, boundary: dict = {},
-                     background_color: str = 'w', cmaps: dict = {},
-                     lines: dict = {}, plot_elv: bool = True, title=None):
+                     coord: object = Coords.SLANT_RANGE,
+                     figsize: tuple = (11, 8.5), watermark: bool = True,
+                     boundary: dict = {}, background_color: str = 'w',
+                     cmaps: dict = {}, lines: dict = {},
+                     plot_elv: bool = True, title=None):
         """
         Plots the summary of several SuperDARN parameters using time-series and
         range-time plots. Please see Notes for further description
@@ -965,7 +965,7 @@ class RTP():
             else:
                 # Current standard is to only have groundscatter
                 # on the velocity plot. This may change in the future.
-                if coord is Coord.SLANT_RANGE:
+                if coord is Coords.SLANT_RANGE:
                     ymax = 3517.5
                 else:
                     ymax = 75
@@ -1007,7 +1007,7 @@ class RTP():
                     if ticks[-1] > boundary_ranges[axes_parameters[i]][1]:
                         ticks[-1] = boundary_ranges[axes_parameters[i]][1]
                     cbar.set_ticks(ticks)
-                if coord is Coord.SLANT_RANGE:
+                if coord is Coords.SLANT_RANGE:
                     axes[i].set_ylabel('Slant Range (km)')
                 else:
                     axes[i].set_ylabel('Range Gates')
