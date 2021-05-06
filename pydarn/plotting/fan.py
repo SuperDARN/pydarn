@@ -28,7 +28,8 @@ from typing import List, Union
 import aacgmv2
 
 from pydarn import (PyDARNColormaps, build_scan, radar_fov, citing_warning,
-                    time2datetime, plot_exceptions)
+                    time2datetime, plot_exceptions, SuperDARNRadars,
+                    Hemisphere)
 
 
 class Fan():
@@ -307,7 +308,7 @@ class Fan():
         # This may screw up references
         if ax is None:
             ax = plt.axes(polar=True)
-            if beam_corners_aacgm_lats[0, 0] > 0:
+            if SuperDARNRadars.radars[stid].hemisphere == Hemisphere.North:
                 ax.set_ylim(90, lowlat)
                 ax.set_yticks(np.arange(lowlat, 90, 10))
             else:
