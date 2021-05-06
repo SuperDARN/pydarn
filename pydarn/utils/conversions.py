@@ -11,7 +11,8 @@ from typing import List
 import numpy as np
 from collections import OrderedDict
 
-from pydarn import C
+from pydarn import (Re, C)
+
 
 # key is the format char type defined by python,
 # item is the DMAP int value for the type
@@ -83,7 +84,7 @@ def dmap2dict(dmap_records: List[dict]) -> List[dict]:
         dmap_list.append(OrderedDict(dmap_dict))
     return dmap_list
 
-def gate2GroundScatter(y, Re, reflection_height=250):
+def gate2GroundScatter(y, reflection_height=250):
     """
     Calculate the ground scatter mapped range (km) for each range gate for SuperDARN data
     This function is based on the Ground Scatter equation from Bristow paper at https://doi.org/10.1029/93JA01470 on page 325
