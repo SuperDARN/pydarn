@@ -11,8 +11,10 @@ import os
 
 import aacgmv2
 
+from pydarn import Coords
 
-def radar_fov(stid: int, coords: str = 'aacgm', date: dt = None):
+
+def radar_fov(stid: int, coords: str = Coords.AACGM, date: datetime = None):
     """
     Returning beam/gate coordinates of a specified radar's field-of-view
 
@@ -52,7 +54,7 @@ def radar_fov(stid: int, coords: str = 'aacgm', date: dt = None):
     beam_corners_lons = np.loadtxt(beam_lons)
 
     # AACGMv2 conversion
-    if coords == 'aacgm':
+    if coords == Coords.AACGM:
         if not date:
             date = dt.datetime.now()
 
