@@ -439,6 +439,10 @@ class Fan():
         r_lat = geomag_radar[0]
         
         theta_text = theta_lon
-        r_text = r_lat - 5
+        # Shift in latitude (dependent on hemisphere)
+        if r_lat > 0:
+            r_text = r_lat - 5
+        else:
+            r_text = r_lat + 5
         plt.text(theta_text, r_text, label_str, ha='center')
         return
