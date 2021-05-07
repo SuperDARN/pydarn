@@ -27,7 +27,8 @@ from typing import List
 # Third party libraries
 import aacgmv2
 
-from pydarn import PyDARNColormaps, build_scan, radar_fov, citing_warning, Projections
+from pydarn import (PyDARNColormaps, build_scan, radar_fov, citing_warning,
+    Projections, SuperDARNRadars)
 
 
 class Fan():
@@ -102,9 +103,9 @@ class Fan():
                 the label that appears next to the colour bar.
                 Requires colorbar to be true
                 Default: ''
-            kawrgs: key = value
-                Additional keyword arguments to be passed to axis_polar, e.g. lowlat, 
-                hem, etc                
+            kwargs: key = value
+                Additional keyword arguments 
+                Current key words used: lowlat - used in axis_polar
         Returns
         -----------
         beam_corners_aacgm_lats
@@ -252,8 +253,8 @@ class Fan():
                 the fov color
                 Default: 0.5
             kawrgs: key = value
-                Additional keyword arguments to be passed to axis_polar, e.g. lowlat, 
-                hem, etc
+                Additional keyword arguments 
+                Current key words used: lowlat - used in axis_polar
 
         Returns
         -------
@@ -285,16 +286,8 @@ class Fan():
         # Setup plot
         # This may screw up references
         if ax is None:
-        
-            # If a hemisphere kwarg wasn't passed in, determine the right hemisphere
-            try:
-                kwargs['hem']
-            except:
-                if beam_corners_aacgm_lats[0,0] > 0:
-                    kwargs['hem']='N'
-                else:
-                    kwargs['hem']='S'
-        
+            # Get the hemisphere to pass to plotting projection
+            kwargs['hem'] = SuperDARNRadars.radars[stid].hemisphere
             # Get a polar projection using any kwarg input
             ax = Projections.axis_polar(**kwargs)
 

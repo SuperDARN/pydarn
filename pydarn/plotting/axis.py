@@ -18,6 +18,8 @@ Code which generates axis objects for use in plotting functions
 import matplotlib.pyplot as plt
 import numpy as np
 
+from pydarn import Hemisphere
+
 
 class Projections():
     """
@@ -33,7 +35,7 @@ class Projections():
                 "   - axis_polar()\n"
 
     @classmethod
-    def axis_polar(cls, lowlat: int = 30, hem: str = 'N'):
+    def axis_polar(cls, lowlat: int = 30, hem: str = Hemisphere.North):
         """
         Plots a radar's Field Of View (FOV) fan plot for the given data and
         scan number
@@ -43,16 +45,17 @@ class Projections():
             lowlat: int
                 Lower AACGM latitude boundary for the polar plot
                 Default: 30
-            hem: str
-                Hemisphere of polar projection. Can be 'N' or 'S' for
-                northern and southern hemispheres, respectively
-                Default: 'N'
+            hem: enum
+                Hemisphere of polar projection. Can be Hemisphere.North or 
+                Hemisphere.South for northern and southern hemispheres, 
+                respectively
+                Default: Hemisphere.North
         """
 
         ax = plt.axes(polar=True)
 
         # Set upper and lower latitude limits (pole and lowlat)
-        if hem is 'N':
+        if hem is Hemisphere.North:
             ax.set_ylim(90, lowlat)
             ax.set_yticks(np.arange(lowlat, 90, 10))
         else:
