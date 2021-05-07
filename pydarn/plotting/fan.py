@@ -2,6 +2,7 @@
 # Author: Daniel Billett, Marina Schmidt
 #
 # Modifications:
+# 2021-05-07: CJM - Included radar position and labels in plotting
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
@@ -28,7 +29,7 @@ from typing import List, Union
 import aacgmv2
 
 from pydarn import (PyDARNColormaps, build_scan, radar_fov, citing_warning,
-                    time2datetime, plot_exceptions)
+                    time2datetime, plot_exceptions, Coords, SuperDARNRadars)
 
 
 class Fan():
@@ -38,6 +39,9 @@ class Fan():
         Methods
         -------
         plot_fan
+        plot_fov
+        plot_radar_position
+        plot_radar_label
         """
 
     def __str__(self):
@@ -55,7 +59,8 @@ class Fan():
                  groundscatter: bool = False,
                  zmin: int = None, zmax: int = None,
                  colorbar: bool = True,
-                 colorbar_label: str = ''):
+                 colorbar_label: str = '', radar_location: bool = False,
+                 radar_label: bool = False):
         """
         Plots a radar's Field Of View (FOV) fan plot for the given data and
         scan number
@@ -106,6 +111,12 @@ class Fan():
             colorbar: bool
                 Draw a colourbar if True
                 Default: True
+            radar_location: bool
+                Add a dot where radar is located if True
+                Default: False
+            radar_label: bool
+                Add a label with the radar abbreviation if True
+                Default: False
             colorbar_label: str
                 the label that appears next to the colour bar.
                 Requires colorbar to be true
@@ -163,7 +174,8 @@ class Fan():
         beam_corners_aacgm_lats, beam_corners_aacgm_lons, thetas, rs, ax = \
             cls.plot_fov(stid=dmap_data[0]['stid'], dtime=dtime, lowlat=lowlat,
                          ranges=ranges, boundary=boundary,
-                         alpha=alpha)
+                         alpha=alpha, radar_label=radar_label, 
+                         radar_location=radar_location)
         fan_shape = beam_corners_aacgm_lons.shape
 
         # Get range-gate data and groundscatter array for given scan
@@ -248,7 +260,8 @@ class Fan():
     def plot_fov(cls, stid: str, dtime: dt.datetime, ax=None,
                  lowlat: int = 30, ranges: List = [0, 75],
                  boundary: bool = True, fov_color: str = None,
-                 alpha: int = 0.5):
+                 alpha: int = 0.5, radar_location: bool = False,
+                 radar_label: bool = False):
         """
         plots only the field of view (FOV) for a given radar station ID (stid)
 
@@ -280,6 +293,12 @@ class Fan():
                 alpha controls the transparency of
                 the fov color
                 Default: 0.5
+            radar_location: bool
+                Add a dot where radar is located if True
+                Default: False
+            radar_label: bool
+                Add a label with the radar abbreviation if True
+                Default: False
 
         Returns
         -------
@@ -290,7 +309,7 @@ class Fan():
         """
         # Get radar beam/gate locations
         beam_corners_aacgm_lats, beam_corners_aacgm_lons = \
-            radar_fov(stid, coords='aacgm', date=dtime)
+            radar_fov(stid, coords=Coords.AACGM, date=dtime)
         fan_shape = beam_corners_aacgm_lons.shape
 
         # Work out shift due in MLT
@@ -336,6 +355,12 @@ class Fan():
                       rs[0, 0:thetas.shape[1] - 1], color='black',
                       linewidth=0.5)
 
+        if radar_location:
+            cls.plot_radar_position(stid, dtime)
+        if radar_label:
+            cls.plot_radar_label(stid, dtime)
+            
+        
         if fov_color is not None:
             theta = thetas[0:ranges[1], 0]
             theta = np.append(theta, thetas[ranges[1]-1, 0:thetas.shape[1]-1])
@@ -349,3 +374,71 @@ class Fan():
             ax.fill(theta, r, color=fov_color, alpha=alpha)
         citing_warning()
         return beam_corners_aacgm_lats, beam_corners_aacgm_lons, thetas, rs, ax
+
+
+    @classmethod
+    def plot_radar_position(cls, stid, dtime):
+        """
+        plots only a dot at the position of a given radar station ID (stid)
+
+        Parameters
+        -----------
+            stid: str
+                Radar station ID
+            dtime: datetime datetime object
+                sets the datetime used to find the coordinates of the
+                FOV
+
+        Returns
+        -------
+            No variables returned
+        """
+        # Get location of radar
+        lat = SuperDARNRadars.radars[stid].hardware_info.geographic.lat
+        lon = SuperDARNRadars.radars[stid].hardware_info.geographic.lon
+        # Convert to geomag coords
+        geomag_radar = aacgmv2.get_aacgm_coord(lat, lon, 250, dtime)
+        mltshift = geomag_radar[1] - (aacgmv2.convert_mlt(geomag_radar[1], dtime) * 15)
+        # Convert to MLT then radians for theta
+        theta_lon = np.radians(geomag_radar[1] - mltshift)
+        r_lat = geomag_radar[0]
+        # Plot a dot at the radar site
+        plt.scatter(theta_lon, r_lat, color='black', s=5)
+        return
+
+
+    @classmethod
+    def plot_radar_label(cls, stid, dtime):
+        """
+        plots only string at the position of a given radar station ID (stid)
+
+        Parameters
+        -----------
+            stid: str
+                Radar station ID
+            dtime: datetime datetime object
+                sets the datetime used to find the coordinates of the
+                FOV
+
+        Returns
+        -------
+            No variables returned
+        """
+        # Label text
+        label_str = ' ' + SuperDARNRadars.radars[stid]\
+                        .hardware_info.abbrev.upper()
+        # Get location of radar
+        lat = SuperDARNRadars.radars[stid].hardware_info.geographic.lat
+        lon = SuperDARNRadars.radars[stid].hardware_info.geographic.lon
+        # Convert to geomag coords
+        geomag_radar = aacgmv2.get_aacgm_coord(lat, lon, 250, dtime)
+        mltshift = geomag_radar[1] - \
+            (aacgmv2.convert_mlt(geomag_radar[1], dtime) * 15)
+        # Convert to MLT then radians for theta
+        theta_lon = np.radians(geomag_radar[1] - mltshift)
+        r_lat = geomag_radar[0]
+        
+        theta_text = theta_lon
+        r_text = r_lat - 5
+        plt.text(theta_text, r_text, label_str, ha='center')
+        return
