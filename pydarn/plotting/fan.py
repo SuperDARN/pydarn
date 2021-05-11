@@ -213,6 +213,7 @@ class Fan():
 
         # plot the groundscatter as grey fill
         if groundscatter:
+            grndsct = grndsct[ranges[0]:ranges[1]-1]
             ax.pcolormesh(thetas, rs,
                           np.ma.masked_array(grndsct,
                                              ~grndsct.astype(bool)),
