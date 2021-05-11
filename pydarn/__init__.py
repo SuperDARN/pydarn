@@ -22,8 +22,12 @@ from .exceptions import plot_exceptions
 from .exceptions import radar_exceptions
 from .exceptions.warning_formatting import standard_warning_format
 from .exceptions.warning_formatting import only_message_warning_format
+from .exceptions.warning_formatting import citing_warning
 
 # importing utils
+from .utils.constants import Re
+from .utils.constants import EARTH_EQUATORIAL_RADIUS
+from .utils.constants import C
 from .utils.conversions import dmap2dict
 from .utils.conversions import gate2slant
 from .utils.plotting import check_data_type
@@ -35,6 +39,7 @@ from .utils.superdarn_radars import read_hdw_file
 from .utils.superdarn_radars import get_hdw_files
 from .utils.scan import build_scan
 from .utils.radar_pos import radar_fov
+from .utils.coordinates import Coord
 
 # import plotting
 from .plotting.color_maps import PyDARNColormaps

@@ -7,9 +7,9 @@
 #
 import warnings
 
-def citting_warning():
+def citing_warning():
     """
-    prints a citation warning for pyDARN users to remind them to site
+    prints a citation warning for pyDARN users to remind them to cite
     pyDARN in publications.
     """
     warnings.warn("Please make sure to cite pyDARN in publications that"

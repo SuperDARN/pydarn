@@ -7,6 +7,9 @@
 
 Python data visualization library for the Super Dual Auroral Radar Network (SuperDARN).
 
+**WARNING!**
+    This is the `develop` branch that is not DOI'd yet, please click on the above DOI to get the most recently released pyDARN version. 
+
 ## Changelog
 
 ## Version 2.0.1 - Release!
@@ -54,7 +57,7 @@ plt.show()
 
 [summary plot](docs/imgs/summary_clyb2.png)
 
-For more information and tutorials on pyDARN please see the [tutorial section](https://pydarn.readthedocs.io/en/master/)
+For more information and tutorials on pyDARN please see the [tutorial section](https://pydarn.readthedocs.io/en/latest/)
 
 ## Getting involved
 
@@ -66,4 +69,4 @@ Here are some ways to get started:
   - **Answer questions**: if you want to try your hand at answering some pyDARN questions, or adding to the discussion, look at pyDARN's [issues](https://github.com/SuperDARN/pydarn/issues) and filter by labels.
   - **Become a developer**: if you want to practice those coding skills and add to the library, look at pyDARN [issues](https://github.com/SuperDARN/pydarn/issues) and filter by milestone's to see what needs to get done right away. 
 
-Please contact the leading developer, Marina Schmidt (marina.t.schmidt@gmail.com), if you would like to become a member of the team!
+Please read [pyDARN team](https://pydarn.readthedocs.io/en/latest/dev/team) on how to join the pyDARN team. 

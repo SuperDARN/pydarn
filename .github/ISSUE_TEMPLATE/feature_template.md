@@ -31,7 +31,7 @@ about: Notify that a new feature is being planned
 -  [ ] Do you need help developing it? 
 -  [ ] Have you created a pyDARN GitHub [project](https://github.com/SuperDARN/pydarn/projects) to show the tasks needed to be done? 
 
-### Developement help
+### Development help
 
 *pyDARN does not have a dedicated development team on hand to full feature development. 
 However, if you are able to provide some time and help, the community will try to aid you the best way they can in making your feature possible.*
