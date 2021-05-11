@@ -28,8 +28,8 @@ from typing import List, Union
 import aacgmv2
 
 from pydarn import (PyDARNColormaps, build_scan, radar_fov, citing_warning,
-                    time2datetime, plot_exceptions, SuperDARNRadars,
-                    Hemisphere)
+                    time2datetime, plot_exceptions, Coords,
+                    SuperDARNRadars, Hemisphere)
 
 
 class Fan():
@@ -300,7 +300,7 @@ class Fan():
         """
         # Get radar beam/gate locations
         beam_corners_aacgm_lats, beam_corners_aacgm_lons = \
-            radar_fov(stid, coords='aacgm', date=dtime)
+            radar_fov(stid, coords=Coords.AACGM, date=dtime)
         fan_shape = beam_corners_aacgm_lons.shape
 
         # Work out shift due in MLT
