@@ -204,9 +204,9 @@ class Fan():
             except KeyError:
                 continue
         # Begin plotting by iterating over ranges and beams
-        thetas = thetas[ranges[0]:ranges[1]+1]
-        rs = rs[ranges[0]:ranges[1]+1]
-        scan = scan[ranges[0]:ranges[1]]
+        thetas = thetas[ranges[0]:ranges[1]]
+        rs = rs[ranges[0]:ranges[1]]
+        scan = scan[ranges[0]:ranges[1]-1]
         ax.pcolormesh(thetas, rs,
                       np.ma.masked_array(scan, ~scan.astype(bool)),
                       norm=norm, cmap=cmap)
