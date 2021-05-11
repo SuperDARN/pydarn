@@ -29,7 +29,8 @@ from typing import List, Union
 import aacgmv2
 
 from pydarn import (PyDARNColormaps, build_scan, radar_fov, citing_warning,
-                    time2datetime, plot_exceptions, Coords, SuperDARNRadars)
+                    time2datetime, plot_exceptions, Coords, SuperDARNRadars,
+                    Hemisphere)
 
 
 class Fan():
@@ -261,7 +262,7 @@ class Fan():
                  lowlat: int = 30, ranges: List = [0, 75],
                  boundary: bool = True, fov_color: str = None,
                  alpha: int = 0.5, radar_location: bool = False,
-                 radar_label: bool = False):
+                 radar_label: bool = False, line_color: str = 'black'):
         """
         plots only the field of view (FOV) for a given radar station ID (stid)
 
@@ -289,6 +290,9 @@ class Fan():
             fov_color: str
                 fov color to fill in the boundary
                 default: None
+            line_color: str
+                line color of the fov plot
+                default: black
             alpha: int
                 alpha controls the transparency of
                 the fov color
@@ -356,9 +360,9 @@ class Fan():
                       linewidth=0.5)
 
         if radar_location:
-            cls.plot_radar_position(stid, dtime)
+            cls.plot_radar_position(stid, dtime, line_color=line_color)
         if radar_label:
-            cls.plot_radar_label(stid, dtime)
+            cls.plot_radar_label(stid, dtime, line_color=line_color)
             
         
         if fov_color is not None:
@@ -377,7 +381,7 @@ class Fan():
 
 
     @classmethod
-    def plot_radar_position(cls, stid, dtime):
+    def plot_radar_position(cls, stid, dtime, line_color: str = 'black'):
         """
         plots only a dot at the position of a given radar station ID (stid)
 
@@ -388,6 +392,9 @@ class Fan():
             dtime: datetime datetime object
                 sets the datetime used to find the coordinates of the
                 FOV
+            line_color: str
+                color of the dot
+                default: black
 
         Returns
         -------
@@ -403,12 +410,12 @@ class Fan():
         theta_lon = np.radians(geomag_radar[1] - mltshift)
         r_lat = geomag_radar[0]
         # Plot a dot at the radar site
-        plt.scatter(theta_lon, r_lat, color='black', s=5)
+        plt.scatter(theta_lon, r_lat, c=line_color, s=5)
         return
 
 
     @classmethod
-    def plot_radar_label(cls, stid, dtime):
+    def plot_radar_label(cls, stid, dtime, line_color: str = 'black'):
         """
         plots only string at the position of a given radar station ID (stid)
 
@@ -419,6 +426,9 @@ class Fan():
             dtime: datetime datetime object
                 sets the datetime used to find the coordinates of the
                 FOV
+            line_color: str
+                color of the text
+                default: black
 
         Returns
         -------
@@ -444,5 +454,5 @@ class Fan():
             r_text = r_lat - 5
         else:
             r_text = r_lat + 5
-        plt.text(theta_text, r_text, label_str, ha='center')
+        plt.text(theta_text, r_text, label_str, ha='center', c=line_color)
         return
