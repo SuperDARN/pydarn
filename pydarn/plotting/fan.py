@@ -322,20 +322,20 @@ class Fan():
 
         if boundary:
             # left boundary line
-            plt.polar(thetas[0:ranges[1], 0], rs[0:ranges[1], 0],
-                      color='black', linewidth=0.5)
+            plt.plot(thetas[0:ranges[1], 0], rs[0:ranges[1], 0],
+                     color='black', linewidth=0.5)
             # top radar arc
-            plt.polar(thetas[ranges[1] - 1, 0:thetas.shape[1]],
-                      rs[ranges[1] - 1, 0:thetas.shape[1]],
-                      color='black', linewidth=0.5)
+            plt.plot(thetas[ranges[1] - 1, 0:thetas.shape[1]],
+                     rs[ranges[1] - 1, 0:thetas.shape[1]],
+                     color='black', linewidth=0.5)
             # right boundary line
-            plt.polar(thetas[0:ranges[1], thetas.shape[1] - 1],
-                      rs[0:ranges[1], thetas.shape[1] - 1],
-                      color='black', linewidth=0.5)
+            plt.plot(thetas[0:ranges[1], thetas.shape[1] - 1],
+                     rs[0:ranges[1], thetas.shape[1] - 1],
+                     color='black', linewidth=0.5)
             # bottom arc
-            plt.polar(thetas[0, 0:thetas.shape[1] - 1],
-                      rs[0, 0:thetas.shape[1] - 1], color='black',
-                      linewidth=0.5)
+            plt.plot(thetas[0, 0:thetas.shape[1] - 1],
+                     rs[0, 0:thetas.shape[1] - 1], color='black',
+                     linewidth=0.5)
 
         if fov_color is not None:
             theta = thetas[0:ranges[1], 0]
