@@ -29,8 +29,9 @@ from typing import List, Union
 import aacgmv2
 
 from pydarn import (PyDARNColormaps, build_scan, radar_fov, citing_warning,
-                    time2datetime, plot_exceptions, Coords, SuperDARNRadars,
-                    Hemisphere)
+                    time2datetime, plot_exceptions, Coords,
+                    SuperDARNRadars, Hemisphere)
+
 
 
 class Fan():
@@ -61,7 +62,8 @@ class Fan():
                  zmin: int = None, zmax: int = None,
                  colorbar: bool = True,
                  colorbar_label: str = '', radar_location: bool = False,
-                 radar_label: bool = False):
+                 radar_label: bool = False, title: bool = True):
+
         """
         Plots a radar's Field Of View (FOV) fan plot for the given data and
         scan number
@@ -122,6 +124,10 @@ class Fan():
                 the label that appears next to the colour bar.
                 Requires colorbar to be true
                 Default: ''
+            title: bool
+                if true then will create a title, else user
+                can define it with plt.title
+                default: true
         Returns
         -----------
         beam_corners_aacgm_lats
@@ -254,6 +260,11 @@ class Fan():
 
             if colorbar_label != '':
                 cb.set_label(colorbar_label)
+        if title:
+            start_time = time2datetime(dmap_data[plot_beams[0][0]])
+            end_time = time2datetime(dmap_data[plot_beams[-1][-1]])
+            title = cls.__add_title__(start_time, end_time)
+            plt.title(title)
         citing_warning()
         return beam_corners_aacgm_lats, beam_corners_aacgm_lons, scan, grndsct
 
@@ -330,7 +341,7 @@ class Fan():
         # This may screw up references
         if ax is None:
             ax = plt.axes(polar=True)
-            if beam_corners_aacgm_lats[0, 0] > 0:
+            if SuperDARNRadars.radars[stid].hemisphere == Hemisphere.North:
                 ax.set_ylim(90, lowlat)
                 ax.set_yticks(np.arange(lowlat, 90, 10))
             else:
@@ -344,20 +355,20 @@ class Fan():
 
         if boundary:
             # left boundary line
-            plt.polar(thetas[0:ranges[1], 0], rs[0:ranges[1], 0],
-                      color='black', linewidth=0.5)
+            plt.plot(thetas[0:ranges[1], 0], rs[0:ranges[1], 0],
+                     color='black', linewidth=0.5)
             # top radar arc
-            plt.polar(thetas[ranges[1] - 1, 0:thetas.shape[1]],
-                      rs[ranges[1] - 1, 0:thetas.shape[1]],
-                      color='black', linewidth=0.5)
+            plt.plot(thetas[ranges[1] - 1, 0:thetas.shape[1]],
+                     rs[ranges[1] - 1, 0:thetas.shape[1]],
+                     color='black', linewidth=0.5)
             # right boundary line
-            plt.polar(thetas[0:ranges[1], thetas.shape[1] - 1],
-                      rs[0:ranges[1], thetas.shape[1] - 1],
-                      color='black', linewidth=0.5)
+            plt.plot(thetas[0:ranges[1], thetas.shape[1] - 1],
+                     rs[0:ranges[1], thetas.shape[1] - 1],
+                     color='black', linewidth=0.5)
             # bottom arc
-            plt.polar(thetas[0, 0:thetas.shape[1] - 1],
-                      rs[0, 0:thetas.shape[1] - 1], color='black',
-                      linewidth=0.5)
+            plt.plot(thetas[0, 0:thetas.shape[1] - 1],
+                     rs[0, 0:thetas.shape[1] - 1], color='black',
+                     linewidth=0.5)
 
         if radar_location:
             cls.plot_radar_position(stid, dtime, line_color=line_color)
@@ -368,7 +379,8 @@ class Fan():
         if fov_color is not None:
             theta = thetas[0:ranges[1], 0]
             theta = np.append(theta, thetas[ranges[1]-1, 0:thetas.shape[1]-1])
-            theta = np.append(theta, np.flip(thetas[0:ranges[1], thetas.shape[1]-2]))
+            theta = np.append(theta, np.flip(thetas[0:ranges[1],
+                                                    thetas.shape[1]-2]))
             theta = np.append(theta, np.flip(thetas[0, 0:thetas.shape[1]-2]))
 
             r = rs[0:ranges[1], 0]
@@ -456,3 +468,24 @@ class Fan():
             r_text = r_lat + 5
         plt.text(theta_text, r_text, label_str, ha='center', c=line_color)
         return
+
+
+    @classmethod
+    def __add_title__(cls, first_timestamp: dt.datetime,
+                      end_timestamp: dt.datetime):
+        title = "{year}-{month}-{day} {start_hour}:{start_minute}:{second} -"\
+                " {end_hour}:{end_minute}:{end_second}"\
+                "".format(year=first_timestamp.year,
+                          month=str(first_timestamp.month).zfill(2),
+                          day=str(first_timestamp.day).zfill(2),
+                          start_hour=str(first_timestamp.hour).zfill(2),
+                          start_minute=str(first_timestamp.minute).zfill(2),
+                          second=str(first_timestamp.second).zfill(2),
+                          end_hour=str(end_timestamp.hour).
+                          zfill(2),
+                          end_minute=str(end_timestamp.minute).
+                          zfill(2),
+                          end_second=str(end_timestamp.second).zfill(2)
+                         )
+        return title
+
