@@ -44,7 +44,9 @@ from .utils.radar_pos import radar_fov
 
 # import plotting
 from .plotting.color_maps import PyDARNColormaps
+from .plotting.axis import Projections
 from .plotting.rtp import RTP
 from .plotting.fan import Fan
 from .plotting.acf import ACF
 from .plotting.power import Power
+
