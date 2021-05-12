@@ -116,8 +116,8 @@ class Fan():
                 can define it with plt.title
                 default: true
             kwargs: key = value
-                Additional keyword arguments 
-                Current key words used: lowlat - used in axis_polar
+                Additional keyword arguments to be used in projection plotting
+                For possible keywords, see: projections.axis_polar
 
         Returns
         -----------
@@ -287,8 +287,8 @@ class Fan():
                 the fov color
                 Default: 0.5
             kawrgs: key = value
-                Additional keyword arguments 
-                Current key words used: lowlat - used in axis_polar
+                Additional keyword arguments to be used in projection plotting
+                For possible keywords, see: projections.axis_polar
 
         Returns
         -------

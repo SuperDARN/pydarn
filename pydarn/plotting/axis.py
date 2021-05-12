@@ -35,7 +35,7 @@ class Projections():
                 "   - axis_polar()\n"
 
     @classmethod
-    def axis_polar(cls, lowlat: int = 30, hem: str = Hemisphere.North):
+    def axis_polar(cls, lowlat: int = 30, hem: object = Hemisphere.North):
         """
         Plots a radar's Field Of View (FOV) fan plot for the given data and
         scan number
