@@ -54,7 +54,7 @@ class Fan():
                  scan_index: Union[int, dt.datetime] = 1,
                  ranges: List = [0, 75], boundary: bool = True,
                  alpha: int = 0.5, parameter: str = 'v',
-                 lowlat: int = 30, cmap: str = None,
+                 cmap: str = None,
                  groundscatter: bool = False,
                  zmin: int = None, zmax: int = None,
                  colorbar: bool = True,
