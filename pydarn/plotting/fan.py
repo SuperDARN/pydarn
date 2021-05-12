@@ -163,7 +163,7 @@ class Fan():
         plot_beams = np.where(beam_scan == scan_index)
 
         # Time for coordinate conversion
-        dtime = time2datetime(dmap_data[plot_beams[0][0]])
+        date = time2datetime(dmap_data[plot_beams[0][0]])
 
         # Plot FOV outline
         beam_corners_aacgm_lats, beam_corners_aacgm_lons, thetas, rs, ax = \
