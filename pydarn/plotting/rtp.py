@@ -56,7 +56,7 @@ class RTP():
                         start_time: datetime = None, end_time: datetime = None,
                         colorbar: plt.colorbar = None, ymin: int = None,
                         ymax: int = None, yspacing: int = 200,
-                        coord: object = Coords.SLANT_RANGE, float: reflection_height = 250., 
+                        coord: object = Coords.SLANT_RANGE, reflection_height: float = 250.0, 
                         colorbar_label: str = '',
                         norm=colors.Normalize,
                         cmap: str = None,
