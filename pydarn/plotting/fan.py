@@ -34,7 +34,6 @@ from pydarn import (PyDARNColormaps, build_scan, radar_fov, citing_warning,
                     SuperDARNRadars, Hemisphere)
 
 
-
 class Fan():
     """
         Fan plots for SuperDARN data
@@ -213,7 +212,6 @@ class Fan():
         norm = colors.Normalize
         norm = norm(zmin, zmax)
 
-
         for i in np.nditer(plot_beams):
             try:
                 # get a list of gates where there is data
@@ -325,8 +323,6 @@ class Fan():
             radar_fov(stid, coords=Coords.AACGM, date=dtime)
         fan_shape = beam_corners_aacgm_lons.shape
 
-
-
         # Work out shift due in MLT
         beam_corners_mlts = np.zeros((fan_shape[0], fan_shape[1]))
         mltshift = beam_corners_aacgm_lons[0, 0] - \
@@ -373,7 +369,6 @@ class Fan():
         if radar_label:
             cls.plot_radar_label(stid, dtime, line_color=line_color)
 
-
         if fov_color is not None:
             theta = thetas[0:ranges[1], 0]
             theta = np.append(theta, thetas[ranges[1]-1, 0:thetas.shape[1]-1])
@@ -388,7 +383,6 @@ class Fan():
             ax.fill(theta, r, color=fov_color, alpha=alpha)
         citing_warning()
         return beam_corners_aacgm_lats, beam_corners_aacgm_lons, thetas, rs, ax
-
 
     @classmethod
     def plot_radar_position(cls, stid, dtime, line_color: str = 'black'):
@@ -415,14 +409,14 @@ class Fan():
         lon = SuperDARNRadars.radars[stid].hardware_info.geographic.lon
         # Convert to geomag coords
         geomag_radar = aacgmv2.get_aacgm_coord(lat, lon, 250, dtime)
-        mltshift = geomag_radar[1] - (aacgmv2.convert_mlt(geomag_radar[1], dtime) * 15)
+        mltshift = geomag_radar[1] - (aacgmv2.convert_mlt(geomag_radar[1],
+                                                          dtime) * 15)
         # Convert to MLT then radians for theta
         theta_lon = np.radians(geomag_radar[1] - mltshift)
         r_lat = geomag_radar[0]
         # Plot a dot at the radar site
         plt.scatter(theta_lon, r_lat, c=line_color, s=5)
         return
-
 
     @classmethod
     def plot_radar_label(cls, stid, dtime, line_color: str = 'black'):
@@ -446,7 +440,7 @@ class Fan():
         """
         # Label text
         label_str = ' ' + SuperDARNRadars.radars[stid]\
-                        .hardware_info.abbrev.upper()
+                    .hardware_info.abbrev.upper()
         # Get location of radar
         lat = SuperDARNRadars.radars[stid].hardware_info.geographic.lat
         lon = SuperDARNRadars.radars[stid].hardware_info.geographic.lon
@@ -467,7 +461,6 @@ class Fan():
         plt.text(theta_text, r_text, label_str, ha='center', c=line_color)
         return
 
-
     @classmethod
     def __add_title__(cls, first_timestamp: dt.datetime,
                       end_timestamp: dt.datetime):
@@ -483,7 +476,5 @@ class Fan():
                           zfill(2),
                           end_minute=str(end_timestamp.minute).
                           zfill(2),
-                          end_second=str(end_timestamp.second).zfill(2)
-                         )
+                          end_second=str(end_timestamp.second).zfill(2))
         return title
-
