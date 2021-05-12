@@ -385,13 +385,14 @@ class Fan():
         return beam_corners_aacgm_lats, beam_corners_aacgm_lons, thetas, rs, ax
 
     @classmethod
-    def plot_radar_position(cls, stid, dtime, line_color: str = 'black'):
+    def plot_radar_position(cls, stid: int, dtime: dt.datetime,
+                            line_color: str = 'black'):
         """
         plots only a dot at the position of a given radar station ID (stid)
 
         Parameters
         -----------
-            stid: str
+            stid: int
                 Radar station ID
             dtime: datetime datetime object
                 sets the datetime used to find the coordinates of the
@@ -419,13 +420,14 @@ class Fan():
         return
 
     @classmethod
-    def plot_radar_label(cls, stid, dtime, line_color: str = 'black'):
+    def plot_radar_label(cls, stid: int, dtime: dt.datetime,
+                         line_color: str = 'black'):
         """
         plots only string at the position of a given radar station ID (stid)
 
         Parameters
         -----------
-            stid: str
+            stid: int
                 Radar station ID
             dtime: datetime datetime object
                 sets the datetime used to find the coordinates of the
