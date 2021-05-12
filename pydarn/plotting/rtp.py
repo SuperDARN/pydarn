@@ -2,6 +2,20 @@
 # Author: Marina Schmidt
 # This code is improvement based on rti.py in the DaVitpy library
 # https://github.com/vtsuperdarn/davitpy/blob/master/davitpy
+#
+# Modifications:
+# 2021-05-12 Francis Tholley added gate2grounscatter to range-time plots
+#
+# Disclaimer:
+# pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
+# Everyone is permitted to copy and distribute verbatim copies of this license
+# document, but changing it is not allowed.
+#
+# This version of the GNU Lesser General Public License incorporates the terms
+# and conditions of version 3 of the GNU General Public License,
+# supplemented by the additional permissions listed below.
+#
+
 
 """
 Range-Time Parameter (aka Intensity) plots
@@ -14,10 +28,11 @@ from datetime import datetime, timedelta
 from matplotlib import dates, colors, cm, ticker
 from typing import List
 
-from pydarn import (gate2GroundScatter, gate2slant, check_data_type, time2datetime,
-                    rtp_exceptions, plot_exceptions, SuperDARNCpids,
-                    SuperDARNRadars, standard_warning_format,
-                    PyDARNColormaps, Coords, citing_warning)
+from pydarn import (gate2GroundScatter, gate2slant, check_data_type,
+                    time2datetime, rtp_exceptions, plot_exceptions,
+                    SuperDARNCpids, SuperDARNRadars,
+                    standard_warning_format, PyDARNColormaps,
+                    Coords, citing_warning)
 
 warnings.formatwarning = standard_warning_format
 
@@ -56,7 +71,7 @@ class RTP():
                         start_time: datetime = None, end_time: datetime = None,
                         colorbar: plt.colorbar = None, ymin: int = None,
                         ymax: int = None, yspacing: int = 200,
-                        coord: object = Coords.SLANT_RANGE, reflection_height: float = 250.0, 
+                        coord: object = Coords.SLANT_RANGE, reflection_height: float = 250.0,
                         colorbar_label: str = '',
                         norm=colors.Normalize,
                         cmap: str = None,
@@ -730,7 +745,7 @@ class RTP():
         coord: Coord
             set the y-axis to a desired coordinate system
             Default: Coord.SLANT_RANGE
-        reflection_height: float 
+        reflection_height: float
             set the ionosphere virtual reflection height
             this only applies to Coords.GROUND_SCATTER_MAPPED_RANGE
             Default: 250 (km)
@@ -1008,7 +1023,7 @@ class RTP():
                                             ax=axes[i],
                                             groundscatter=grndflg,
                                             channel=channel,
-                                            coord=coord, 
+                                            coord=coord,
                                             reflection_height = reflection_height,
                                             cmap=cmap[axes_parameters[i]],
                                             zmin=boundary_ranges[axes_parameters[i]][0],

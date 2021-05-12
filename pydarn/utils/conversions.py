@@ -1,6 +1,7 @@
 # Copyright 2019 SuperDARN Canada, University of Saskatchewan
 # Author: Marina Schmidt
-
+# Copyright 2021 University of Scranton
+# Author: Francis Tholley and Dr. Nathaniel Frissel for gate2groundscatter
 """
 This module is to focus on data conversions
 
