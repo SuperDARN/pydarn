@@ -2,6 +2,7 @@
 # Author: Daniel Billett, Marina Schmidt
 #
 # Modifications:
+#   2021-04-01 Shane Coyle added pcolormesh to the code
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
@@ -28,9 +29,8 @@ from typing import List, Union
 import aacgmv2
 
 from pydarn import (PyDARNColormaps, build_scan, radar_fov, citing_warning,
-                    time2datetime, plot_exceptions, SuperDARNRadars,
-                    Hemisphere, Projections)
-
+                    time2datetime, plot_exceptions, Coords, 
+                    SuperDARNRadars, Hemisphere, Projections)
 
 
 class Fan():
@@ -180,6 +180,7 @@ class Fan():
         if cmap is None:
             cmap = {'p_l': 'plasma', 'v': PyDARNColormaps.PYDARN_VELOCITY,
                     'w_l': PyDARNColormaps.PYDARN_VIRIDIS,
+
                     'elv': PyDARNColormaps.PYDARN}
             cmap = plt.cm.get_cmap(cmap[parameter])
 
@@ -190,6 +191,9 @@ class Fan():
             zmin = defaultzminmax[parameter][0]
         if zmax is None:
             zmax = defaultzminmax[parameter][1]
+        norm = colors.Normalize
+        norm = norm(zmin, zmax)
+
 
         for i in np.nditer(plot_beams):
             try:
@@ -202,38 +206,27 @@ class Fan():
             # if there is no slist field this means partial record
             except KeyError:
                 continue
-
         # Begin plotting by iterating over ranges and beams
-        for gates in range(ranges[0], ranges[1] - 1):
-            for beams in range(thetas.shape[1] - 1):
-                # Index colour table correctly
-                cmapindex = (scan[gates, beams] + abs(zmin)) /\
-                        (abs(zmin) + abs(zmax))
-                if cmapindex < 0:
-                    cmapindex = 0
+        thetas = thetas[ranges[0]:ranges[1]]
+        rs = rs[ranges[0]:ranges[1]]
+        scan = scan[ranges[0]:ranges[1]-1]
+        ax.pcolormesh(thetas, rs,
+                      np.ma.masked_array(scan, ~scan.astype(bool)),
+                      norm=norm, cmap=cmap)
 
-                if cmapindex > 1:
-                    cmapindex = 1
-                colour_rgba = cmap(cmapindex)
+        # plot the groundscatter as grey fill
+        if groundscatter:
+            grndsct = grndsct[ranges[0]:ranges[1]-1]
+            ax.pcolormesh(thetas, rs,
+                          np.ma.masked_array(grndsct,
+                                             ~grndsct.astype(bool)),
+                          norm=norm, cmap='Greys')
 
-                # Check for zero values (white) and groundscatter (gray)
-                if scan[gates, beams] == 0:
-                    colour_rgba = (1, 1, 1, 0)
+        azm = np.linspace(0, 2 * np.pi, 100)
+        r, th = np.meshgrid(rs, azm)
+        plt.plot(azm, r, color='k', ls='none')
+        plt.grid()
 
-                if groundscatter and grndsct[gates, beams] == 1:
-                    colour_rgba = 'gray'
-
-                # Angle for polar plotting
-                theta = [thetas[gates, beams], thetas[gates + 1, beams],
-                         thetas[gates + 1, beams + 1],
-                         thetas[gates, beams + 1]]
-                # Radius for polar plotting
-                r = [rs[gates, beams], rs[gates + 1, beams],
-                     rs[gates + 1, beams + 1], rs[gates, beams + 1]]
-                ax.fill(theta, r, color=colour_rgba)
-
-        norm = colors.Normalize
-        norm = norm(zmin, zmax)
         # Create color bar if True
         if colorbar is True:
             mappable = cm.ScalarMappable(norm=norm, cmap=cmap)

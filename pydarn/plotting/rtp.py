@@ -2,6 +2,20 @@
 # Author: Marina Schmidt
 # This code is improvement based on rti.py in the DaVitpy library
 # https://github.com/vtsuperdarn/davitpy/blob/master/davitpy
+#
+# Modifications:
+# 2021-05-12 Francis Tholley added gate2grounscatter to range-time plots
+#
+# Disclaimer:
+# pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
+# Everyone is permitted to copy and distribute verbatim copies of this license
+# document, but changing it is not allowed.
+#
+# This version of the GNU Lesser General Public License incorporates the terms
+# and conditions of version 3 of the GNU General Public License,
+# supplemented by the additional permissions listed below.
+#
+
 
 """
 Range-Time Parameter (aka Intensity) plots
@@ -14,10 +28,11 @@ from datetime import datetime, timedelta
 from matplotlib import dates, colors, cm, ticker
 from typing import List
 
-from pydarn import (gate2slant, check_data_type, time2datetime,
-                    rtp_exceptions, plot_exceptions, SuperDARNCpids,
-                    SuperDARNRadars, standard_warning_format,
-                    PyDARNColormaps, Coords, citing_warning)
+from pydarn import (gate2GroundScatter, gate2slant, check_data_type,
+                    time2datetime, rtp_exceptions, plot_exceptions,
+                    SuperDARNCpids, SuperDARNRadars,
+                    standard_warning_format, PyDARNColormaps,
+                    Coords, citing_warning)
 
 warnings.formatwarning = standard_warning_format
 
@@ -56,9 +71,11 @@ class RTP():
                         start_time: datetime = None, end_time: datetime = None,
                         colorbar: plt.colorbar = None, ymin: int = None,
                         ymax: int = None, yspacing: int = 200,
-                        coord: object = Coords.SLANT_RANGE,
-                        colorbar_label: str = '', norm=colors.Normalize,
-                        cmap: str = None, filter_settings: dict = {},
+                        coord: object = Coords.SLANT_RANGE, reflection_height: float = 250.0,
+                        colorbar_label: str = '',
+                        norm=colors.Normalize,
+                        cmap: str = None,
+                        filter_settings: dict = {},
                         date_fmt: str = '%y/%m/%d\n %H:%M', **kwargs):
         """
         Plots a range-time parameter plot of the given
@@ -108,9 +125,13 @@ class RTP():
         yspacing: int
             sets the spacing between ticks
             Default: 200
-        coord: Coord
+        coord: Coords
             set the y-axis to a desired coordinate system
-            Default: Coord.SLANT_RANGE
+            Default: Coords.SLANT_RANGE
+        reflection_height: float
+            set the ionosphere virtual reflection height
+            this only applies to Coords.GROUND_SCATTER_MAPPED_RANGE
+            Default: 250 (km)
         norm: matplotlib.colors.Normalization object
             This object use dependency injection to use any normalization
             method with the zmin and zmax.
@@ -339,6 +360,14 @@ class RTP():
             rxrise = SuperDARNRadars.radars[cls.dmap_data[0]['stid']]\
                                     .hardware_info.rx_rise_time
             y = gate2slant(cls.dmap_data[0], y_max, rxrise=rxrise)
+        elif coord is Coords.GROUND_SCATTER_MAPPED_RANGE:
+            rxrise = SuperDARNRadars.radars[cls.dmap_data[0]['stid']]\
+                                    .hardware_info.rx_rise_time
+            y = gate2slant(cls.dmap_data[0], y_max, rxrise=rxrise)
+            y = gate2GroundScatter(y, reflection_height)
+            y0inx = np.min(np.where(np.isfinite(y))[0])
+            y = y[y0inx:]
+            z = z[:,y0inx:]
         time_axis, y_axis = np.meshgrid(x, y)
         z_data = np.ma.masked_where(np.isnan(z.T), z.T)
         Default = {'noise.sky': (1e0, 1e5),
@@ -392,14 +421,14 @@ class RTP():
         ax.set_xlim([rounded_down_start_time, x[-1]])
         ax.xaxis.set_major_formatter(dates.DateFormatter(date_fmt))
         if ymax is None:
-            ymax = max(y)
+            ymax = np.max(y)
 
         if ymin is None:
-            ymin = min(y)
+            ymin = np.min(y)
 
         ax.set_ylim(ymin, ymax)
 
-        if coord is Coords.SLANT_RANGE:
+        if coord is Coords.SLANT_RANGE or coord is Coords.GROUND_SCATTER_MAPPED_RANGE:
             ax.yaxis.set_ticks(np.arange(np.ceil(ymin/100.0)*100,
                                          ymax+1, yspacing))
         else:
@@ -416,7 +445,8 @@ class RTP():
         else:
             tick_interval = 1
         ax.xaxis.set_minor_locator(dates.MinuteLocator(interval=tick_interval))
-        if coord is Coords.SLANT_RANGE:
+
+        if coord is Coords.SLANT_RANGE or coord is Coords.GROUND_SCATTER_MAPPED_RANGE:
             ax.yaxis.set_minor_locator(ticker.AutoMinorLocator(2))
         else:
             ax.yaxis.set_minor_locator(ticker.MultipleLocator(5))
@@ -679,10 +709,11 @@ class RTP():
     def plot_summary(cls, dmap_data: List[dict], beam_num: int = 0,
                      groundscatter: bool = True, channel: int = 'all',
                      coord: object = Coords.SLANT_RANGE,
-                     figsize: tuple = (11, 8.5), watermark: bool = True,
-                     boundary: dict = {}, background_color: str = 'w',
-                     cmaps: dict = {}, lines: dict = {},
-                     plot_elv: bool = True, title=None):
+                     reflection_height: float = 250.0,
+                     figsize: tuple = (11, 8.5),
+                     watermark: bool = True, boundary: dict = {},
+                     background_color: str = 'w', cmaps: dict = {},
+                     lines: dict = {}, plot_elv: bool = True, title=None):
         """
         Plots the summary of several SuperDARN parameters using time-series and
         range-time plots. Please see Notes for further description
@@ -714,6 +745,10 @@ class RTP():
         coord: Coord
             set the y-axis to a desired coordinate system
             Default: Coord.SLANT_RANGE
+        reflection_height: float
+            set the ionosphere virtual reflection height
+            this only applies to Coords.GROUND_SCATTER_MAPPED_RANGE
+            Default: 250 (km)
         figsize : (int,int)
             tuple containing (height, width) figure size
             Default: 11 x 8.5
@@ -967,6 +1002,8 @@ class RTP():
                 # on the velocity plot. This may change in the future.
                 if coord is Coords.SLANT_RANGE:
                     ymax = 3517.5
+                elif coord is Coords.GROUND_SCATTER_MAPPED_RANGE:
+                    ymax = 3517.5/2
                 else:
                     ymax = 75
                 if groundscatter and axes_parameters[i] == 'v':
@@ -987,6 +1024,7 @@ class RTP():
                                             groundscatter=grndflg,
                                             channel=channel,
                                             coord=coord,
+                                            reflection_height = reflection_height,
                                             cmap=cmap[axes_parameters[i]],
                                             zmin=boundary_ranges[axes_parameters[i]][0],
                                             zmax=boundary_ranges[axes_parameters[i]][1],
@@ -1009,6 +1047,8 @@ class RTP():
                     cbar.set_ticks(ticks)
                 if coord is Coords.SLANT_RANGE:
                     axes[i].set_ylabel('Slant Range (km)')
+                elif coord is Coords.GROUND_SCATTER_MAPPED_RANGE:
+                    axes[i].set_ylabel('Ground Scatter\nMapped Range\n(km)')
                 else:
                     axes[i].set_ylabel('Range Gates')
             if i < num_plots-1:
