@@ -28,9 +28,11 @@ class Coords(enum.Enum):
     enumerators:
         RANGE_GATE: range gates
         SLANT_RANGE: slant range (km)
+        GROUND_SCATTER_MAPPED_RANGE: ground scatter mapped range (km)
     """
 
     RANGE_GATE = enum.auto()
     SLANT_RANGE = enum.auto()
+    GROUND_SCATTER_MAPPED_RANGE = enum.auto()
     GEOGRAPHIC = enum.auto()
     AACGM = enum.auto()
