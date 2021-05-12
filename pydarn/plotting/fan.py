@@ -29,7 +29,7 @@ from typing import List, Union
 # Third party libraries
 import aacgmv2
 
-from pydarn import (PyDARNColormaps, build_scan, radar_fov, citing_warning, 
+from pydarn import (PyDARNColormaps, build_scan, radar_fov, citing_warning,
                     time2datetime, plot_exceptions, Coords,
                     SuperDARNRadars, Hemisphere)
 
@@ -57,8 +57,8 @@ class Fan():
     def plot_fan(cls, dmap_data: List[dict], ax=None,
                  scan_index: Union[int, dt.datetime] = 1,
                  ranges: List = [0, 75], boundary: bool = True,
-                 alpha: int = 0.5, parameter: str = 'v',
-                 lowlat: int = 30, cmap: str = None,
+                 line_color: str = 'black', alpha: int = 0.5,
+                 parameter: str = 'v', lowlat: int = 30, cmap: str = None,
                  groundscatter: bool = False,
                  zmin: int = None, zmax: int = None,
                  colorbar: bool = True,
@@ -95,6 +95,9 @@ class Fan():
             boundary: bool
                 Set to false to not plot the outline of the FOV
                 Default: True
+            line_color: str
+                set the line and dot color
+                default: black
             alpha: int
                 alpha controls the transparency of
                 the fov color
@@ -182,7 +185,8 @@ class Fan():
         beam_corners_aacgm_lats, beam_corners_aacgm_lons, thetas, rs, ax = \
             cls.plot_fov(stid=dmap_data[0]['stid'], dtime=dtime, lowlat=lowlat,
                          ranges=ranges, boundary=boundary,
-                         alpha=alpha, radar_label=radar_label, 
+                         line_color=line_color, alpha=alpha,
+                         radar_label=radar_label,
                          radar_location=radar_location)
         fan_shape = beam_corners_aacgm_lons.shape
 
@@ -350,26 +354,26 @@ class Fan():
         if boundary:
             # left boundary line
             plt.plot(thetas[0:ranges[1], 0], rs[0:ranges[1], 0],
-                     color='black', linewidth=0.5)
+                     color=line_color, linewidth=0.5)
             # top radar arc
             plt.plot(thetas[ranges[1] - 1, 0:thetas.shape[1]],
                      rs[ranges[1] - 1, 0:thetas.shape[1]],
-                     color='black', linewidth=0.5)
+                     color=line_color, linewidth=0.5)
             # right boundary line
             plt.plot(thetas[0:ranges[1], thetas.shape[1] - 1],
                      rs[0:ranges[1], thetas.shape[1] - 1],
-                     color='black', linewidth=0.5)
+                     color=line_color, linewidth=0.5)
             # bottom arc
             plt.plot(thetas[0, 0:thetas.shape[1] - 1],
-                     rs[0, 0:thetas.shape[1] - 1], color='black',
+                     rs[0, 0:thetas.shape[1] - 1], color=line_color,
                      linewidth=0.5)
 
         if radar_location:
             cls.plot_radar_position(stid, dtime, line_color=line_color)
         if radar_label:
             cls.plot_radar_label(stid, dtime, line_color=line_color)
-            
-        
+
+
         if fov_color is not None:
             theta = thetas[0:ranges[1], 0]
             theta = np.append(theta, thetas[ranges[1]-1, 0:thetas.shape[1]-1])
@@ -453,7 +457,7 @@ class Fan():
         # Convert to MLT then radians for theta
         theta_lon = np.radians(geomag_radar[1] - mltshift)
         r_lat = geomag_radar[0]
-        
+
         theta_text = theta_lon
         # Shift in latitude (dependent on hemisphere)
         if SuperDARNRadars.radars[stid].hemisphere == Hemisphere.North:
