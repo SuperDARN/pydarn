@@ -56,7 +56,7 @@ class RTP():
                         start_time: datetime = None, end_time: datetime = None,
                         colorbar: plt.colorbar = None, ymin: int = None,
                         ymax: int = None, yspacing: int = 200,
-                        coord: object = Coords.SLANT_RANGE, reflection_height = 250, 
+                        coord: object = Coords.SLANT_RANGE, float: reflection_height = 250., 
                         colorbar_label: str = '',
                         norm=colors.Normalize,
                         cmap: str = None,
@@ -113,7 +113,7 @@ class RTP():
         coord: Coords
             set the y-axis to a desired coordinate system
             Default: Coords.SLANT_RANGE
-        reflection_height: int
+        reflection_height: float
             set the ionosphere virtual reflection height
             this only applies to Coords.GROUND_SCATTER_MAPPED_RANGE
             Default: 250 (km)
@@ -340,7 +340,6 @@ class RTP():
                                      start_time=start_time,
                                      end_time=end_time,
                                      opt_beam_num=cls.dmap_data[0]['bmnum'])
-                   
         if coord is Coords.SLANT_RANGE:
             # Get rxrise from hardware files (consistent with RST)
             rxrise = SuperDARNRadars.radars[cls.dmap_data[0]['stid']]\
@@ -414,10 +413,7 @@ class RTP():
 
         ax.set_ylim(ymin, ymax)
 
-        if coord is Coords.SLANT_RANGE:
-            ax.yaxis.set_ticks(np.arange(np.ceil(ymin/100.0)*100,
-                                         ymax+1, yspacing))
-        elif coord is Coords.GROUND_SCATTER_MAPPED_RANGE:
+        if coord is Coords.SLANT_RANGE or coord is Coords.GROUND_SCATTER_MAPPED_RANGE:
             ax.yaxis.set_ticks(np.arange(np.ceil(ymin/100.0)*100,
                                          ymax+1, yspacing))
         else:
@@ -434,6 +430,7 @@ class RTP():
         else:
             tick_interval = 1
         ax.xaxis.set_minor_locator(dates.MinuteLocator(interval=tick_interval))
+
         if coord is Coords.SLANT_RANGE or coord is Coords.GROUND_SCATTER_MAPPED_RANGE:
             ax.yaxis.set_minor_locator(ticker.AutoMinorLocator(2))
         else:
@@ -696,7 +693,9 @@ class RTP():
     @classmethod
     def plot_summary(cls, dmap_data: List[dict], beam_num: int = 0,
                      groundscatter: bool = True, channel: int = 'all',
-                     coord: object = Coords.SLANT_RANGE, hgt: float = 250.0, figsize: tuple = (11, 8.5),
+                     coord: object = Coords.SLANT_RANGE,
+                     reflection_height: float = 250.0,
+                     figsize: tuple = (11, 8.5),
                      watermark: bool = True, boundary: dict = {},
                      background_color: str = 'w', cmaps: dict = {},
                      lines: dict = {}, plot_elv: bool = True, title=None):
@@ -731,7 +730,7 @@ class RTP():
         coord: Coord
             set the y-axis to a desired coordinate system
             Default: Coord.SLANT_RANGE
-        hgt: int
+        reflection_height: float 
             set the ionosphere virtual reflection height
             this only applies to Coords.GROUND_SCATTER_MAPPED_RANGE
             Default: 250 (km)
@@ -1010,7 +1009,7 @@ class RTP():
                                             groundscatter=grndflg,
                                             channel=channel,
                                             coord=coord, 
-                                            hgt = hgt,
+                                            reflection_height = reflection_height,
                                             cmap=cmap[axes_parameters[i]],
                                             zmin=boundary_ranges[axes_parameters[i]][0],
                                             zmax=boundary_ranges[axes_parameters[i]][1],
