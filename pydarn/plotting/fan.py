@@ -61,7 +61,7 @@ class Fan():
                  groundscatter: bool = False,
                  zmin: int = None, zmax: int = None,
                  colorbar: bool = True,
-                 colorbar_label: str = '', radar_location: bool = False,
+                 colorbar_label: str = '', radar_location: bool = True,
                  radar_label: bool = False, title: bool = True):
                  **kwargs):
 
