@@ -30,7 +30,7 @@ from typing import List, Union
 import aacgmv2
 
 from pydarn import (PyDARNColormaps, build_scan, radar_fov, citing_warning,
-                    time2datetime, plot_exceptions, Coords, 
+                    time2datetime, plot_exceptions, Coords,
                     SuperDARNRadars, Hemisphere, Projections)
 
 
@@ -62,10 +62,8 @@ class Fan():
                  zmin: int = None, zmax: int = None,
                  colorbar: bool = True,
                  colorbar_label: str = '', radar_location: bool = True,
-                 radar_label: bool = False, title: bool = True):
+                 radar_label: bool = False, title: bool = True,
                  **kwargs):
-
-
         """
         Plots a radar's Field Of View (FOV) fan plot for the given data and
         scan number
@@ -181,7 +179,7 @@ class Fan():
 
         # Plot FOV outline
         beam_corners_aacgm_lats, beam_corners_aacgm_lons, thetas, rs, ax = \
-            cls.plot_fov(stid=dmap_data[0]['stid'], dtime=dtime, lowlat=lowlat,
+            cls.plot_fov(stid=dmap_data[0]['stid'], date=date,
                          ranges=ranges, boundary=boundary,
                          line_color=line_color, alpha=alpha,
                          radar_label=radar_label,
@@ -265,12 +263,11 @@ class Fan():
         return beam_corners_aacgm_lats, beam_corners_aacgm_lons, scan, grndsct
 
     @classmethod
-    def plot_fov(cls, stid: str, dtime: dt.datetime, ax=None,
-                  ranges: List = [0, 75],
-                 boundary: bool = True, fov_color: str = None,
-                 alpha: int = 0.5, radar_location: bool = False,
-                 radar_label: bool = False, line_color: str = 'black',
-                 **kwargs):
+    def plot_fov(cls, stid: str, date: dt.datetime, ax=None,
+                 ranges: List = [0, 75], boundary: bool = True,
+                 fov_color: str = None, alpha: int = 0.5,
+                 radar_location: bool = False, radar_label: bool = False,
+                 line_color: str = 'black', **kwargs):
         """
         plots only the field of view (FOV) for a given radar station ID (stid)
 
@@ -319,11 +316,11 @@ class Fan():
             thetas - theta polar coordinates
             rs - radius polar coordinates
         """
-        
-        #Set datetime object to current computer time if not given
+
+        # Set datetime object to current computer time if not given
         if not date:
-            date = dt.datetime.now()     
-        
+            date = dt.datetime.now()
+
         # Get radar beam/gate locations
         beam_corners_aacgm_lats, beam_corners_aacgm_lons = \
             radar_fov(stid, coords=Coords.AACGM, date=date)
@@ -337,7 +334,7 @@ class Fan():
 
         # Hold the beam positions
         thetas = np.radians(beam_corners_mlts)
-        rs = beam_corners_aacgm_lats   
+        rs = beam_corners_aacgm_lats
 
         # Setup plot
         # This may screw up references
@@ -365,9 +362,9 @@ class Fan():
                      linewidth=0.5)
 
         if radar_location:
-            cls.plot_radar_position(stid, dtime, line_color=line_color)
+            cls.plot_radar_position(stid, date, line_color=line_color)
         if radar_label:
-            cls.plot_radar_label(stid, dtime, line_color=line_color)
+            cls.plot_radar_label(stid, date, line_color=line_color)
 
         if fov_color is not None:
             theta = thetas[0:ranges[1], 0]
