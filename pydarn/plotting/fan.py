@@ -300,7 +300,7 @@ class Fan():
 
         # Get radar beam/gate locations
         beam_corners_aacgm_lats, beam_corners_aacgm_lons = \
-            radar_fov(stid, rsep, frang, coords='aacgm', ranges=ranges,
+            radar_fov(stid, rsep, frang, coords=coords, ranges=ranges,
                       date=dtime, max_beams=max_beams, read_file=fov_files)
 
         fan_shape = beam_corners_aacgm_lons.shape
