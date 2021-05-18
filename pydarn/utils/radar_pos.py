@@ -36,20 +36,19 @@ This module is used for handling coordinates of a specified radar
 in AACGMv2 or geographic coordinates
 """
 
-import datetime
+import datetime as dt
 import numpy as np
 import os
 
 import aacgmv2
 
-from pydarn import SuperDARNRadars, gate2slant
+from pydarn import SuperDARNRadars, gate2slant, Coords
 from pydarn.utils.const import EARTH_RADIUS
 
 
-# TODO: add enum for coords
 def radar_fov(stid: int, rsep: int = 45, frang: int = 180,
               ranges: tuple = None, read_file: bool = False,
-              coords: str = 'aacgm', max_beams: int = None,
+              coords: object = Coords.AACGM, max_beams: int = None,
               date: datetime = None):
     """
     Returning beam/gate coordinates of a specified radar's field-of-view
@@ -59,9 +58,9 @@ def radar_fov(stid: int, rsep: int = 45, frang: int = 180,
     stid: int
         Station ID of radar of choice. See 'superdarn.ca/radar-info'
         for ID numbers.
-    coords: str
-        Type of coordinates returned. 'geo' = Geographic, 'aacgm' = AACGMv2
-        Default: 'aacgm'
+    coords: Coords object
+        Type of coordinates returned
+        Default: Coords.AACGM
     date: datetime
         datetime object date to be used for AACGMv2 conversion
         Default: Current day
@@ -90,7 +89,7 @@ def radar_fov(stid: int, rsep: int = 45, frang: int = 180,
         beam_corners_lats = np.loadtxt(beam_lats)
         beam_corners_lons = np.loadtxt(beam_lons)
         # AACGMv2 conversion
-        if coords == 'aacgm':
+        if coords == Coords.AACGM:
             if date is None:
                 date = datetime.datetime.now()
             # Initialise arrays

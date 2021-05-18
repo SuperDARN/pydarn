@@ -1,6 +1,7 @@
 # Copyright 2019 SuperDARN Canada, University of Saskatchewan
 # Author: Marina Schmidt
-
+# Copyright 2021 University of Scranton
+# Author: Francis Tholley and Dr. Nathaniel Frissel for gate2groundscatter
 """
 This module is to focus on data conversions
 
@@ -11,7 +12,8 @@ from typing import List
 import numpy as np
 from collections import OrderedDict
 
-from pydarn import C
+from pydarn import (Re, C)
+
 
 # key is the format char type defined by python,
 # item is the DMAP int value for the type
@@ -84,8 +86,38 @@ def dmap2dict(dmap_records: List[dict]) -> List[dict]:
     return dmap_list
 
 
+<<<<<<< HEAD
 def gate2slant(frang:int, rsep:int, rxrise:int, gate: int = 0,
                nrang: int = None, center: bool = True):
+=======
+def gate2GroundScatter(slant_ranges: List[float],
+                       reflection_height: float = 250):
+    """
+    Calculate the ground scatter mapped range (km) for each slanted range
+    for SuperDARN data . This function is based on the Ground Scatter equation
+    from Bristow paper at https://doi.org/10.1029/93JA01470 on page 325
+    Parameters
+    ----------
+        slant_ranges : List[float]
+            list of slant ranges
+        reflection_height: float
+            reflection height
+            default:  250
+
+    Returns
+    -------
+        ground_scatter_mapped_ranges : np.array
+            returns an array of ground scatter mapped ranges for the radar
+    """
+
+    ground_scatter_mapped_ranges =\
+        Re*np.arcsin(np.sqrt((slant_ranges**2/4)-(reflection_height**2))/Re)
+
+    return ground_scatter_mapped_ranges
+
+
+def gate2slant(record, nrang, rxrise=0, center=False):
+>>>>>>> develop
     """
     Calculate the slant range (km) for each range gate for SuperDARN data
 
