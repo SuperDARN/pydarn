@@ -50,7 +50,9 @@ class Grid():
                   lowlat: int = 30, cmap: str = None, zmin: int = None,
                   zmax: int = None, colorbar: bool = True,
                   colorbar_label: str = '', title: str = '',
-                  len_factor: float = 150.0, ref_vector: int = 300):
+                  len_factor: float = 150.0, ref_vector: int = 300,
+                  fov_color: str = 'black', fov_fill_color: str = None,
+                  radar_location: bool = True, radar_label: bool = False):
         """
         Plots a radar's gridded vectors from a GRID file
 
@@ -111,6 +113,18 @@ class Grid():
             ref_vector: int
                 Velocity value to be used for the reference vector, in m/s
                 Default: 300
+            fov_color: str
+                Field of View boundary color
+                default: black
+            fov_fill_color: str
+                field of view fill color
+                default: '' - transparent
+            radar_label: bool
+                place the radar abbreviation on the plot
+                default: False
+            radar_location: bool
+                place the radar location represented as a dot
+                default: True
 
         See Also
         --------
@@ -150,6 +164,7 @@ class Grid():
                 raise plot_exceptions.NoDataFoundError(parameter,
                                                        start_time=start_time)
         else:
+            record = 0
             dtime = dt.datetime(dmap_data[record]['start.year'],
                                 dmap_data[record]['start.month'],
                                 dmap_data[record]['start.day'],
@@ -159,8 +174,11 @@ class Grid():
         for stid in dmap_data[record]['stid']:
             _, aacgm_lons, _, _, ax = Fan.plot_fov(stid, dtime,
                                                    boundary=fov,
-                                                   lowlat=lowlat)
-
+                                                   lowlat=lowlat,
+                                                   line_color=fov_color,
+                                                   fov_color=fov_fill_color,
+                                                   radar_location=radar_location,
+                                                   radar_label=radar_label)
             data_lons = dmap_data[record]['vector.mlon']
             data_lats = dmap_data[record]['vector.mlat']
 
