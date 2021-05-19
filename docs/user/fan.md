@@ -106,17 +106,29 @@ Here is a list of all the current options than can be used with `plot_fan`
 | Kwargs **                     | Axis Polar settings. See [polar axis](axis.py)                                                          |
 
 
+`plot_fan` can concatenate with other plots including itself, here is an example of plotting two different radars with some of the above parameters:
 
-
-
-As an example, the following code plots two fan plots, from the same radar at two different scans. The first one has been limited to only the first 20 ranges, and the second has no FOV boundary. Make sure you disable the colorbar on subsequent plots, or it will plot two. If you want to try this example for yourself, I used data from Saskatoon on 20200507 all day FITACF 3.0 file:
 ```python
-lats,lons,data,grndsct = pydarn.Fan.plot_fan(fitacf_data, scan_index=1, parameter='p_l', 
-	colorbar_label='Power [dB]', ranges=[0,20])
-	
-lats2,lons2,data2,grndsct2 = pydarn.Fan.plot_fan(fitacf_data, scan_index=140, parameter='p_l', 
-	colorbar=False, boundary=False)
+import pydarn
+from datetime import datetime
+import matplotlib.pyplot as plt 
 
+cly_file = 'data/20150308.1400.03.cly.fitacf'
+pyk_file = 'data/20150308.1401.00.pyk.fitacf'
+
+pyk_data = pydarn.SuperDARNRead().read_dmap(pyk_file)
+cly_data = pydarn.SuperDARNRead().read_dmap(cly_file)
+
+pydarn.Fan.plot_fan(cly_data, scan_index=datetime(2015, 3, 8, 14, 4),
+                    colorbar=False, fov_color='grey', line_color='blue',
+                    radar_label=True)
+
+pydarn.Fan.plot_fan(pyk_data, scan_index=datetime(2015, 3, 8, 14, 4), 
+                    colorbar_label='Velocity [m/s]', fov_color='grey',
+                    line_color='red', radar_label=True)
+
+#pydarn.Fan.plot_fov(66, datetime(2015, 3, 8, 15, 0), radar_label=True)
 plt.show()
 ```
+
 ![](../imgs/fan_3.png)
