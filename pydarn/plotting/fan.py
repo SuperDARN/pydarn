@@ -265,7 +265,7 @@ class Fan():
     def plot_fov(cls, stid: str, date: dt.datetime, ax=None,
                  ranges: List = [], boundary: bool = True,
                  fov_color: str = None, alpha: int = 0.5,
-                 radar_location: bool = False, radar_label: bool = False,
+                 radar_location: bool = True, radar_label: bool = False,
                  line_color: str = 'black', **kwargs):
         """
         plots only the field of view (FOV) for a given radar station ID (stid)
