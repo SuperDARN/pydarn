@@ -147,7 +147,6 @@ class Fan():
         --------
             plot_fov
         """
-
         # Get scan numbers for each record
         beam_scan = build_scan(dmap_data)
 
@@ -264,7 +263,7 @@ class Fan():
 
     @classmethod
     def plot_fov(cls, stid: str, date: dt.datetime, ax=None,
-                 ranges: List = [0, 75], boundary: bool = True,
+                 ranges: List = [], boundary: bool = True,
                  fov_color: str = None, alpha: int = 0.5,
                  radar_location: bool = False, radar_label: bool = False,
                  line_color: str = 'black', **kwargs):
@@ -273,7 +272,7 @@ class Fan():
 
         Parameters
         -----------
-            stid: str
+            stid: int
                 Radar station ID
             ax: matplotlib.pyplot axis
                 Pre-defined axis object to pass in, must currently be
@@ -285,7 +284,9 @@ class Fan():
                 Default: Current time
             ranges: list
                 Set to a two element list of the lower and upper ranges to plot
-                Default: [0,75]
+                If an empty array will obtain the max range gate from the
+                hardware file.
+                Default: []
             boundary: bool
                 Set to false to not plot the outline of the FOV
                 Default: True
@@ -325,7 +326,8 @@ class Fan():
         beam_corners_aacgm_lats, beam_corners_aacgm_lons = \
             radar_fov(stid, coords=Coords.AACGM, date=date)
         fan_shape = beam_corners_aacgm_lons.shape
-
+        if ranges == []:
+            ranges = [0, fan_shape[0]]
         # Work out shift due in MLT
         beam_corners_mlts = np.zeros((fan_shape[0], fan_shape[1]))
         mltshift = beam_corners_aacgm_lons[0, 0] - \
@@ -370,14 +372,14 @@ class Fan():
             theta = thetas[0:ranges[1], 0]
             theta = np.append(theta, thetas[ranges[1]-1, 0:thetas.shape[1]-1])
             theta = np.append(theta, np.flip(thetas[0:ranges[1],
-                                                    thetas.shape[1]-2]))
-            theta = np.append(theta, np.flip(thetas[0, 0:thetas.shape[1]-2]))
+                                                    thetas.shape[1]-1]))
+            theta = np.append(theta, np.flip(thetas[0, 0:thetas.shape[1]-1]))
 
             r = rs[0:ranges[1], 0]
             r = np.append(r, rs[ranges[1]-1, 0:thetas.shape[1]-1])
-            r = np.append(r, np.flip(rs[0:ranges[1], thetas.shape[1]-2]))
-            r = np.append(r, np.flip(rs[0, 0:thetas.shape[1]-2]))
-            ax.fill(theta, r, color=fov_color, alpha=alpha)
+            r = np.append(r, np.flip(rs[0:ranges[1], thetas.shape[1]-1]))
+            r = np.append(r, np.flip(rs[0, 0:thetas.shape[1]-1]))
+            ax.fill(theta, r, color=fov_color, alpha=alpha, zorder=0)
         citing_warning()
         return beam_corners_aacgm_lats, beam_corners_aacgm_lons, thetas, rs, ax
 
