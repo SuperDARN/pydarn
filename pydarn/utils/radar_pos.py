@@ -5,14 +5,16 @@ This module is used for handling coordinates of a specified radar
 in AACGMv2 or geographic coordinates
 """
 
-import datetime
+import datetime as dt
 import numpy as np
 import os
 
 import aacgmv2
 
+from pydarn import Coords
 
-def radar_fov(stid: int, coords: str = 'aacgm', date: datetime = None):
+
+def radar_fov(stid: int, coords: str = Coords.AACGM, date: dt = None):
     """
     Returning beam/gate coordinates of a specified radar's field-of-view
 
@@ -52,9 +54,9 @@ def radar_fov(stid: int, coords: str = 'aacgm', date: datetime = None):
     beam_corners_lons = np.loadtxt(beam_lons)
 
     # AACGMv2 conversion
-    if coords == 'aacgm':
+    if coords == Coords.AACGM:
         if not date:
-            date = datetime.datetime.now()
+            date = dt.datetime.now()
 
         # Initialise arrays
         fan_shape = beam_corners_lons.shape
