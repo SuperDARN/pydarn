@@ -88,6 +88,10 @@ Here is a list of all the current options than can be used with `plot_grid`
 | colorbar=(bool)                | Set true to plot a colorbar (default: True)                                           |
 | colorbar_label=(string)        | Label for the colour bar (requires colorbar to be true)                               |
 | title=(str)                    | To add a title to the plot                                                            |
+| radar_label=(str)        | To include a dot at radar location and label of 3 letter code |
+| fov_color=(str)           | Fill color of fov boundary                                                          |
+| fov_fill_color=(str)      | Fill color of fov                                                                           |
+
 
 As an example, the following code plots multiple radar Grid plot:
 ```python
