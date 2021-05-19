@@ -17,6 +17,7 @@ If you have any questions or concerns please submit an **Issue** on the SuperDAR
   - Tutorials 
     - [Reading a SuperDARN File](user/io.md)
     - [Radar and Hardware Information](user/hardware.md)
+    - [Coordinate Systems](user/coordinates.md)
     - [Range-Time plots](user/range_time.md)
     - [Time-Series plots](user/time_series.md)
     - [Summary plots](user/summary.md)
