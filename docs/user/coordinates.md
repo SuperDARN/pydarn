@@ -48,4 +48,4 @@ Geographic plots include: fan, grid and convection map (coming soon) plots
 
 **Ground Scatter Mapped Geographic** (Coming Soon)
 
-**Ground Scatter Mapped Geographic** (Coming Soon)
+**Ground Scatter Mapped Geomagnetic** (Coming Soon)
