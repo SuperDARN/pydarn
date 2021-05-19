@@ -18,6 +18,7 @@ nav:
             - Time-Series plots: user/time_series.md 
             - Summary plots: user/summary.md
             - Fan plots: user/fan.md
+            - Grid plots: user/grid.md
             - Power plots: user/power.md
             - ACF plots: user/acf.md
             - Logging: user/logging.md
