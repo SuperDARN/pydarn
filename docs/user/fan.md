@@ -35,7 +35,7 @@ SDarn_read = pydarn.SuperDARNRead(file)
 fitacf_data = SDarn_read.read_fitacf()
 
 ```
-With the FITACF data loaded as a list of dictionaries (`fitacf_data` variable in above example), you may now call the `plot_fan` method. Make sure you tell it which scan (numbered from first recorded scan in file, counting from 1 or give it a `datetime` object for the scan a that time) you want using `scan_index`:
+With the FITACF data loaded as a list of dictionaries (`fitacf_data` variable in above example), you may now call the `plot_fan` method. Make sure you tell it which scan (numbered from first recorded scan in file, counting from 1 or give it at `datetime` object for the scan a that time) you want using `scan_index`:
 ```python
 fanplot = pydarn.Fan.plot_fan(fitacf_data, scan_index=27, 
                               colorbar_label='Velocity [m/s]')
@@ -103,7 +103,7 @@ Here is a list of all the current options than can be used with `plot_fan`
 | alpha=(int)                   | Sets the transparency of the fill color (default: 0.5)                                                  |
 | radar_location=(bool)         | Places a dot in the plot representing the radar location (default: True)                                |
 | radar_label=(bool)            | Places the radar 3-letter abbreviation next to the radar location                                       |
-| Kwargs **                     | Axis Polar settings. See [polar axis](axis.py)                                                          |
+| kwargs **                     | Axis Polar settings. See [polar axis](axis.py)                                                          |
 
 
 `plot_fan` can concatenate with other plots including itself, here is an example of plotting two different radars with some of the above parameters:
