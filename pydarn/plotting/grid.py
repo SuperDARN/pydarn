@@ -259,7 +259,7 @@ class Grid():
 
                 # Plot the vectors
                 for i in num_pts:
-                    plt.polar([thetas[i], end_thetas[i]], [rs[i], end_rs[i]],
+                    plt.plot([thetas[i], end_thetas[i]], [rs[i], end_rs[i]],
                               c=cmap(norm(data[i])), linewidth=0.5)
 
             # TODO: Add a velocity reference vector

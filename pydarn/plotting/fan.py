@@ -179,7 +179,7 @@ class Fan():
         # Plot FOV outline
         beam_corners_aacgm_lats, beam_corners_aacgm_lons, thetas, rs, ax = \
             cls.plot_fov(stid=dmap_data[0]['stid'], date=date,
-                         ranges=ranges, boundary=boundaRy,
+                         ranges=ranges, boundary=boundary,
                          line_color=line_color, alpha=alpha,
                          radar_label=radar_label,
                          radar_location=radar_location, ax=ax, **kwargs)
