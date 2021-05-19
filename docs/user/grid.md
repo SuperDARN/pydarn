@@ -28,7 +28,7 @@ Gridded [parameters](https://radar-software-toolkit-rst.readthedocs.io/en/latest
 and a time or record number projected onto a polar format plot in [AACGMv2](http://superdarn.thayer.dartmouth.edu/aacgm.html) coordinates. 
 
 
-Currently, grid plots in pyDARN get geomagnetic positions of the gridded data in [`mlon` and `mlat`](https://pypi.org/project/aacgmv2/) from the GRID file, which uses AACGMv2 coordinates. In the future, pyDARN will also generate the geographic position of the data points, which will bring support for not standard gridded vector layouts.
+Currently, grid plots in pyDARN get geomagnetic positions of the gridded data in [`mlon` and `mlat`](https://pypi.org/project/aacgmv2/) from the GRID file, which uses AACGMv2 coordinates. In the future, pyDARN will also generate the geographic position of the data points, which will bring support for non-standard gridded vector layouts.
 
 ### Basic usage
 
@@ -38,7 +38,7 @@ pyDARN and pyplot need to be imported and the desired GRID file needs to be [rea
 import matplotlib.pyplot as plt
 import pydarn
 
-#Read in grid file using SuperDARDRead, then read_grid
+#Read in grid file using SuperDARNRead, then read_grid
 file = "path/to/grid/file"
 SDarn_read = pydarn.SuperDARNRead(file)
 grid_data = SDarn_read.read_grid()
