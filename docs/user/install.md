@@ -96,7 +96,7 @@ To set the project interpreter to the anaconda environment:
 
 ## Installing for Development
 
-pyDARN default github branch is on `develop` for quicker and easer development. 
+pyDARN's default github branch is `develop` for quicker and easer development. 
 
 It is encouraged to use [SSH keys in GitHub](https://docs.github.com/en/github/authenticating-to-github/connecting-to-github-with-ssh) 
 
