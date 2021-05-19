@@ -155,7 +155,7 @@ class Fan():
             # loop through dmap_data records, dump a datetime
             # list where scans start
             scan_time = scan_index
-            scan_index = 1
+            scan_index = 0
             found_match = False
             for rec in dmap_data:
                 rec_time  = time2datetime(rec)
