@@ -94,12 +94,13 @@ To set the project interpreter to the anaconda environment:
 ## System Install 
 `sudo pip3 install pydarn`
 
-## Installing for Development 
-`$ git clone https://github.com/superdarn/pydarn`
+## Installing for Development
 
-Change directories to pydarn 
+pyDARN default github branch is on `develop` for quicker and easer development. 
 
-`$ git checkout develop`
+It is encouraged to use [SSH keys in GitHub](https://docs.github.com/en/github/authenticating-to-github/connecting-to-github-with-ssh) 
+
+`git clone git@github.com:SuperDARN/pydarn.git`
 
 To install: 
 
@@ -108,8 +109,10 @@ To install:
 !!! Note
     If `pip --version` is pointing to python 3.6+ then you can use `pip install . --user` instead. 
 
-!!! Warning
-    Do not install pydarn with `python setup.py install` as this may install other libraries pydarn requires in a local directory causing issues down the road.
+!!! Note
+    Sometimes `python setup.py install` is needed to grab all hardware files (known issue).
+
+Please read pyDARN [Workflow documentation](../dev/team.md) to further understand how to develop in pyDARN.
     
 ## Troubleshooting
 
