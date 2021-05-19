@@ -3,7 +3,8 @@
 #
 # Modifications:
 # 2021-05-07: CJM - Included radar position and labels in plotting
-#   2021-04-01 Shane Coyle added pcolormesh to the code
+# 2021-04-01 Shane Coyle added pcolormesh to the code
+# 2021-05-19 Marina Schmidt - Added scan index with datetimes
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
