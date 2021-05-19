@@ -15,15 +15,15 @@ the additional permissions listed below.
 # Coordinate Systems 
 ---
 
-pyDARN offers several different coordinate systems for plotting: 
+pyDARN offers several different coordinate systems and units for plotting: 
 
 ## Range-Time Plots 
 
-**Range Gates**: `Coords.RANGE_GATE` a rectangle section determined by beam width and set distance for each range (nominally 45 km). RAWACF and FITACF data give their parameter values with respect to range gates  
+**Range Gates**: `Coords.RANGE_GATE` a rectangle section determined by beam width and set distance for each range (nominally 45 km). RAWACF and FITACF data give their parameter values with respect to range gates. Range gates are a unit-less measure of estimating distance.
 
 **Slant Range**: `Coords.SLANT_RANGE` is a conversion from range gates to km units.  
 
-**Ground Scatter-Mappped Range**: `Coords.GROUND_SCATTER_MAPPED_RANGE` uses echos from groundscatter to adjust slant-range coordinates to be more accurate (km) based on [Dr. Bill Bristow's paper](https://doi.org/10.1029/93JA01470). Implemented by Dr. Nathaniel Frissell and Francis Tholley from University of Scranton. 
+**Ground Scatter Mapped Range**: `Coords.GROUND_SCATTER_MAPPED_RANGE` uses echos from ground scatter to adjust slant-range coordinates to be more accurate based on [Dr. Bill Bristow's paper](https://doi.org/10.1029/93JA01470). Implemented by Dr. Nathaniel Frissell and Francis Tholley from University of Scranton. Measured in km.
 
 **Geographic** (Coming Soon)
 
@@ -40,4 +40,3 @@ Geographic plots include: fan, grid and convection map (coming soon) plots
 **Ground Scatter Mapped Geographic** (Coming Soon)
 
 **Ground Scatter Mapped Geographic** (Coming Soon)
-
