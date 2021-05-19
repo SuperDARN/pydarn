@@ -104,7 +104,11 @@ stime = dt.datetime(2015, 3, 8, 14, 2)
 grid_file = "20150308.n.grd"
 grid_data = pydarn.SuperDARNRead(grid_file).read_grid()
 
-pydarn.Grid.plot_grid(grid_data, start_time=stime, colorbar_label='velocity (m/s)', zmax=800)
+pydarn.Grid.plot_grid(grid_data, start_time=stime,
+                      colorbar_label='Velocity (m/s)',
+                      radar_label=True, fov_color='blue',
+                      fov_fill_color='grey')
+
 plt.show()
 ```
 ![](../imgs/grid_2.png)
