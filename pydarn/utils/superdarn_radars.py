@@ -383,7 +383,7 @@ class SuperDARNRadars():
                          Hemisphere.North, 75, read_hdw_file('inv')),
               50: _Radar('Jiamusi East radar',
                          'National Space Science Center,'
-                         ' Chinese Academy of Sciences',
+                         'Chinese Academy of Sciences',
                          Hemisphere.North, 100, read_hdw_file('jme')),
               3: _Radar('Kapuskasing', 'Virginia Tech', Hemisphere.North,
                         75, read_hdw_file('kap')),
