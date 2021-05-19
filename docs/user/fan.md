@@ -35,14 +35,25 @@ SDarn_read = pydarn.SuperDARNRead(file)
 fitacf_data = SDarn_read.read_fitacf()
 
 ```
-With the FITACF data loaded as a list of dictionaries (`fitacf_data` variable in above example), you may now call the `plot_fan` method. Make sure you tell it which scan (numbered from first recorded scan in file, counting from 1) you want using `scan_index`:
+With the FITACF data loaded as a list of dictionaries (`fitacf_data` variable in above example), you may now call the `plot_fan` method. Make sure you tell it which scan (numbered from first recorded scan in file, counting from 1 or give it a `datetime` object for the scan a that time) you want using `scan_index`:
 ```python
-fanplot = pydarn.Fan.plot_fan(fitacf_data, scan_index=27)
+fanplot = pydarn.Fan.plot_fan(fitacf_data, scan_index=27, 
+                              colorbar_label='Velocity [m/s]')
 plt.show()
-
 ```
 In this example, the 27th scan was plotted with the defaulted parameter being line-of-sight velocity:
 ![](../imgs/fan_1.png)
+
+You can also provide a `datetime` object to obtain a scan at a specific time: 
+```python
+pydarn.Fan.plot_fan(cly_data, scan_index=datetime(2015, 3, 8, 15, 26),
+                     colorbar_label='Velocity [m/s]')
+```
+
+![](../imgs/fan_1.b.png)
+
+!!! Warning
+    Do not include seconds, typically scans are 1 minute long so seconds may end in a error with no data. 
 
 Default plots also do not show groundscatter as grey. Set it to true to colour groundscatter this way:
 ```python
@@ -76,18 +87,27 @@ In addition to line-of-sight velocity, you can choose one of three other data pr
 
 Here is a list of all the current options than can be used with `plot_fan`
 
-| Option                  | Action                                                                                              |
-|-------------------------|-----------------------------------------------------------------------------------------------------|
-| scan_index=(int)        | Scan number, from start of records in file                                                          |
-| lowlat=(int)            | Control the lower latitude boundary of the plot (default 50/-50 AACGM lat)                          |
-| groundscatter=(bool)    | True or false to showing ground scatter as grey                                                     |
-| ranges=(list)           | Two element list giving the lower and upper ranges to plot (default [0,75]                          |
-| cmap=matplotlib.cm      | A matplotlib color map object. Will override the pyDARN defaults for chosen parameter               |
-| zmin=(int)              | Minimum data value for colouring                                                                    |
-| zmax=(int)              | Maximum data value for colouring                                                                    |
-| colorbar=(bool)	  | Set true to plot a colorbar (default: True)								|
-| colorbar_label=(string) | Label for the colour bar (requires colorbar to be true)                                             |
-| boundary=(bool)         | Set false to not show the outline of the radar FOV (default: True)     			        |
+| Option                        | Action                                                                                                  |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------- |
+| scan_index=(int or  datetime) | Scan number or datetime, from start of records in file                                                  |
+| groundscatter=(bool)          | True or false to showing ground scatter as grey                                                         |
+| ranges=(list)                 | Two element list giving the lower and upper ranges to plot, grabs ranges from hardware file (default [] |
+| cmap=matplotlib.cm            | A matplotlib color map object. Will override the pyDARN defaults for chosen parameter                   |
+| zmin=(int)                    | Minimum data value for colouring                                                                        |
+| zmax=(int)                    | Maximum data value for colouring                                                                        |
+| colorbar=(bool)               | Set true to plot a colorbar (default: True)                                                             |
+| colorbar_label=(string)       | Label for the colour bar (requires colorbar to be true)                                                 |
+| boundary=(bool)               | Set false to not show the outline of the radar FOV (default: True)                                      |
+| fov_color=(string)            | Sets the fill in color for the fov plot (default: transparency)                                         |
+| line_color=(string)           | Sets the boundary line and radar location dot color (default: black)                                    |
+| alpha=(int)                   | Sets the transparency of the fill color (default: 0.5)                                                  |
+| radar_location=(bool)         | Places a dot in the plot representing the radar location (default: True)                                |
+| radar_label=(bool)            | Places the radar 3-letter abbreviation next to the radar location                                       |
+| Kwargs **                     | Axis Polar settings. See [polar axis](axis.py)                                                          |
+
+
+
+
 
 As an example, the following code plots two fan plots, from the same radar at two different scans. The first one has been limited to only the first 20 ranges, and the second has no FOV boundary. Make sure you disable the colorbar on subsequent plots, or it will plot two. If you want to try this example for yourself, I used data from Saskatoon on 20200507 all day FITACF 3.0 file:
 ```python
