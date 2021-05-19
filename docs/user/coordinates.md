@@ -25,9 +25,9 @@ pyDARN offers several different coordinate systems and units for plotting:
 
 **Ground Scatter Mapped Range**: `Coords.GROUND_SCATTER_MAPPED_RANGE` uses echos from ground scatter to adjust slant-range coordinates to be more accurate based on [Dr. Bill Bristow's paper](https://doi.org/10.1029/93JA01470). Implemented by Dr. Nathaniel Frissell and Francis Tholley from University of Scranton. Measured in km.
 
-**Geographic** (Coming Soon)
+**Geographic Latitude** (Coming Soon)
 
-**AACGM** (Coming Soon)
+**AACGM Latitude** (Coming Soon)
 
 ## Geographic Plots
 
