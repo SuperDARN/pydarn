@@ -13,7 +13,7 @@ nav:
     - Citing: user/citing.md
     - Tutorials:
             - Radar and Hardware Information: user/hardware.md 
-            - Coordinate: user/coordinates.md
+            - Coordinates: user/coordinates.md
             - Reading Files: user/io.md
             - Range-Time plots: user/range_time.md 
             - Time-Series plots: user/time_series.md 
