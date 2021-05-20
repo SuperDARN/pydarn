@@ -103,7 +103,7 @@ Here is a list of all the current options than can be used with `plot_fan`
 | alpha=(int)                   | Sets the transparency of the fill color (default: 0.5)                                                  |
 | radar_location=(bool)         | Places a dot in the plot representing the radar location (default: True)                                |
 | radar_label=(bool)            | Places the radar 3-letter abbreviation next to the radar location                                       |
-| kwargs **                     | Axis Polar settings. See [polar axis](axis.py)                                                          |
+| kwargs **                     | Axis Polar settings. See [polar axis](axis.md)                                                          |
 
 
 `plot_fan` can concatenate with other plots including itself, here is an example of plotting two different radars with some of the above parameters:
