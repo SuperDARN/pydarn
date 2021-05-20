@@ -7,7 +7,6 @@ For plots using geographical coordinates, a wide selection of axis representatio
 | Option                       | Action                                                            |
 | ---------------------------- | ----------------------------------------------------------------- |
 | lowlat=(int)                 | Lower Latitude boundary for the polar plot (degree) (default: 30) |
-| Hemispher=(pydarn.Hemiphere) | Hemisphere of the radar (default: Hemisphere.North)               |
-
+| hemisphere=(pydarn.Hemisphere) | Hemisphere of the radar (default: Hemisphere.North)               |
 
 
