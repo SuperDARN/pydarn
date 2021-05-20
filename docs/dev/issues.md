@@ -50,7 +50,7 @@ To open a new issue, follow these steps from the [pyDARN repository](https://git
     - Labels: these are used to categorize and filter issues (examples below). You can have multiple labels. 
     - Projects: Indicate if this issue is part of a [project](projects.md)
     - Milestone: Please leave this blank. The DAWG chairs will fill in this information later when a timeline emerges (e.g. working towards a new release)
-    - Linked Pull Request: Leave this blank for now. This can be filled out when a pull request that solves this issue is created (see [pull requests](pull_request.md))
+    - Linked Pull Request: Leave this blank for now. This can be filled out when a pull request that solves this issue is created (see [pull requests](PR.md))
 * Click *Submit new issue*. At this point, everyone who is subscribed to the pyDARN repository will receive an email. Depending on your notification settings, you may receive emails when others comment on the issue. Check your user settings to subscribe or unsubscribe to email notifications.
 
 

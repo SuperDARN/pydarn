@@ -35,7 +35,7 @@ class Projections():
                 "   - axis_polar()\n"
 
     @classmethod
-    def axis_polar(cls, lowlat: int = 30, hem: object = Hemisphere.North):
+    def axis_polar(cls, lowlat: int = 30, hemisphere: object = Hemisphere.North):
         """
         Plots a radar's Field Of View (FOV) fan plot for the given data and
         scan number
@@ -45,9 +45,9 @@ class Projections():
             lowlat: int
                 Lower AACGM latitude boundary for the polar plot
                 Default: 30
-            hem: enum
-                Hemisphere of polar projection. Can be Hemisphere.North or 
-                Hemisphere.South for northern and southern hemispheres, 
+            hemiphere: enum
+                Hemisphere of polar projection. Can be Hemisphere.North or
+                Hemisphere.South for northern and southern hemispheres,
                 respectively
                 Default: Hemisphere.North
         """
@@ -55,11 +55,11 @@ class Projections():
         ax = plt.axes(polar=True)
 
         # Set upper and lower latitude limits (pole and lowlat)
-        if hem is Hemisphere.North:
+        if hemisphere == Hemisphere.North:
             ax.set_ylim(90, lowlat)
             ax.set_yticks(np.arange(lowlat, 90, 10))
         else:
-            # If hem is 'S', lowlat must be negative
+            # If hemisphere is South, lowlat must be negative
             ax.set_ylim(-90, -abs(lowlat))
             ax.set_yticks(np.arange(-abs(lowlat), -90, -10))
 

@@ -3,7 +3,7 @@
 pyDARN is under the Data Analysis Working Group that has set up guidelines on [communication](https://superdarn.github.io/dawg/documents/communication-guidelines/) to encourage a positive collaborative environment.
 Please follow these guidelines when commenting and reviewing code on GitHub. 
 
-Also please read workflow documentation on issues and [pull requests](dev/PR.md) to communicate effectively for collaborative work.
+Also please read workflow documentation on issues and [pull requests](PR.md) to communicate effectively for collaborative work.
 
 ## Disputes Procedure
 
