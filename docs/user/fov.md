@@ -21,7 +21,7 @@ A `datetime` object of the date is required to convert to AACGM MLT coordinates 
 
 ### Additional options
 
-Here is a list of all the current options than can be used with `plot_fan`
+Here is a list of all the current options than can be used with `plot_fov`
 
 | Option                  | Action                                                                                                  |
 | ----------------------- | ------------------------------------------------------------------------------------------------------- |
@@ -35,7 +35,7 @@ Here is a list of all the current options than can be used with `plot_fan`
 | alpha=(int)             | Sets the transparency of the fill color (default: 0.5)                                                  |
 | radar_location=(bool)   | Places a dot in the plot representing the radar location (default: True)                                |
 | radar_label=(bool)      | Places the radar 3-letter abbreviation next to the radar location                                       |
-| kwargs **               | Axis Polar settings. See [polar axis](axis.py)                                                          |
+| kwargs **               | Axis Polar settings. See [polar axis](axis.md)                                                          |
 
 To plot based on hemisphere or selection of radars, here is an example plotting North hemisphere radars with selected SuperDARN Canada radars colored as green:
 
