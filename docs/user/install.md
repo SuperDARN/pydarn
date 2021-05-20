@@ -137,5 +137,16 @@ Then open a new terminal and you should see `(pyy38)` in the prompt.
 
 Credit to this solution is Ashton Reimer, more details on the [issue #37](https://github.com/SuperDARN/pydarn/issues/37)
 
+### aacgmv2 won't install 
+
+Issue: `unable to execute 'gcc': No such file or directory
+    error: command 'gcc' failed with exit status 1`
+
+Solution: 
+  1. Ensure `gcc` is installed if not install it
+  2. Ensure you install `python3-dev` (Ubuntu) or `python3-devel` for RPM OS Linux operating systems. 
+
+Credit to this solution is Marina Schmidt brought up by Remington Rohel from SuperDARN Canada
+
 
 > If you find any problems/solutions, please make a [github issue](https://github.com/superdarn/pydarn/issues/new) so the community can help you or add it to the documentation 
