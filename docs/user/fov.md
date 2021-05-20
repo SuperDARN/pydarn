@@ -74,11 +74,11 @@ plt.show()
 
 `plot_fov` use two other plotting methods `plot_radar_position` and `plot_radar_label`, these methods have the following parameters: 
 
-| Option                  | Action                                                                                                  |
-| ----------------------- | ------------------------------------------------------------------------------------------------------- |
-| stid=(int)              | Station id of the radar. Can be found using [SuperDARNRadars](hardware.md)                              |
-| date=(datetime)         | `datetime` object to determine the position the radar fov is in MLT
-| line_color=(string)     | Sets the text and radar location dot color (default: black)                                    |
+| Option              | Action                                                                     |
+| ------------------- | -------------------------------------------------------------------------- |
+| stid=(int)          | Station id of the radar. Can be found using [SuperDARNRadars](hardware.md) |
+| date=(datetime)     | `datetime` object to determine the position the radar fov is in MLT        |
+| line_color=(string) | Sets the text and radar location dot color (default: black)                |
 
 !!! Note
     These methods do not plot on a polar axis so it is strongly encouraged to use `plot_fov` to use them. 
