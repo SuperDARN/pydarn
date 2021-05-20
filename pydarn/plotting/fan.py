@@ -342,7 +342,7 @@ class Fan():
         # This may screw up references
         if ax is None:
             # Get the hemisphere to pass to plotting projection
-            kwargs['hem'] = SuperDARNRadars.radars[stid].hemisphere
+            kwargs['hemisphere'] = SuperDARNRadars.radars[stid].hemisphere
             # Get a polar projection using any kwarg input
             ax = Projections.axis_polar(**kwargs)
 
