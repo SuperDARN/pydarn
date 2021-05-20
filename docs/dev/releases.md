@@ -55,7 +55,7 @@ For example, if we are on pyDARN 2.0 and:
 
 ## Workflow
 
-1. Once a version number is determined, create an [issue](issue.md) using the discussion template. This issue will give some heads up to testers and developers that a release will be made soon 
+1. Once a version number is determined, create an [issue](issues.md) using the discussion template. This issue will give some heads up to testers and developers that a release will be made soon 
 and to confirm the version number is correct. State why a release is needed and what pull requests should be included that have not been **merged** yet using [GitHubs checklist feature](https://docs.github.com/en/github/managing-your-work-on-github/about-task-lists)
 2. Once the pull requests needed for the releases are merged into `develop` then create a release branch:
         
