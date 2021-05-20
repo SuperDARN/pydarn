@@ -21,6 +21,7 @@ nav:
             - Axis: user/axis.md
             - FOV plots: user/fov.md
             - Fan plots: user/fan.md
+            - Grid plots: user/grid.md
             - Power plots: user/power.md
             - ACF plots: user/acf.md
             - Logging: user/logging.md
