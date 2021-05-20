@@ -28,6 +28,7 @@ Here is a list of all the current options than can be used with `plot_fov`
 | stid=(int)              | Station id of the radar. Can be found using [SuperDARNRadars](hardware.md)                              |
 | date=(datetime)         | `datetime` object to determine the position the radar fov is in MLT
 | ranges=(list)           | Two element list giving the lower and upper ranges to plot, grabs ranges from hardware file (default [] |
+| colorbar=(bool)             | Set true to plot a colorbar (default: True)                                                                      |
 | colorbar_label=(string) | Label for the colour bar (requires colorbar to be true)                                                 |
 | boundary=(bool)         | Set false to not show the outline of the radar FOV (default: True)                                      |
 | fov_color=(string)      | Sets the fill in color for the fov plot (default: transparency)                                         |
@@ -57,7 +58,7 @@ plt.show()
 
 ![](../imgs/fov_2.png)
 
-This example will plots the South Hemisphere radars FOV in red:
+This example will plot the South Hemisphere radars FOV in red:
 
 ```python
 for stid in pydarn.SuperDARNRadars.radars.keys():
@@ -71,18 +72,18 @@ plt.show()
 
 ![](../imgs/fov_3.png)
 
-`plot_fov` use two other plotting methods `plot_radar_posistion` and `plot_radar_label`, these methods have the following parameters: 
+`plot_fov` use two other plotting methods `plot_radar_position` and `plot_radar_label`, these methods have the following parameters: 
 
 | Option                  | Action                                                                                                  |
 | ----------------------- | ------------------------------------------------------------------------------------------------------- |
 | stid=(int)              | Station id of the radar. Can be found using [SuperDARNRadars](hardware.md)                              |
 | date=(datetime)         | `datetime` object to determine the position the radar fov is in MLT
-| line_color=(string)     | Sets the boundary line and radar location dot color (default: black)                                    |
+| line_color=(string)     | Sets the text and radar location dot color (default: black)                                    |
 
 !!! Note
     These methods do not plot on a polar axis so it is strongly encouraged to use `plot_fov` to use them. 
 
-To obtain only dots and labels 
+To obtain only dots and labels:
 
 ```python
 pydarn.Fan.plot_fov(66, datetime(2021, 2, 5, 12, 5), boundary=False,
@@ -90,3 +91,6 @@ pydarn.Fan.plot_fov(66, datetime(2021, 2, 5, 12, 5), boundary=False,
 ```
 
 ![](../imgs/fov_4.png)
+
+!!! Note
+    The radar labels will appear at the same longitude, but at -5 degrees of latitude to the position of the radar station. This may cause some to overlap. Users can plot their own labels using `plt.text(*lon psn in radians*, *lat psn in degrees*, *text string*)` 
