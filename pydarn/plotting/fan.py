@@ -3,7 +3,8 @@
 #
 # Modifications:
 # 2021-05-07: CJM - Included radar position and labels in plotting
-#   2021-04-01 Shane Coyle added pcolormesh to the code
+# 2021-04-01 Shane Coyle added pcolormesh to the code
+# 2021-05-19 Marina Schmidt - Added scan index with datetimes
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
@@ -153,23 +154,22 @@ class Fan():
         if isinstance(scan_index, dt.datetime):
             # loop through dmap_data records, dump a datetime
             # list where scans start
-            scan_datetimes = np.array([dt.datetime(*[record[time_component]
-                                                     for time_component in
-                                                     ['time.yr', 'time.mo',
-                                                      'time.dy', 'time.hr',
-                                                      'time.mt', 'time.sc']])
-                                       for record in dmap_data
-                                       if record['scan'] == 1])
-            # find corresponding scan_index
-            matching_scan_index = np.argwhere(scan_datetimes ==
-                                              scan_index)[..., 0] + 1
+            scan_time = scan_index
+            scan_index = 0
+            found_match = False
+            for rec in dmap_data:
+                rec_time  = time2datetime(rec)
+                if rec['scan'] == 1:
+                    scan_index += 1
+                # Need the abs since you cannot have negative seconds
+                diff_time = abs(scan_time - rec_time)
+                if diff_time.seconds < 1:
+                    found_match = True
+                    break
             # handle datetimes out of bounds
-            if len(matching_scan_index) != 1:
-                raise plot_exceptions.IncorrectDateError(scan_datetimes[0],
-                                                         scan_index)
-            else:
-                scan_index = matching_scan_index
-
+            if found_match == False:
+                raise plot_exceptions.IncorrectDateError(rec_time,
+                                                         scan_time)
         # Locate scan in loaded data
         plot_beams = np.where(beam_scan == scan_index)
 
@@ -265,7 +265,7 @@ class Fan():
     def plot_fov(cls, stid: str, date: dt.datetime, ax=None,
                  ranges: List = [], boundary: bool = True,
                  fov_color: str = None, alpha: int = 0.5,
-                 radar_location: bool = False, radar_label: bool = False,
+                 radar_location: bool = True, radar_label: bool = False,
                  line_color: str = 'black', **kwargs):
         """
         plots only the field of view (FOV) for a given radar station ID (stid)

@@ -90,7 +90,7 @@ def gate2GroundScatter(slant_ranges: List[float],
                        reflection_height: float = 250):
     """
     Calculate the ground scatter mapped range (km) for each slanted range
-    for SuperDARN data . This function is based on the Ground Scatter equation
+    for SuperDARN data. This function is based on the Ground Scatter equation
     from Bristow paper at https://doi.org/10.1029/93JA01470 on page 325
     Parameters
     ----------

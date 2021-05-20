@@ -94,12 +94,13 @@ To set the project interpreter to the anaconda environment:
 ## System Install 
 `sudo pip3 install pydarn`
 
-## Installing for Development 
-`$ git clone https://github.com/superdarn/pydarn`
+## Installing for Development
 
-Change directories to pydarn 
+pyDARN's default github branch is `develop` for quicker and easer development. 
 
-`$ git checkout develop`
+It is encouraged to use [SSH keys in GitHub](https://docs.github.com/en/github/authenticating-to-github/connecting-to-github-with-ssh) 
+
+`git clone git@github.com:SuperDARN/pydarn.git`
 
 To install: 
 
@@ -108,8 +109,10 @@ To install:
 !!! Note
     If `pip --version` is pointing to python 3.6+ then you can use `pip install . --user` instead. 
 
-!!! Warning
-    Do not install pydarn with `python setup.py install` as this may install other libraries pydarn requires in a local directory causing issues down the road.
+!!! Note
+    Sometimes `python setup.py install` is needed to grab all hardware files (known issue).
+
+Please read pyDARN [Workflow documentation](../dev/team.md) to further understand how to develop in pyDARN.
     
 ## Troubleshooting
 
@@ -133,6 +136,17 @@ $ echo "source $HOME/venvs/py38/bin/activate" >> ~/.bashrc
 Then open a new terminal and you should see `(pyy38)` in the prompt. 
 
 Credit to this solution is Ashton Reimer, more details on the [issue #37](https://github.com/SuperDARN/pydarn/issues/37)
+
+### aacgmv2 won't install 
+
+Issue: `unable to execute 'gcc': No such file or directory
+    error: command 'gcc' failed with exit status 1`
+
+Solution: 
+  1. Ensure `gcc` is installed if not install it
+  2. Ensure you install `python3-dev` (Ubuntu) or `python3-devel` for RPM OS Linux operating systems. 
+
+Credit to this solution is Marina Schmidt brought up by Remington Rohel from SuperDARN Canada
 
 
 > If you find any problems/solutions, please make a [github issue](https://github.com/superdarn/pydarn/issues/new) so the community can help you or add it to the documentation 
