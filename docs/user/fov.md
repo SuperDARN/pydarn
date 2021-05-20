@@ -12,7 +12,7 @@ pydarn.Fan.plot_fov(66, datetime(2015, 3, 8, 15, 0), radar_label=True)
 plt.show()
 ```
 
-![](,,/imgs/fov_1.png)
+![](../imgs/fov_1.png)
 
 A `datetime` object of the date is required to convert to AACGM MLT coordinates (see [coordinates](coordinates.md)). 
 
@@ -55,7 +55,7 @@ for stid in pydarn.SuperDARNRadars.radars.keys():
 plt.show()
 ```
 
-![](fov_2.png)
+![](../imgs/fov_2.png)
 
 This example will plots the South Hemisphere radars FOV in red:
 
@@ -69,4 +69,24 @@ for stid in pydarn.SuperDARNRadars.radars.keys():
 plt.show()
 ```
 
-![](fov_3.png)
+![](../imgs/fov_3.png)
+
+`plot_fov` use two other plotting methods `plot_radar_posistion` and `plot_radar_label`, these methods have the following parameters: 
+
+| Option                  | Action                                                                                                  |
+| ----------------------- | ------------------------------------------------------------------------------------------------------- |
+| stid=(int)              | Station id of the radar. Can be found using [SuperDARNRadars](hardware.md)                              |
+| date=(datetime)         | `datetime` object to determine the position the radar fov is in MLT
+| line_color=(string)     | Sets the boundary line and radar location dot color (default: black)                                    |
+
+!!! Note
+    These methods do not plot on a polar axis so it is strongly encouraged to use `plot_fov` to use them. 
+
+To obtain only dots and labels 
+
+```python
+pydarn.Fan.plot_fov(66, datetime(2021, 2, 5, 12, 5), boundary=False,
+                    radar_label=True)
+```
+
+![](../imgs/fov_4.png)
