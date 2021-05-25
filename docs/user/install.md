@@ -52,10 +52,9 @@ pyDARN's setup will download the following dependencies:
 - [pip3](https://help.dreamhost.com/hc/en-us/articles/115000699011-Using-pip3-to-install-Python3-modules)
 - [NumPy](https://numpy.org/)
 - [matplotlib](https://matplotlib.org/)
-- [deepdish](https://deepdish.readthedocs.io/en/latest/api_io.html)
-- [pathlib2](https://docs.python.org/dev/library/pathlib.html)
 - [PyYAML](https://pyyaml.org/wiki/PyYAMLDocumentation)
-- [h5py](https://www.h5py.org/)
+- [pyDARNio](https://pydarnio.readthedocs.io/en/latest/user/install/)
+- [AACGMv2](https://pypi.org/project/aacgmv2/) 
 
 ## Virtual Environments
 It is recommended to install pyDARN in one of the suggested virtual environments if you have multiple python/pip 3 version on your computer, or do not want to affect the main system's python libraries. 
