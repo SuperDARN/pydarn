@@ -141,7 +141,9 @@ This step requires the lead developers help as they have access to the pyDARN Py
         
         cd dist
         ls
-  Should see `pyDARN-pydarn-version.number-py3-none-any.whl  pydarn-version.number.tar.gz`
+  Should see 
+        
+        pyDARN-pydarn-version.number-py3-none-any.whl  pydarn-version.number.tar.gz
 
 - Install twine `python3 -m pip install --user --upgrade twine`
 - Upload to testpypi `python3 -m twine upload --repository testpypi dist/*` 
@@ -150,7 +152,10 @@ This step requires the lead developers help as they have access to the pyDARN Py
         you will need an account with testpypi for this to work
 
 - View the pyDARN package on the link provided in the `twine upload` output, should have the README.md as the front description page. If not contact pyDARN lead developer. 
-- Check that the test page looks good and that you can download `pydarn` from the test pypi: `python3 -m pip install --index-url https://test.pypi.org/simple/ --no-deps example-pkg-YOUR-USERNAME-HERE`
+- Check that the test page looks good and that you can download `pydarn` from the test pypi: 
+        
+        python3 -m pip install --index-url https://test.pypi.org/simple/ --no-deps example-pkg-YOUR-USERNAME-HERE
+
 - **Upload to PyPi**, this should be done by the pyDARN lead developer as it needs the pyDARN PyPi account: 
   
         python3 -m twine upload dist/*
