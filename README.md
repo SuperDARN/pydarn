@@ -3,7 +3,7 @@
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPLv3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0) 
 [![Python 3.6](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/downloads/release/python-360/) 
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/superdarn/pydarn)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4558130.svg)](https://doi.org/10.5281/zenodo.4558130)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3727269.svg)](https://doi.org/10.5281/zenodo.3727269)
 
 Python data visualization library for the Super Dual Auroral Radar Network (SuperDARN).
 
