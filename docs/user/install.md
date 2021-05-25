@@ -19,8 +19,11 @@ the additional permissions listed below.
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPLv3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0) 
 [![Python 3.6](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/downloads/release/python-360/) 
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/superdarn/pydarn)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3727270.svg)](https://doi.org/10.5281/zenodo.3727270)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3727269.svg)](https://doi.org/10.5281/zenodo.372769)
 
+
+!!! Important 
+    It is recommended to install pyDARN via `pip`; however, please cite via the [DOI for the release](https://doi.org/10.5281/zenodo.372769) 
 
 
 ## Prerequisites
@@ -37,6 +40,9 @@ You can check your python version using
 
 `$ python --version` or 
 `$ python3 --version`
+
+!!! Note
+    If you have already installed `pydarn` you can use `pip3 install --upgrade pydarn`
 
 ## Dependencies
 
