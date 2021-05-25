@@ -32,7 +32,7 @@ pyDARN offers several different coordinate systems and units for plotting:
     the value given in hardware files. Currently, pyDARN has decided to use the values for `rxrise` given in the 
     hardware files. We will amend or reconsider this approach as and when a solution to the differing values is found.
 
-**Ground Scatter Mapped Range**: `Coords.GROUND_SCATTER_MAPPED_RANGE` uses echos from ground scatter to adjust slant-range coordinates to be more accurate based on [Dr. Bill Bristow's paper](https://doi.org/10.1029/93JA01470). Implemented by Dr. Nathaniel Frissell and Francis Tholley from University of Scranton. Measured in km.
+**Ground Scatter Mapped Range**: `Coords.GROUND_SCATTER_MAPPED_RANGE` uses echos from ground scatter to adjust slant-range coordinates to be more accurate based on [Dr. Bill Bristow's paper](https://agupubs.onlinelibrary.wiley.com/doi/abs/10.1029/93JA01470). Implemented by Dr. Nathaniel Frissell and Francis Tholley from University of Scranton. Measured in km.
 
 **Geographic Latitude** (Coming Soon)
 
