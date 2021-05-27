@@ -476,7 +476,7 @@ class RTP():
     @classmethod
     def plot_time_series(cls, dmap_data: List[dict],
                          parameter: str = 'tfreq', beam_num: int = 0,
-                         ax=None, start_time: datetime = None,
+                         ax=None, gate: int = 0, start_time: datetime = None,
                          end_time: datetime = None,
                          date_fmt: str = '%y/%m/%d\n %H:%M',
                          channel='all', scale: str = 'linear',
@@ -561,7 +561,6 @@ class RTP():
             raise plot_exceptions.UnknownParameterError(parameter)
 
         cls.dmap_data = dmap_data
-        check_data_type(cls.dmap_data, parameter, 'scalar', index_first_match)
         start_time, end_time = cls.__determine_start_end_time(start_time,
                                                               end_time)
 
@@ -638,11 +637,22 @@ class RTP():
                        (channel == dmap_record['channel'] or channel == 'all'):
                         # construct the x-axis array
                         x.append(rec_time)
-                        if parameter == 'tfreq':
-                            # Convert kHz to MHz by dividing by 1000
-                            y.append(dmap_record[parameter]/1000)
-                        else:
-                            y.append(dmap_record[parameter])
+                        try:
+                            if parameter == 'tfreq':
+                                # Convert kHz to MHz by dividing by 1000
+                                y.append(dmap_record[parameter]/1000)
+                            elif isinstance(dmap_record[parameter], np.ndarray):
+                                if gate in dmap_record['slist']:
+                                    for i in range(len(dmap_record['slist'])):
+                                        if dmap_record['slist'][i] == gate:
+                                            break
+                                    y.append(dmap_record[parameter][i])
+                                else:
+                                    y.append(np.ma.masked)
+                            else:
+                                y.append(dmap_record[parameter])
+                        except KeyError:
+                            y.append(np.ma.masked)
                     # else plot missing data
                     elif len(x) > 0:
                         diff_time = rec_time - x[-1]
