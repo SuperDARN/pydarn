@@ -71,10 +71,10 @@ class RTP():
                         start_time: datetime = None, end_time: datetime = None,
                         colorbar: plt.colorbar = None, ymin: int = None,
                         ymax: int = None, yspacing: int = 200,
-                        coord: object = Coords.SLANT_RANGE, reflection_height: float = 250.0,
+                        coord: object = Coords.SLANT_RANGE,
+                        reflection_height: float = 250.0,
                         colorbar_label: str = '',
-                        norm=colors.Normalize,
-                        cmap: str = None,
+                        norm=colors.Normalize, cmap: str = None,
                         filter_settings: dict = {},
                         date_fmt: str = '%y/%m/%d\n %H:%M', **kwargs):
         """
@@ -458,11 +458,14 @@ class RTP():
             with warnings.catch_warnings():
                 warnings.filterwarnings('error')
                 try:
-                    locator = ticker.MaxNLocator(symmetric=True, min_n_ticks=3,
-                                                 integer=True, nbins='auto')
-                    ticks = locator.tick_values(vmin=zmin, vmax=zmax)
-                    cb = ax.figure.colorbar(im, ax=ax, extend='both',
-                                            ticks=ticks)
+                    if isinstance(norm, colors.LogNorm):
+                        cb = ax.figure.colorbar(im, ax=ax, extend='both')
+                    else:
+                        locator = ticker.MaxNLocator(symmetric=True, min_n_ticks=3,
+                                                     integer=True, nbins='auto')
+                        ticks = locator.tick_values(vmin=zmin, vmax=zmax)
+                        cb = ax.figure.colorbar(im, ax=ax, extend='both',
+                                                ticks=ticks)
 
                 except (ZeroDivisionError, Warning):
                     raise rtp_exceptions.RTPZeroError(parameter, beam_num,
