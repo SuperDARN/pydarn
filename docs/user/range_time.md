@@ -171,3 +171,21 @@ plt.show()
 
 ![](../imgs/rtp_stripping.png)
 
+### Plotting Lag-0 
+
+Range-time plots also allow users to plot `pwr0` parameters in RAWACF files:
+
+``` python
+import pydarn
+import matplotlib.pyplot as plt 
+from matplotlib import colors
+
+rawacf_file = './data/20180404.0601.00.inv.rawacf'
+rawacf_data = pydarn.SuperDARNRead().read_dmap(rawacf_file)
+lognorm=colors.LogNorm
+
+pydarn.RTP.plot_range_time(rawacf_data, beam_num=0, parameter='pwr0',
+                           norm=lognorm, cmap='gnuplot')
+```
+
+![](../imgs/pwr0_range-time.png)
