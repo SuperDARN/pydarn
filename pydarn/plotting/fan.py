@@ -159,7 +159,7 @@ class Fan():
             found_match = False
             for rec in dmap_data:
                 rec_time  = time2datetime(rec)
-                if rec['scan'] == 1:
+                if abs(rec['scan']) == 1:
                     scan_index += 1
                 # Need the abs since you cannot have negative seconds
                 diff_time = abs(scan_time - rec_time)
