@@ -220,10 +220,13 @@ class Fan():
                 # This is a temporary fix to manage inconsistencies between the
                 # fitacf files and the hardware files. The issue will be
                 # fully resolved when the `rpos` code is committed.
-                slist=slist[slist<(fan_shape[0] - 1)]
+                good_data=slist<(fan_shape[0] - 1)
+                slist=slist[good_data]
+                temp_data=dmap_data[i.astype(int)][parameter][good_data]
+                temp_ground=dmap_data[i.astype(int)]['gflg'][good_data]
                 
-                scan[slist, beam] = dmap_data[i.astype(int)][parameter]
-                grndsct[slist, beam] = dmap_data[i.astype(int)]['gflg']
+                scan[slist, beam] = temp_data
+                grndsct[slist, beam] = temp_ground
             # if there is no slist field this means partial record
             except KeyError:
                 continue
