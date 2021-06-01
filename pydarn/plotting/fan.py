@@ -215,6 +215,13 @@ class Fan():
                 slist = dmap_data[i.astype(int)]['slist']
                 # get the beam number for the record
                 beam = dmap_data[i.astype(int)]['bmnum']
+
+                # Exclude ranges larger than the expected maximum.
+                # This is a temporary fix to manage inconsistencies between the
+                # fitacf files and the hardware files. The issue will be
+                # fully resolved when the `rpos` code is committed.
+                slist=slist[slist<(fan_shape[0] - 1)]
+                
                 scan[slist, beam] = dmap_data[i.astype(int)][parameter]
                 grndsct[slist, beam] = dmap_data[i.astype(int)]['gflg']
             # if there is no slist field this means partial record
