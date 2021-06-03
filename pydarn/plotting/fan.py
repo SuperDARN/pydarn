@@ -3,7 +3,8 @@
 #
 # Modifications:
 # 2021-05-07: CJM - Included radar position and labels in plotting
-#   2021-04-01 Shane Coyle added pcolormesh to the code
+# 2021-04-01 Shane Coyle added pcolormesh to the code
+# 2021-05-19 Marina Schmidt - Added scan index with datetimes
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
@@ -153,30 +154,28 @@ class Fan():
         --------
             plot_fov
         """
-
         # Get scan numbers for each record
         beam_scan = build_scan(dmap_data)
 
         if isinstance(scan_index, dt.datetime):
             # loop through dmap_data records, dump a datetime
             # list where scans start
-            scan_datetimes = np.array([dt.datetime(*[record[time_component]
-                                                     for time_component in
-                                                     ['time.yr', 'time.mo',
-                                                      'time.dy', 'time.hr',
-                                                      'time.mt', 'time.sc']])
-                                       for record in dmap_data
-                                       if record['scan'] == 1])
-            # find corresponding scan_index
-            matching_scan_index = np.argwhere(scan_datetimes ==
-                                              scan_index)[..., 0] + 1
+            scan_time = scan_index
+            scan_index = 0
+            found_match = False
+            for rec in dmap_data:
+                rec_time  = time2datetime(rec)
+                if rec['scan'] == 1:
+                    scan_index += 1
+                # Need the abs since you cannot have negative seconds
+                diff_time = abs(scan_time - rec_time)
+                if diff_time.seconds < 1:
+                    found_match = True
+                    break
             # handle datetimes out of bounds
-            if len(matching_scan_index) != 1:
-                raise plot_exceptions.IncorrectDateError(scan_datetimes[0],
-                                                         scan_index)
-            else:
-                scan_index = matching_scan_index
-
+            if found_match == False:
+                raise plot_exceptions.IncorrectDateError(rec_time,
+                                                         scan_time)
         # Locate scan in loaded data
         plot_beams = np.where(beam_scan == scan_index)
 
@@ -287,7 +286,7 @@ class Fan():
 
         Parameters
         -----------
-            stid: str
+            stid: int
                 Radar station ID
             rsep: int
                 gate seperation [km], set by the radar control program.
@@ -320,12 +319,10 @@ class Fan():
                 alpha controls the transparency of
                 the fov color
                 Default: 0.5
-<<<<<<< HEAD
             fov_files: bool
                 boolean determine if the fov should be read by the files
                 provided in pyDARN. Else it will use radar position code.
                 Default: False
-=======
             radar_location: bool
                 Add a dot where radar is located if True
                 Default: False
@@ -335,7 +332,6 @@ class Fan():
             kawrgs: key = value
                 Additional keyword arguments to be used in projection plotting
                 For possible keywords, see: projections.axis_polar
->>>>>>> develop
 
         Returns
         -------
@@ -344,7 +340,6 @@ class Fan():
             thetas - theta polar coordinates
             rs - radius polar coordinates
         """
-<<<<<<< HEAD
         if ranges is None:
             ranges = [0, SuperDARNRadars.radars[stid].range_gate_45]
 
@@ -353,18 +348,12 @@ class Fan():
             radar_fov(stid, rsep, frang, coords=coords, ranges=ranges,
                       date=dtime, max_beams=max_beams, read_file=fov_files)
 
-=======
-
-        # Set datetime object to current computer time if not given
         if not date:
             date = dt.datetime.now()
 
-        # Get radar beam/gate locations
-        beam_corners_aacgm_lats, beam_corners_aacgm_lons = \
-            radar_fov(stid, coords=Coords.AACGM, date=date)
->>>>>>> develop
         fan_shape = beam_corners_aacgm_lons.shape
-
+        if ranges == []:
+            ranges = [0, fan_shape[0]]
         # Work out shift due in MLT
         beam_corners_mlts = np.zeros((fan_shape[0], fan_shape[1]))
         mltshift = beam_corners_aacgm_lons[0, 0] - \
@@ -385,22 +374,7 @@ class Fan():
 
         if boundary:
             # left boundary line
-<<<<<<< HEAD
-            plt.polar(thetas[0:ranges[1], 0], rs[0:ranges[1], 0],
-                      color=line_color, linewidth=0.5)
-            # top radar arc
-            plt.polar(thetas[ranges[1] - 1, 0:thetas.shape[1]],
-                      rs[ranges[1] - 1, 0:thetas.shape[1]],
-                      color=line_color, linewidth=0.5)
-            # right boundary line
-            plt.polar(thetas[0:ranges[1], thetas.shape[1] - 1],
-                      rs[0:ranges[1], thetas.shape[1] - 1],
-                      color=line_color, linewidth=0.5)
-            # bottom arc
-            plt.polar(thetas[0, 0:thetas.shape[1] - 1],
-                      rs[0, 0:thetas.shape[1] - 1], color=line_color,
-                      linewidth=0.5)
-=======
+
             plt.plot(thetas[0:ranges[1], 0], rs[0:ranges[1], 0],
                      color=line_color, linewidth=0.5)
             # top radar arc
@@ -420,20 +394,20 @@ class Fan():
             cls.plot_radar_position(stid, date, line_color=line_color)
         if radar_label:
             cls.plot_radar_label(stid, date, line_color=line_color)
->>>>>>> develop
+
 
         if fov_color is not None:
             theta = thetas[0:ranges[1], 0]
             theta = np.append(theta, thetas[ranges[1]-1, 0:thetas.shape[1]-1])
             theta = np.append(theta, np.flip(thetas[0:ranges[1],
-                                                    thetas.shape[1]-2]))
-            theta = np.append(theta, np.flip(thetas[0, 0:thetas.shape[1]-2]))
+                                                    thetas.shape[1]-1]))
+            theta = np.append(theta, np.flip(thetas[0, 0:thetas.shape[1]-1]))
 
             r = rs[0:ranges[1], 0]
             r = np.append(r, rs[ranges[1]-1, 0:thetas.shape[1]-1])
-            r = np.append(r, np.flip(rs[0:ranges[1], thetas.shape[1]-2]))
-            r = np.append(r, np.flip(rs[0, 0:thetas.shape[1]-2]))
-            ax.fill(theta, r, color=fov_color, alpha=alpha)
+            r = np.append(r, np.flip(rs[0:ranges[1], thetas.shape[1]-1]))
+            r = np.append(r, np.flip(rs[0, 0:thetas.shape[1]-1]))
+            ax.fill(theta, r, color=fov_color, alpha=alpha, zorder=0)
         citing_warning()
         return beam_corners_aacgm_lats, beam_corners_aacgm_lons, thetas, rs, ax
 

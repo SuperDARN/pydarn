@@ -13,11 +13,15 @@ nav:
     - Citing: user/citing.md
     - Tutorials:
             - Radar and Hardware Information: user/hardware.md 
+            - Coordinates: user/coordinates.md
             - Reading Files: user/io.md
             - Range-Time plots: user/range_time.md 
             - Time-Series plots: user/time_series.md 
             - Summary plots: user/summary.md
+            - Axis: user/axis.md
+            - FOV plots: user/fov.md
             - Fan plots: user/fan.md
+            - Grid plots: user/grid.md
             - Power plots: user/power.md
             - ACF plots: user/acf.md
             - Logging: user/logging.md
@@ -25,10 +29,11 @@ nav:
     - Communication: dev/communication.md 
     - Copyright and Licensing: dev/copyright_license.md
     - Workflow:
-        - Projects: dev/projects.md
-        - Issues: dev/issues.md
-        - Branches: dev/branching.md
-        - Pull Requests: dev/PR.md 
-        - Testing: dev/testing.md
-        - Code Reviews: dev/code_review.md
-        - Release Guidelines: dev/releases.md
+                - Projects: dev/projects.md
+                - Issues: dev/issues.md
+                - Branches: dev/branching.md
+                - Pull Requests: dev/PR.md 
+                - Testing: dev/testing.md
+                - Code Reviews: dev/code_review.md
+    - Release Guidelines: dev/releases.md
+

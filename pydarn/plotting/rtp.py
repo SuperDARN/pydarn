@@ -1041,8 +1041,9 @@ class RTP():
                 if axes_parameters[i] == 'v':
                     locator = ticker.LinearLocator(numticks=5)
                     ticks =\
-                        locator.tick_values(vmin=boundary_ranges[axes_parameters[i]][0],
-                                            vmax=boundary_ranges[axes_parameters[i]][1])
+                        locator.\
+                        tick_values(vmin=boundary_ranges[axes_parameters[i]][0],
+                                    vmax=boundary_ranges[axes_parameters[i]][1])
                     if ticks[0] < boundary_ranges[axes_parameters[i]][0]:
                         ticks[0] = boundary_ranges[axes_parameters[i]][0]
 

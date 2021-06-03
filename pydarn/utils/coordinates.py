@@ -29,6 +29,8 @@ class Coords(enum.Enum):
         RANGE_GATE: range gates
         SLANT_RANGE: slant range (km)
         GROUND_SCATTER_MAPPED_RANGE: ground scatter mapped range (km)
+        GEOGRAPHIC: geographical coordinates lat and longitude (degree)
+        AACGM: Magnetic geographical coordinates lat and longitude (degree)
     """
 
     RANGE_GATE = enum.auto()
