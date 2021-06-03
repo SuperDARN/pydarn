@@ -46,13 +46,12 @@ class Grid():
     @classmethod
     def plot_grid(cls, dmap_data: List[dict], record: int = 0,
                   start_time: dt.datetime = None, time_delta: int = 1,
-                  ax=None, fov: bool = True, parameter: str = 'vel',
-                  lowlat: int = 30, cmap: str = None, zmin: int = None,
+                  ax=None, parameter: str = 'vel',
+                  cmap: str = None, zmin: int = None,
                   zmax: int = None, colorbar: bool = True,
                   colorbar_label: str = '', title: str = '',
                   len_factor: float = 150.0, ref_vector: int = 300,
-                  fov_color: str = 'black', fov_fill_color: str = None,
-                  radar_location: bool = True, radar_label: bool = False):
+                  **kwargs):
         """
         Plots a radar's gridded vectors from a GRID file
 
@@ -79,12 +78,6 @@ class Grid():
             parameter: str
                 Key name indicating which parameter to plot.
                 Default: vel (Velocity). Alternatives: 'pwr', 'wdt'
-            lowlat: int
-                Lower AACGM latitude boundary for the polar plot
-                Default: 50
-            fov: bool
-                Set to false to not plot the outline of the FOV
-                Default: True
             cmap: matplotlib.cm
                 matplotlib colour map
                 https://matplotlib.org/tutorials/colors/colormaps.html
@@ -113,19 +106,8 @@ class Grid():
             ref_vector: int
                 Velocity value to be used for the reference vector, in m/s
                 Default: 300
-            fov_color: str
-                Field of View boundary color
-                default: black
-            fov_fill_color: str
-                field of view fill color
-                default: '' - transparent
-            radar_label: bool
-                place the radar abbreviation on the plot
-                default: False
-            radar_location: bool
-                place the radar location represented as a dot
-                default: True
-
+            kwargs: key=value
+                uses the parameters for plot_fov and projections.axis
         See Also
         --------
         plot_fov - plots the field of view found in fan.py
@@ -152,12 +134,12 @@ class Grid():
         # Find the record corresponding to the start time
         if start_time is not None:
             for record in range(len(dmap_data)):
-                dtime = dt.datetime(dmap_data[record]['start.year'],
+                date = dt.datetime(dmap_data[record]['start.year'],
                                     dmap_data[record]['start.month'],
                                     dmap_data[record]['start.day'],
                                     dmap_data[record]['start.hour'],
                                     dmap_data[record]['start.minute'])
-                time_diff = dtime - start_time
+                time_diff = date - start_time
                 if time_diff.seconds/60 <= time_delta:
                     break
             if time_diff.seconds/60 > time_delta:
@@ -165,26 +147,21 @@ class Grid():
                                                        start_time=start_time)
         else:
             record = 0
-            dtime = dt.datetime(dmap_data[record]['start.year'],
+            date = dt.datetime(dmap_data[record]['start.year'],
                                 dmap_data[record]['start.month'],
                                 dmap_data[record]['start.day'],
                                 dmap_data[record]['start.hour'],
                                 dmap_data[record]['start.minute'])
 
         for stid in dmap_data[record]['stid']:
-            _, aacgm_lons, _, _, ax = Fan.plot_fov(stid, dtime,
-                                                   boundary=fov,
-                                                   lowlat=lowlat,
-                                                   line_color=fov_color,
-                                                   fov_color=fov_fill_color,
-                                                   radar_location=radar_location,
-                                                   radar_label=radar_label)
+            _, aacgm_lons, _, _, ax = Fan.plot_fov(stid, date,
+                                                   **kwargs)
             data_lons = dmap_data[record]['vector.mlon']
             data_lats = dmap_data[record]['vector.mlat']
 
             # Hold the beam positions
             shifted_mlts = aacgm_lons[0, 0] - \
-                (aacgmv2.convert_mlt(aacgm_lons[0, 0], dtime) * 15)
+                (aacgmv2.convert_mlt(aacgm_lons[0, 0], date) * 15)
             shifted_lons = data_lons - shifted_mlts
             thetas = np.radians(shifted_lons)
             rs = data_lats
@@ -279,11 +256,11 @@ class Grid():
         if title == '':
             title = "{year}-{month}-{day} {start_hour}:{start_minute} -"\
                 " {end_hour}:{end_minute}"\
-                    "".format(year=dtime.year,
-                              month=str(dtime.month).zfill(2),
-                              day=str(dtime.day).zfill(2),
-                              start_hour=str(dtime.hour).zfill(2),
-                              start_minute=str(dtime.minute).zfill(2),
+                    "".format(year=date.year,
+                              month=str(date.month).zfill(2),
+                              day=str(date.day).zfill(2),
+                              start_hour=str(date.hour).zfill(2),
+                              start_minute=str(date.minute).zfill(2),
                               end_hour=str(dmap_data[record]['end.hour']).
                               zfill(2),
                               end_minute=str(dmap_data[record]['end.minute']).
