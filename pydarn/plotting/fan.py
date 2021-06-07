@@ -191,8 +191,8 @@ class Fan():
                          ranges=ranges, boundary=boundary,
                          rsep=dmap_data[0]['rsep'],
                          frang=dmap_data[0]['frang'],
-                         ranges=ranges, line_color=line_color,
-                         alpha=alpha, radar_label=radar_label,
+                         line_color=line_color, alpha=alpha,
+                         radar_label=radar_label,
                          radar_location=radar_location, ax=ax,
                          fov_files=fov_files, coords=coords, **kwargs)
 
@@ -346,7 +346,7 @@ class Fan():
         # Get radar beam/gate locations
         beam_corners_aacgm_lats, beam_corners_aacgm_lons = \
             radar_fov(stid, rsep, frang, coords=coords, ranges=ranges,
-                      date=dtime, max_beams=max_beams, read_file=fov_files)
+                      date=date, max_beams=max_beams, read_file=fov_files)
 
         if not date:
             date = dt.datetime.now()
@@ -368,7 +368,7 @@ class Fan():
         # This may screw up references
         if ax is None:
             # Get the hemisphere to pass to plotting projection
-            kwargs['hem'] = SuperDARNRadars.radars[stid].hemisphere
+            kwargs['hemisphere'] = SuperDARNRadars.radars[stid].hemisphere
             # Get a polar projection using any kwarg input
             ax = Projections.axis_polar(**kwargs)
 

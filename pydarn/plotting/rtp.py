@@ -359,10 +359,7 @@ class RTP():
             # Get rxrise from hardware files (consistent with RST)
             rxrise = SuperDARNRadars.radars[cls.dmap_data[0]['stid']]\
                                     .hardware_info.rx_rise_time
-<<<<<<< HEAD
             y = gate2slant(cls.dmap_data[0]['frang'], cls.dmap_data[0]['rsep'], cls.dmap_data['rxrise'], y_max)
-=======
-            y = gate2slant(cls.dmap_data[0], y_max, rxrise=rxrise)
         elif coord is Coords.GROUND_SCATTER_MAPPED_RANGE:
             rxrise = SuperDARNRadars.radars[cls.dmap_data[0]['stid']]\
                                     .hardware_info.rx_rise_time
@@ -371,7 +368,6 @@ class RTP():
             y0inx = np.min(np.where(np.isfinite(y))[0])
             y = y[y0inx:]
             z = z[:,y0inx:]
->>>>>>> develop
         time_axis, y_axis = np.meshgrid(x, y)
         z_data = np.ma.masked_where(np.isnan(z.T), z.T)
         Default = {'noise.sky': (1e0, 1e5),

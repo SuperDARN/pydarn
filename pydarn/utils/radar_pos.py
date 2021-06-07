@@ -43,13 +43,13 @@ import os
 import aacgmv2
 
 from pydarn import SuperDARNRadars, gate2slant, Coords
-from pydarn.utils.const import EARTH_RADIUS
+from pydarn.utils.constants import EARTH_EQUATORIAL_RADIUS, Re, C
 
 
 def radar_fov(stid: int, rsep: int = 45, frang: int = 180,
               ranges: tuple = None, read_file: bool = False,
               coords: object = Coords.AACGM, max_beams: int = None,
-              date: datetime = None):
+              date: dt.datetime = None):
     """
     Returning beam/gate coordinates of a specified radar's field-of-view
 
@@ -220,10 +220,8 @@ def geographic_cell_positions(stid: int, beam: int, range_gate: int,
     # If no height is specified then use elevation angle (default 0)
     # to calculate the transmutation height
     if height is None:
-        height = -EARTH_RADIUS + np.sqrt(EARTH_RADIUS**2 + 2 * slant_range *
-                                         EARTH_RADIUS *
-                                         np.sin(np.radians(elv_angle)) +
-                                         slant_range**2)
+        height = -Re + np.sqrt(Re**2 + 2 * slant_range * Re *
+                               np.sin(np.radians(elv_angle)) + slant_range**2)
 
     lat, lon = geocentric_coordinates(radar_lat, radar_lon, slant_range,
                                       height, psi, boresight, chisham)
@@ -526,18 +524,18 @@ def geodetic2geocentric(lat: float, lon: float):
     # reciprocal flattening
     f = 1.0 / 298.257223563
     # b is in [km] semi minor axis of earth
-    b = EARTH_RADIUS * (1.0 - f)
+    b = EARTH_EQUATORIAL_RADIUS * (1.0 - f)
     # e2 is the ellipticity
-    e2 = EARTH_RADIUS**2 / b**2 - 1
+    e2 = EARTH_EQUATORIAL_RADIUS**2 / b**2 - 1
 
-    glat = np.arctan(b**2 / EARTH_RADIUS**2 * np.tan(lat))
+    glat = np.arctan(b**2 / EARTH_EQUATORIAL_RADIUS**2 * np.tan(lat))
     # glon [rad]
     glon = lon
 
     if glon > np.pi:
         glon = glon - 2 * np.pi
     # grho is km?
-    rho = EARTH_RADIUS / np.sqrt(1 + e2 * np.sin(glat)**2)
+    rho = EARTH_EQUATORIAL_RADIUS / np.sqrt(1 + e2 * np.sin(glat)**2)
     # delta in [rad]
     delta = lat - glat
     return glat, glon, rho, delta
@@ -567,12 +565,9 @@ def geocentric2geodetic(lat: float, lon: float):
     """
     # WGS 84 oblate spheroid defining parameters
     f = 1.0 / 298.257223563
-    b = EARTH_RADIUS * (1.0 - f)
-    e2 = EARTH_RADIUS**2 / b**2 - 1
+    b = EARTH_EQUATORIAL_RADIUS * (1.0 - f)
+    e2 = EARTH_EQUATORIAL_RADIUS**2 / b**2 - 1
 
-    rho = EARTH_RADIUS / np.sqrt(1+e2*np.sin(lat)**2)
-    # dlat = np.arctan(EARTH_RADIUS**2/b**2 * np.tan(lat))
-    # dlon = lon
-    # delta = dlat - lat
+    rho = EARTH_EQUATORIAL_RADIUS / np.sqrt(1+e2*np.sin(lat)**2)
 
     return rho
