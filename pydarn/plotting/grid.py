@@ -51,7 +51,7 @@ class Grid():
                   zmax: int = None, colorbar: bool = True,
                   colorbar_label: str = '', title: str = '',
                   len_factor: float = 150.0, ref_vector: int = 300,
-                  fov_color: str = 'black', fov_fill_color: str = None,
+                  fov_color: str = None, line_color: str = 'black',
                   radar_location: bool = True, radar_label: bool = False):
         """
         Plots a radar's gridded vectors from a GRID file
@@ -114,11 +114,11 @@ class Grid():
                 Velocity value to be used for the reference vector, in m/s
                 Default: 300
             fov_color: str
-                Field of View boundary color
-                default: black
-            fov_fill_color: str
-                field of view fill color
+                Field-of-view fill color
                 default: '' - transparent
+            line_color: str
+                Colour of the field-of-view fan lines
+                default: black
             radar_label: bool
                 place the radar abbreviation on the plot
                 default: False
@@ -175,8 +175,8 @@ class Grid():
             _, aacgm_lons, _, _, ax = Fan.plot_fov(stid, dtime,
                                                    boundary=fov,
                                                    lowlat=lowlat,
-                                                   line_color=fov_color,
-                                                   fov_color=fov_fill_color,
+                                                   line_color=line_color,
+                                                   fov_color=fov_color,
                                                    radar_location=radar_location,
                                                    radar_label=radar_label)
             data_lons = dmap_data[record]['vector.mlon']
