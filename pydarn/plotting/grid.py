@@ -178,7 +178,8 @@ class Grid():
                                                    line_color=line_color,
                                                    fov_color=fov_color,
                                                    radar_location=radar_location,
-                                                   radar_label=radar_label)
+                                                   radar_label=radar_label,
+                                                   ax=ax)
             data_lons = dmap_data[record]['vector.mlon']
             data_lats = dmap_data[record]['vector.mlat']
 
