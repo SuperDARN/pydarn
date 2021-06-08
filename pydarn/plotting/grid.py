@@ -28,7 +28,8 @@ from typing import List
 # Third party libraries
 import aacgmv2
 
-from pydarn import PyDARNColormaps, Fan, plot_exceptions, citing_warning
+from pydarn import (PyDARNColormaps, Fan, plot_exceptions, citing_warning, 
+    standard_warning_format)
 
 warnings.formatwarning = standard_warning_format
 
