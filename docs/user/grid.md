@@ -106,8 +106,8 @@ grid_data = pydarn.SuperDARNRead(grid_file).read_grid()
 
 pydarn.Grid.plot_grid(grid_data, start_time=stime,
                       colorbar_label='Velocity (m/s)',
-                      radar_label=True, fov_color='blue',
-                      fov_fill_color='grey')
+                      radar_label=True, line_color='blue',
+                      fov_color='grey')
 
 plt.show()
 ```
