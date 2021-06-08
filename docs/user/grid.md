@@ -89,8 +89,8 @@ Here is a list of all the current options than can be used with `plot_grid`
 | colorbar_label=(string)        | Label for the colour bar (requires colorbar to be true)                               |
 | title=(str)                    | To add a title to the plot                                                            |
 | radar_label=(str)        | To include a dot at radar location and label of 3 letter code |
-| fov_color=(str)           | Fill color of fov boundary                                                          |
-| fov_fill_color=(str)      | Fill color of fov                                                                           |
+| fov_color=(str)           | Fill color of fov                                                         |
+| line_color=(str)      | Fill color of fov lines                                                                          |
 
 
 As an example, the following code plots multiple radar Grid plot:
@@ -106,8 +106,8 @@ grid_data = pydarn.SuperDARNRead(grid_file).read_grid()
 
 pydarn.Grid.plot_grid(grid_data, start_time=stime,
                       colorbar_label='Velocity (m/s)',
-                      radar_label=True, fov_color='blue',
-                      fov_fill_color='grey')
+                      radar_label=True, line_color='blue',
+                      fov_color='grey')
 
 plt.show()
 ```

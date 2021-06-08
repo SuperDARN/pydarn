@@ -53,7 +53,7 @@ class Grid():
                   zmax: int = None, colorbar: bool = True,
                   colorbar_label: str = '', title: str = '',
                   len_factor: float = 150.0, ref_vector: int = 300,
-                  fov_color: str = 'black', fov_fill_color: str = None,
+                  fov_color: str = None, line_color: str = 'black',
                   radar_location: bool = True, radar_label: bool = False):
         """
         Plots a radar's gridded vectors from a GRID file
@@ -116,11 +116,11 @@ class Grid():
                 Velocity value to be used for the reference vector, in m/s
                 Default: 300
             fov_color: str
-                Field of View boundary color
-                default: black
-            fov_fill_color: str
-                field of view fill color
+                Field-of-view fill color
                 default: '' - transparent
+            line_color: str
+                Colour of the field-of-view fan lines
+                default: black
             radar_label: bool
                 place the radar abbreviation on the plot
                 default: False
@@ -176,13 +176,15 @@ class Grid():
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             for stid in dmap_data[record]['stid']:
-                _, aacgm_lons, _, _, ax = Fan.plot_fov(stid, dtime,
-                                                       boundary=fov,
-                                                       lowlat=lowlat,
-                                                       line_color=fov_color,
-                                                       fov_color=fov_fill_color,
-                                                       radar_location=radar_location,
-                                                       radar_label=radar_label)
+                _, aacgm_lons, _, _, ax =\
+                        Fan.plot_fov(stid, dtime,
+                                     boundary=fov,
+                                     lowlat=lowlat,
+                                     line_color=line_color,
+                                     fov_color=fov_color,
+                                     radar_location=radar_location,
+                                     radar_label=radar_label,
+                                     ax=ax)
                 data_lons = dmap_data[record]['vector.mlon']
                 data_lats = dmap_data[record]['vector.mlat']
 
@@ -219,7 +221,8 @@ class Grid():
                 try:
                     data = dmap_data[record][parameter]
                 except KeyError:
-                    raise plot_exceptions.UnknownParameterError(parameter, grid=True)
+                    raise plot_exceptions.UnknownParameterError(parameter,
+                                                                grid=True)
                 # Plot the magnitude of the parameter
                 ax.scatter(thetas, rs, c=data,
                            s=2.0, vmin=zmin, vmax=zmax, zorder=5, cmap=cmap)
@@ -263,8 +266,9 @@ class Grid():
 
                     # Plot the vectors
                     for i in num_pts:
-                        plt.plot([thetas[i], end_thetas[i]], [rs[i], end_rs[i]],
-                                  c=cmap(norm(data[i])), linewidth=0.5)
+                        plt.plot([thetas[i], end_thetas[i]],
+                                 [rs[i], end_rs[i]], c=cmap(norm(data[i])),
+                                 linewidth=0.5)
 
                 # TODO: Add a velocity reference vector
 
