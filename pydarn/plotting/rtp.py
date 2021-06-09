@@ -399,7 +399,7 @@ class RTP():
 
         # set the background color, this needs to happen to avoid
         # the overlapping problem that occurs
-        # cmap.set_bad(color=background, alpha=1.)
+        cmap.set_bad(color=background, alpha=1.)
         # plot!
         im = ax.pcolormesh(time_axis, y_axis, z_data, lw=0.01,
                            cmap=cmap, norm=norm, **kwargs)
@@ -720,7 +720,8 @@ class RTP():
                      watermark: bool = True, boundary: dict = {},
                      cmaps: dict = {}, lines: dict = {},
                      plot_elv: bool = True, title=None,
-                     groundscatter: bool = True, channel: int = 'all',
+                     background: str = 'w', groundscatter: bool = True,
+                     channel: int = 'all',
                      coords: object = Coords.SLANT_RANGE, **kwargs):
         """
         Plots the summary of several SuperDARN parameters using time-series and
@@ -742,6 +743,9 @@ class RTP():
         ax: matplotlib.axes
             axes object for another way of plotting
             Default: None
+        background: string
+            background color of the plots
+            default: white
         groundscatter : boolean
             Flag to indicate if groundscatter should be plotted.
             Placed only on the velocity plot.
@@ -984,7 +988,7 @@ class RTP():
                                                       MaxNLocator(integer=True,
                                                                   nbins=3))
 
-                axes[i].set_facecolor(background_color)
+                axes[i].set_facecolor(background)
             # plot cp id
             elif i == 2:
                 # with warning catch, catches all the warnings
@@ -997,7 +1001,7 @@ class RTP():
                                          ax=axes[i], **kwargs)
                 axes[i].set_ylabel('CPID', rotation=0, labelpad=30)
                 axes[i].yaxis.set_label_coords(-0.08, 0.079)
-                axes[i].set_facecolor(background_color)
+                axes[i].set_facecolor(background)
             # plot range-time
             else:
                 # Current standard is to only have groundscatter
@@ -1027,7 +1031,7 @@ class RTP():
                                             zmin=boundary_ranges[axes_parameters[i]][0],
                                             zmax=boundary_ranges[axes_parameters[i]][1],
                                             ymax=ymax, yspacing=500,
-                                            background=background_color,
+                                            background=background,
                                             coords=coords,
                                             **kwargs)
                 # Overwriting velocity ticks to get a better pleasing
