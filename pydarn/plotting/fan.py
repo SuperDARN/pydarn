@@ -165,7 +165,7 @@ class Fan():
             found_match = False
             for rec in dmap_data:
                 rec_time  = time2datetime(rec)
-                if rec['scan'] == 1:
+                if abs(rec['scan']) == 1:
                     scan_index += 1
                 # Need the abs since you cannot have negative seconds
                 diff_time = abs(scan_time - rec_time)
@@ -180,7 +180,10 @@ class Fan():
         plot_beams = np.where(beam_scan == scan_index)
 
         # Time for coordinate conversion
-        date = time2datetime(dmap_data[plot_beams[0][0]])
+        if not scan_time:
+        	date = time2datetime(dmap_data[plot_beams[0][0]])
+        else:
+        	date = scan_time
 
         # Plot FOV outline
         if ranges is None:
@@ -227,8 +230,18 @@ class Fan():
                 slist = dmap_data[i.astype(int)]['slist']
                 # get the beam number for the record
                 beam = dmap_data[i.astype(int)]['bmnum']
-                scan[slist, beam] = dmap_data[i.astype(int)][parameter]
-                grndsct[slist, beam] = dmap_data[i.astype(int)]['gflg']
+
+                # Exclude ranges larger than the expected maximum.
+                # This is a temporary fix to manage inconsistencies between the
+                # fitacf files and the hardware files. The issue will be
+                # fully resolved when the `rpos` code is committed.
+                good_data=slist<(fan_shape[0] - 1)
+                slist=slist[good_data]
+                temp_data=dmap_data[i.astype(int)][parameter][good_data]
+                temp_ground=dmap_data[i.astype(int)]['gflg'][good_data]
+                
+                scan[slist, beam] = temp_data
+                grndsct[slist, beam] = temp_ground
             # if there is no slist field this means partial record
             except KeyError:
                 continue

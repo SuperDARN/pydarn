@@ -19,8 +19,11 @@ the additional permissions listed below.
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPLv3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0) 
 [![Python 3.6](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/downloads/release/python-360/) 
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/superdarn/pydarn)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3727270.svg)](https://doi.org/10.5281/zenodo.3727270)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3727269.svg)](https://doi.org/10.5281/zenodo.3727269)
 
+
+!!! Important 
+    It is recommended to install pyDARN via `pip`; however, please cite via the [DOI for the release](https://doi.org/10.5281/zenodo.3727269) 
 
 
 ## Prerequisites
@@ -38,6 +41,9 @@ You can check your python version using
 `$ python --version` or 
 `$ python3 --version`
 
+!!! Note
+    If you have already installed `pydarn` you can use `pip3 install --upgrade pydarn`
+
 ## Dependencies
 
 pyDARN's setup will download the following dependencies: 
@@ -46,10 +52,9 @@ pyDARN's setup will download the following dependencies:
 - [pip3](https://help.dreamhost.com/hc/en-us/articles/115000699011-Using-pip3-to-install-Python3-modules)
 - [NumPy](https://numpy.org/)
 - [matplotlib](https://matplotlib.org/)
-- [deepdish](https://deepdish.readthedocs.io/en/latest/api_io.html)
-- [pathlib2](https://docs.python.org/dev/library/pathlib.html)
 - [PyYAML](https://pyyaml.org/wiki/PyYAMLDocumentation)
-- [h5py](https://www.h5py.org/)
+- [pyDARNio](https://pydarnio.readthedocs.io/en/latest/user/install/)
+- [AACGMv2](https://pypi.org/project/aacgmv2/) 
 
 ## Virtual Environments
 It is recommended to install pyDARN in one of the suggested virtual environments if you have multiple python/pip 3 version on your computer, or do not want to affect the main system's python libraries. 

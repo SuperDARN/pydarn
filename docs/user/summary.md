@@ -58,7 +58,7 @@ Ground-Scatter Mapped Range is another type of axis you can use with range-time 
 
 ```python
 pydarn.RTP.plot_summary(fitacf_data, beam_num=3,
-                        coord=pydarn.Coords.GROUND_SCATTER_MAPPED_RANGE)
+                        coords=pydarn.Coords.GROUND_SCATTER_MAPPED_RANGE)
 ```
 
 ![](../imgs/summary_1.png)
