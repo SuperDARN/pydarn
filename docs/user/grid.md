@@ -99,7 +99,7 @@ import matplotlib.pyplot as plt
 import datetime as dt
 import pydarn
 
-#Read in fitACF file
+#Read in GRID file
 stime = dt.datetime(2015, 3, 8, 14, 2)
 grid_file = "20150308.n.grd"
 grid_data = pydarn.SuperDARNRead(grid_file).read_grid()
