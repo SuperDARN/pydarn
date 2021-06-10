@@ -375,7 +375,7 @@ class RTP():
 
         # set the background color, this needs to happen to avoid
         # the overlapping problem that occurs
-        # cmap.set_bad(color=background, alpha=1.)
+        cmap.set_bad(color=background, alpha=1.)
         # plot!
         im = ax.pcolormesh(time_axis, y_axis, z_data, lw=0.01,
                            cmap=cmap, norm=norm, **kwargs)
