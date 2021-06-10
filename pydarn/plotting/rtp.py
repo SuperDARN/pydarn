@@ -363,7 +363,7 @@ class RTP():
         elif coord is Coords.GROUND_SCATTER_MAPPED_RANGE:
             rxrise = SuperDARNRadars.radars[cls.dmap_data[0]['stid']]\
                                     .hardware_info.rx_rise_time
-            y = gate2slant(cls.dmap_data[0], y_max, rxrise=rxrise)
+            y = gate2slant(cls.dmap_data[0]['frang'], cls.dmap_data[0]['rsep'], cls.dmap_data['rxrise'], y_max)
             y = gate2GroundScatter(y, reflection_height)
             y0inx = np.min(np.where(np.isfinite(y))[0])
             y = y[y0inx:]
