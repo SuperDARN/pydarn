@@ -3,7 +3,7 @@
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPLv3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0) 
 [![Python 3.6](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/downloads/release/python-360/) 
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/superdarn/pydarn)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4558130.svg)](https://doi.org/10.5281/zenodo.4558130)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3727269.svg)](https://doi.org/10.5281/zenodo.3727269)
 
 Python data visualization library for the Super Dual Auroral Radar Network (SuperDARN).
 
@@ -12,17 +12,19 @@ Python data visualization library for the Super Dual Auroral Radar Network (Supe
 
 ## Changelog
 
-## Version 2.0.1 - Release!
+## Version 2.1 - Release!
 
 
-pyDARN release v2.0.1 includes the following features:
-- Integration with pyDARNio to read files
-- Updates to Hardware utility
-- **Fan Plots** with transparent fix
-- **Statistical Power Plots**
-- Slant range option for plotting 
-- getting beam/gate geographic/geomagnetic locations 
+pyDARN release v2.1 includes the following features:
+- Updates to Fan plots
+- Updates to FOV plots
+- **NEW** Grid Plot
+- **NEW** Ground-Scatter Mapped Range option for Range-Time plots
+- **NEW** `Coords` enumerator for selecting coordinate system
 - updated documentation
+
+!!! Warning
+    `slant` option in `plot_range-time` and `plot_summary` is deprecated now uses `coords` 
 
 ## Documentation
 

@@ -71,10 +71,10 @@ class RTP():
                         start_time: datetime = None, end_time: datetime = None,
                         colorbar: plt.colorbar = None, ymin: int = None,
                         ymax: int = None, yspacing: int = 200,
-                        coord: object = Coords.SLANT_RANGE, reflection_height: float = 250.0,
+                        coords: object = Coords.SLANT_RANGE,
+                        reflection_height: float = 250.0,
                         colorbar_label: str = '',
-                        norm=colors.Normalize,
-                        cmap: str = None,
+                        norm=colors.Normalize, cmap: str = None,
                         filter_settings: dict = {},
                         date_fmt: str = '%y/%m/%d\n %H:%M', **kwargs):
         """
@@ -125,7 +125,7 @@ class RTP():
         yspacing: int
             sets the spacing between ticks
             Default: 200
-        coord: Coords
+        coords: Coords
             set the y-axis to a desired coordinate system
             Default: Coords.SLANT_RANGE
         reflection_height: float
@@ -355,12 +355,12 @@ class RTP():
                                      start_time=start_time,
                                      end_time=end_time,
                                      opt_beam_num=cls.dmap_data[0]['bmnum'])
-        if coord is Coords.SLANT_RANGE:
+        if coords is Coords.SLANT_RANGE:
             # Get rxrise from hardware files (consistent with RST)
             rxrise = SuperDARNRadars.radars[cls.dmap_data[0]['stid']]\
                                     .hardware_info.rx_rise_time
             y = gate2slant(cls.dmap_data[0], y_max, rxrise=rxrise)
-        elif coord is Coords.GROUND_SCATTER_MAPPED_RANGE:
+        elif coords is Coords.GROUND_SCATTER_MAPPED_RANGE:
             rxrise = SuperDARNRadars.radars[cls.dmap_data[0]['stid']]\
                                     .hardware_info.rx_rise_time
             y = gate2slant(cls.dmap_data[0], y_max, rxrise=rxrise)
@@ -405,7 +405,7 @@ class RTP():
 
         # set the background color, this needs to happen to avoid
         # the overlapping problem that occurs
-        # cmap.set_bad(color=background, alpha=1.)
+        cmap.set_bad(color=background, alpha=1.)
         # plot!
         im = ax.pcolormesh(time_axis, y_axis, z_data, lw=0.01,
                            cmap=cmap, norm=norm, **kwargs)
@@ -428,7 +428,7 @@ class RTP():
 
         ax.set_ylim(ymin, ymax)
 
-        if coord is Coords.SLANT_RANGE or coord is Coords.GROUND_SCATTER_MAPPED_RANGE:
+        if coords is Coords.SLANT_RANGE or coords is Coords.GROUND_SCATTER_MAPPED_RANGE:
             ax.yaxis.set_ticks(np.arange(np.ceil(ymin/100.0)*100,
                                          ymax+1, yspacing))
         else:
@@ -446,7 +446,7 @@ class RTP():
             tick_interval = 1
         ax.xaxis.set_minor_locator(dates.MinuteLocator(interval=tick_interval))
 
-        if coord is Coords.SLANT_RANGE or coord is Coords.GROUND_SCATTER_MAPPED_RANGE:
+        if coords is Coords.SLANT_RANGE or coords is Coords.GROUND_SCATTER_MAPPED_RANGE:
             ax.yaxis.set_minor_locator(ticker.AutoMinorLocator(2))
         else:
             ax.yaxis.set_minor_locator(ticker.MultipleLocator(5))
@@ -458,11 +458,14 @@ class RTP():
             with warnings.catch_warnings():
                 warnings.filterwarnings('error')
                 try:
-                    locator = ticker.MaxNLocator(symmetric=True, min_n_ticks=3,
-                                                 integer=True, nbins='auto')
-                    ticks = locator.tick_values(vmin=zmin, vmax=zmax)
-                    cb = ax.figure.colorbar(im, ax=ax, extend='both',
-                                            ticks=ticks)
+                    if isinstance(norm, colors.LogNorm):
+                        cb = ax.figure.colorbar(im, ax=ax, extend='both')
+                    else:
+                        locator = ticker.MaxNLocator(symmetric=True, min_n_ticks=3,
+                                                     integer=True, nbins='auto')
+                        ticks = locator.tick_values(vmin=zmin, vmax=zmax)
+                        cb = ax.figure.colorbar(im, ax=ax, extend='both',
+                                                ticks=ticks)
 
                 except (ZeroDivisionError, Warning):
                     raise rtp_exceptions.RTPZeroError(parameter, beam_num,
@@ -476,7 +479,7 @@ class RTP():
     @classmethod
     def plot_time_series(cls, dmap_data: List[dict],
                          parameter: str = 'tfreq', beam_num: int = 0,
-                         ax=None, start_time: datetime = None,
+                         ax=None, gate: int = 0, start_time: datetime = None,
                          end_time: datetime = None,
                          date_fmt: str = '%y/%m/%d\n %H:%M',
                          channel='all', scale: str = 'linear',
@@ -561,7 +564,6 @@ class RTP():
             raise plot_exceptions.UnknownParameterError(parameter)
 
         cls.dmap_data = dmap_data
-        check_data_type(cls.dmap_data, parameter, 'scalar', index_first_match)
         start_time, end_time = cls.__determine_start_end_time(start_time,
                                                               end_time)
 
@@ -638,11 +640,22 @@ class RTP():
                        (channel == dmap_record['channel'] or channel == 'all'):
                         # construct the x-axis array
                         x.append(rec_time)
-                        if parameter == 'tfreq':
-                            # Convert kHz to MHz by dividing by 1000
-                            y.append(dmap_record[parameter]/1000)
-                        else:
-                            y.append(dmap_record[parameter])
+                        try:
+                            if parameter == 'tfreq':
+                                # Convert kHz to MHz by dividing by 1000
+                                y.append(dmap_record[parameter]/1000)
+                            elif isinstance(dmap_record[parameter], np.ndarray):
+                                if gate in dmap_record['slist']:
+                                    for i in range(len(dmap_record['slist'])):
+                                        if dmap_record['slist'][i] == gate:
+                                            break
+                                    y.append(dmap_record[parameter][i])
+                                else:
+                                    y.append(np.ma.masked)
+                            else:
+                                y.append(dmap_record[parameter])
+                        except KeyError:
+                            y.append(np.ma.masked)
                     # else plot missing data
                     elif len(x) > 0:
                         diff_time = rec_time - x[-1]
@@ -708,7 +721,7 @@ class RTP():
     @classmethod
     def plot_summary(cls, dmap_data: List[dict], beam_num: int = 0,
                      groundscatter: bool = True, channel: int = 'all',
-                     coord: object = Coords.SLANT_RANGE,
+                     coords: object = Coords.SLANT_RANGE,
                      reflection_height: float = 250.0,
                      figsize: tuple = (11, 8.5),
                      watermark: bool = True, boundary: dict = {},
@@ -742,9 +755,9 @@ class RTP():
             channel number that will be plotted
             in the summary plot.
             Default: 'all'
-        coord: Coord
+        coords: Coords
             set the y-axis to a desired coordinate system
-            Default: Coord.SLANT_RANGE
+            Default: Coords.SLANT_RANGE
         reflection_height: float
             set the ionosphere virtual reflection height
             this only applies to Coords.GROUND_SCATTER_MAPPED_RANGE
@@ -1000,9 +1013,9 @@ class RTP():
             else:
                 # Current standard is to only have groundscatter
                 # on the velocity plot. This may change in the future.
-                if coord is Coords.SLANT_RANGE:
+                if coords is Coords.SLANT_RANGE:
                     ymax = 3517.5
-                elif coord is Coords.GROUND_SCATTER_MAPPED_RANGE:
+                elif coords is Coords.GROUND_SCATTER_MAPPED_RANGE:
                     ymax = 3517.5/2
                 else:
                     ymax = 75
@@ -1023,7 +1036,7 @@ class RTP():
                                             ax=axes[i],
                                             groundscatter=grndflg,
                                             channel=channel,
-                                            coord=coord,
+                                            coords=coords,
                                             reflection_height = reflection_height,
                                             cmap=cmap[axes_parameters[i]],
                                             zmin=boundary_ranges[axes_parameters[i]][0],
@@ -1046,9 +1059,9 @@ class RTP():
                     if ticks[-1] > boundary_ranges[axes_parameters[i]][1]:
                         ticks[-1] = boundary_ranges[axes_parameters[i]][1]
                     cbar.set_ticks(ticks)
-                if coord is Coords.SLANT_RANGE:
+                if coords is Coords.SLANT_RANGE:
                     axes[i].set_ylabel('Slant Range (km)')
-                elif coord is Coords.GROUND_SCATTER_MAPPED_RANGE:
+                elif coords is Coords.GROUND_SCATTER_MAPPED_RANGE:
                     axes[i].set_ylabel('Ground Scatter\nMapped Range\n(km)')
                 else:
                     axes[i].set_ylabel('Range Gates')
