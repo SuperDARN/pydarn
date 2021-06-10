@@ -19,8 +19,11 @@ the additional permissions listed below.
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPLv3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0) 
 [![Python 3.6](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/downloads/release/python-360/) 
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/superdarn/pydarn)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3727270.svg)](https://doi.org/10.5281/zenodo.3727270)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3727269.svg)](https://doi.org/10.5281/zenodo.3727269)
 
+
+!!! Important 
+    It is recommended to install pyDARN via `pip`; however, please cite via the [DOI for the release](https://doi.org/10.5281/zenodo.3727269) 
 
 
 ## Prerequisites
@@ -38,6 +41,9 @@ You can check your python version using
 `$ python --version` or 
 `$ python3 --version`
 
+!!! Note
+    If you have already installed `pydarn` you can use `pip3 install --upgrade pydarn`
+
 ## Dependencies
 
 pyDARN's setup will download the following dependencies: 
@@ -46,10 +52,9 @@ pyDARN's setup will download the following dependencies:
 - [pip3](https://help.dreamhost.com/hc/en-us/articles/115000699011-Using-pip3-to-install-Python3-modules)
 - [NumPy](https://numpy.org/)
 - [matplotlib](https://matplotlib.org/)
-- [deepdish](https://deepdish.readthedocs.io/en/latest/api_io.html)
-- [pathlib2](https://docs.python.org/dev/library/pathlib.html)
 - [PyYAML](https://pyyaml.org/wiki/PyYAMLDocumentation)
-- [h5py](https://www.h5py.org/)
+- [pyDARNio](https://pydarnio.readthedocs.io/en/latest/user/install/)
+- [AACGMv2](https://pypi.org/project/aacgmv2/) 
 
 ## Virtual Environments
 It is recommended to install pyDARN in one of the suggested virtual environments if you have multiple python/pip 3 version on your computer, or do not want to affect the main system's python libraries. 
@@ -94,12 +99,13 @@ To set the project interpreter to the anaconda environment:
 ## System Install 
 `sudo pip3 install pydarn`
 
-## Installing for Development 
-`$ git clone https://github.com/superdarn/pydarn`
+## Installing for Development
 
-Change directories to pydarn 
+pyDARN's default github branch is `develop` for quicker and easer development. 
 
-`$ git checkout develop`
+It is encouraged to use [SSH keys in GitHub](https://docs.github.com/en/github/authenticating-to-github/connecting-to-github-with-ssh) 
+
+`git clone git@github.com:SuperDARN/pydarn.git`
 
 To install: 
 
@@ -108,8 +114,10 @@ To install:
 !!! Note
     If `pip --version` is pointing to python 3.6+ then you can use `pip install . --user` instead. 
 
-!!! Warning
-    Do not install pydarn with `python setup.py install` as this may install other libraries pydarn requires in a local directory causing issues down the road.
+!!! Note
+    Sometimes `python setup.py install` is needed to grab all hardware files (known issue).
+
+Please read pyDARN [Workflow documentation](../dev/team.md) to further understand how to develop in pyDARN.
     
 ## Troubleshooting
 
@@ -133,6 +141,17 @@ $ echo "source $HOME/venvs/py38/bin/activate" >> ~/.bashrc
 Then open a new terminal and you should see `(pyy38)` in the prompt. 
 
 Credit to this solution is Ashton Reimer, more details on the [issue #37](https://github.com/SuperDARN/pydarn/issues/37)
+
+### aacgmv2 won't install 
+
+Issue: `unable to execute 'gcc': No such file or directory
+    error: command 'gcc' failed with exit status 1`
+
+Solution: 
+  1. Ensure `gcc` is installed if not install it
+  2. Ensure you install `python3-dev` (Ubuntu) or `python3-devel` for RPM OS Linux operating systems. 
+
+Credit to this solution is Marina Schmidt brought up by Remington Rohel from SuperDARN Canada
 
 
 > If you find any problems/solutions, please make a [github issue](https://github.com/superdarn/pydarn/issues/new) so the community can help you or add it to the documentation 

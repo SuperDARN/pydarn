@@ -16,7 +16,7 @@ the additional permissions listed below.
 # Range-Time Parameter Plots 
 ---
 
-Range-time parameter plots (also known as range-time intensity (RTI) plots) are time series of a radar-measured parameter at all range gates or slant ranges along a specific beam. They are the most common way to look at data from a single radar. 
+Range-time parameter plots (also known as range-time intensity (RTI) plots) are time series of a radar-measured parameter at all range-gates along a specific beam. They are the most common way to look at data from a single radar. 
 
 ### Basic RTP
 The general syntax for plot_range_time is:
@@ -56,7 +56,7 @@ To specify which beam to look at, add the option:
 
 As an example, taking a look at some `v` data from the first record of Clyde River radar FITACF file:
 ```python
-pydarn.RTP.plot_range_time(fitacf_data, beam_num=fitacf_data[0]['bmnum'], slant=False)
+pydarn.RTP.plot_range_time(fitacf_data, beam_num=fitacf_data[0]['bmnum'], coords=pydarn.Coords.RANGE_GATE)
 plt.title("Radar {:d}, Beam {:d}".format(fitacf_data[0]['stid'], fitacf_data[0]['bmnum']))  
 
 plt.show()
@@ -69,7 +69,21 @@ which produces:
 
 Notice that the velocity scale on the right is a bit larger than we need, and also ground scatter isn't coloured grey by default. Showing the dates on the x axis is also a bit redundant, because it's data from a single day. Below, there are some additional parameters you can set to address these and more.
 
-In addition, we use `slant=False` to set the y-axis to plot in range gates. Setting `slant=True` or not specifying will plot the axis in slant ranges. 
+In addition, we use `coords=pydarn.Coords.RANGE_GATE` to set the y-axis to plot in range gates. 
+Ground-Scatter Mapped Range is another type of axis you can use with range-time plots:
+
+```python
+pydarn.RTP.plot_range_time(fitacf_data, beam_num=3, parameter='p_l',
+                           coords=pydarn.Coords.GROUND_SCATTER_MAPPED_RANGE,
+                           colorbar_label='SNR')
+plt.title("Clyde 20150308 14:00 UTC Fitacf 2.5")
+plt.ylabel('Ground Scatter Mapped (km)')
+plt.xlabel('Time (UTC)')
+plt.show()
+```
+
+![](../imgs/rtp_1.png)
+
 
 ### Additional options
 To see all the customisation options, check out all the parameters listed in 'rtp.py'. A few useful ones:
@@ -82,11 +96,14 @@ To see all the customisation options, check out all the parameters listed in 'rt
 | date_fmt=(string)            | How the x-tick labels look. Default is ('%y/%m/%d\n %H:%M') |
 | zmin=(int)                   | Minimum data value to be plotted                            |
 | zmax=(int)                   | Maximum data value to be plotted                            |
-| slant=(bool)                 | True (y-axis in slant range), False (y-axis in range gates) | 
+| coords=(Coords)              | Coordinates to use for the y-axis (See [Coordinates](coordinates.md)) | 
 
 For instance, code for a velocity RTP showing the same beam of Clyde river radar as above, but with ground scatter plotted in grey, date format as `hh:mm`, custom min and max values and a colour bar label could look something like:
 ```python
-pydarn.RTP.plot_range_time(fitacf_data, beam_num=fitacf_data[0]['bmnum'], groundscatter=1, zmax=500, zmin=-500, date_fmt='%H:%M', colorbar_label='Line-of-Sight Velocity (m s$^{-1}$)', slant=False)
+pydarn.RTP.plot_range_time(fitacf_data, beam_num=fitacf_data[0]['bmnum'], groundscatter=True,
+                           zmax=500, zmin=-500, date_fmt='%H:%M',
+                           colorbar_label='Line-of-Sight Velocity (m s$^{-1}$)',
+                           coords=pydarn.Coords.RANGE_GATE)
 ```
 which outputs:
 
@@ -99,7 +116,7 @@ Because the default parameter plotted is line-of-sight velocity, there is also a
 
 To change the colormap, use the 'cmap' parameter with the string name of a matplotlib color map ([found here](https://matplotlib.org/tutorials/colors/colormaps.html)). For example, plotting the power along the beam above using the colormap 'viridis':
 ```python
-pydarn.RTP.plot_range_time(fitacf_data, beam_num=7, parameter='p_l', zmax=50, zmin=0, date_fmt='%H%M', colorbar_label='Power (dB)', slant=False, cmap='viridis')
+pydarn.RTP.plot_range_time(fitacf_data, beam_num=7, parameter='p_l', zmax=50, zmin=0, date_fmt='%H%M', colorbar_label='Power (dB)', coords=pydarn.Coords.RANGE_GATE, cmap='viridis')
 ```
 produces:
 
@@ -154,8 +171,21 @@ plt.show()
 
 ![](../imgs/rtp_stripping.png)
 
+### Plotting Lag-0 
 
+Range-time plots also allow users to plot `pwr0` parameters in RAWACF files:
 
+``` python
+import pydarn
+import matplotlib.pyplot as plt 
+from matplotlib import colors
 
+rawacf_file = './data/20180404.0601.00.inv.rawacf'
+rawacf_data = pydarn.SuperDARNRead().read_dmap(rawacf_file)
+lognorm=colors.LogNorm
 
+pydarn.RTP.plot_range_time(rawacf_data, beam_num=0, parameter='pwr0',
+                           norm=lognorm, cmap='gnuplot')
+```
 
+![](../imgs/pwr0_range-time.png)

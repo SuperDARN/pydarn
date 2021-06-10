@@ -58,10 +58,12 @@ John D. Hunter. Matplotlib: A 2D Graphics Environment, Computing in Science & En
 #### Numpy 
 Stéfan van der Walt, S. Chris Colbert and Gaël Varoquaux. The NumPy Array: A Structure for Efficient Numerical Computation, Computing in Science & Engineering, 13, 22-30 (2011), [DOI:10.1109/MCSE.2011.37](https://ieeexplore.ieee.org/document/5725236)
 
-#### H5PY
+#### pyDARNio
 
-A. Collette, Python and HDF5, O'Reilly (2014) (http://shop.oreilly.com/product/0636920030249.do)
+SuperDARN Data Standards Working Group, Krieger, K.J., Kotyk, K., Detwiller, M.H., Billett, D.D., Burrell, A.G., … Schmidt, M.T. (2021, May 25). SuperDARN/pyDARNio: pyDARNio v1.1 (Version v1.1). Zenodo. http://doi.org/10.5281/zenodo.4792463
 
+#### AACGM
 
+Angeline G. Burrell, Christer van der Meeren, Karl M. Laundal, & Hugo van Kemenade. (2021, January 13). aburrell/aacgmv2: Version 2.6.2 (Version 2.6.2). Zenodo. http://doi.org/10.5281/zenodo.4437229
 
-
+Shepherd, S. G. (2014), Altitude‐adjusted corrected geomagnetic coordinates: Definition and functional approximations, Journal of Geophysical Research: Space Physics, 119, 7501–7521, doi:10.1002/2014JA020264.
