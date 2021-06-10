@@ -124,7 +124,7 @@ class RTP():
         yspacing: int
             sets the spacing between ticks
             Default: 200
-        coord: Coords
+        coords: Coords
             set the y-axis to a desired coordinate system
             Default: Coords.SLANT_RANGE
         norm: matplotlib.colors.Normalization object
