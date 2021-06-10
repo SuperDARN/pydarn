@@ -43,7 +43,8 @@ fitacf_file = "20190831.C0.cly.fitacf"
 darn_read = pydarn.SuperDARNRead(fitacf_file)
 fitacf_data = darn_read.read_fitacf()
 
-pydarn.RTP.plot_summary(fitacf_data,beam_num=2,slant=False)
+pydarn.RTP.plot_summary(fitacf_data, beam_num=2,
+                        coords=pydarn.Coords.RANGE_GATE)
 plt.show()
 ```
 which gives:
@@ -52,7 +53,15 @@ which gives:
 
 Note that ground scatter is displayed as default in the velocity panel. To disable it, you can use the option `groundscatter=false`.
 
-Additionally, in this plot we have set `slant=False` to plot the range-time parameters against range gates. Setting `slant=True` or leaving `slant` undeclared will plot the range-time parameters against slant range on the y-axis. 
+In addition, we use `coords=pydarn.Coords.RANGE_GATE` to set the y-axis to plot in range gates. 
+Ground-Scatter Mapped Range is another type of axis you can use with range-time plots:
+
+```python
+pydarn.RTP.plot_summary(fitacf_data, beam_num=3,
+                        coords=pydarn.Coords.GROUND_SCATTER_MAPPED_RANGE)
+```
+
+![](../imgs/summary_1.png)
 
 ### Additional options
 In the example above, we can see the velocities are a little too high for the default colour scale. To change that, we need to create a python dictionary that redefines the boundaries:
@@ -75,8 +84,7 @@ Other common options include:
 | Parameter        | Action                                                                   |
 |------------------|--------------------------------------------------------------------------|
 | channel=(int)    | Specify channel number (default=all)                                     |
-| slant=(bool)     | True (y-axis plotted with slant range), False (plotted with range gates) |
 | watermark=(bool) | True adds a 'not for publication' watermark                              |
 | cmaps=(dict/str) | Specifies the colour maps used in plotting                               | 
-
+| coords=(Coords)              | Coordinates to use for the y-axis (See [Coordinates](coordinates.md)) |
 For more options on how to modify plot_summary, take a look at the method in `rtp.py`.

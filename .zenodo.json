@@ -8,6 +8,14 @@
             "name": "Schmidt, M.T.",
             "orcid": "0000-0002-3265-977X"
         },
+        {   "affiliation": "University of Scranton",
+            "name":  "Tholley, F."
+        },
+        {
+            "affiliation": "University of Scranton",
+            "name":  "Frissell, N.",
+            "orcid": "0000-0002-8398-4222" 
+        },
         {
             "affiliation": "University of Saskatchewan",
             "name": "Billett, D.D.",
@@ -17,11 +25,6 @@
             "affiliation": "University of Saskatchewan",
             "name": "Martin, C.J.",
             "orcid": "0000-0002-8278-9783"
-        },
-        {
-            "affiliation": "University of Saskatchewan",
-            "name": "Huyghebaert, D.",
-            "orcid": "0000-0002-4257-4235"
         },
         {
             "affiliation": "The University Centre in Svalbard",
@@ -34,6 +37,11 @@
             "orcid": "0000-0001-8875-9326"
         },
         {
+            "affiliation": "Virginia Tech",
+            "name": "Coyle, S.",
+            "orcid": "0000-0003-1730-2753"
+        },
+        {
             "affiliation": "University of Saskatchewan",
             "name": "Detwiller, M.H."
         },
@@ -44,11 +52,8 @@
         },
         {
             "affiliation": "University of Saskatchewan",
-            "name": "Krieger, K."
-        },
-        {
-            "affiliation": "University of Saskatchewan", 
-            "name": "Peters, D.GO."
+            "name": "Huyghebaert, D.",
+            "orcid": "0000-0002-4257-4235"
         },
         {
             "affiliation": "SRI International",
@@ -63,10 +68,5 @@
         {
             "affiliation": "University of Saskatchewan",
             "name": "Roberston, C.R."
-        },
-        {
-            "affiliation": "Virginia Tech",
-            "name": "Sterne, K.T.",
-            "orcid": "0000-0002-1076-0009"
         }]
 }

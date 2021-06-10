@@ -5,6 +5,18 @@
 #
 # Disclaimer: pyDARN is licensed under the GPL v 3.0 found in LICENSE
 #
+import warnings
+
+def citing_warning():
+    """
+    prints a citation warning for pyDARN users to remind them to cite
+    pyDARN in publications.
+    """
+    warnings.warn("Please make sure to cite pyDARN in publications that"
+              " use plots created by pyDARN using DOI:"
+              " https://zenodo.org/record/3727269. Citing information"
+              " for SuperDARN data is found at"
+              " https://pydarn.readthedocs.io/en/master/user/citing/")
 
 
 def standard_warning_format(message: str, category: str, filename: str,

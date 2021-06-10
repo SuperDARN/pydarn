@@ -6,7 +6,7 @@ import numpy as np
 
 from typing import List
 
-from pydarn import SuperDARNRadars, exceptions, RTP
+from pydarn import SuperDARNRadars, exceptions, RTP, citing_warning
 
 
 class Power():
@@ -332,5 +332,5 @@ class Power():
         for record in records_of_interest:
             stat_pwr = stat_method(record['pwr0'])
             record.update({'pwr0': stat_pwr})
-
+        citing_warning()
         return records_of_interest
