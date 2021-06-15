@@ -20,7 +20,6 @@ pyDARN release v2.1 includes the following features:
 - Updates to FOV plots
 - **NEW** Grid Plot
 - **NEW** Ground-Scatter Mapped Range option for Range-Time plots
-- **Statistical Power Plots**
 - **NEW** `Coords` enumerator for selecting coordinate system
 - updated documentation
 
