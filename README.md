@@ -34,10 +34,10 @@ pyDARN's documentation can found [here](https://pydarn.readthedocs.io/en/latest)
 
 `pip install pydarn`
 
-Or read the [installation guide](https://pydarn.readthedocs.io/en/latest/user/install/).
+Or read the [installation guide](https://pydarn.readthedocs.io/en/main/user/install/).
 
-If wish to get access to SuperDARN data please read the [SuperDARN data access documentation](https://pydarn.readthedocs.io/en/latest/user/superdarn_data/).
-Please make sure to also read the documentation on [**citing superDARN and pydarn**](https://pydarn.readthedocs.io/en/latest/user/citing/). 
+If wish to get access to SuperDARN data please read the [SuperDARN data access documentation](https://pydarn.readthedocs.io/en/main/user/superdarn_data/).
+Please make sure to also read the documentation on [**citing superDARN and pydarn**](https://pydarn.readthedocs.io/en/main/user/citing/). 
 
 As a quick tutorial on using pydarn to read a non-compressed file: 
 
@@ -59,7 +59,7 @@ plt.show()
 
 [summary plot](docs/imgs/summary_clyb2.png)
 
-For more information and tutorials on pyDARN please see the [tutorial section](https://pydarn.readthedocs.io/en/latest/)
+For more information and tutorials on pyDARN please see the [tutorial section](https://pydarn.readthedocs.io/en/main/)
 
 ## Getting involved
 
