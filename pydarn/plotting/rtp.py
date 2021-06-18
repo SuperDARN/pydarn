@@ -5,7 +5,7 @@
 #
 # Modifications:
 # 2021-05-12 Francis Tholley added gate2grounscatter to range-time plots
-#
+# 2021-06-18 Marina Schmidt (SuperDARN Canada) fixed ground scatter colour bug
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
 # Everyone is permitted to copy and distribute verbatim copies of this license
