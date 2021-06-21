@@ -76,7 +76,8 @@ class RTP():
                         colorbar_label: str = '',
                         norm=colors.Normalize, cmap: str = None,
                         filter_settings: dict = {},
-                        date_fmt: str = '%y/%m/%d\n %H:%M', **kwargs):
+                        date_fmt: str = '%y/%m/%d\n %H:%M',
+                        round_start: bool=True, **kwargs):
         """
         Plots a range-time parameter plot of the given
         field name in the dmap_data
@@ -180,6 +181,10 @@ class RTP():
                 dictionary that contains the key parameter names and the value
                 to compare against. Will filter out data sections
                 that is does not equal the value.
+        round_start: bool=True
+                option to round the start time to give tick at start of xaxis
+                Set True to round, set False to plot from start of data.
+                Default: True
         kwargs:
             key names of variable settings of pcolormesh:
             https://matplotlib.org/3.1.1/api/_as_gen/matplotlib.pyplot.pcolormesh.html
@@ -413,13 +418,10 @@ class RTP():
         # Upon request of Daniel Billet and others, I am rounding
         # the time down so the plotting x-axis will show the origin
         # time label
+        # Updated to give option to round down and make sure 
+        # rounding to same frequency as plot axis ticks
         # TODO: may need to be its own function
-        rounded_down_start_time = x[0] -\
-            timedelta(minutes=x[0].minute % 15,
-                      seconds=x[0].second,
-                      microseconds=x[0].microsecond)
-        ax.set_xlim([rounded_down_start_time, x[-1]])
-        ax.xaxis.set_major_formatter(dates.DateFormatter(date_fmt))
+        
         if ymax is None:
             ymax = np.max(y)
 
@@ -445,6 +447,24 @@ class RTP():
         else:
             tick_interval = 1
         ax.xaxis.set_minor_locator(dates.MinuteLocator(interval=tick_interval))
+        
+        major_locator, _ = plt.xticks()
+        dt = dates.num2date(major_locator[1]) - dates.num2date(major_locator[0])
+        tick_sep = (dt.seconds//60)%60
+
+        if round_start:
+            rounded_down_start_time = x[0] -\
+                timedelta(minutes=x[0].minute % tick_sep,
+                        seconds=x[0].second,
+                        microseconds=x[0].microsecond)
+        else:
+            rounded_down_start_time = x[0] -\
+                timedelta(minutes=x[0].minute % 1,
+                        seconds=x[0].second,
+                        microseconds=x[0].microsecond)
+        
+        ax.set_xlim([rounded_down_start_time, x[-1]])
+        ax.xaxis.set_major_formatter(dates.DateFormatter(date_fmt))
 
         if coords is Coords.SLANT_RANGE or coords is Coords.GROUND_SCATTER_MAPPED_RANGE:
             ax.yaxis.set_minor_locator(ticker.AutoMinorLocator(2))
@@ -483,7 +503,8 @@ class RTP():
                          end_time: datetime = None,
                          date_fmt: str = '%y/%m/%d\n %H:%M',
                          channel='all', scale: str = 'linear',
-                         cp_name: bool = True, **kwargs):
+                         cp_name: bool = True, round_start: bool=True,
+                         **kwargs):
         """
         Plots the time series of a scalar parameter
 
@@ -521,6 +542,10 @@ class RTP():
             along side the number. Otherwise the cp ID will
             just be printed. This is only used for the parameter cp
             Default: True
+        round_start: bool=True
+                option to round the start time to give tick at start of xaxis
+                Set True to round, set False to plot from start of data.
+                Default: True
         kwargs
             kwargs passed into plot_date
 
@@ -681,10 +706,20 @@ class RTP():
             lines = ax.plot_date(x, my, fmt='k', tz=None, xdate=True,
                                  ydate=False,
                                  **kwargs)
-            rounded_down_start_time = x[0] -\
-                timedelta(minutes=x[0].minute % 15,
-                          seconds=x[0].second,
-                          microseconds=x[0].microsecond)
+            major_locator, _ = plt.xticks()
+            dt = dates.num2date(major_locator[1]) - dates.num2date(major_locator[0])
+            tick_sep = (dt.seconds//60)%60
+
+            if round_start:
+                rounded_down_start_time = x[0] -\
+                    timedelta(minutes=x[0].minute % tick_sep,
+                            seconds=x[0].second,
+                            microseconds=x[0].microsecond)
+            else:
+                rounded_down_start_time = x[0] -\
+                    timedelta(minutes=x[0].minute % 1,
+                            seconds=x[0].second,
+                            microseconds=x[0].microsecond)
             ax.set_xlim([rounded_down_start_time, x[-1]])
             ax.set_yscale(scale)
 
@@ -692,10 +727,20 @@ class RTP():
         # Rounded the time down to show origin label upon
         # Daniel Billet and others request.
         # TODO: may move this to its own function
-        rounded_down_start_time = x[0] -\
-            timedelta(minutes=x[0].minute % 15,
-                      seconds=x[0].second,
-                      microseconds=x[0].microsecond)
+        major_locator, _ = plt.xticks()
+        dt = dates.num2date(major_locator[1]) - dates.num2date(major_locator[0])
+        tick_sep = (dt.seconds//60)%60
+
+        if round_start:
+            rounded_down_start_time = x[0] -\
+                timedelta(minutes=x[0].minute % tick_sep,
+                        seconds=x[0].second,
+                        microseconds=x[0].microsecond)
+        else:
+            rounded_down_start_time = x[0] -\
+                timedelta(minutes=x[0].minute % 1,
+                        seconds=x[0].second,
+                        microseconds=x[0].microsecond)
         ax.set_xlim([rounded_down_start_time, x[-1]])
 
         ax.xaxis.set_major_formatter(dates.DateFormatter(date_fmt))
