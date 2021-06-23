@@ -5,7 +5,7 @@
 #
 # Modifications:
 # 2021-05-12 Francis Tholley added gate2grounscatter to range-time plots
-#
+# 2021-06-18 Marina Schmidt (SuperDARN Canada) fixed ground scatter colour bug
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
 # Everyone is permitted to copy and distribute verbatim copies of this license
@@ -398,10 +398,6 @@ class RTP():
                      'elv': PyDARNColormaps.PYDARN}
             cmap = cmaps[parameter]
 
-        if isinstance(groundscatter, str):
-            cmap.set_under(groundscatter, 1.0)
-        elif groundscatter:
-            cmap.set_under('grey', 1.0)
 
         # set the background color, this needs to happen to avoid
         # the overlapping problem that occurs
@@ -409,6 +405,19 @@ class RTP():
         # plot!
         im = ax.pcolormesh(time_axis, y_axis, z_data, lw=0.01,
                            cmap=cmap, norm=norm, **kwargs)
+
+        if isinstance(groundscatter, str):
+            ground_scatter = np.ma.masked_where( z_data != -1000000, z_data)
+            gs_color = colors.ListedColormap([groundscatter])
+            im2 = ax.pcolormesh(time_axis, y_axis, ground_scatter, lw=0.01,
+                           cmap=gs_color, norm=norm, **kwargs)
+
+        elif groundscatter:
+            ground_scatter = np.ma.masked_where( z_data != -1000000, z_data)
+            gs_color = colors.ListedColormap(['grey'])
+            im2 = ax.pcolormesh(time_axis, y_axis, ground_scatter, lw=0.01,
+                           cmap=gs_color, norm=norm, **kwargs)
+
         # setup some standard axis information
         # Upon request of Daniel Billet and others, I am rounding
         # the time down so the plotting x-axis will show the origin
