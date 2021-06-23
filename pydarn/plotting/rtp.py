@@ -412,7 +412,6 @@ class RTP():
             im2 = ax.pcolormesh(time_axis, y_axis, ground_scatter, lw=0.01,
                            cmap=gs_color, norm=norm, **kwargs)
 
-            #cmap.set_under(groundscatter)
         elif groundscatter:
             ground_scatter = np.ma.masked_where( z_data != -1000000, z_data)
             gs_color = colors.ListedColormap(['grey'])
