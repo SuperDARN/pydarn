@@ -150,7 +150,7 @@ class Fan():
         """
         # Get scan numbers for each record
         beam_scan = build_scan(dmap_data)
-
+        scan_time = None
         if isinstance(scan_index, dt.datetime):
             # loop through dmap_data records, dump a datetime
             # list where scans start
@@ -227,7 +227,7 @@ class Fan():
                 slist=slist[good_data]
                 temp_data=dmap_data[i.astype(int)][parameter][good_data]
                 temp_ground=dmap_data[i.astype(int)]['gflg'][good_data]
-                
+
                 scan[slist, beam] = temp_data
                 grndsct[slist, beam] = temp_ground
             # if there is no slist field this means partial record
