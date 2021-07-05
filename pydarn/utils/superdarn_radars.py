@@ -358,7 +358,7 @@ class SuperDARNRadars():
                           'University of Alaska Fairbanks', Hemisphere.North,
                           75, read_hdw_file('ade')),
               208: _Radar('Adak Island West', 'University of Alaska Fairbanks',
-                          75, Hemisphere.North, read_hdw_file('adw')),
+                          Hemisphere.North, 75, read_hdw_file('adw')),
               33: _Radar('Blackstone', 'Virginia Tech', Hemisphere.North,
                          100, read_hdw_file('bks')),
               207: _Radar('Christmas Valley East', 'Dartmouth College',

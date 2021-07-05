@@ -5,7 +5,7 @@
 #
 # Modifications:
 # 2021-05-12 Francis Tholley added gate2grounscatter to range-time plots
-#
+# 2021-06-18 Marina Schmidt (SuperDARN Canada) fixed ground scatter colour bug
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
 # Everyone is permitted to copy and distribute verbatim copies of this license
@@ -392,10 +392,6 @@ class RTP():
                      'elv': PyDARNColormaps.PYDARN}
             cmap = cmaps[parameter]
 
-        if isinstance(groundscatter, str):
-            cmap.set_under(groundscatter, 1.0)
-        elif groundscatter:
-            cmap.set_under('grey', 1.0)
 
         # set the background color, this needs to happen to avoid
         # the overlapping problem that occurs
@@ -403,6 +399,19 @@ class RTP():
         # plot!
         im = ax.pcolormesh(time_axis, y_axis, z_data, lw=0.01,
                            cmap=cmap, norm=norm, **kwargs)
+
+        if isinstance(groundscatter, str):
+            ground_scatter = np.ma.masked_where( z_data != -1000000, z_data)
+            gs_color = colors.ListedColormap([groundscatter])
+            im2 = ax.pcolormesh(time_axis, y_axis, ground_scatter, lw=0.01,
+                           cmap=gs_color, norm=norm, **kwargs)
+
+        elif groundscatter:
+            ground_scatter = np.ma.masked_where( z_data != -1000000, z_data)
+            gs_color = colors.ListedColormap(['grey'])
+            im2 = ax.pcolormesh(time_axis, y_axis, ground_scatter, lw=0.01,
+                           cmap=gs_color, norm=norm, **kwargs)
+
         # setup some standard axis information
         # Upon request of Daniel Billet and others, I am rounding
         # the time down so the plotting x-axis will show the origin
@@ -473,7 +482,7 @@ class RTP():
     @classmethod
     def plot_time_series(cls, dmap_data: List[dict],
                          parameter: str = 'tfreq', beam_num: int = 0,
-                         ax=None, start_time: datetime = None,
+                         ax=None, gate: int = 0, start_time: datetime = None,
                          end_time: datetime = None,
                          date_fmt: str = '%y/%m/%d\n %H:%M',
                          channel='all', scale: str = 'linear',
@@ -569,7 +578,6 @@ class RTP():
             raise plot_exceptions.UnknownParameterError(parameter)
 
         cls.dmap_data = dmap_data
-        check_data_type(cls.dmap_data, parameter, 'scalar', index_first_match)
         start_time, end_time = cls.__determine_start_end_time(start_time,
                                                               end_time)
 
@@ -646,11 +654,22 @@ class RTP():
                        (channel == dmap_record['channel'] or channel == 'all'):
                         # construct the x-axis array
                         x.append(rec_time)
-                        if parameter == 'tfreq':
-                            # Convert kHz to MHz by dividing by 1000
-                            y.append(dmap_record[parameter]/1000)
-                        else:
-                            y.append(dmap_record[parameter])
+                        try:
+                            if parameter == 'tfreq':
+                                # Convert kHz to MHz by dividing by 1000
+                                y.append(dmap_record[parameter]/1000)
+                            elif isinstance(dmap_record[parameter], np.ndarray):
+                                if gate in dmap_record['slist']:
+                                    for i in range(len(dmap_record['slist'])):
+                                        if dmap_record['slist'][i] == gate:
+                                            break
+                                    y.append(dmap_record[parameter][i])
+                                else:
+                                    y.append(np.ma.masked)
+                            else:
+                                y.append(dmap_record[parameter])
+                        except KeyError:
+                            y.append(np.ma.masked)
                     # else plot missing data
                     elif len(x) > 0:
                         diff_time = rec_time - x[-1]

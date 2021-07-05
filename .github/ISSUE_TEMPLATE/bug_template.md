@@ -13,6 +13,11 @@ about: reporting a bug
 - [ ] Major - misrepresentation of data, failure in a common situation 
 - [ ] Urgent - failure in usage, large misrepresentation
 
+## Information
+**python version**:
+**OS**:
+**matplotlib version**:
+
 ## Example of the bug 
 
 *please provide **code** and **output** of the bug*
@@ -40,8 +45,6 @@ about: reporting a bug
 ## Extra Notes
 
 *Please provide other pertinent details about this feature:*
-- *Operating System*
-- *Python version 3.X.X*
 - *Examples of what the visual output should look like*
 - *Other data files that show the same bug*
 - *How to access data files to test out the bug*
