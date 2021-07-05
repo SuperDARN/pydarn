@@ -160,7 +160,7 @@ class Grid():
             warnings.simplefilter("ignore")
             for stid in dmap_data[record]['stid']:
                 _, aacgm_lons, _, _, ax =\
-                        Fan.plot_fov(stid, dtime,
+                        Fan.plot_fov(stid, date,
                                      boundary=fov,
                                      lowlat=lowlat,
                                      line_color=line_color,
@@ -173,7 +173,7 @@ class Grid():
 
                 # Hold the beam positions
                 shifted_mlts = aacgm_lons[0, 0] - \
-                    (aacgmv2.convert_mlt(aacgm_lons[0, 0], dtime) * 15)
+                    (aacgmv2.convert_mlt(aacgm_lons[0, 0], date) * 15)
                 shifted_lons = data_lons - shifted_mlts
                 thetas = np.radians(shifted_lons)
                 rs = data_lats
