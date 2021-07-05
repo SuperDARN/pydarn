@@ -161,10 +161,8 @@ class Grid():
             for stid in dmap_data[record]['stid']:
                 _, aacgm_lons, _, _, ax =\
                         Fan.plot_fov(stid, date,
-                                     boundary=fov,
                                      lowlat=lowlat,
                                      line_color=line_color,
-                                     fov_color=fov_color,
                                      radar_location=radar_location,
                                      radar_label=radar_label,
                                      ax=ax)
