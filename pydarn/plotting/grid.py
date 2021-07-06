@@ -163,9 +163,7 @@ class Grid():
                         Fan.plot_fov(stid, date,
                                      lowlat=lowlat,
                                      line_color=line_color,
-                                     radar_location=radar_location,
-                                     radar_label=radar_label,
-                                     ax=ax)
+                                     ax=ax, **kwargs)
                 data_lons = dmap_data[record]['vector.mlon']
                 data_lats = dmap_data[record]['vector.mlat']
 
