@@ -56,14 +56,10 @@ class Fan():
     @classmethod
     def plot_fan(cls, dmap_data: List[dict], ax=None,
                  scan_index: Union[int, dt.datetime] = 1,
-                 ranges: List = [0, 75], boundary: bool = True,
-                 line_color: str = 'black', alpha: int = 0.5,
                  parameter: str = 'v', cmap: str = None,
-                 groundscatter: bool = False,
-                 zmin: int = None, zmax: int = None,
-                 colorbar: bool = True,
-                 colorbar_label: str = '', radar_location: bool = True,
-                 radar_label: bool = False, title: bool = True,
+                 groundscatter: bool = False, zmin: int = None,
+                 zmax: int = None, colorbar: bool = True,
+                 colorbar_label: str = '', title: bool = True,
                  **kwargs):
         """
         Plots a radar's Field Of View (FOV) fan plot for the given data and
@@ -85,19 +81,6 @@ class Fan():
             parameter: str
                 Key name indicating which parameter to plot.
                 Default: v (Velocity). Alternatives: 'p_l', 'w_l', 'elv'
-            ranges: list
-                Set to a two element list of the lower and upper ranges to plot
-                Default: [0,75]
-            boundary: bool
-                Set to false to not plot the outline of the FOV
-                Default: True
-            line_color: str
-                set the line and dot color
-                default: black
-            alpha: int
-                alpha controls the transparency of
-                the fov color
-                Default: 0.5
             cmap: matplotlib.cm
                 matplotlib colour map
                 https://matplotlib.org/tutorials/colors/colormaps.html
@@ -114,12 +97,6 @@ class Fan():
             colorbar: bool
                 Draw a colourbar if True
                 Default: True
-            radar_location: bool
-                Add a dot where radar is located if True
-                Default: False
-            radar_label: bool
-                Add a label with the radar abbreviation if True
-                Default: False
             colorbar_label: str
                 the label that appears next to the colour bar.
                 Requires colorbar to be true
@@ -130,7 +107,7 @@ class Fan():
                 default: true
             kwargs: key = value
                 Additional keyword arguments to be used in projection plotting
-                For possible keywords, see: projections.axis_polar
+                and plot_fov for possible keywords, see: projections.axis_polar
 
         Returns
         -----------
@@ -148,6 +125,10 @@ class Fan():
         --------
             plot_fov
         """
+        try:
+            ranges = kwargs['ranges']
+        except KeyError:
+            ranges = [0, 75]
         # Get scan numbers for each record
         beam_scan = build_scan(dmap_data)
         scan_time = None
@@ -181,11 +162,7 @@ class Fan():
 
         # Plot FOV outline
         beam_corners_aacgm_lats, beam_corners_aacgm_lons, thetas, rs, ax = \
-            cls.plot_fov(stid=dmap_data[0]['stid'], date=date,
-                         ranges=ranges, boundary=boundary,
-                         line_color=line_color, alpha=alpha,
-                         radar_label=radar_label,
-                         radar_location=radar_location, ax=ax, **kwargs)
+            cls.plot_fov(dmap_data[0]['stid'], date, **kwargs)
 
         fan_shape = beam_corners_aacgm_lons.shape
 
@@ -275,8 +252,8 @@ class Fan():
         return beam_corners_aacgm_lats, beam_corners_aacgm_lons, scan, grndsct
 
     @classmethod
-    def plot_fov(cls, stid: str, date: dt.datetime, ax=None,
-                 ranges: List = [], boundary: bool = True,
+    def plot_fov(cls, stid: str, date: dt.datetime,
+                 ax=None, ranges: List = [], boundary: bool = True,
                  fov_color: str = None, alpha: int = 0.5,
                  radar_location: bool = True, radar_label: bool = False,
                  line_color: str = 'black', **kwargs):
@@ -377,9 +354,9 @@ class Fan():
                      linewidth=0.5)
 
         if radar_location:
-            cls.plot_radar_position(stid, date, line_color=line_color)
+            cls.plot_radar_position(stid, date, line_color, **kwargs)
         if radar_label:
-            cls.plot_radar_label(stid, date, line_color=line_color)
+            cls.plot_radar_label(stid, date, line_color, **kwargs)
 
         if fov_color is not None:
             theta = thetas[0:ranges[1], 0]
@@ -397,8 +374,8 @@ class Fan():
         return beam_corners_aacgm_lats, beam_corners_aacgm_lons, thetas, rs, ax
 
     @classmethod
-    def plot_radar_position(cls, stid: int, dtime: dt.datetime,
-                            line_color: str = 'black'):
+    def plot_radar_position(cls, stid: int, date: dt.datetime,
+                            line_color: str = 'black', **kwargs):
         """
         plots only a dot at the position of a given radar station ID (stid)
 
@@ -406,7 +383,7 @@ class Fan():
         -----------
             stid: int
                 Radar station ID
-            dtime: datetime datetime object
+            date: datetime datetime object
                 sets the datetime used to find the coordinates of the
                 FOV
             line_color: str
@@ -421,9 +398,9 @@ class Fan():
         lat = SuperDARNRadars.radars[stid].hardware_info.geographic.lat
         lon = SuperDARNRadars.radars[stid].hardware_info.geographic.lon
         # Convert to geomag coords
-        geomag_radar = aacgmv2.get_aacgm_coord(lat, lon, 250, dtime)
+        geomag_radar = aacgmv2.get_aacgm_coord(lat, lon, 250, date)
         mltshift = geomag_radar[1] - (aacgmv2.convert_mlt(geomag_radar[1],
-                                                          dtime) * 15)
+                                                          date) * 15)
         # Convert to MLT then radians for theta
         theta_lon = np.radians(geomag_radar[1] - mltshift)
         r_lat = geomag_radar[0]
@@ -432,8 +409,8 @@ class Fan():
         return
 
     @classmethod
-    def plot_radar_label(cls, stid: int, dtime: dt.datetime,
-                         line_color: str = 'black'):
+    def plot_radar_label(cls, stid: int, date: dt.datetime,
+                         line_color: str = 'black', **kwargs):
         """
         plots only string at the position of a given radar station ID (stid)
 
@@ -441,7 +418,7 @@ class Fan():
         -----------
             stid: int
                 Radar station ID
-            dtime: datetime datetime object
+            date: datetime datetime object
                 sets the datetime used to find the coordinates of the
                 FOV
             line_color: str
@@ -459,9 +436,9 @@ class Fan():
         lat = SuperDARNRadars.radars[stid].hardware_info.geographic.lat
         lon = SuperDARNRadars.radars[stid].hardware_info.geographic.lon
         # Convert to geomag coords
-        geomag_radar = aacgmv2.get_aacgm_coord(lat, lon, 250, dtime)
+        geomag_radar = aacgmv2.get_aacgm_coord(lat, lon, 250, date)
         mltshift = geomag_radar[1] - \
-            (aacgmv2.convert_mlt(geomag_radar[1], dtime) * 15)
+            (aacgmv2.convert_mlt(geomag_radar[1], date) * 15)
         # Convert to MLT then radians for theta
         theta_lon = np.radians(geomag_radar[1] - mltshift)
         r_lat = geomag_radar[0]
