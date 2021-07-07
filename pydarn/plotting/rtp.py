@@ -5,7 +5,7 @@
 #
 # Modifications:
 # 2021-05-12 Francis Tholley added gate2grounscatter to range-time plots
-#
+# 2021-06-18 Marina Schmidt (SuperDARN Canada) fixed ground scatter colour bug
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
 # Everyone is permitted to copy and distribute verbatim copies of this license
@@ -72,7 +72,6 @@ class RTP():
                         colorbar: plt.colorbar = None, ymin: int = None,
                         ymax: int = None, yspacing: int = 200,
                         coords: object = Coords.SLANT_RANGE,
-                        reflection_height: float = 250.0,
                         colorbar_label: str = '',
                         norm=colors.Normalize, cmap: str = None,
                         filter_settings: dict = {},
@@ -128,10 +127,6 @@ class RTP():
         coords: Coords
             set the y-axis to a desired coordinate system
             Default: Coords.SLANT_RANGE
-        reflection_height: float
-            set the ionosphere virtual reflection height
-            this only applies to Coords.GROUND_SCATTER_MAPPED_RANGE
-            Default: 250 (km)
         norm: matplotlib.colors.Normalization object
             This object use dependency injection to use any normalization
             method with the zmin and zmax.
@@ -181,9 +176,8 @@ class RTP():
                 to compare against. Will filter out data sections
                 that is does not equal the value.
         kwargs:
-            key names of variable settings of pcolormesh:
-            https://matplotlib.org/3.1.1/api/_as_gen/matplotlib.pyplot.pcolormesh.html
-
+            used for other methods in pyDARN
+                - reflection_height
         Raises
         ------
         UnknownParameterError
@@ -363,8 +357,8 @@ class RTP():
         elif coord is Coords.GROUND_SCATTER_MAPPED_RANGE:
             rxrise = SuperDARNRadars.radars[cls.dmap_data[0]['stid']]\
                                     .hardware_info.rx_rise_time
-            y = gate2slant(cls.dmap_data[0]['frang'], cls.dmap_data[0]['rsep'], cls.dmap_data['rxrise'], y_max)
-            y = gate2GroundScatter(y, reflection_height)
+            y = gate2slant(cls.dmap_data[0], y_max, rxrise=rxrise)
+            y = gate2GroundScatter(y, **kwargs)
             y0inx = np.min(np.where(np.isfinite(y))[0])
             y = y[y0inx:]
             z = z[:,y0inx:]
@@ -398,10 +392,6 @@ class RTP():
                      'elv': PyDARNColormaps.PYDARN}
             cmap = cmaps[parameter]
 
-        if isinstance(groundscatter, str):
-            cmap.set_under(groundscatter, 1.0)
-        elif groundscatter:
-            cmap.set_under('grey', 1.0)
 
         # set the background color, this needs to happen to avoid
         # the overlapping problem that occurs
@@ -409,6 +399,19 @@ class RTP():
         # plot!
         im = ax.pcolormesh(time_axis, y_axis, z_data, lw=0.01,
                            cmap=cmap, norm=norm, **kwargs)
+
+        if isinstance(groundscatter, str):
+            ground_scatter = np.ma.masked_where( z_data != -1000000, z_data)
+            gs_color = colors.ListedColormap([groundscatter])
+            im2 = ax.pcolormesh(time_axis, y_axis, ground_scatter, lw=0.01,
+                           cmap=gs_color, norm=norm, **kwargs)
+
+        elif groundscatter:
+            ground_scatter = np.ma.masked_where( z_data != -1000000, z_data)
+            gs_color = colors.ListedColormap(['grey'])
+            im2 = ax.pcolormesh(time_axis, y_axis, ground_scatter, lw=0.01,
+                           cmap=gs_color, norm=norm, **kwargs)
+
         # setup some standard axis information
         # Upon request of Daniel Billet and others, I am rounding
         # the time down so the plotting x-axis will show the origin
@@ -479,11 +482,13 @@ class RTP():
     @classmethod
     def plot_time_series(cls, dmap_data: List[dict],
                          parameter: str = 'tfreq', beam_num: int = 0,
-                         ax=None, start_time: datetime = None,
+                         ax=None, gate: int = 0, start_time: datetime = None,
                          end_time: datetime = None,
                          date_fmt: str = '%y/%m/%d\n %H:%M',
                          channel='all', scale: str = 'linear',
-                         cp_name: bool = True, **kwargs):
+                         cp_name: bool = True, color: str = 'black',
+                         linestyle: str = '-', linewidth: float = 1,
+                         **kwargs):
         """
         Plots the time series of a scalar parameter
 
@@ -521,6 +526,15 @@ class RTP():
             along side the number. Otherwise the cp ID will
             just be printed. This is only used for the parameter cp
             Default: True
+        color: str
+            color of the line
+            default: black
+        linestyle: str
+            style of line with dash marks or solid
+            default: solid
+        linewidth: float
+            the width of the line
+            default: 1
         kwargs
             kwargs passed into plot_date
 
@@ -564,7 +578,6 @@ class RTP():
             raise plot_exceptions.UnknownParameterError(parameter)
 
         cls.dmap_data = dmap_data
-        check_data_type(cls.dmap_data, parameter, 'scalar', index_first_match)
         start_time, end_time = cls.__determine_start_end_time(start_time,
                                                               end_time)
 
@@ -641,11 +654,22 @@ class RTP():
                        (channel == dmap_record['channel'] or channel == 'all'):
                         # construct the x-axis array
                         x.append(rec_time)
-                        if parameter == 'tfreq':
-                            # Convert kHz to MHz by dividing by 1000
-                            y.append(dmap_record[parameter]/1000)
-                        else:
-                            y.append(dmap_record[parameter])
+                        try:
+                            if parameter == 'tfreq':
+                                # Convert kHz to MHz by dividing by 1000
+                                y.append(dmap_record[parameter]/1000)
+                            elif isinstance(dmap_record[parameter], np.ndarray):
+                                if gate in dmap_record['slist']:
+                                    for i in range(len(dmap_record['slist'])):
+                                        if dmap_record['slist'][i] == gate:
+                                            break
+                                    y.append(dmap_record[parameter][i])
+                                else:
+                                    y.append(np.ma.masked)
+                            else:
+                                y.append(dmap_record[parameter])
+                        except KeyError:
+                            y.append(np.ma.masked)
                     # else plot missing data
                     elif len(x) > 0:
                         diff_time = rec_time - x[-1]
@@ -668,9 +692,10 @@ class RTP():
             # otherwise the lines will connect in gapped data
             my = np.ma.array(y)
             my = np.ma.masked_where(np.isnan(my), my)
+
             lines = ax.plot_date(x, my, fmt='k', tz=None, xdate=True,
-                                 ydate=False,
-                                 **kwargs)
+                                 ydate=False, color=color, linestyle=linestyle,
+                                 linewidth=linewidth)
             rounded_down_start_time = x[0] -\
                 timedelta(minutes=x[0].minute % 15,
                           seconds=x[0].second,
@@ -709,14 +734,14 @@ class RTP():
         return lines, x, y
 
     @classmethod
-    def plot_summary(cls, dmap_data: List[dict], beam_num: int = 0,
-                     groundscatter: bool = True, channel: int = 'all',
-                     coords: object = Coords.SLANT_RANGE,
-                     reflection_height: float = 250.0,
+    def plot_summary(cls, dmap_data: List[dict],
                      figsize: tuple = (11, 8.5),
                      watermark: bool = True, boundary: dict = {},
-                     background_color: str = 'w', cmaps: dict = {},
-                     lines: dict = {}, plot_elv: bool = True, title=None):
+                     cmaps: dict = {}, lines: dict = {},
+                     plot_elv: bool = True, title=None,
+                     background: str = 'w', groundscatter: bool = True,
+                     channel: int = 'all',
+                     coords: object = Coords.SLANT_RANGE, **kwargs):
         """
         Plots the summary of several SuperDARN parameters using time-series and
         range-time plots. Please see Notes for further description
@@ -737,6 +762,9 @@ class RTP():
         ax: matplotlib.axes
             axes object for another way of plotting
             Default: None
+        background: string
+            background color of the plots
+            default: white
         groundscatter : boolean
             Flag to indicate if groundscatter should be plotted.
             Placed only on the velocity plot.
@@ -745,13 +773,9 @@ class RTP():
             channel number that will be plotted
             in the summary plot.
             Default: 'all'
-        coords: Coords
+        coords: Coord object
             set the y-axis to a desired coordinate system
-            Default: Coords.SLANT_RANGE
-        reflection_height: float
-            set the ionosphere virtual reflection height
-            this only applies to Coords.GROUND_SCATTER_MAPPED_RANGE
-            Default: 250 (km)
+            Default: Coord.SLANT_RANGE
         figsize : (int,int)
             tuple containing (height, width) figure size
             Default: 11 x 8.5
@@ -770,9 +794,6 @@ class RTP():
         lines: dict or str
             dictionary of time-series line colors.
             Default: black
-        background_color: str
-            changes the color of the background in the plots.
-            Default: white
         boundary: dict
             tuple as the value (zmin, zmax) for the plots
             Default: {'noise.sky': (1e0, 1e5),
@@ -792,7 +813,9 @@ class RTP():
             Default: auto-generated by the files details
             {radar name} {Radar system (if applicable)} Fitacf {version}
             {start hour/date} - {end hour/date}  Beam {number}
-
+        kwargs:
+            reflection_height for ground_scatter_mapped method
+            background
         Raises
         ------
         IndexError
@@ -922,12 +945,12 @@ class RTP():
                         # ignore the warnings because summary plots
                         # has its own warning message
                         warnings.simplefilter("ignore")
-                        cls.plot_time_series(dmap_data, beam_num=beam_num,
+                        cls.plot_time_series(dmap_data,
                                              parameter=axes_parameters[i][0],
-                                             channel=channel, scale=scale,
+                                             scale=scale, channel=channel,
                                              color=line[axes_parameters[i][0]],
                                              ax=axes[i], linestyle='-',
-                                             label=labels[i][0])
+                                             label=labels[i][0], **kwargs)
                     axes[i].set_ylabel(labels[i][0], rotation=0, labelpad=30)
                     axes[i].\
                         axhline(y=boundary_ranges[axes_parameters[i][0]][0] +
@@ -955,12 +978,12 @@ class RTP():
                         # warnings are not caught with try/except
                         with warnings.catch_warnings():
                             warnings.simplefilter("ignore")
-                            cls.plot_time_series(dmap_data, beam_num=beam_num,
+                            cls.plot_time_series(dmap_data,
                                                  parameter=axes_parameters[i][1],
                                                  color=line[axes_parameters[i][1]],
                                                  channel=channel,
                                                  scale=scale, ax=second_ax,
-                                                 linestyle='--')
+                                                 linestyle='--', **kwargs)
                         second_ax.set_xticklabels([])
                         second_ax.set_ylabel(labels[i][1], rotation=0,
                                              labelpad=25)
@@ -984,7 +1007,7 @@ class RTP():
                                                       MaxNLocator(integer=True,
                                                                   nbins=3))
 
-                axes[i].set_facecolor(background_color)
+                axes[i].set_facecolor(background)
             # plot cp id
             elif i == 2:
                 # with warning catch, catches all the warnings
@@ -992,13 +1015,12 @@ class RTP():
                 # the citing warning.
                 with warnings.catch_warnings():
                     warnings.simplefilter("ignore")
-                    cls.plot_time_series(dmap_data, beam_num=beam_num,
+                    cls.plot_time_series(dmap_data, channel=channel,
                                          parameter=axes_parameters[i],
-                                         channel=channel,
-                                         ax=axes[i])
+                                         ax=axes[i], **kwargs)
                 axes[i].set_ylabel('CPID', rotation=0, labelpad=30)
                 axes[i].yaxis.set_label_coords(-0.08, 0.079)
-                axes[i].set_facecolor(background_color)
+                axes[i].set_facecolor(background)
             # plot range-time
             else:
                 # Current standard is to only have groundscatter
@@ -1020,20 +1042,17 @@ class RTP():
                     warnings.simplefilter("ignore")
                     _, cbar, _, x, _, _ =\
                         cls.plot_range_time(dmap_data,
-                                            beam_num=beam_num,
                                             colorbar_label=labels[i],
-                                            parameter=axes_parameters[i],
-                                            ax=axes[i],
-                                            groundscatter=grndflg,
                                             channel=channel,
-                                            coords=coords,
-                                            reflection_height = reflection_height,
+                                            parameter=axes_parameters[i],
+                                            ax=axes[i], groundscatter=grndflg,
                                             cmap=cmap[axes_parameters[i]],
                                             zmin=boundary_ranges[axes_parameters[i]][0],
                                             zmax=boundary_ranges[axes_parameters[i]][1],
-                                            ymax=ymax,
-                                            yspacing=500,
-                                            background=background_color)
+                                            ymax=ymax, yspacing=500,
+                                            background=background,
+                                            coords=coords,
+                                            **kwargs)
                 # Overwriting velocity ticks to get a better pleasing
                 # look on the colorbar
                 # Preference by Marina Schmidt
@@ -1062,7 +1081,7 @@ class RTP():
                 axes[i].set_xlabel('Date (UTC)')
 
         if title is None:
-            plt.title(cls.__generate_title(x[0], x[-1], beam_num,
+            plt.title(cls.__generate_title(x[0], x[-1], kwargs['beam_num'],
                                            channel), y=2.4)
         else:
             plt.title(title, y=2.4)
