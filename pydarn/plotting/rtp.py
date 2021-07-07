@@ -454,7 +454,7 @@ class RTP():
         
         major_locator, _ = plt.xticks()
         dt = dates.num2date(major_locator[1]) - dates.num2date(major_locator[0])
-        tick_sep = (dt.seconds//60)%60
+        tick_sep = dt.seconds//60
 
         if round_start:
             rounded_down_start_time = x[0] -\
@@ -723,7 +723,7 @@ class RTP():
                                  linewidth=linewidth)
             major_locator, _ = plt.xticks()
             dt = dates.num2date(major_locator[1]) - dates.num2date(major_locator[0])
-            tick_sep = (dt.seconds//60)%60
+            tick_sep = dt.seconds//60
 
             if round_start:
                 rounded_down_start_time = x[0] -\
@@ -745,7 +745,7 @@ class RTP():
         # TODO: may move this to its own function
         major_locator, _ = plt.xticks()
         dt = dates.num2date(major_locator[1]) - dates.num2date(major_locator[0])
-        tick_sep = (dt.seconds//60)%60
+        tick_sep = dt.seconds//60
 
         if round_start:
             rounded_down_start_time = x[0] -\
