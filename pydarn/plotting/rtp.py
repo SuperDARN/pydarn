@@ -419,13 +419,6 @@ class RTP():
                            cmap=gs_color, norm=norm, **kwargs)
 
         # setup some standard axis information
-        # Upon request of Daniel Billet and others, I am rounding
-        # the time down so the plotting x-axis will show the origin
-        # time label
-        # Updated to give option to round down and make sure 
-        # rounding to same frequency as plot axis ticks
-        # TODO: may need to be its own function
-        
         if ymax is None:
             ymax = np.max(y)
 
@@ -450,22 +443,27 @@ class RTP():
             tick_interval = 30
         else:
             tick_interval = 1
-        ax.xaxis.set_minor_locator(dates.MinuteLocator(interval=tick_interval))
-        
-        major_locator, _ = plt.xticks()
-        dt = dates.num2date(major_locator[1]) - dates.num2date(major_locator[0])
-        tick_sep = dt.seconds//60
+        # byminute keyword makes sure that the ticks are situated at 
+        # the minute or half hour marks, rather than at a set interval
+        ax.xaxis.set_minor_locator(
+            dates.MinuteLocator(byminute=range(0,60,tick_interval)))
 
+        # Upon request of Daniel Billet and others, I am rounding
+        # the time down so the plotting x-axis will show the origin
+        # time label
+        # Updated to give option to round down and make sure 
+        # rounding to same frequency as plot axis ticks if less than 1 hour
         if round_start:
+            major_locator, _ = plt.xticks()
+            dt = dates.num2date(major_locator[1]) -\
+                dates.num2date(major_locator[0])
+            tick_sep = dt.seconds//60
             rounded_down_start_time = x[0] -\
                 timedelta(minutes=x[0].minute % tick_sep,
-                        seconds=x[0].second,
-                        microseconds=x[0].microsecond)
+                          seconds=x[0].second,
+                          microseconds=x[0].microsecond)
         else:
-            rounded_down_start_time = x[0] -\
-                timedelta(minutes=x[0].minute % 1,
-                        seconds=x[0].second,
-                        microseconds=x[0].microsecond)
+            rounded_down_start_time = x[0]
         
         ax.set_xlim([rounded_down_start_time, x[-1]])
         ax.xaxis.set_major_formatter(dates.DateFormatter(date_fmt))
@@ -721,20 +719,18 @@ class RTP():
             lines = ax.plot_date(x, my, fmt='k', tz=None, xdate=True,
                                  ydate=False, color=color, linestyle=linestyle,
                                  linewidth=linewidth)
-            major_locator, _ = plt.xticks()
-            dt = dates.num2date(major_locator[1]) - dates.num2date(major_locator[0])
-            tick_sep = dt.seconds//60
 
             if round_start:
+                major_locator, _ = plt.xticks()
+                dt = dates.num2date(major_locator[1]) -\
+                    dates.num2date(major_locator[0])
+                tick_sep = dt.seconds//60
                 rounded_down_start_time = x[0] -\
                     timedelta(minutes=x[0].minute % tick_sep,
                             seconds=x[0].second,
                             microseconds=x[0].microsecond)
             else:
-                rounded_down_start_time = x[0] -\
-                    timedelta(minutes=x[0].minute % 1,
-                            seconds=x[0].second,
-                            microseconds=x[0].microsecond)
+                rounded_down_start_time = x[0]
 
             ax.set_xlim([rounded_down_start_time, x[-1]])
             ax.set_yscale(scale)
@@ -743,20 +739,18 @@ class RTP():
         # Rounded the time down to show origin label upon
         # Daniel Billet and others request.
         # TODO: may move this to its own function
-        major_locator, _ = plt.xticks()
-        dt = dates.num2date(major_locator[1]) - dates.num2date(major_locator[0])
-        tick_sep = dt.seconds//60
-
         if round_start:
+            major_locator, _ = plt.xticks()
+            dt = dates.num2date(major_locator[1]) -\
+                dates.num2date(major_locator[0])
+            tick_sep = dt.seconds//60
             rounded_down_start_time = x[0] -\
                 timedelta(minutes=x[0].minute % tick_sep,
                         seconds=x[0].second,
                         microseconds=x[0].microsecond)
         else:
-            rounded_down_start_time = x[0] -\
-                timedelta(minutes=x[0].minute % 1,
-                        seconds=x[0].second,
-                        microseconds=x[0].microsecond)
+            rounded_down_start_time = x[0] 
+        
         ax.set_xlim([rounded_down_start_time, x[-1]])
 
         ax.xaxis.set_major_formatter(dates.DateFormatter(date_fmt))
@@ -771,7 +765,10 @@ class RTP():
             tick_interval = 30
         else:
             tick_interval = 1
-        ax.xaxis.set_minor_locator(dates.MinuteLocator(interval=tick_interval))
+        # byminute keyword makes sure that the ticks are situated at 
+        # the minute or half hour marks, rather than at a set interval
+        ax.xaxis.set_minor_locator(
+            dates.MinuteLocator(byminute=range(0,60,tick_interval)))
 
         ax.margins(x=0)
         ax.tick_params(axis='y', which='minor')
