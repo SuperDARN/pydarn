@@ -458,8 +458,14 @@ class RTP():
             dt = dates.num2date(major_locator[1]) -\
                 dates.num2date(major_locator[0])
             tick_sep = dt.seconds//60
-            rounded_down_start_time = x[0] -\
-                timedelta(minutes=x[0].minute % tick_sep,
+            if tick_sep > 0:
+                rounded_down_start_time = x[0] -\
+                    timedelta(minutes=x[0].minute % tick_sep,
+                          seconds=x[0].second,
+                          microseconds=x[0].microsecond)
+            else:
+                rounded_down_start_time = x[0] -\
+                    timedelta(minutes=x[0].minute % 15,
                           seconds=x[0].second,
                           microseconds=x[0].microsecond)
         else:
@@ -725,8 +731,14 @@ class RTP():
                 dt = dates.num2date(major_locator[1]) -\
                     dates.num2date(major_locator[0])
                 tick_sep = dt.seconds//60
-                rounded_down_start_time = x[0] -\
-                    timedelta(minutes=x[0].minute % tick_sep,
+                if tick_sep > 0:
+                    rounded_down_start_time = x[0] -\
+                        timedelta(minutes=x[0].minute % tick_sep,
+                            seconds=x[0].second,
+                            microseconds=x[0].microsecond)
+                else:
+                    rounded_down_start_time = x[0] -\
+                        timedelta(minutes=x[0].minute % 15,
                             seconds=x[0].second,
                             microseconds=x[0].microsecond)
             else:
@@ -744,10 +756,16 @@ class RTP():
             dt = dates.num2date(major_locator[1]) -\
                 dates.num2date(major_locator[0])
             tick_sep = dt.seconds//60
-            rounded_down_start_time = x[0] -\
-                timedelta(minutes=x[0].minute % tick_sep,
-                        seconds=x[0].second,
-                        microseconds=x[0].microsecond)
+            if tick_sep > 0:
+                rounded_down_start_time = x[0] -\
+                    timedelta(minutes=x[0].minute % tick_sep,
+                          seconds=x[0].second,
+                          microseconds=x[0].microsecond)
+            else:
+                rounded_down_start_time = x[0] -\
+                    timedelta(minutes=x[0].minute % 15,
+                          seconds=x[0].second,
+                          microseconds=x[0].microsecond)
         else:
             rounded_down_start_time = x[0] 
         
