@@ -1,16 +1,17 @@
+import bz2
 import pytest
 
 import pydarn
 
-fitacf_data = pydarn.SuperDARNRead().read_dmap('data/test.fitacf')
-
 @pytest.fixture
-def rawacf_data():
+def fitacf_data():
     """ read in fitacf data needed for the test functions """
-    return pydarn.SuperDARNRead().read_dmap('data/test.rawacf')
+    with bz2.open('data/test.fitacf.bz2') as fp:
+        fitacf_stream = fp.read()
+    return pydarn.SuperDARNRead(fitacf_stream, True).read_fitacf()
 
 
-def test_normal_range_time():
+def test_normal_range_time(fitacf_data):
     """ this test will give bare minimum input needed for """
     pydarn.RTP.plot_range_time(fitacf_data)
 
