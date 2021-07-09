@@ -35,6 +35,16 @@ from pydarn import (PyDARNColormaps, build_scan, radar_fov, citing_warning,
                     SuperDARNRadars, Hemisphere, Projections)
 
 
+# handle cartopy ad-hoc
+try:
+    from cartopy.mpl import geoaxes
+    import cartopy.crs as ccrs
+    import cartopy.feature as cfeature
+    from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
+    cartopyInstalled = True
+except Exception:
+    cartopyInstalled = False
+
 class Fan():
     """
         'Fan', or 'Field-of-view' plots for SuperDARN FITACF data
@@ -222,6 +232,7 @@ class Fan():
         norm = colors.Normalize
         norm = norm(zmin, zmax)
 
+
         for i in np.nditer(plot_beams):
             try:
                 # get a list of gates where there is data
@@ -366,25 +377,130 @@ class Fan():
         fan_shape = beam_corners_aacgm_lons.shape
         if ranges == []:
             ranges = [0, fan_shape[0]]
-            
-            
-        # Work out shift due in MLT
-        beam_corners_mlts = np.zeros((fan_shape[0], fan_shape[1]))
-        mltshift = beam_corners_aacgm_lons[0, 0] - \
-            (aacgmv2.convert_mlt(beam_corners_aacgm_lons[0, 0], date) * 15)
-        beam_corners_mlts = beam_corners_aacgm_lons - mltshift
 
-        # Hold the beam positions
-        thetas = np.radians(beam_corners_mlts)
-        rs = beam_corners_aacgm_lats
+        lons = np.concatenate(
+                (beam_corners_aacgm_lons[ranges[0], :],
+                 beam_corners_aacgm_lons[ranges[0]:ranges[1], -1],
+                 beam_corners_aacgm_lons[ranges[1], ::-1],
+                 beam_corners_aacgm_lons[ranges[1]:ranges[0]:-1, 0],
+                 [beam_corners_aacgm_lons[0, 0]]))
+        lats = np.concatenate(
+                (beam_corners_aacgm_lats[ranges[0], :],
+                 beam_corners_aacgm_lats[ranges[0]:ranges[1], -1],
+                 beam_corners_aacgm_lats[ranges[1], ::-1],
+                 beam_corners_aacgm_lats[ranges[1]:ranges[0]:-1, 0],
+                 [beam_corners_aacgm_lats[0, 0]]))
+        point=np.empty((2,186))
+  
+        if coords == Coords.AACGM:  
+            # Work out shift due in MLT
+            beam_corners_mlts = np.zeros((fan_shape[0], fan_shape[1]))
+            mltshift = beam_corners_aacgm_lons[0, 0] - \
+                (aacgmv2.convert_mlt(beam_corners_aacgm_lons[0, 0], date) * 15)
+            beam_corners_mlts = beam_corners_aacgm_lons - mltshift
 
-        # Setup plot
-        # This may screw up references
-        if ax is None:
-            # Get the hemisphere to pass to plotting projection
-            kwargs['hemisphere'] = SuperDARNRadars.radars[stid].hemisphere
-            # Get a polar projection using any kwarg input
-            ax = Projections.axis_polar(**kwargs)
+            # Hold the beam positions
+            thetas = np.radians(beam_corners_mlts)
+            rs = beam_corners_aacgm_lats
+
+            # Setup plot
+            # This may screw up references
+            if ax is None:
+                # Get the hemisphere to pass to plotting projection
+                kwargs['hemisphere'] = SuperDARNRadars.radars[stid].hemisphere
+                # Get a polar projection using any kwarg input
+                ax = Projections.axis_polar(**kwargs)
+            # a single* call to pcolormesh to handle all the
+            # range gates in the scan
+            ax.pcolormesh(beam_corners_aacgm_lons,
+                          beam_corners_aacgm_lats,
+                          np.ma.masked_array(scan, ~scan.astype(bool)),
+                          norm=norm, cmap=cmap)
+            # plot the groundscatter as grey fill
+            if groundscatter:
+                ax.pcolormesh(beam_corners_aacgm_lons,
+                              beam_corners_aacgm_lats,
+                              np.ma.masked_array(grndsct,
+                                                 ~grndsct.astype(bool)),
+                              norm=norm, cmap='Greys')
+            # *There exists a bug in matplotlib pcolormesh when plotting in
+            # polar projections that gets rid of the rgrid. Replot them here:
+            for lat in range(pole_lat, lowlat, -10
+                             if northern_hemisphere else 10):
+                ax.plot(np.linspace(0, np.radians(360), 360),
+                        [lat] * 360, 'grey', alpha=0.6)
+            for lon in range(0, 360, 45):
+                ax.plot([np.radians(lon)] * 2,
+                        [pole_lat, lowlat], 'grey', alpha=0.6)
+
+        # the alternative is to plot using catropy
+        else:
+            # first, check if cartopy is installed:
+            if not cartopyInstalled:
+                raise plot_exceptions.CartopyMissingError()
+            # no need to shift any coords, let cartopy do that
+            # however, we do need to figure out
+            # how much to rotate the projection
+            deg_from_midnight = (date.hour + date.minute / 60) / 24 * 360
+            if northern_hemisphere:
+                noon = -deg_from_midnight
+            else:
+                noon = 360 - deg_from_midnight
+            # handle none types or wrongly built axes
+            if type(ax) != geoaxes.GeoAxesSubplot:
+                proj = ccrs.SouthPolarStereo(noon, pole_lat)
+                fig = plt.figure(figsize=(12,12))
+                ax = plt.subplot(111, projection=proj, aspect='auto')
+                grid_lines = ax.gridlines(draw_labels=True,linewidth=1, color='black',)
+                grid_lines.xformatter = LONGITUDE_FORMATTER
+                grid_lines.yformatter = LATITUDE_FORMATTER
+                ax.coastlines(resolution='110m')
+                ax.add_feature(cfeature.LAND, color='lightgrey')
+                ax.add_feature(cfeature.OCEAN, color = 'white')
+
+
+                geo = ccrs.Geodetic()
+                point = proj.transform_points(geo,lons, lats)
+                """ax.gridlines(ylocs=np.arange(pole_lat, 0, -5
+                                             if northern_hemisphere else 5))"""
+                ax.pcolormesh(beam_corners_aacgm_lons,
+                              beam_corners_aacgm_lats,
+                              np.ma.masked_array(scan, ~scan.astype(bool)),
+                              norm=norm, cmap=cmap,
+                              transform=ccrs.PlateCarree())
+                              
+                if groundscatter:
+                    ax.pcolormesh(beam_corners_aacgm_lons,
+                                  beam_corners_aacgm_lats,
+                                  np.ma.masked_array(grndsct,
+                                                     ~grndsct.astype(bool)),
+                                  norm=norm, cmap='Greys',
+                                  transform=ccrs.PlateCarree())
+
+                # For some reason, cartopy won't allow extents
+                # much greater than this
+                # - there should probably be an option to allow autscaling
+                # - perhaps this is a projection issue?
+                extent = min(45e5,
+                             (abs(proj.transform_point(noon, lowlat,
+                                                       ccrs.PlateCarree())
+                                  [1])))
+                ax.set_extent(extents=(-extent, extent, -extent, extent),
+                              crs=proj)
+                #ax.set_extent([-180, 90, 0, 0], crs=ccrs.PlateCarree())
+            else:
+                ax.pcolormesh(beam_corners_aacgm_lons,
+                              beam_corners_aacgm_lats,
+                              np.ma.masked_array(scan, ~scan.astype(bool)),
+                              norm=norm, cmap=cmap,
+                              transform=ccrs.PlateCarree())
+                extent = min(45e5,
+                             (abs(proj.transform_point(noon, lowlat,
+                                                       ccrs.PlateCarree())
+                                  [1])))
+                ax.set_extent(extents=(-extent, extent, -extent, extent),
+                              crs=proj)
+                #ax.set_extent([-180, 90, 0, 0], crs=ccrs.PlateCarree())
 
 
         if boundary:

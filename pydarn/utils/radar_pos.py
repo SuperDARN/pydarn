@@ -75,6 +75,7 @@ def radar_fov(stid: int, rsep: int = 45, frang: int = 180,
         for range gate corners
     """
     # Locate base PyDARN directory
+
     if read_file:
         my_path = os.path.abspath(os.path.dirname(__file__))
         base_path = os.path.join(my_path, '..')
@@ -449,6 +450,44 @@ def cell_geocentric_coordinates(lat: float, lon: float, rho: float,
     lat = np.pi/2 - np.arccos(global_z/rho)
     if global_x == 0 and global_y == 0:
         lon = 0
+
+    my_path = os.path.abspath(os.path.dirname(__file__))
+    base_path = os.path.join(my_path, '..')
+
+    # Find files holding radar beam/gate locations
+    beam_lats = base_path+'/radar_fov_files/' + \
+        str(stid).zfill(3)+'_lats.txt'
+    beam_lons = base_path+'/radar_fov_files/' + \
+        str(stid).zfill(3)+'_lons.txt'
+
+    # Read in geographic coordinates
+    beam_corners_lats = np.loadtxt(beam_lats)
+    beam_corners_lons = np.loadtxt(beam_lons)
+    # AACGMv2 conversion
+    if coords == Coords.AACGM:
+        if not date:
+            date = dt.datetime.now()
+
+        # Initialise arrays
+        fan_shape = beam_corners_lons.shape
+        beam_corners_aacgm_lons = \
+            np.zeros((fan_shape[0], fan_shape[1]))
+        beam_corners_aacgm_lats = \
+            np.zeros((fan_shape[0], fan_shape[1]))
+
+        for x in range(fan_shape[0]):
+            for y in range(fan_shape[1]):
+                # Conversion
+                geomag = np.array(aacgmv2.
+                                  get_aacgm_coord(beam_corners_lats[x, y],
+                                                  beam_corners_lons[x, y],
+                                                  250, date))
+                beam_corners_aacgm_lats[x, y] = geomag[0]
+                beam_corners_aacgm_lons[x, y] = geomag[1]
+
+        # Return AACGMv2 latitudes and longitudes
+        return beam_corners_aacgm_lats, beam_corners_aacgm_lons
+
     else:
         lon = np.arctan2(global_y, global_x)
 
