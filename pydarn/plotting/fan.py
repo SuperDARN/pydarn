@@ -61,7 +61,7 @@ class Fan():
                  parameter: str = 'v', cmap: str = None,
                  groundscatter: bool = False,
                  zmin: int = None, zmax: int = None,
-                 colorbar: bool = True,
+                 colorbar: bool = True, coords: object = Coords.SLANT_RANGE,
                  colorbar_label: str = '', radar_location: bool = True,
                  radar_label: bool = False, title: bool = True,
                  fov_files: bool = False, **kwargs):
@@ -366,6 +366,8 @@ class Fan():
         fan_shape = beam_corners_aacgm_lons.shape
         if ranges == []:
             ranges = [0, fan_shape[0]]
+            
+            
         # Work out shift due in MLT
         beam_corners_mlts = np.zeros((fan_shape[0], fan_shape[1]))
         mltshift = beam_corners_aacgm_lons[0, 0] - \
@@ -383,6 +385,7 @@ class Fan():
             kwargs['hemisphere'] = SuperDARNRadars.radars[stid].hemisphere
             # Get a polar projection using any kwarg input
             ax = Projections.axis_polar(**kwargs)
+
 
         if boundary:
             # left boundary line
@@ -455,7 +458,7 @@ class Fan():
         theta_lon = np.radians(geomag_radar[1] - mltshift)
         r_lat = geomag_radar[0]
         # Plot a dot at the radar site
-        plt.scatter(theta_lon, r_lat, c=line_color, s=5)
+        plt.scatter(theta_lon, r_lat, c=line_color, linewidths=5, s=5)
         return
 
     @classmethod
