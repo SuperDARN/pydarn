@@ -10,10 +10,12 @@
 
 ## Test
 
+**matplotlib version**: 
+**Note testers: please indicate what version of matplotlib you are using**
+
 *provide a list or code to test*
 
 *Reminder, please check your code is:
   - copyrighted (if applicable)
   - Appropriate disclaimer added
   - Modification line filled in (if applicable)*
-
