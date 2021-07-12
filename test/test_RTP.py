@@ -25,6 +25,10 @@ def fitacf_data():
     return pydarn.SuperDARNRead(fitacf_stream, True).read_fitacf()
 
 
+@pytest.mark.parametrize('ggroundscatter', [True, 'grey', 'yello', False])
+@pytest.mark.parametrize('beam', [0, 1, 7, 15])
+@pytest.mark.parametrize('parameter', ['v', 'p_l', 'w_l'])
+@pytest.mark.parametrize()
 def test_normal_range_time(fitacf_data):
     """ this test will give bare minimum input needed for """
     pydarn.RTP.plot_range_time(fitacf_data)
