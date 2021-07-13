@@ -47,7 +47,7 @@ from pydarn.utils.constants import EARTH_EQUATORIAL_RADIUS, Re, C
 
 
 def radar_fov(stid: int, rsep: int = 45, frang: int = 180,
-              ranges: tuple = None, read_file: bool = False,
+              ranges: tuple = None, fov_files: bool = False,
               coords: object = Coords.AACGM, max_beams: int = None,
               date: dt.datetime = None):
     """
@@ -75,7 +75,7 @@ def radar_fov(stid: int, rsep: int = 45, frang: int = 180,
         for range gate corners
     """
     # Locate base PyDARN directory
-    if read_file:
+    if fov_files:
         my_path = os.path.abspath(os.path.dirname(__file__))
         base_path = os.path.join(my_path, '..')
 

@@ -265,7 +265,8 @@ class Fan():
                  ax=None, ranges: List = [], boundary: bool = True,
                  fov_color: str = None, alpha: int = 0.5,
                  radar_location: bool = True, radar_label: bool = False,
-                 line_color: str = 'black', fov_files: bool = False, **kwargs):
+                 line_color: str = 'black',
+                 fov_files: bool = False, **kwargs):
         """
         plots only the field of view (FOV) for a given radar station ID (stid)
 
@@ -273,12 +274,6 @@ class Fan():
         -----------
             stid: int
                 Radar station ID
-            rsep: int
-                gate seperation [km], set by the radar control program.
-                default: 45 common mode
-            frang: int
-                distance from the radar site to the edge of the range gate [km]
-                default: 180 km
             ax: matplotlib.pyplot axis
                 Pre-defined axis object to pass in, must currently be
                 polar projection
@@ -325,13 +320,12 @@ class Fan():
             thetas - theta polar coordinates
             rs - radius polar coordinates
         """
-        if ranges is None:
+        if ranges == [] or ranges is None:
             ranges = [0, SuperDARNRadars.radars[stid].range_gate_45]
 
         # Get radar beam/gate locations
         beam_corners_aacgm_lats, beam_corners_aacgm_lons = \
-            radar_fov(stid, rsep, frang, coords=coords, ranges=ranges,
-                      date=date, max_beams=max_beams, read_file=fov_files)
+            radar_fov(stid, ranges=ranges, date=date, **kwargs)
 
         if not date:
             date = dt.datetime.now()
