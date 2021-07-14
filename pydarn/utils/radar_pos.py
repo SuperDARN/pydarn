@@ -74,6 +74,7 @@ def radar_fov(stid: int, rsep: int = 45, frang: int = 180,
         n_beams x n_gates array of geographic or AACGMv2 longitudes
         for range gate corners
     """
+
     # Locate base PyDARN directory
     if read_file:
         my_path = os.path.abspath(os.path.dirname(__file__))
@@ -119,11 +120,12 @@ def radar_fov(stid: int, rsep: int = 45, frang: int = 180,
         # Plus 1 is due to the fact fov files index at 1 so in the plotting
         # of the boundary there is a subtraction of 1 to offset this as python
         # converts to index of 0 which my code already accounts for
+        
         beam_corners_lats = np.zeros((ranges[1]+1, max_beams+1))
         beam_corners_lons = np.zeros((ranges[1]+1, max_beams+1))
 
-        for beam in range(0, max_beams+1):
-            for gate in range(ranges[0], ranges[1]):
+        for beam in range(max_beams+1):
+            for gate in range(ranges[1]+1):
                 lat, lon = geographic_cell_positions(stid, beam, gate, rsep,
                                                      frang, height=300)
 

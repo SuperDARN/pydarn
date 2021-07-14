@@ -71,7 +71,7 @@ class Fan():
                  parameter: str = 'v', lowlat: int = 30, cmap: str = None,
                  groundscatter: bool = False,
                  zmin: int = None, zmax: int = None,
-                 colorbar: bool = True, coords: object = Coords.SLANT_RANGE,
+                 colorbar: bool = True, coords: object = Coords.AACGM,
                  colorbar_label: str = '', radar_location: bool = True,
                  radar_label: bool = False, title: bool = True,
                  fov_files: bool = False, **kwargs):
@@ -218,11 +218,9 @@ class Fan():
         else:
             northern_hemisphere = False
         pole_lat = 90 if northern_hemisphere else -90
+        
+        # How many beams and gates do we need
         fan_shape = beam_corners_aacgm_lons.shape
-
-        # Get range-gate data and groundscatter array for given scan
-        scan = np.zeros((fan_shape[0] - 1, fan_shape[1]-1))
-        grndsct = np.zeros((fan_shape[0] - 1, fan_shape[1]-1))
 
         # Colour table and max value selection depending on parameter plotted
         # Load defaults if none given
@@ -243,7 +241,9 @@ class Fan():
         norm = colors.Normalize
         norm = norm(zmin, zmax)
 
-
+        # Get range-gate data and groundscatter array for given scan
+        scan = np.zeros((fan_shape[0] - 1, fan_shape[1]-1))
+        grndsct = np.zeros((fan_shape[0] - 1, fan_shape[1]-1))
         for i in np.nditer(plot_beams):
             try:
                 # get a list of gates where there is data
@@ -265,7 +265,7 @@ class Fan():
             # if there is no slist field this means partial record
             except KeyError:
                 continue
-            
+
         lons = np.concatenate(
                 (beam_corners_aacgm_lons[ranges[0], :],
                  beam_corners_aacgm_lons[ranges[0]:ranges[1], -1],
@@ -279,7 +279,8 @@ class Fan():
                  beam_corners_aacgm_lats[ranges[1]:ranges[0]:-1, 0],
                  [beam_corners_aacgm_lats[0, 0]]))
         point=np.empty((2,186))      
-                     
+        stid = dmap_data[0]['stid']   
+
         if coords == Coords.AACGM:  
             # Work out shift due in MLT
             beam_corners_mlts = np.zeros((fan_shape[0], fan_shape[1]))
@@ -297,11 +298,37 @@ class Fan():
                 # Get the hemisphere to pass to plotting projection
                 kwargs['hemisphere'] = SuperDARNRadars.radars[stid].hemisphere
                 # Get a polar projection using any kwarg input
+                fig = plt.figure(figsize=(15,15))
                 ax = Projections.axis_polar(**kwargs)
+                
+            # a single* call to pcolormesh to handle all the
+            # range gates in the scan
+            ax.pcolormesh(thetas,
+                          rs,
+                          np.ma.masked_array(scan, ~scan.astype(bool)),
+                          norm=norm, cmap=cmap)     
             # plot the groundscatter as grey fill
+
+            if boundary:
+                lons = np.concatenate(
+                     (thetas[ranges[0], :],
+                      thetas[ranges[0]:ranges[1], -1],
+                      thetas[ranges[1], ::-1],
+                      thetas[ranges[1]:ranges[0]:-1, 0],
+                      [thetas[0, 0]]))
+                lats = np.concatenate(
+                     (rs[ranges[0], :],
+                      rs[ranges[0]:ranges[1], -1],
+                      rs[ranges[1], ::-1],
+                      rs[ranges[1]:ranges[0]:-1, 0],
+                      [rs[0, 0]]))
+                # right boundary line
+                plt.polar(lons, lats, color=line_color, linewidth=1.2)
+
+
             if groundscatter:
-                ax.pcolormesh(beam_corners_aacgm_lons,
-                              beam_corners_aacgm_lats,
+                ax.pcolormesh(thetas,
+                              rs,
                               np.ma.masked_array(grndsct,
                                                  ~grndsct.astype(bool)),
                               norm=norm, cmap='Greys')
@@ -330,8 +357,8 @@ class Fan():
                 noon = 360 - deg_from_midnight
             # handle none types or wrongly built axes
             if type(ax) != geoaxes.GeoAxesSubplot:
-                proj = ccrs.SouthPolarStereo(noon, pole_lat)
-                fig = plt.figure(figsize=(12,12))
+                proj = ccrs.Orthographic(noon, pole_lat)
+                fig = plt.figure(figsize=(15,15))
                 ax = plt.subplot(111, projection=proj, aspect='auto')
                 grid_lines = ax.gridlines(draw_labels=True,linewidth=1, color='black',)
                 grid_lines.xformatter = LONGITUDE_FORMATTER
@@ -350,7 +377,9 @@ class Fan():
                               np.ma.masked_array(scan, ~scan.astype(bool)),
                               norm=norm, cmap=cmap,
                               transform=ccrs.PlateCarree())
-                              
+                if boundary:
+                    plt.plot(point[:,0], point[:,1], color=line_color, linewidth=1)  
+                                        
                 if groundscatter:
                     ax.pcolormesh(beam_corners_aacgm_lons,
                                   beam_corners_aacgm_lats,
@@ -367,8 +396,8 @@ class Fan():
                              (abs(proj.transform_point(noon, lowlat,
                                                        ccrs.PlateCarree())
                                   [1])))
-                """ax.set_extent(extents=(-extent, extent, -extent, extent),
-                              crs=proj)"""
+                ax.set_extent(extents=(-extent, extent, -extent, extent),
+                              crs=proj)
                 #ax.set_extent([-180, 90, 0, 0], crs=ccrs.PlateCarree())
             else:
                 ax.pcolormesh(beam_corners_aacgm_lons,
@@ -380,8 +409,8 @@ class Fan():
                              (abs(proj.transform_point(noon, lowlat,
                                                        ccrs.PlateCarree())
                                   [1])))
-                """ax.set_extent(extents=(-extent, extent, -extent, extent),
-                              crs=proj)"""
+                ax.set_extent(extents=(-extent, extent, -extent, extent),
+                              crs=proj)
                 #ax.set_extent([-180, 90, 0, 0], crs=ccrs.PlateCarree())
 
                                      
@@ -405,7 +434,7 @@ class Fan():
         azm = np.linspace(0, 2 * np.pi, 100)
         r, th = np.meshgrid(rs, azm)
         plt.plot(azm, r, color='k', ls='none')
-        plt.grid()"""
+        plt.grid()
         if boundary:
             # create flat arrays of the lat/lon points for the FOV
             # (bottom, left, -top, -right)
@@ -426,7 +455,11 @@ class Fan():
                 plt.plot(boundary_lons, boundary_lats, color=line_color, linewidth=1)
             else:
                 # plot the boundary
-                plt.plot(point[:,0], point[:,1], color=line_color, linewidth=1)
+                plt.plot(point[:,0], point[:,1], color=line_color, linewidth=1)"""
+        if radar_location:
+            cls.plot_radar_position(stid, date, line_color, **kwargs)
+        if radar_label:
+            cls.plot_radar_label(stid, date, line_color, **kwargs)
         # Create color bar if True
         if colorbar is True:
             mappable = cm.ScalarMappable(norm=norm, cmap=cmap)
@@ -660,7 +693,7 @@ class Fan():
         theta_text = theta_lon
         # Shift in latitude (dependent on hemisphere)
         if SuperDARNRadars.radars[stid].hemisphere == Hemisphere.North:
-            r_text = r_lat - 5
+            r_text = r_lat - 7
         else:
             r_text = r_lat + 5
         plt.text(theta_text, r_text, label_str, ha='center', c=line_color)
