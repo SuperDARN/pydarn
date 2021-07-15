@@ -49,7 +49,7 @@ from pydarn.utils.constants import EARTH_EQUATORIAL_RADIUS, Re, C
 def radar_fov(stid: int, rsep: int = 45, frang: int = 180,
               ranges: tuple = None, fov_files: bool = False,
               coords: object = Coords.AACGM, max_beams: int = None,
-              date: dt.datetime = None):
+              date: dt.datetime = None, **kwargs):
     """
     Returning beam/gate coordinates of a specified radar's field-of-view
 
