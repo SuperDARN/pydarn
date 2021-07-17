@@ -39,7 +39,6 @@ in AACGMv2 or geographic coordinates
 import datetime as dt
 import numpy as np
 import os
-import pandas as pd
 import aacgmv2
 
 from pydarn import SuperDARNRadars, gate2slant, gate2GroundScatter, Coords
@@ -228,13 +227,14 @@ def geographic_cell_positions(stid: int, beam: int, range_gate: int,
     # psi [rad] in the angle from the boresight
     psi = beam_sep * (beam - offset) + beam_edge
     
+    # Initialize lon and lat to allow use outside of if statement
     lon = np.empty((2,2))
     lat = np.empty((2,2))
+    
+    #calculates lon and lat for slant range 
     if coords == Coords.SLANT_RANGE:
         # Calculate the slant range [km]
         slant_range = gate2slant(frang, rsep, rxrise, gate=range_gate)
-        print(slant_range)
-        print("in")
         # If no height is specified then use elevation angle (default 0)
         # to calculate the transmutation height
         if height is None:
@@ -243,18 +243,13 @@ def geographic_cell_positions(stid: int, beam: int, range_gate: int,
                                           
         lat, lon = geocentric_coordinates(radar_lat, radar_lon, slant_range,
                                       height, psi, boresight, chisham)
-
-    """if coords == Coords.GROUND_SCATTER_MAPPED_RANGE:
+                                      
+    #calculates lon and lat for ground scatter mapped range
+    if coords == Coords.GROUND_SCATTER_MAPPED_RANGE:
         # Calculate the ground scatter mapped range
         slant_range = gate2slant(frang, rsep, rxrise, gate=range_gate)
         
         ground_scatter_mapped_range = gate2GroundScatter(slant_range, reflection_height)
-        pd.DataFrame(ground_scatter_mapped_range).to_csv("ground_scatter.csv")
-        #print(np.max(ground_scatter_mapped_range)) 
-        exit()
-        y0inx = np.min(np.where(np.isfinite(ground_scatter_mapped_range))[0])       
-        ground_scatter_mapped_range = ground_scatter_mapped_range[y0inx:]
-
         # If no height is specified then use elevation angle (default 0)
         # to calculate the transmutation height
         if height is None:
@@ -262,7 +257,7 @@ def geographic_cell_positions(stid: int, beam: int, range_gate: int,
                                    np.sin(np.radians(elv_angle)) + ground_scatter_mapped_range**2)
 
         lat, lon = geocentric_coordinates(radar_lat, radar_lon, ground_scatter_mapped_range,
-                                         height, psi, boresight, chisham)"""
+                                         height, psi, boresight, chisham)
 
     # convert back degrees as preferred units to use?
     return np.degrees(lat), np.degrees(lon)

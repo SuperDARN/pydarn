@@ -19,7 +19,6 @@
 """
 Fan plots, mapped to AACGM coordinates in a polar format
 """
-
 import datetime as dt
 import matplotlib.pyplot as plt
 import numpy as np
@@ -268,7 +267,8 @@ class Fan():
             # if there is no slist field this means partial record
             except KeyError:
                 continue
-
+        
+        # Initializes lons and lats to be used in cartopy coordinate transformation
         lons = np.concatenate(
                 (beam_corners_aacgm_lons[ranges[0], :],
                  beam_corners_aacgm_lons[ranges[0]:ranges[1], -1],
@@ -281,7 +281,33 @@ class Fan():
                  beam_corners_aacgm_lats[ranges[1], ::-1],
                  beam_corners_aacgm_lats[ranges[1]:ranges[0]:-1, 0],
                  [beam_corners_aacgm_lats[0, 0]]))
-        point=np.empty((2,186))      
+  
+        if np.isnan(beam_corners_aacgm_lons).any() or np.isnan(beam_corners_aacgm_lats).any():
+            # Reshapes  longitude when there are nans
+            y0inx = np.min(np.where(np.isfinite(beam_corners_aacgm_lons))[0])
+            beam_corners_aacgm_lons = beam_corners_aacgm_lons[y0inx:]
+            # Reshapes  latitude when there are nans    
+            y0inx = np.min(np.where(np.isfinite(beam_corners_aacgm_lats))[0])
+            beam_corners_aacgm_lats = beam_corners_aacgm_lats[y0inx:]
+            fan_shape=beam_corners_aacgm_lons.shape
+            # Reshapes  scan data when both lons and lats have nans 
+            scan=scan[y0inx:]
+            
+            # Reinitialize lons and lats to be used in cartopy coordinate transform when lons and lats have nans
+            lons = np.concatenate(
+                    (beam_corners_aacgm_lons[ranges[0], :],
+                     beam_corners_aacgm_lons[ranges[0]:fan_shape[0], -1],
+                     beam_corners_aacgm_lons[fan_shape[0]-1, ::-1],
+                     beam_corners_aacgm_lons[fan_shape[0]:ranges[0]:-1, 0],
+                     [beam_corners_aacgm_lons[0, 0]]))
+            lats = np.concatenate(
+                    (beam_corners_aacgm_lats[ranges[0], :],
+                     beam_corners_aacgm_lats[ranges[0]:fan_shape[0], -1],
+                     beam_corners_aacgm_lats[fan_shape[0]-1, ::-1],
+                     beam_corners_aacgm_lats[fan_shape[0]:ranges[0]:-1, 0],
+                     [beam_corners_aacgm_lats[0, 0]]))
+                     
+        # Initializes stid
         stid = dmap_data[0]['stid']   
 
         if coords == Coords.AACGM:  
@@ -301,7 +327,7 @@ class Fan():
                 # Get the hemisphere to pass to plotting projection
                 kwargs['hemisphere'] = SuperDARNRadars.radars[stid].hemisphere
                 # Get a polar projection using any kwarg input
-                fig = plt.figure(figsize=(15,15))
+                fig = plt.figure(figsize=(12,12))
                 ax = Projections.axis_polar(**kwargs)
                 
             # a single* call to pcolormesh to handle all the
@@ -361,7 +387,7 @@ class Fan():
             # handle none types or wrongly built axes
             if type(ax) != geoaxes.GeoAxesSubplot:
                 proj = ccrs.Orthographic(noon, pole_lat)
-                fig = plt.figure(figsize=(15,15))
+                fig = plt.figure(figsize=(12,12))
                 ax = plt.subplot(111, projection=proj, aspect='auto')
                 grid_lines = ax.gridlines(draw_labels=True,linewidth=1, color='black',)
                 grid_lines.xformatter = LONGITUDE_FORMATTER
@@ -375,6 +401,9 @@ class Fan():
                 point = proj.transform_points(geo,lons, lats)
                 """ax.gridlines(ylocs=np.arange(pole_lat, 0, -5
                                              if northern_hemisphere else 5))"""
+                           
+
+
                 ax.pcolormesh(beam_corners_aacgm_lons,
                               beam_corners_aacgm_lats,
                               np.ma.masked_array(scan, ~scan.astype(bool)),
@@ -415,50 +444,7 @@ class Fan():
                 ax.set_extent(extents=(-extent, extent, -extent, extent),
                               crs=proj)
                 #ax.set_extent([-180, 90, 0, 0], crs=ccrs.PlateCarree())
-
-                                     
- 
-        """# Begin plotting by iterating over ranges and beams
-        thetas = thetas[ranges[0]:ranges[1]]
-        rs = rs[ranges[0]:ranges[1]]
-        scan = scan[ranges[0]:ranges[1]-1]
-        ax.pcolormesh(thetas, rs,
-                      np.ma.masked_array(scan, ~scan.astype(bool)),
-                      norm=norm, cmap=cmap)
-
-        # plot the groundscatter as grey fill
-        if groundscatter:
-            grndsct = grndsct[ranges[0]:ranges[1]-1]
-            ax.pcolormesh(thetas, rs,
-                          np.ma.masked_array(grndsct,
-                                             ~grndsct.astype(bool)),
-                          norm=norm, cmap='Greys')
-
-        azm = np.linspace(0, 2 * np.pi, 100)
-        r, th = np.meshgrid(rs, azm)
-        plt.plot(azm, r, color='k', ls='none')
-        plt.grid()
-        if boundary:
-            # create flat arrays of the lat/lon points for the FOV
-            # (bottom, left, -top, -right)
-            if coords==Coords.AACGM:
-                boundary_lons = np.concatenate(
-                    (beam_corners_aacgm_lons[ranges[0], :],
-                     beam_corners_aacgm_lons[ranges[0]:ranges[1], -1],
-                     beam_corners_aacgm_lons[ranges[1], ::-1],
-                     beam_corners_aacgm_lons[ranges[1]:ranges[0]:-1, 0],
-                     [beam_corners_aacgm_lons[0, 0]]))
-                boundary_lats = np.concatenate(
-                    (beam_corners_aacgm_lats[ranges[0], :],
-                     beam_corners_aacgm_lats[ranges[0]:ranges[1], -1],
-                     beam_corners_aacgm_lats[ranges[1], ::-1],
-                     beam_corners_aacgm_lats[ranges[1]:ranges[0]:-1, 0],
-                     [beam_corners_aacgm_lats[0, 0]]))
-                #plot the boundary     
-                plt.plot(boundary_lons, boundary_lats, color=line_color, linewidth=1)
-            else:
-                # plot the boundary
-                plt.plot(point[:,0], point[:,1], color=line_color, linewidth=1)"""
+                                    
         if radar_location:
             cls.plot_radar_position(stid, date, line_color, **kwargs)
         if radar_label:
