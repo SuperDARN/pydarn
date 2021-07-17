@@ -69,7 +69,7 @@ class Fan():
                  ranges: List = None, boundary: bool = True,
                  line_color: str = 'black', alpha: int = 0.5,
                  parameter: str = 'v', lowlat: int = 30, cmap: str = None,
-                 groundscatter: bool = False,
+                 groundscatter: bool = False, reflection_height: float = 250,
                  zmin: int = None, zmax: int = None,
                  colorbar: bool = True, coords: object = Coords.AACGM,
                  colorbar_label: str = '', radar_location: bool = True,
@@ -116,6 +116,9 @@ class Fan():
             groundscatter : bool
                 Set true to indicate if groundscatter should be plotted in grey
                 Default: False
+            reflection_height: float
+                reflection height
+                default:  250
             zmin: int
                 The minimum parameter value for coloring
                 Default: {'p_l': [0], 'v': [-200], 'w_l': [0], 'elv': [0]}
@@ -209,7 +212,7 @@ class Fan():
 
         # Get radar beam/gate locations
         beam_corners_aacgm_lats, beam_corners_aacgm_lons = \
-            radar_fov(stid=dmap_data[0]['stid'], rsep=dmap_data[0]['rsep'], frang=dmap_data[0]['frang'], coords=coords, ranges=ranges,
+            radar_fov(stid=dmap_data[0]['stid'], rsep=dmap_data[0]['rsep'], frang=dmap_data[0]['frang'], reflection_height=reflection_height, coords=coords, ranges=ranges,
                       date=date, max_beams=None, read_file=fov_files)
 
         # Where in the world are we

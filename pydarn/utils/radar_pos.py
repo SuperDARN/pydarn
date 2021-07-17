@@ -39,17 +39,17 @@ in AACGMv2 or geographic coordinates
 import datetime as dt
 import numpy as np
 import os
-
+import pandas as pd
 import aacgmv2
 
-from pydarn import SuperDARNRadars, gate2slant, Coords
+from pydarn import SuperDARNRadars, gate2slant, gate2GroundScatter, Coords
 from pydarn.utils.constants import EARTH_EQUATORIAL_RADIUS, Re, C
 
 
 def radar_fov(stid: int, rsep: int = 45, frang: int = 180,
               ranges: tuple = None, read_file: bool = False,
               coords: object = Coords.AACGM, max_beams: int = None,
-              date: dt.datetime = None):
+              reflection_height: float = 250, date: dt.datetime = None):
     """
     Returning beam/gate coordinates of a specified radar's field-of-view
 
@@ -61,6 +61,9 @@ def radar_fov(stid: int, rsep: int = 45, frang: int = 180,
     coords: Coords object
         Type of coordinates returned
         Default: Coords.AACGM
+    reflection_height: float
+        reflection height
+        default:  250
     date: datetime
         datetime object date to be used for AACGMv2 conversion
         Default: Current day
@@ -127,7 +130,7 @@ def radar_fov(stid: int, rsep: int = 45, frang: int = 180,
         for beam in range(max_beams+1):
             for gate in range(ranges[1]+1):
                 lat, lon = geographic_cell_positions(stid, beam, gate, rsep,
-                                                     frang, height=300)
+                                                     frang, coords = coords, reflection_height=reflection_height, height=300)
 
                 if coords == Coords.AACGM:
                     if date is None:
@@ -148,6 +151,8 @@ def radar_fov(stid: int, rsep: int = 45, frang: int = 180,
 def geographic_cell_positions(stid: int, beam: int, range_gate: int,
                               rsep: int = 45, frang: int = 180,
                               height: float = None, elv_angle: float = 0.0,
+                              reflection_height: float = 250,
+                              coords: object = Coords.SLANT_RANGE,
                               center: bool = True, chisham: bool = False):
     """
     determines the geographic cell position for a given range gate and beam
@@ -175,6 +180,12 @@ def geographic_cell_positions(stid: int, beam: int, range_gate: int,
         elv_angle: float
             elevation angle in [deg]
             default: 0
+        reflection_height: float
+            reflection height
+            default:  250
+        coords: Coords
+            set the y-axis to a desired coordinate system
+            Default: Coords.SLANT_RANGE
         center: bool
             obtain geographic location of the centre of the range gates
             False obtains the front edge of the range gates.
@@ -216,17 +227,42 @@ def geographic_cell_positions(stid: int, beam: int, range_gate: int,
 
     # psi [rad] in the angle from the boresight
     psi = beam_sep * (beam - offset) + beam_edge
-    # Calculate the slant range [km]
-    slant_range = gate2slant(frang, rsep, rxrise, gate=range_gate)
-
-    # If no height is specified then use elevation angle (default 0)
-    # to calculate the transmutation height
-    if height is None:
-        height = -Re + np.sqrt(Re**2 + 2 * slant_range * Re *
-                               np.sin(np.radians(elv_angle)) + slant_range**2)
-
-    lat, lon = geocentric_coordinates(radar_lat, radar_lon, slant_range,
+    
+    lon = np.empty((2,2))
+    lat = np.empty((2,2))
+    if coords == Coords.SLANT_RANGE:
+        # Calculate the slant range [km]
+        slant_range = gate2slant(frang, rsep, rxrise, gate=range_gate)
+        print(slant_range)
+        print("in")
+        # If no height is specified then use elevation angle (default 0)
+        # to calculate the transmutation height
+        if height is None:
+            height = -Re + np.sqrt(Re**2 + 2 * slant_range * Re *
+                                    np.sin(np.radians(elv_angle)) + slant_range**2)  
+                                          
+        lat, lon = geocentric_coordinates(radar_lat, radar_lon, slant_range,
                                       height, psi, boresight, chisham)
+
+    """if coords == Coords.GROUND_SCATTER_MAPPED_RANGE:
+        # Calculate the ground scatter mapped range
+        slant_range = gate2slant(frang, rsep, rxrise, gate=range_gate)
+        
+        ground_scatter_mapped_range = gate2GroundScatter(slant_range, reflection_height)
+        pd.DataFrame(ground_scatter_mapped_range).to_csv("ground_scatter.csv")
+        #print(np.max(ground_scatter_mapped_range)) 
+        exit()
+        y0inx = np.min(np.where(np.isfinite(ground_scatter_mapped_range))[0])       
+        ground_scatter_mapped_range = ground_scatter_mapped_range[y0inx:]
+
+        # If no height is specified then use elevation angle (default 0)
+        # to calculate the transmutation height
+        if height is None:
+            height = -Re + np.sqrt(Re**2 + 2 * ground_scatter_mapped_range * Re *
+                                   np.sin(np.radians(elv_angle)) + ground_scatter_mapped_range**2)
+
+        lat, lon = geocentric_coordinates(radar_lat, radar_lon, ground_scatter_mapped_range,
+                                         height, psi, boresight, chisham)"""
 
     # convert back degrees as preferred units to use?
     return np.degrees(lat), np.degrees(lon)
