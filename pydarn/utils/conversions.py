@@ -112,19 +112,28 @@ def gate2GroundScatter(slant_ranges: List[float],
     return ground_scatter_mapped_ranges
 
 
-def gate2slant(record, nrang, rxrise=0, center=False):
+def gate2slant(frang:int, rsep:int, rxrise:int, gate: int = 0,
+               nrang: int = None, center: bool = True):
     """
     Calculate the slant range (km) for each range gate for SuperDARN data
 
     Parameters
     ----------
-        record: dict
-            dictionary of superdarn data records
-        nrang: int
-            max number of range gates in the list of records
+        frang: int
+            range from the edge of first the gate to the radar [km]
+            This should be given in fitacf record of the control program
+        rsep: int
+            Radar seperation of the gates. Determined by control program.
         rxrise: int
-            analog Rx rise time measured in microseconds
-            Default = 0
+            Use hardware value for this, avoid data file values
+        gate: int
+            range gate to determine the slant range [km], if nrang
+            is None
+            default: 0
+        nrang: int
+            max number of range gates in the list of records. If
+            not None, will calculate all slant ranges
+            default: None
         center: boolean
             Calculate the slant range in the center of range gate
             or edge
@@ -141,20 +150,26 @@ def gate2slant(record, nrang, rxrise=0, center=False):
     distance_factor = 2.0
     # C - speed of light m/s to km/us
     speed_of_light = C * 0.001 * 1e-6
-    lag_first = record['frang'] * distance_factor / speed_of_light
+    lag_first = frang * distance_factor / speed_of_light
 
     # sample separation in microseconds
-    sample_sep = record['rsep'] * distance_factor / speed_of_light
+    sample_sep = rsep * distance_factor / speed_of_light
     # Range offset
     # If center is true, calculate at the center
     if center:
-        range_offset = 0.5 * record['rsep']
+        # 0.5 off set to the centre of the range gate instead of edge
+        range_offset = -0.5 * rsep
     else:
         range_offset = 0.0
     # Now calculate slant range in km
-    slant_ranges = np.zeros(nrang+1)
-    for gate in range(nrang+1):
-        slant_ranges[gate] = (lag_first - rxrise +
-                              gate * sample_sep) * speed_of_light /\
-                distance_factor + range_offset
+    if nrang is None:
+             slant_ranges = (lag_first - rxrise +
+                                  gate * sample_sep) * speed_of_light /\
+                    distance_factor + range_offset
+    else:
+        slant_ranges = np.zeros(nrang+1)
+        for gate in range(nrang+1):
+            slant_ranges[gate] = (lag_first - rxrise +
+                                  gate * sample_sep) * speed_of_light /\
+                    distance_factor + range_offset
     return slant_ranges
