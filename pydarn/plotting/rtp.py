@@ -948,7 +948,7 @@ class RTP():
                         # ignore the warnings because summary plots
                         # has its own warning message
                         warnings.simplefilter("ignore")
-                        cls.plot_time_series(dmap_data,
+                        cls.plot_time_series(dmap_data, beam_num=beam_num,
                                              parameter=axes_parameters[i][0],
                                              scale=scale, channel=channel,
                                              color=line[axes_parameters[i][0]],
@@ -1018,7 +1018,8 @@ class RTP():
                 # the citing warning.
                 with warnings.catch_warnings():
                     warnings.simplefilter("ignore")
-                    cls.plot_time_series(dmap_data, channel=channel,
+                    cls.plot_time_series(dmap_data, beam_num=beam_num,
+                                         channel=channel,
                                          parameter=axes_parameters[i],
                                          ax=axes[i], **kwargs)
                 axes[i].set_ylabel('CPID', rotation=0, labelpad=30)
