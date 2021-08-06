@@ -361,7 +361,7 @@ class RTP():
             y = gate2GroundScatter(y, **kwargs)
             y0inx = np.min(np.where(np.isfinite(y))[0])
             y = y[y0inx:]
-            z = z[:,y0inx:]
+            z = z[:, y0inx:]
         time_axis, y_axis = np.meshgrid(x, y)
         z_data = np.ma.masked_where(np.isnan(z.T), z.T)
         Default = {'noise.sky': (1e0, 1e5),
@@ -386,12 +386,11 @@ class RTP():
         if isinstance(cmap, str):
             cmap = cm.get_cmap(cmap)
         else:
-            cmaps = {'p_l': 'plasma',
+            cmaps = {'p_l': plt.get_cmap('plasma'),
                      'v': PyDARNColormaps.PYDARN_VELOCITY,
                      'w_l': PyDARNColormaps.PYDARN_VIRIDIS,
                      'elv': PyDARNColormaps.PYDARN}
             cmap = cmaps[parameter]
-
 
         # set the background color, this needs to happen to avoid
         # the overlapping problem that occurs
@@ -401,16 +400,16 @@ class RTP():
                            cmap=cmap, norm=norm, **kwargs)
 
         if isinstance(groundscatter, str):
-            ground_scatter = np.ma.masked_where( z_data != -1000000, z_data)
+            ground_scatter = np.ma.masked_where(z_data != -1000000, z_data)
             gs_color = colors.ListedColormap([groundscatter])
-            im2 = ax.pcolormesh(time_axis, y_axis, ground_scatter, lw=0.01,
-                           cmap=gs_color, norm=norm, **kwargs)
+            ax.pcolormesh(time_axis, y_axis, ground_scatter, lw=0.01,
+                          cmap=gs_color, norm=norm, **kwargs)
 
         elif groundscatter:
-            ground_scatter = np.ma.masked_where( z_data != -1000000, z_data)
+            ground_scatter = np.ma.masked_where(z_data != -1000000, z_data)
             gs_color = colors.ListedColormap(['grey'])
-            im2 = ax.pcolormesh(time_axis, y_axis, ground_scatter, lw=0.01,
-                           cmap=gs_color, norm=norm, **kwargs)
+            ax.pcolormesh(time_axis, y_axis, ground_scatter, lw=0.01,
+                          cmap=gs_color, norm=norm, **kwargs)
 
         # setup some standard axis information
         # Upon request of Daniel Billet and others, I am rounding
@@ -431,7 +430,8 @@ class RTP():
 
         ax.set_ylim(ymin, ymax)
 
-        if coords is Coords.SLANT_RANGE or coords is Coords.GROUND_SCATTER_MAPPED_RANGE:
+        if coords is Coords.SLANT_RANGE or\
+           coords is Coords.GROUND_SCATTER_MAPPED_RANGE:
             ax.yaxis.set_ticks(np.arange(np.ceil(ymin/100.0)*100,
                                          ymax+1, yspacing))
         else:
@@ -449,7 +449,8 @@ class RTP():
             tick_interval = 1
         ax.xaxis.set_minor_locator(dates.MinuteLocator(interval=tick_interval))
 
-        if coords is Coords.SLANT_RANGE or coords is Coords.GROUND_SCATTER_MAPPED_RANGE:
+        if coords is Coords.SLANT_RANGE or\
+           coords is Coords.GROUND_SCATTER_MAPPED_RANGE:
             ax.yaxis.set_minor_locator(ticker.AutoMinorLocator(2))
         else:
             ax.yaxis.set_minor_locator(ticker.MultipleLocator(5))
@@ -464,8 +465,10 @@ class RTP():
                     if isinstance(norm, colors.LogNorm):
                         cb = ax.figure.colorbar(im, ax=ax, extend='both')
                     else:
-                        locator = ticker.MaxNLocator(symmetric=True, min_n_ticks=3,
-                                                     integer=True, nbins='auto')
+                        locator = ticker.MaxNLocator(symmetric=True,
+                                                     min_n_ticks=3,
+                                                     integer=True,
+                                                     nbins='auto')
                         ticks = locator.tick_values(vmin=zmin, vmax=zmax)
                         cb = ax.figure.colorbar(im, ax=ax, extend='both',
                                                 ticks=ticks)
@@ -572,8 +575,7 @@ class RTP():
         try:
             # because of partial records we need to find the first
             # record that has that parameter
-            index_first_match = next(i for i, d in enumerate(dmap_data)
-                                     if parameter in d)
+            next(i for i, d in enumerate(dmap_data) if parameter in d)
         except StopIteration:
             raise plot_exceptions.UnknownParameterError(parameter)
 
@@ -658,7 +660,8 @@ class RTP():
                             if parameter == 'tfreq':
                                 # Convert kHz to MHz by dividing by 1000
                                 y.append(dmap_record[parameter]/1000)
-                            elif isinstance(dmap_record[parameter], np.ndarray):
+                            elif isinstance(dmap_record[parameter],
+                                            np.ndarray):
                                 if gate in dmap_record['slist']:
                                     for i in range(len(dmap_record['slist'])):
                                         if dmap_record['slist'][i] == gate:
@@ -735,7 +738,7 @@ class RTP():
 
     @classmethod
     def plot_summary(cls, dmap_data: List[dict],
-                     figsize: tuple = (11, 8.5),
+                     beam_num: int = 0, figsize: tuple = (11, 8.5),
                      watermark: bool = True, boundary: dict = {},
                      cmaps: dict = {}, lines: dict = {},
                      plot_elv: bool = True, title=None,
@@ -978,7 +981,7 @@ class RTP():
                         # warnings are not caught with try/except
                         with warnings.catch_warnings():
                             warnings.simplefilter("ignore")
-                            cls.plot_time_series(dmap_data,
+                            cls.plot_time_series(dmap_data, beam_num=beam_num,
                                                  parameter=axes_parameters[i][1],
                                                  color=line[axes_parameters[i][1]],
                                                  channel=channel,
@@ -1041,7 +1044,7 @@ class RTP():
                 with warnings.catch_warnings():
                     warnings.simplefilter("ignore")
                     _, cbar, _, x, _, _ =\
-                        cls.plot_range_time(dmap_data,
+                        cls.plot_range_time(dmap_data, beam_num=beam_num,
                                             colorbar_label=labels[i],
                                             channel=channel,
                                             parameter=axes_parameters[i],
@@ -1081,7 +1084,7 @@ class RTP():
                 axes[i].set_xlabel('Date (UTC)')
 
         if title is None:
-            plt.title(cls.__generate_title(x[0], x[-1], kwargs['beam_num'],
+            plt.title(cls.__generate_title(x[0], x[-1], beam_num,
                                            channel), y=2.4)
         else:
             plt.title(title, y=2.4)
