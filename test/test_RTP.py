@@ -37,6 +37,12 @@ class TestRTP_defaults:
         with warnings.catch_warnings(record=True):
             pydarn.RTP.plot_time_series(data)
 
+    def test_normal_time_series(self):
+        """ """
+        with warnings.catch_warnings(record=True):
+            pydarn.RTP.plot_summary(data)
+
+
 @pytest.mark.parametrize('background', ['w'])
 @pytest.mark.parametrize('zmin', [0, -200])
 @pytest.mark.parametrize('zmax', [200, 1000])
@@ -73,10 +79,10 @@ class TestRangTime:
         plt.close('all')
 
     def test_parameters_channel_2_range_time(self, groundscatter_params,
-                                   parameters, background, zmin, zmax,
-                                   start_time, end_time, ymin, ymax,
-                                   colorbar_label, yspacing,
-                                   coords, cmap, date_fmt):
+                                             parameters, background, zmin,
+                                             zmax, start_time, end_time,
+                                             ymin, ymax, colorbar_label,
+                                             yspacing, coords, cmap, date_fmt):
         """ this test will give bare minimum input needed for """
         with warnings.catch_warnings(record=True):
             pydarn.RTP.plot_range_time(data, beam_num=9,
@@ -121,7 +127,7 @@ class TestTimeSeries:
                                         linestyle=linestyle,
                                         linewidth=linewidth)
 
-    def test_parameters_time_series_channel2(self, parameters_scalar, gate,
+    def test_parameters_time_series_channel1(self, parameters_scalar, gate,
                                              scale, cp_name, color, linestyle,
                                              linewidth, date_fmt, end_time,
                                              start_time):
@@ -138,10 +144,46 @@ class TestTimeSeries:
                                         linestyle=linestyle,
                                         linewidth=linewidth)
 
+
+@pytest.mark.parametrize('fig_size', [(11, 10), (10, 11)])
+@pytest.mark.parametrize('watermark', [False, True])
+@pytest.mark.parametrize('boundary', [{'w_l': (0, 100),
+                                       'nave': (0, 30),
+                                       'elv': (0, 20),
+                                       'tfreq': (0, 15)}])
+@pytest.mark.parametrize('cmaps', [{'elv': plt.get_cmap('rainbow'),
+                                    'p_l': plt.get_cmap('rainbow'),
+                                    'vel': plt.get_cmap('rainbow')}])
+@pytest.mark.parametrize('lines', [{'nave': '--', 'tfreq': '.'}])
+@pytest.mark.parametrize('plot_elv', [False])
+@pytest.mark.parametrize('title', ['test test'])
+@pytest.mark.parametrize('background', ['grey'])
+@pytest.mark.parametrize('groundscatter', [False, 'grey'])
+@pytest.mark.parametrize('coords', [pydarn.Coords.RANGE_GATE,
+                                    pydarn.Coords.GROUND_SCATTER_MAPPED_RANGE])
 class TestSummaryPlots:
 
-    def test_default_summary_plots(self):
+    def test_params_summary_plots(self, fig_size, watermark, boundary, cmaps,
+                                  lines, plot_elv, title, background,
+                                  groundscatter, coords):
+        with warnings.catch_warnings(record=True):
+            pydarn.RTP.plot_summary(data, beam_num=15, channel=1,
+                                    figsize=fig_size, watermark=watermark,
+                                    boundary=boundary, cmaps=cmaps,
+                                    lines=lines, plot_elv=plot_elv,
+                                    title=title, background=background,
+                                    groundscatter=groundscatter, coords=coords)
+        plt.close('all')
 
-    def test_params_summary_plots(self):
+    def test_beam9_channel2_summary_plots(self, fig_size, watermark, boundary,
+                                          cmaps, lines, plot_elv, title,
+                                          background, groundscatter, coords):
+        with warnings.catch_warnings(record=True):
+            pydarn.RTP.plot_summary(data, beam_num=9, channel=2,
+                                    figsize=fig_size, watermark=watermark,
+                                    boundary=boundary, cmaps=cmaps,
+                                    lines=lines, plot_elv=plot_elv,
+                                    title=title, background=background,
+                                    groundscatter=groundscatter, coords=coords)
+        plt.close('all')
 
-    def test_beam9_channel2_summary_plots(self):
