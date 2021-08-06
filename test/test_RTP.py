@@ -13,88 +13,135 @@
 # supplemented by the additional permissions listed below.
 
 import bz2
+import datetime as dt
+import matplotlib.pyplot as plt
 import pytest
+import warnings
 
 import pydarn
 
-@pytest.fixture
-def fitacf_data():
-    """ read in fitacf data needed for the test functions """
-    with bz2.open('data/test.fitacf.bz2') as fp:
-        fitacf_stream = fp.read()
-    return pydarn.SuperDARNRead(fitacf_stream, True).read_fitacf()
+with bz2.open('data/test.fitacf.bz2') as fp:
+    fitacf_stream = fp.read()
+data = pydarn.SuperDARNRead(fitacf_stream, True).read_fitacf()
 
 
-@pytest.mark.parametrize('ggroundscatter', [True, 'grey', 'yello', False])
-@pytest.mark.parametrize('beam', [0, 1, 7, 15])
-@pytest.mark.parametrize('parameter', ['v', 'p_l', 'w_l'])
-@pytest.mark.parametrize()
-def test_normal_range_time(fitacf_data):
-    """ this test will give bare minimum input needed for """
-    pydarn.RTP.plot_range_time(fitacf_data)
+class TestRTP_defaults:
+
+    def test_range_time_defaults(self):
+        """ """
+        with warnings.catch_warnings(record=True):
+            pydarn.RTP.plot_range_time(data)
+
+    def test_normal_time_series(self):
+        """ """
+        with warnings.catch_warnings(record=True):
+            pydarn.RTP.plot_time_series(data)
+
+@pytest.mark.parametrize('background', ['w'])
+@pytest.mark.parametrize('zmin', [0, -200])
+@pytest.mark.parametrize('zmax', [200, 1000])
+@pytest.mark.parametrize('groundscatter_params', [True, 'grey'])
+@pytest.mark.parametrize('colorbar_label', ['test'])
+@pytest.mark.parametrize('yspacing', [150, 250])
+@pytest.mark.parametrize('coords', [pydarn.Coords.RANGE_GATE,
+                                    pydarn.Coords.GROUND_SCATTER_MAPPED_RANGE])
+@pytest.mark.parametrize('ymin', [10])
+@pytest.mark.parametrize('ymax', [70])
+@pytest.mark.parametrize('parameters', ['v', 'p_l', 'w_l'])
+@pytest.mark.parametrize('cmap', [plt.get_cmap('rainbow')])
+@pytest.mark.parametrize('start_time', [dt.datetime(2018, 4, 4, 6, 2)])
+@pytest.mark.parametrize('end_time', [dt.datetime(2018, 4, 4, 6, 4)])
+@pytest.mark.parametrize('date_fmt', ['%H:%M'])
+class TestRangTime:
+
+    def test_parameters_range_time(self, groundscatter_params,
+                                   parameters, background, zmin, zmax,
+                                   start_time, end_time, ymin, ymax,
+                                   colorbar_label, yspacing,
+                                   coords, cmap, date_fmt):
+        """ this test will give bare minimum input needed for """
+        with warnings.catch_warnings(record=True):
+            pydarn.RTP.plot_range_time(data, beam_num=15,
+                                       parameter=parameters, channel=1,
+                                       groundscatter=groundscatter_params,
+                                       background=background, zmin=zmin,
+                                       zmax=zmax, start_time=start_time,
+                                       end_time=end_time, ymin=ymin, ymax=ymax,
+                                       colorbar_label=colorbar_label,
+                                       yspacing=yspacing, coords=coords,
+                                       cmap=cmap, date_fmt=date_fmt)
+        plt.close('all')
+
+    def test_parameters_channel_2_range_time(self, groundscatter_params,
+                                   parameters, background, zmin, zmax,
+                                   start_time, end_time, ymin, ymax,
+                                   colorbar_label, yspacing,
+                                   coords, cmap, date_fmt):
+        """ this test will give bare minimum input needed for """
+        with warnings.catch_warnings(record=True):
+            pydarn.RTP.plot_range_time(data, beam_num=9,
+                                       parameter=parameters, channel=2,
+                                       groundscatter=groundscatter_params,
+                                       background=background, zmin=zmin,
+                                       zmax=zmax, start_time=start_time,
+                                       end_time=end_time, ymin=ymin, ymax=ymax,
+                                       colorbar_label=colorbar_label,
+                                       yspacing=yspacing, coords=coords,
+                                       cmap=cmap, date_fmt=date_fmt)
+        plt.close('all')
 
 
-def test_range_time_ground_scatter():
-    """ """
-    pass
+@pytest.mark.parametrize('parameters_scalar', ['tfreq', 'cp', 'nave',
+                                               'p_l', 'w_l', 'v'])
+@pytest.mark.parametrize('gate', [38, 48])
+@pytest.mark.parametrize('scale', ['linear', 'log'])
+@pytest.mark.parametrize('cp_name', [True, False])
+@pytest.mark.parametrize('color', 'green')
+@pytest.mark.parametrize('linestyle', ['--'])
+@pytest.mark.parametrize('linewidth', [0.5, 2])
+@pytest.mark.parametrize('start_time', [dt.datetime(2018, 4, 4, 6, 2)])
+@pytest.mark.parametrize('end_time', [dt.datetime(2018, 4, 4, 6, 4)])
+@pytest.mark.parametrize('date_fmt', ['%H:%M'])
+class TestTimeSeries:
 
-def test_range_time_ground_scatter():
-    """ """
-    pass
+    def test_parameters_time_series_channel2(self, parameters_scalar, gate,
+                                             scale, cp_name, color, linestyle,
+                                             linewidth, date_fmt, end_time,
+                                             start_time):
+        """
 
-def test_range_time_channel():
-    """ """
-    pass
+        """
+        with warnings.catch_warnings(record=True):
+            pydarn.RTP.plot_time_series(data, parameter=parameters_scalar,
+                                        beam_num=9, gate=gate,
+                                        start_time=start_time,
+                                        end_time=end_time, date_fmt=date_fmt,
+                                        channel=2, scale=scale,
+                                        cp_name=cp_name, color=color,
+                                        linestyle=linestyle,
+                                        linewidth=linewidth)
 
-def test_range_time_axis_object():
-    """ """
-    pass
+    def test_parameters_time_series_channel2(self, parameters_scalar, gate,
+                                             scale, cp_name, color, linestyle,
+                                             linewidth, date_fmt, end_time,
+                                             start_time):
+        """
 
-def test_range_time_rawacf():
-    """ """
-    pass
+        """
+        with warnings.catch_warnings(record=True):
+            pydarn.RTP.plot_time_series(data, parameter=parameters_scalar,
+                                        beam_num=15, gate=gate,
+                                        start_time=start_time,
+                                        end_time=end_time, date_fmt=date_fmt,
+                                        channel=1, scale=scale,
+                                        cp_name=cp_name, color=color,
+                                        linestyle=linestyle,
+                                        linewidth=linewidth)
 
-def test_time_series():
-    """ """
-    pass
+class TestSummaryPlots:
 
-def test_time_series():
-    """ """
-    pass
+    def test_default_summary_plots(self):
 
-def test_time_series_axis():
-    """ """
-    pass
+    def test_params_summary_plots(self):
 
-def test_time_series_channel():
-    """ """
-    pass
-
-def test_time_series_cpid():
-    """ """
-    pass
-
-def test_summary():
-    """ """
-    pass
-
-def test_summary_channel():
-    """ """
-    pass
-
-def test_summary_groundscatter_str():
-    """ """
-    pass
-
-def test_summary_range_gates():
-    """ """
-    pass
-
-def test_summary_ground_scatter():
-    """ """
-    pass
-
-def test_summary_kwargs():
-    """ """
-    pass
-
+    def test_beam9_channel2_summary_plots(self):
