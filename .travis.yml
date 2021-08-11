@@ -50,4 +50,4 @@ install:
     - pip3 install .
     - pip3 install pytest
     - pip3 install pydarnio
-script: pytest --ignore=test/integration 
+script: pytest --ignore=test/data
