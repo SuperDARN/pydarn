@@ -985,6 +985,7 @@ class RTP():
                     if i == 1:
                         # plot the shared parameter
                         second_ax = axes[i].twinx()
+
                         # with warning catch, catches all the warnings
                         # that would be produced by time-series this would be
                         # the citing warning.
@@ -996,7 +997,7 @@ class RTP():
                                                  color=color[axes_parameters[i][1]],
                                                  channel=channel,
                                                  scale=scale, ax=second_ax,
-                                                 linestyle=line[axes_parameters[i][0]], **kwargs)
+                                                 linestyle=line[axes_parameters[i][1]], **kwargs)
                         second_ax.set_xticklabels([])
                         second_ax.set_ylabel(labels[i][1], rotation=0,
                                              labelpad=25)
