@@ -102,7 +102,7 @@ class TestRangTime:
 @pytest.mark.parametrize('gate', [38, 48])
 @pytest.mark.parametrize('scale', ['linear', 'log'])
 @pytest.mark.parametrize('cp_name', [True, False])
-@pytest.mark.parametrize('color', 'green')
+@pytest.mark.parametrize('color', ['green'])
 @pytest.mark.parametrize('linestyle', ['--'])
 @pytest.mark.parametrize('linewidth', [0.5, 2])
 @pytest.mark.parametrize('start_time', [dt.datetime(2018, 4, 4, 6, 2)])
