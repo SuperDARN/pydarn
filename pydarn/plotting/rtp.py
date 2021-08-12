@@ -968,7 +968,8 @@ class RTP():
                     axes[i].\
                         axhline(y=boundary_ranges[axes_parameters[i][0]][0] +
                                 0.8, xmin=-0.11, xmax=-0.05, clip_on=False,
-                                color=color[axes_parameters[i][0]])
+                                color=color[axes_parameters[i][0]],
+                                linestyle=line[axes_parameters[i][0]])
                     axes[i].set_ylim(boundary_ranges[axes_parameters[i][0]][0],
                                      boundary_ranges[axes_parameters[i][0]][1])
                     # For better y-axis ticks
@@ -1004,7 +1005,8 @@ class RTP():
                         second_ax.\
                             axhline(y=boundary_ranges[axes_parameters[i][1]][0]
                                     + 0.8, xmin=1.07, xmax=1.13,
-                                    clip_on=False, linestyle=line[axes_parameters[i][1]][0],
+                                    clip_on=False,
+                                    linestyle=line[axes_parameters[i][1]],
                                     color=color[axes_parameters[i][1]])
                         second_ax.\
                             set_ylim(boundary_ranges[axes_parameters[i][1]][0],
