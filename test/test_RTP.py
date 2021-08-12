@@ -186,4 +186,3 @@ class TestSummaryPlots:
                                     title=title, background=background,
                                     groundscatter=groundscatter, coords=coords)
         plt.close('all')
-
