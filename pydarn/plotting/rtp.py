@@ -1003,8 +1003,8 @@ class RTP():
                         second_ax.\
                             axhline(y=boundary_ranges[axes_parameters[i][1]][0]
                                     + 0.8, xmin=1.07, xmax=1.13,
-                                    clip_on=False, linestyle='--',
-                                    color=line[axes_parameters[i][1]])
+                                    clip_on=False, linestyle=line[axes_parameters[i][1]][0],
+                                    color=color[axes_parameters[i][1]])
                         second_ax.\
                             set_ylim(boundary_ranges[axes_parameters[i][1]][0],
                                      boundary_ranges[axes_parameters[i][1]][1])
