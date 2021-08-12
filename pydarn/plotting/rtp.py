@@ -743,7 +743,7 @@ class RTP():
                      cmaps: dict = {}, lines: dict = {},
                      plot_elv: bool = True, title=None,
                      background: str = 'w', groundscatter: bool = True,
-                     channel: int = 'all',
+                     channel: int = 'all', line_color: dict = {},
                      coords: object = Coords.SLANT_RANGE, **kwargs):
         """
         Plots the summary of several SuperDARN parameters using time-series and
@@ -870,10 +870,19 @@ class RTP():
         boundary_ranges.update(boundary)
 
         # Default color maps for the summary plot
-        line = {'noise.search': 'k',
-                'noise.sky': 'k',
-                'tfreq': 'k',
-                'nave': 'k'}
+        line = {'noise.search': '--',
+                'noise.sky': '-',
+                'tfreq': '--',
+                'nave': '-'}
+        color = {'noise.search': 'k',
+                 'noise.sky': 'k',
+                 'tfreq': 'k',
+                 'nave': 'k'}
+
+        if isinstance(line_color, dict):
+            color.update(line_color)
+        else:
+            color.update({k: lines for k, v in line_color.items()})
 
         if isinstance(lines, dict):
             line.update(lines)
@@ -951,14 +960,15 @@ class RTP():
                         cls.plot_time_series(dmap_data, beam_num=beam_num,
                                              parameter=axes_parameters[i][0],
                                              scale=scale, channel=channel,
-                                             color=line[axes_parameters[i][0]],
-                                             ax=axes[i], linestyle='-',
+                                             color=color[axes_parameters[i][0]],
+                                             ax=axes[i],
+                                             linestyle=line[axes_parameters[i][0]],
                                              label=labels[i][0], **kwargs)
                     axes[i].set_ylabel(labels[i][0], rotation=0, labelpad=30)
                     axes[i].\
                         axhline(y=boundary_ranges[axes_parameters[i][0]][0] +
                                 0.8, xmin=-0.11, xmax=-0.05, clip_on=False,
-                                color=line[axes_parameters[i][0]])
+                                color=color[axes_parameters[i][0]])
                     axes[i].set_ylim(boundary_ranges[axes_parameters[i][0]][0],
                                      boundary_ranges[axes_parameters[i][0]][1])
                     # For better y-axis ticks
@@ -983,10 +993,10 @@ class RTP():
                             warnings.simplefilter("ignore")
                             cls.plot_time_series(dmap_data, beam_num=beam_num,
                                                  parameter=axes_parameters[i][1],
-                                                 color=line[axes_parameters[i][1]],
+                                                 color=color[axes_parameters[i][1]],
                                                  channel=channel,
                                                  scale=scale, ax=second_ax,
-                                                 linestyle='--', **kwargs)
+                                                 linestyle=line[axes_parameters[i][0]], **kwargs)
                         second_ax.set_xticklabels([])
                         second_ax.set_ylabel(labels[i][1], rotation=0,
                                              labelpad=25)
