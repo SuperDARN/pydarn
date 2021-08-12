@@ -154,7 +154,7 @@ class TestTimeSeries:
 @pytest.mark.parametrize('cmaps', [{'elv': plt.get_cmap('rainbow'),
                                     'p_l': plt.get_cmap('rainbow'),
                                     'vel': plt.get_cmap('rainbow')}])
-@pytest.mark.parametrize('lines', [{'nave': '--', 'tfreq': '.'}])
+@pytest.mark.parametrize('lines', [{'nave': '--', 'tfreq': '-'}])
 @pytest.mark.parametrize('plot_elv', [False])
 @pytest.mark.parametrize('title', ['test test'])
 @pytest.mark.parametrize('background', ['grey'])
