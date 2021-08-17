@@ -41,6 +41,9 @@ import numpy as np
 import os
 import aacgmv2
 
+from pydarn.utils.virtual_heights_types import VH_types
+from pydarn.utils.virtual_heights import standard_virtual_height, chisham
+
 from pydarn import SuperDARNRadars, gate2slant, gate2GroundScatter, Coords
 from pydarn.utils.constants import EARTH_EQUATORIAL_RADIUS, Re, C
 
@@ -152,7 +155,7 @@ def geographic_cell_positions(stid: int, beam: int, range_gate: int,
                               height: float = None, elv_angle: float = 0.0,
                               reflection_height: float = 250,
                               coords: object = Coords.SLANT_RANGE,
-                              center: bool = True, chisham: bool = False):
+                              center: bool = True, virtual_height_type: object = VH_types.STANDARD_VIRTUAL_HEIGHT):
     """
     determines the geographic cell position for a given range gate and beam
 
@@ -242,7 +245,7 @@ def geographic_cell_positions(stid: int, beam: int, range_gate: int,
                                     np.sin(np.radians(elv_angle)) + slant_range**2)  
                                           
         lat, lon = geocentric_coordinates(radar_lat, radar_lon, slant_range,
-                                      height, psi, boresight, chisham)
+                                      height, psi, boresight, virtual_height_type = virtual_height_type)
                                       
     #calculates lon and lat for ground scatter mapped range
     if coords == Coords.GROUND_SCATTER_MAPPED_RANGE:
@@ -257,7 +260,7 @@ def geographic_cell_positions(stid: int, beam: int, range_gate: int,
                                    np.sin(np.radians(elv_angle)) + ground_scatter_mapped_range**2)
 
         lat, lon = geocentric_coordinates(radar_lat, radar_lon, ground_scatter_mapped_range,
-                                         height, psi, boresight, chisham)
+                                         height, psi, boresight, virtual_height_type = virtual_height_type)
 
     # convert back degrees as preferred units to use?
     return np.degrees(lat), np.degrees(lon)
@@ -267,7 +270,7 @@ def geographic_cell_positions(stid: int, beam: int, range_gate: int,
 def geocentric_coordinates(radar_lat: float, radar_lon: float,
                            slant_range: float, cell_height: float,
                            psi: float, boresight: float,
-                           chisham: bool = False):
+                           virtual_height_type: object = VH_types.STANDARD_VIRTUAL_HEIGHT ):
     """
     Calculates the geocentric coordinates of gate cell  point,
     using either the standard or Chisham virtual height model.
@@ -304,51 +307,12 @@ def geocentric_coordinates(radar_lat: float, radar_lon: float,
     radars – Part 1: A new empirical virtual height model by
     G. Chisham 2008 (https://doi.org/10.5194/angeo-26-823-2008)
     """
-    if chisham:
-        # Model constants
-        A_const = (108.974, 384.416, 1098.28)
-        B_const = (0.0191271, -0.178640, -0.354557)
-        C_const = (6.68283e-5, 1.81405e-4, 9.39961e-5)
-
-        # determine which region of ionosphere the gate
-        if slant_range < 115:
-            x_height = (slant_range / 115.0) * 112.0
-        elif slant_range < 787.5:
-            x_height = A_const[0] + B_const[0] * slant_range + C_const[0] *\
-                    slant_range**2
-        elif slant_range <= 2137.5:
-            x_height = A_const[1] + B_const[1] * slant_range + C_const[1] *\
-                    slant_range**2
-        else:
-            x_height = A_const[2] + B_const[2] * slant_range + C_const[2] *\
-                    slant_range**2
-    else:
-        """
-        cell_height, slant_range and x_height are in km
-        Default values set in virtual height model described
-        Mapping ionospheric backscatter measured by the SuperDARN HF
-        radars – Part 1: A new empirical virtual height model by
-        G. Chisham 2008
-        Equation (1) in the paper
-        < 150 km climbing into the E region
-        150 - 600 km E region scatter
-        (Note in the paper 400 km is the edge of the E region)
-        600 - 800 km is F region
-        """
-        # TODO: why 115?
-        # map everything into the E region
-        if cell_height <= 150 and slant_range > 150:
-            x_height = cell_height
-        # virtual height equation (1) from the above paper
-        elif slant_range < 150:
-            x_height = (slant_range / 150.0) * 115
-        elif slant_range >= 150 and slant_range <= 600:
-            x_height = 115
-        elif slant_range > 600 and slant_range < 800:
-            x_height = (slant_range - 600) / 200 * (cell_height - 115) + 115
-        # higher than 800 km
-        else:
-            x_height = cell_height
+    if virtual_height_type == VH_types.CHISHAM:
+        x_height = chisham(slant_range)
+                 
+    if virtual_height_type == VH_types.STANDARD_VIRTUAL_HEIGHT:
+        x_height = standard_virtual_height(slant_range, cell_height)
+        
     # calculate the radius over the earth underneath
     # the radar and range gate cell
     rlat, rlon, r_radar, delta = geodetic2geocentric(radar_lat, radar_lon)
