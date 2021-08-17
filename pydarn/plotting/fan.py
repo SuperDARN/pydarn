@@ -74,6 +74,7 @@ class Fan():
                  colorbar_label: str = '', radar_location: bool = True,
                  radar_label: bool = False, title: bool = True,
                  fov_files: bool = False, **kwargs):
+
         """
         Plots a radar's Field Of View (FOV) fan plot for the given data and
         scan number
@@ -201,16 +202,6 @@ class Fan():
         # Plot FOV outline
         if ranges is None:
             ranges = [0, dmap_data[0]['nrang']]
-
-        """beam_corners_aacgm_lats, beam_corners_aacgm_lons, thetas, rs, ax = \
-            cls.plot_fov(stid=dmap_data[0]['stid'], date=date,
-                         ranges=ranges, boundary=boundary,
-                         rsep=dmap_data[0]['rsep'],
-                         frang=dmap_data[0]['frang'],
-                         line_color=line_color, alpha=alpha,
-                         radar_label=radar_label,
-                         radar_location=radar_location, ax=ax,
-                         fov_files=fov_files, coords=coords, **kwargs)"""
 
         # Get radar beam/gate locations
         beam_corners_aacgm_lats, beam_corners_aacgm_lons = \
@@ -544,13 +535,12 @@ class Fan():
             thetas - theta polar coordinates
             rs - radius polar coordinates
         """
-        if ranges is None:
+        if ranges == [] or ranges is None:
             ranges = [0, SuperDARNRadars.radars[stid].range_gate_45]
 
         # Get radar beam/gate locations
         beam_corners_aacgm_lats, beam_corners_aacgm_lons = \
-            radar_fov(stid, rsep, frang, coords=coords, ranges=ranges,
-                      date=date, max_beams=max_beams, read_file=fov_files)
+            radar_fov(stid, ranges=ranges, date=date, **kwargs)
 
         if not date:
             date = dt.datetime.now()
