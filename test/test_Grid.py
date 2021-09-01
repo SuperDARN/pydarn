@@ -21,7 +21,7 @@ import warnings
 import pydarn
 
 
-data = pydarn.SuperDARNRead('data/test.grd').read_grid()
+data = pydarn.SuperDARNRead('test/data/test.grd').read_grid()
 
 
 class TestGrid_defaults:
