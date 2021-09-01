@@ -39,17 +39,20 @@ in AACGMv2 or geographic coordinates
 import datetime as dt
 import numpy as np
 import os
-
 import aacgmv2
 
-from pydarn import SuperDARNRadars, gate2slant, Coords
+from pydarn.utils.virtual_heights_types import VH_types
+from pydarn.utils.virtual_heights import standard_virtual_height, chisham
+
+from pydarn import SuperDARNRadars, gate2slant, gate2GroundScatter, Coords
 from pydarn.utils.constants import EARTH_EQUATORIAL_RADIUS, Re, C
 
 
 def radar_fov(stid: int, rsep: int = 45, frang: int = 180,
               ranges: tuple = None, fov_files: bool = False,
               coords: object = Coords.AACGM, max_beams: int = None,
-              date: dt.datetime = None, **kwargs):
+              reflection_height: float = 250, date: dt.datetime = None, **kwargs):
+
     """
     Returning beam/gate coordinates of a specified radar's field-of-view
 
@@ -61,6 +64,9 @@ def radar_fov(stid: int, rsep: int = 45, frang: int = 180,
     coords: Coords object
         Type of coordinates returned
         Default: Coords.AACGM
+    reflection_height: float
+        reflection height
+        default:  250
     date: datetime
         datetime object date to be used for AACGMv2 conversion
         Default: Current day
@@ -74,6 +80,7 @@ def radar_fov(stid: int, rsep: int = 45, frang: int = 180,
         n_beams x n_gates array of geographic or AACGMv2 longitudes
         for range gate corners
     """
+
     # Locate base PyDARN directory
     if fov_files:
         my_path = os.path.abspath(os.path.dirname(__file__))
@@ -119,13 +126,14 @@ def radar_fov(stid: int, rsep: int = 45, frang: int = 180,
         # Plus 1 is due to the fact fov files index at 1 so in the plotting
         # of the boundary there is a subtraction of 1 to offset this as python
         # converts to index of 0 which my code already accounts for
-        beam_corners_lats = np.zeros((ranges[1], max_beams+1))
-        beam_corners_lons = np.zeros((ranges[1], max_beams+1))
+        
+        beam_corners_lats = np.zeros((ranges[1]+1, max_beams+1))
+        beam_corners_lons = np.zeros((ranges[1]+1, max_beams+1))
 
-        for beam in range(0, max_beams+1):
-            for gate in range(ranges[0], ranges[1]):
+        for beam in range(max_beams+1):
+            for gate in range(ranges[1]+1):
                 lat, lon = geographic_cell_positions(stid, beam, gate, rsep,
-                                                     frang, height=300)
+                                                     frang, coords = coords, reflection_height=reflection_height, height=300)
 
                 if coords == Coords.AACGM:
                     if date is None:
@@ -146,7 +154,9 @@ def radar_fov(stid: int, rsep: int = 45, frang: int = 180,
 def geographic_cell_positions(stid: int, beam: int, range_gate: int,
                               rsep: int = 45, frang: int = 180,
                               height: float = None, elv_angle: float = 0.0,
-                              center: bool = True, chisham: bool = False):
+                              reflection_height: float = 250,
+                              coords: object = Coords.SLANT_RANGE,
+                              center: bool = True, virtual_height_type: object = VH_types.STANDARD_VIRTUAL_HEIGHT):
     """
     determines the geographic cell position for a given range gate and beam
 
@@ -173,6 +183,12 @@ def geographic_cell_positions(stid: int, beam: int, range_gate: int,
         elv_angle: float
             elevation angle in [deg]
             default: 0
+        reflection_height: float
+            reflection height
+            default:  250
+        coords: Coords
+            set the y-axis to a desired coordinate system
+            Default: Coords.SLANT_RANGE
         center: bool
             obtain geographic location of the centre of the range gates
             False obtains the front edge of the range gates.
@@ -214,17 +230,38 @@ def geographic_cell_positions(stid: int, beam: int, range_gate: int,
 
     # psi [rad] in the angle from the boresight
     psi = beam_sep * (beam - offset) + beam_edge
-    # Calculate the slant range [km]
-    slant_range = gate2slant(frang, rsep, rxrise, gate=range_gate)
+    
+    # Initialize lon and lat to allow use outside of if statement
+    lon = np.empty((2,2))
+    lat = np.empty((2,2))
+    
+    #calculates lon and lat for slant range 
+    if coords == Coords.SLANT_RANGE:
+        # Calculate the slant range [km]
+        slant_range = gate2slant(frang, rsep, rxrise, gate=range_gate)
+        # If no height is specified then use elevation angle (default 0)
+        # to calculate the transmutation height
+        if height is None:
+            height = -Re + np.sqrt(Re**2 + 2 * slant_range * Re *
+                                    np.sin(np.radians(elv_angle)) + slant_range**2)  
+                                          
+        lat, lon = geocentric_coordinates(radar_lat, radar_lon, slant_range,
+                                      height, psi, boresight, virtual_height_type = virtual_height_type)
+                                      
+    #calculates lon and lat for ground scatter mapped range
+    if coords == Coords.GROUND_SCATTER_MAPPED_RANGE:
+        # Calculate the ground scatter mapped range
+        slant_range = gate2slant(frang, rsep, rxrise, gate=range_gate)
+        
+        ground_scatter_mapped_range = gate2GroundScatter(slant_range, reflection_height)
+        # If no height is specified then use elevation angle (default 0)
+        # to calculate the transmutation height
+        if height is None:
+            height = -Re + np.sqrt(Re**2 + 2 * ground_scatter_mapped_range * Re *
+                                   np.sin(np.radians(elv_angle)) + ground_scatter_mapped_range**2)
 
-    # If no height is specified then use elevation angle (default 0)
-    # to calculate the transmutation height
-    if height is None:
-        height = -Re + np.sqrt(Re**2 + 2 * slant_range * Re *
-                               np.sin(np.radians(elv_angle)) + slant_range**2)
-
-    lat, lon = geocentric_coordinates(radar_lat, radar_lon, slant_range,
-                                      height, psi, boresight, chisham)
+        lat, lon = geocentric_coordinates(radar_lat, radar_lon, ground_scatter_mapped_range,
+                                         height, psi, boresight, virtual_height_type = virtual_height_type)
 
     # convert back degrees as preferred units to use?
     return np.degrees(lat), np.degrees(lon)
@@ -234,7 +271,7 @@ def geographic_cell_positions(stid: int, beam: int, range_gate: int,
 def geocentric_coordinates(radar_lat: float, radar_lon: float,
                            slant_range: float, cell_height: float,
                            psi: float, boresight: float,
-                           chisham: bool = False):
+                           virtual_height_type: object = VH_types.STANDARD_VIRTUAL_HEIGHT ):
     """
     Calculates the geocentric coordinates of gate cell  point,
     using either the standard or Chisham virtual height model.
@@ -271,51 +308,12 @@ def geocentric_coordinates(radar_lat: float, radar_lon: float,
     radars – Part 1: A new empirical virtual height model by
     G. Chisham 2008 (https://doi.org/10.5194/angeo-26-823-2008)
     """
-    if chisham:
-        # Model constants
-        A_const = (108.974, 384.416, 1098.28)
-        B_const = (0.0191271, -0.178640, -0.354557)
-        C_const = (6.68283e-5, 1.81405e-4, 9.39961e-5)
-
-        # determine which region of ionosphere the gate
-        if slant_range < 115:
-            x_height = (slant_range / 115.0) * 112.0
-        elif slant_range < 787.5:
-            x_height = A_const[0] + B_const[0] * slant_range + C_const[0] *\
-                    slant_range**2
-        elif slant_range <= 2137.5:
-            x_height = A_const[1] + B_const[1] * slant_range + C_const[1] *\
-                    slant_range**2
-        else:
-            x_height = A_const[2] + B_const[2] * slant_range + C_const[2] *\
-                    slant_range**2
-    else:
-        """
-        cell_height, slant_range and x_height are in km
-        Default values set in virtual height model described
-        Mapping ionospheric backscatter measured by the SuperDARN HF
-        radars – Part 1: A new empirical virtual height model by
-        G. Chisham 2008
-        Equation (1) in the paper
-        < 150 km climbing into the E region
-        150 - 600 km E region scatter
-        (Note in the paper 400 km is the edge of the E region)
-        600 - 800 km is F region
-        """
-        # TODO: why 115?
-        # map everything into the E region
-        if cell_height <= 150 and slant_range > 150:
-            x_height = cell_height
-        # virtual height equation (1) from the above paper
-        elif slant_range < 150:
-            x_height = (slant_range / 150.0) * 115
-        elif slant_range >= 150 and slant_range <= 600:
-            x_height = 115
-        elif slant_range > 600 and slant_range < 800:
-            x_height = (slant_range - 600) / 200 * (cell_height - 115) + 115
-        # higher than 800 km
-        else:
-            x_height = cell_height
+    if virtual_height_type == VH_types.CHISHAM:
+        x_height = chisham(slant_range)
+                 
+    if virtual_height_type == VH_types.STANDARD_VIRTUAL_HEIGHT:
+        x_height = standard_virtual_height(slant_range, cell_height)
+        
     # calculate the radius over the earth underneath
     # the radar and range gate cell
     rlat, rlon, r_radar, delta = geodetic2geocentric(radar_lat, radar_lon)
