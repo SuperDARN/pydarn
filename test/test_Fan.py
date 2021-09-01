@@ -20,7 +20,7 @@ import warnings
 
 import pydarn
 
-with bz2.open('data/test.fitacf.bz2') as fp:
+with bz2.open('test/data/test.fitacf.bz2') as fp:
     fitacf_stream = fp.read()
 data = pydarn.SuperDARNRead(fitacf_stream, True).read_fitacf()
 
