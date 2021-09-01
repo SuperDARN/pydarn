@@ -102,7 +102,7 @@ class TestRangTime:
 @pytest.mark.parametrize('gate', [38, 48])
 @pytest.mark.parametrize('scale', ['linear', 'log'])
 @pytest.mark.parametrize('cp_name', [True, False])
-@pytest.mark.parametrize('color', 'green')
+@pytest.mark.parametrize('color', ['green'])
 @pytest.mark.parametrize('linestyle', ['--'])
 @pytest.mark.parametrize('linewidth', [0.5, 2])
 @pytest.mark.parametrize('start_time', [dt.datetime(2018, 4, 4, 6, 2)])
@@ -154,7 +154,7 @@ class TestTimeSeries:
 @pytest.mark.parametrize('cmaps', [{'elv': plt.get_cmap('rainbow'),
                                     'p_l': plt.get_cmap('rainbow'),
                                     'vel': plt.get_cmap('rainbow')}])
-@pytest.mark.parametrize('lines', [{'nave': '--', 'tfreq': '.'}])
+@pytest.mark.parametrize('lines', [{'nave': '--', 'tfreq': '-'}])
 @pytest.mark.parametrize('plot_elv', [False])
 @pytest.mark.parametrize('title', ['test test'])
 @pytest.mark.parametrize('background', ['grey'])
@@ -186,4 +186,3 @@ class TestSummaryPlots:
                                     title=title, background=background,
                                     groundscatter=groundscatter, coords=coords)
         plt.close('all')
-
