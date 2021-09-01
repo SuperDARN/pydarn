@@ -43,8 +43,6 @@ from .utils.scan import build_scan
 from .utils.radar_pos import radar_fov
 from .utils.radar_pos import geographic_cell_positions
 
-
-
 # import plotting
 from .plotting.color_maps import PyDARNColormaps
 from .plotting.axis import Projections
