@@ -266,7 +266,8 @@ class Fan():
                  fov_color: str = None, alpha: int = 0.5,
                  radar_location: bool = True, radar_label: bool = False,
                  line_color: str = 'black',
-                 fov_files: bool = False, **kwargs):
+                 fov_files: bool = False, 
+                 grid: bool = False, **kwargs):
         """
         plots only the field of view (FOV) for a given radar station ID (stid)
 
@@ -289,6 +290,9 @@ class Fan():
             boundary: bool
                 Set to false to not plot the outline of the FOV
                 Default: True
+            grid: bool
+                Set to false to not plot the grid of gates in the FOV
+                Default: False
             fov_color: str
                 fov color to fill in the boundary
                 default: None
@@ -309,7 +313,7 @@ class Fan():
             radar_label: bool
                 Add a label with the radar abbreviation if True
                 Default: False
-            kawrgs: key = value
+            kwargs: key = value
                 Additional keyword arguments to be used in projection plotting
                 For possible keywords, see: projections.axis_polar
 
@@ -353,7 +357,6 @@ class Fan():
 
         if boundary:
             # left boundary line
-
             plt.plot(thetas[0:ranges[1], 0], rs[0:ranges[1], 0],
                      color=line_color, linewidth=0.5)
             # top radar arc
@@ -368,6 +371,18 @@ class Fan():
             plt.plot(thetas[0, 0:thetas.shape[1] - 1],
                      rs[0, 0:thetas.shape[1] - 1], color=line_color,
                      linewidth=0.5)
+
+        if grid:
+            # This plots lines along the beams
+            for bm in range(fan_shape[1]):
+                plt.plot(thetas[0:ranges[1], bm - 1],
+                        rs[0:ranges[1], bm - 1],
+                        color=line_color, linewidth=0.2)
+            # This plots arcs along the gates
+            for g in range(ranges[1]):
+                plt.plot(thetas[g-1, 0:thetas.shape[1]],
+                        rs[g - 1, 0:thetas.shape[1]],
+                        color=line_color, linewidth=0.2)
 
         if radar_location:
             cls.plot_radar_position(stid, date, line_color, **kwargs)
