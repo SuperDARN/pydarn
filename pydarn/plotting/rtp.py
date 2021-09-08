@@ -1,7 +1,7 @@
 # Copyright (C) 2019 SuperDARN Canada, University of Saskwatchewan
 # Author: Marina Schmidt
 # This code is improvement based on rti.py in the DaVitpy library
-# https://github.com/vtsuperdarn/davitpy/blob/master/davitpy
+# https://github.com/vtsuperdarn/davitpy/blob/master/davitpyh
 #
 # Modifications:
 # 2021-05-12 Francis Tholley added gate2grounscatter to range-time plots
@@ -355,19 +355,20 @@ class RTP():
                                      start_time=start_time,
                                      end_time=end_time,
                                      opt_beam_num=cls.dmap_data[0]['bmnum'])
-        if coords is Coords.SLANT_RANGE:
+        if coords is Coords.SLANT_RANGE or\
+           coords is Coords.GROUND_SCATTER_MAPPED_RANGE:
             # Get rxrise from hardware files (consistent with RST)
             rxrise = SuperDARNRadars.radars[cls.dmap_data[0]['stid']]\
                                     .hardware_info.rx_rise_time
-            y = gate2slant(cls.dmap_data[0]['frang'], cls.dmap_data[0]['rsep'], cls.dmap_data['rxrise'], y_max)
-        elif coords is Coords.GROUND_SCATTER_MAPPED_RANGE:
-            rxrise = SuperDARNRadars.radars[cls.dmap_data[0]['stid']]\
-                                    .hardware_info.rx_rise_time
-            y = gate2slant(cls.dmap_data[0]['frang'], cls.dmap_data[0]['rsep'], rxrise, y_max)
-            y = gate2GroundScatter(y, **kwargs)
-            y0inx = np.min(np.where(np.isfinite(y))[0])
-            y = y[y0inx:]
-            z = z[:, y0inx:]
+
+            y = gate2slant(cls.dmap_data[0]['frang'], cls.dmap_data[0]['rsep'],
+                           rxrise, nrang=y_max)
+            if coords is Coords.GROUND_SCATTER_MAPPED_RANGE:
+                y = gate2GroundScatter(y, **kwargs)
+                y0inx = np.min(np.where(np.isfinite(y))[0])
+                y = y[y0inx:]
+                z = z[:, y0inx:]
+
         time_axis, y_axis = np.meshgrid(x, y)
         z_data = np.ma.masked_where(np.isnan(z.T), z.T)
         Default = {'noise.sky': (1e0, 1e5),
@@ -443,7 +444,7 @@ class RTP():
             tick_interval = 30
         else:
             tick_interval = 1
-        # byminute keyword makes sure that the ticks are situated at 
+        # byminute keyword makes sure that the ticks are situated at
         # the minute or half hour marks, rather than at a set interval
         ax.xaxis.set_minor_locator(
             dates.MinuteLocator(byminute=range(0,60,tick_interval)))
@@ -451,7 +452,7 @@ class RTP():
         # Upon request of Daniel Billet and others, I am rounding
         # the time down so the plotting x-axis will show the origin
         # time label
-        # Updated to give option to round down and make sure 
+        # Updated to give option to round down and make sure
         # rounding to same frequency as plot axis ticks if less than 1 hour
         if round_start:
             major_locator, _ = plt.xticks()
@@ -470,7 +471,7 @@ class RTP():
                           microseconds=x[0].microsecond)
         else:
             rounded_down_start_time = x[0]
-        
+
         ax.set_xlim([rounded_down_start_time, x[-1]])
         ax.xaxis.set_major_formatter(dates.DateFormatter(date_fmt))
 
@@ -770,8 +771,8 @@ class RTP():
                           seconds=x[0].second,
                           microseconds=x[0].microsecond)
         else:
-            rounded_down_start_time = x[0] 
-        
+            rounded_down_start_time = x[0]
+
         ax.set_xlim([rounded_down_start_time, x[-1]])
 
         ax.xaxis.set_major_formatter(dates.DateFormatter(date_fmt))
@@ -786,7 +787,7 @@ class RTP():
             tick_interval = 30
         else:
             tick_interval = 1
-        # byminute keyword makes sure that the ticks are situated at 
+        # byminute keyword makes sure that the ticks are situated at
         # the minute or half hour marks, rather than at a set interval
         ax.xaxis.set_minor_locator(
             dates.MinuteLocator(byminute=range(0,60,tick_interval)))
@@ -1129,8 +1130,7 @@ class RTP():
                                             zmax=boundary_ranges[axes_parameters[i]][1],
                                             ymax=ymax, yspacing=500,
                                             background=background,
-                                            coords=coords,
-                                            **kwargs)
+                                            coords=coords, **kwargs)
                 # Overwriting velocity ticks to get a better pleasing
                 # look on the colorbar
                 # Preference by Marina Schmidt
