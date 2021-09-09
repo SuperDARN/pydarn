@@ -5,6 +5,7 @@
 # 2021-05-07: CJM - Included radar position and labels in plotting
 # 2021-04-01 Shane Coyle added pcolormesh to the code
 # 2021-05-19 Marina Schmidt - Added scan index with datetimes
+# 2021-09-09: CJM - Included a channel option for plot_fan
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
@@ -32,7 +33,8 @@ import aacgmv2
 
 from pydarn import (PyDARNColormaps, build_scan, radar_fov, citing_warning,
                     time2datetime, plot_exceptions, Coords,
-                    SuperDARNRadars, Hemisphere, Projections)
+                    SuperDARNRadars, Hemisphere, Projections, 
+                    partial_record_warning)
 
 
 class Fan():
@@ -60,7 +62,7 @@ class Fan():
                  groundscatter: bool = False, zmin: int = None,
                  zmax: int = None, colorbar: bool = True,
                  colorbar_label: str = '', title: bool = True,
-                 **kwargs):
+                 channel = 'all', **kwargs):
         """
         Plots a radar's Field Of View (FOV) fan plot for the given data and
         scan number
@@ -110,6 +112,10 @@ class Fan():
                 if true then will create a title, else user
                 can define it with plt.title
                 default: true
+            channel : int or str
+                integer indicating which channel to plot or 'all' to
+                plot all channels
+                Default: 'all'
             kwargs: key = value
                 Additional keyword arguments to be used in projection plotting
                 and plot_fov for possible keywords, see: projections.axis_polar
@@ -130,6 +136,13 @@ class Fan():
         --------
             plot_fov
         """
+        # Remove all data from dmap_data that is not in chosen channel
+        if channel != 'all':
+            dmap_data = [rec for rec in dmap_data if rec['channel'] == channel]
+            # If no records exist, advise user that the channel is not used
+            if not dmap_data:
+                raise plot_exceptions.NoChannelError(channel)
+        
         try:
             ranges = kwargs['ranges']
         except KeyError:
@@ -158,7 +171,7 @@ class Fan():
                                                          scan_time)
         # Locate scan in loaded data
         plot_beams = np.where(beam_scan == scan_index)
-
+        
         # Time for coordinate conversion
         if not scan_time:
         	date = time2datetime(dmap_data[plot_beams[0][0]])
@@ -217,6 +230,7 @@ class Fan():
                 grndsct[slist, beam] = temp_ground
             # if there is no slist field this means partial record
             except KeyError:
+                partial_record_warning()
                 continue
         # Begin plotting by iterating over ranges and beams
         thetas = thetas[ranges[0]:ranges[1]]
