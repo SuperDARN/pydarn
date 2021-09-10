@@ -138,10 +138,12 @@ class Fan():
         """
         # Remove all data from dmap_data that is not in chosen channel
         if channel != 'all':
+            # Get the first channel used in case of no data in given channel
+            opt_channel = dmap_data[0]['channel']
             dmap_data = [rec for rec in dmap_data if rec['channel'] == channel]
             # If no records exist, advise user that the channel is not used
             if not dmap_data:
-                raise plot_exceptions.NoChannelError(channel)
+                raise plot_exceptions.NoChannelError(channel,opt_channel)
         
         try:
             ranges = kwargs['ranges']
@@ -274,7 +276,6 @@ class Fan():
         return beam_corners_aacgm_lats, beam_corners_aacgm_lons, scan, grndsct
 
     @classmethod
-
     def plot_fov(cls, stid: str, date: dt.datetime,
                  ax=None, ranges: List = [], boundary: bool = True,
                  fov_color: str = None, alpha: int = 0.5,
