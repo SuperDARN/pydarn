@@ -268,7 +268,8 @@ class Fan():
                  radar_location: bool = True, radar_label: bool = False,
                  line_color: str = 'black',
                  fov_files: bool = False, 
-                 grid: bool = False, **kwargs):
+                 grid: bool = False, 
+                 line_alpha: int = 0.5 , **kwargs):
         """
         plots only the field of view (FOV) for a given radar station ID (stid)
 
@@ -303,6 +304,10 @@ class Fan():
             alpha: int
                 alpha controls the transparency of
                 the fov color
+                Default: 0.5
+            line_alpha: int
+                line_alpha controls the transparency of
+                the boundary and grid lines of the fov
                 Default: 0.5
             fov_files: bool
                 boolean determine if the fov should be read by the files
@@ -359,31 +364,36 @@ class Fan():
         if boundary:
             # left boundary line
             plt.plot(thetas[0:ranges[1], 0], rs[0:ranges[1], 0],
-                     color=line_color, linewidth=0.5)
+                     color=line_color, linewidth=0.5,
+                     alpha=line_alpha)
             # top radar arc
             plt.plot(thetas[ranges[1] - 1, 0:thetas.shape[1]],
                      rs[ranges[1] - 1, 0:thetas.shape[1]],
-                     color=line_color, linewidth=0.5)
+                     color=line_color, linewidth=0.5,
+                     alpha=line_alpha)
             # right boundary line
             plt.plot(thetas[0:ranges[1], thetas.shape[1] - 1],
                      rs[0:ranges[1], thetas.shape[1] - 1],
-                     color=line_color, linewidth=0.5)
+                     color=line_color, linewidth=0.5,
+                     alpha=line_alpha)
             # bottom arc
             plt.plot(thetas[0, 0:thetas.shape[1] - 1],
                      rs[0, 0:thetas.shape[1] - 1], color=line_color,
-                     linewidth=0.5)
+                     linewidth=0.5, alpha=line_alpha)
 
         if grid:
             # This plots lines along the beams
             for bm in range(fan_shape[1]):
                 plt.plot(thetas[0:ranges[1], bm - 1],
                         rs[0:ranges[1], bm - 1],
-                        color=line_color, linewidth=0.2)
+                        color=line_color, linewidth=0.2,
+                        alpha=line_alpha)
             # This plots arcs along the gates
             for g in range(ranges[1]):
                 plt.plot(thetas[g-1, 0:thetas.shape[1]],
                         rs[g - 1, 0:thetas.shape[1]],
-                        color=line_color, linewidth=0.2)
+                        color=line_color, linewidth=0.2,
+                        alpha=line_alpha)
 
         if radar_location:
             cls.plot_radar_position(stid, date, line_color, **kwargs)
