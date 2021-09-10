@@ -14,5 +14,37 @@ the additional permissions listed below.
 
 ## Unit Testing
 
-Unit testing in pyDARN is a way to check that pydarn is running correctly with any new changes to the code. These tests are meant to be simple and short to only test parameter input and outputs. 
-Exceptions can also be tested to make sure it fails correctly. 
+Unit testing in pyDARN is a way to check that pydarn is running correctly with any new changes to the code. These tests are meant to be simple and short to only test input (parameter) changes to ensure the code does not fail. 
+Exceptions can also be tested to make sure it fails correctly. Please note testing in pyDARN is for validity (code runs as it should) but not validation (outputting accurate plots). Validation testing is done by users who understanding the scientific accuracy the plots represent. 
+
+pyDARN uses [`pytest`](https://docs.pytest.org/en/6.2.x/) for unit testing. 
+
+## Using `pytest`
+
+Running `pytest` in pyDARN is for developers and testers that work with GitHub. To run `pytest` in pyDARN:
+
+!!! Warning
+    Make sure you install pytest in your virtual environment or on your computer
+
+1. [clone the pydarn repository](https://github.com/superdarn/pydarn)
+2. change directory to pyDARN `cd pydarn`
+3. install pydarn `pip install . --user` 
+    - you can install a [virtual environment](../users/install.md) first to protect your current pyDARN install 
+4. now run pytest `pytest` it should report no fails 
+5. If it reports a fail please look into it if you are the developer of the change, or report it on the pull request if you are testing
+
+## Writing pytest tests 
+
+### Adding to Pre-existing Tests 
+
+Changing, Adding, Removing Parameters Testing 
+
+### Adding a New Test Module
+
+If you are creating a new class or module (new python file) then you will need to add a new test module (file) to the `pydarn/test` directory. 
+Name the file test_<module/class name>.py such that `pytest` can find it and run it. 
+
+You can use `test/test_rtp.py` as a template on how to write test code and read [`pytest`](https://docs.pytest.org/en/6.2.x/) on other plugins to for testing if its needed. 
+
+Make sure to add what is needed to test and not too many parameterization options as it will make the tests go slow. Keep it to bare minimum needed to the test the parameter input. 
+Remember this is not to test the accuracy as pytest cannot look at the plot but rather to test edge cases of parameters that make it fail. 
