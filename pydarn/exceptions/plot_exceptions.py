@@ -186,9 +186,12 @@ class NoChannelError(Exception):
     This error is raised when the channel specified by user
     does not exist
     """
-    def __init__(self, channel: int):
+    def __init__(self, channel: int, opt_channel: int = None):
         self.channel = channel
-        self.message = "There is no data for channel {channel}"\
-                       .format(channel=self.channel)
+        self.opt_channel = opt_channel
+        self.message = "There is no data for channel {channel},"\
+                       " try channel {opt_channel}."\
+                       .format(channel=self.channel,
+                       opt_channel=self.opt_channel)
         super().__init__(self.message)
         pydarn_log.error(self.message)

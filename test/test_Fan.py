@@ -71,10 +71,11 @@ class TestFov:
 @pytest.mark.parametrize('zmin', [0])
 @pytest.mark.parametrize('zmax', [100])
 @pytest.mark.parametrize('title', [False])
+@pytest.mark.parametrize('channel', [1,2])
 class TestFan:
 
     def test_fan_plot(self, parameter, cmap, groundscatter, colorbar,
-                      colorbar_label, zmin, zmax, title):
+                      colorbar_label, zmin, zmax, title, channel):
         """
 
         """
@@ -82,4 +83,4 @@ class TestFan:
             pydarn.Fan.plot_fan(data, parameter=parameter, cmap=cmap,
                                 groundscatter=groundscatter, colorbar=colorbar,
                                 colorbar_label=colorbar_label, zmin=zmin, zmax=zmax,
-                                title=title)
+                                title=title, channel=channel)
