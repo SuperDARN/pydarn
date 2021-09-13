@@ -66,4 +66,4 @@ In git, "branches" are used to make changes to the code without affecting the ma
         git push origin <branch name>
 
 * Repeat the above commands above as you work on the code changes 
-* Once you have completed, documented, and tested your code then you can create a pull request, see [pull request](PR.md)
+* Once you have completed, documented, tested and update the [unit tests](pytest.md) then you can create a pull request, see [pull request](PR.md)
