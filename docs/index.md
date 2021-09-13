@@ -35,6 +35,7 @@ If you have any questions or concerns please submit an **Issue** on the SuperDAR
         - [Projects](dev/projects.md)
         - [Issues](dev/issues.md)
         - [Branches](dev/branching.md)
+        - [Unit Testing](dev/pytest.md)
         - [Pull Requests](dev/PR.md) 
         - [Testing](dev/testing.md)
         - [Code Reviews](dev/code_review.md)
