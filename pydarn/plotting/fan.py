@@ -5,6 +5,7 @@
 # 2021-05-07: CJM - Included radar position and labels in plotting
 # 2021-04-01 Shane Coyle added pcolormesh to the code
 # 2021-05-19 Marina Schmidt - Added scan index with datetimes
+# 2021-09-15 Marina Schmidt - removed fov file options
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
@@ -265,8 +266,7 @@ class Fan():
                  ax=None, ranges: List = [], boundary: bool = True,
                  fov_color: str = None, alpha: int = 0.5,
                  radar_location: bool = True, radar_label: bool = False,
-                 line_color: str = 'black',
-                 fov_files: bool = False, **kwargs):
+                 line_color: str = 'black', **kwargs):
         """
         plots only the field of view (FOV) for a given radar station ID (stid)
 
@@ -299,10 +299,6 @@ class Fan():
                 alpha controls the transparency of
                 the fov color
                 Default: 0.5
-            fov_files: bool
-                boolean determine if the fov should be read by the files
-                provided in pyDARN. Else it will use radar position code.
-                Default: False
             radar_location: bool
                 Add a dot where radar is located if True
                 Default: False

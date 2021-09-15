@@ -18,6 +18,7 @@
 # Modifications:
 #   2020-04-20 Marina Schmidt converted the above link to python and changed
 #              variable and function names to readability
+#   2020-09-15 Marina Schmidt removed fov file reading option
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
@@ -47,9 +48,8 @@ from pydarn.utils.constants import EARTH_EQUATORIAL_RADIUS, Re, C
 
 
 def radar_fov(stid: int, rsep: int = 45, frang: int = 180,
-              ranges: tuple = None, fov_files: bool = False,
-              coords: object = Coords.AACGM, max_beams: int = None,
-              date: dt.datetime = None, **kwargs):
+              ranges: tuple = None, coords: object = Coords.AACGM,
+              max_beams: int = None, date: dt.datetime = None, **kwargs):
     """
     Returning beam/gate coordinates of a specified radar's field-of-view
 
@@ -75,68 +75,31 @@ def radar_fov(stid: int, rsep: int = 45, frang: int = 180,
         for range gate corners
     """
     # Locate base PyDARN directory
-    if fov_files:
-        my_path = os.path.abspath(os.path.dirname(__file__))
-        base_path = os.path.join(my_path, '..')
+    if ranges is None:
+        ranges = [0, SuperDARNRadars.radars[stid].range_gate_45]
+    if max_beams is None:
+        max_beams = SuperDARNRadars.radars[stid].hardware_info.beams
+    # Plus 1 is due to the fact fov files index at 1 so in the plotting
+    # of the boundary there is a subtraction of 1 to offset this as python
+    # converts to index of 0 which my code already accounts for
+    beam_corners_lats = np.zeros((ranges[1], max_beams+1))
+    beam_corners_lons = np.zeros((ranges[1], max_beams+1))
 
-        # Find files holding radar beam/gate locations
-        beam_lats = base_path+'/radar_fov_files/' + \
-            str(stid).zfill(3)+'_lats.txt'
-        beam_lons = base_path+'/radar_fov_files/' + \
-            str(stid).zfill(3)+'_lons.txt'
+    for beam in range(0, max_beams+1):
+        for gate in range(ranges[0], ranges[1]):
+            lat, lon = geographic_cell_positions(stid, beam, gate, rsep,
+                                                 frang, height=300)
 
-        # Read in geographic coordinates
-        beam_corners_lats = np.loadtxt(beam_lats)
-        beam_corners_lons = np.loadtxt(beam_lons)
-        # AACGMv2 conversion
-        if coords == Coords.AACGM:
-            if date is None:
-                date = datetime.datetime.now()
-            # Initialise arrays
-            fan_shape = beam_corners_lons.shape
-            beam_corners_aacgm_lons = \
-                np.zeros((fan_shape[0], fan_shape[1]))
-            beam_corners_aacgm_lats = \
-                np.zeros((fan_shape[0], fan_shape[1]))
+            if coords == Coords.AACGM:
+                if date is None:
+                    date = datetime.datetime.now()
 
-            for x in range(fan_shape[0]):
-                for y in range(fan_shape[1]):
-                    # Conversion
-                    geomag = np.array(aacgmv2.
-                                      get_aacgm_coord(beam_corners_lats[x, y],
-                                                      beam_corners_lons[x, y],
-                                                      250, date))
-                    beam_corners_aacgm_lats[x, y] = geomag[0]
-                    beam_corners_aacgm_lons[x, y] = geomag[1]
-
-            # Return AACGMv2 latitudes and longitudes
-            return beam_corners_aacgm_lats, beam_corners_aacgm_lons
-    else:
-        if ranges is None:
-            ranges = [0, SuperDARNRadars.radars[stid].range_gate_45]
-        if max_beams is None:
-            max_beams = SuperDARNRadars.radars[stid].hardware_info.beams
-        # Plus 1 is due to the fact fov files index at 1 so in the plotting
-        # of the boundary there is a subtraction of 1 to offset this as python
-        # converts to index of 0 which my code already accounts for
-        beam_corners_lats = np.zeros((ranges[1], max_beams+1))
-        beam_corners_lons = np.zeros((ranges[1], max_beams+1))
-
-        for beam in range(0, max_beams+1):
-            for gate in range(ranges[0], ranges[1]):
-                lat, lon = geographic_cell_positions(stid, beam, gate, rsep,
-                                                     frang, height=300)
-
-                if coords == Coords.AACGM:
-                    if date is None:
-                        date = datetime.datetime.now()
-
-                    geomag = np.array(aacgmv2. get_aacgm_coord(lat, lon,
-                                                               250, date))
-                    lat = geomag[0]
-                    lon = geomag[1]
-                beam_corners_lats[gate, beam] = lat
-                beam_corners_lons[gate, beam] = lon
+                geomag = np.array(aacgmv2. get_aacgm_coord(lat, lon,
+                                                           250, date))
+                lat = geomag[0]
+                lon = geomag[1]
+            beam_corners_lats[gate, beam] = lat
+            beam_corners_lons[gate, beam] = lon
 
     # Return geographic coordinates
     return beam_corners_lats, beam_corners_lons
