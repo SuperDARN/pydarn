@@ -15,7 +15,7 @@ the additional permissions listed below.
 ## Unit Testing
 
 Unit testing in pyDARN is a way to check that pydarn is running correctly with any new changes to the code. These tests are meant to be simple and short to only test input (parameter) changes to ensure the code does not fail. 
-Exceptions can also be tested to make sure it fails correctly. Please note testing in pyDARN is for validity (code runs as it should) but not validation (outputting accurate plots). Validation testing is done by users who understanding the scientific accuracy the plots represent. 
+Exceptions can also be tested to make sure it fails correctly. Please note testing in pyDARN is for validity (code runs as it should) but not validation (outputting accurate plots). Validation testing is done by users who understand the scientific accuracy the plots represent. 
 
 pyDARN uses [`pytest`](https://docs.pytest.org/en/6.2.x/) for unit testing. 
 
@@ -26,11 +26,11 @@ Running `pytest` in pyDARN is for developers and testers that work with GitHub. 
 !!! Warning
     Make sure you install pytest in your virtual environment or on your computer
 
-1. [clone the pydarn repository](https://github.com/superdarn/pydarn)
-2. change directory to pyDARN `cd pydarn`
-3. install pydarn `pip install . --user` 
+1. [Clone the pydarn repository](https://github.com/superdarn/pydarn)
+2. Change directory to pyDARN `cd pydarn`
+3. Install pydarn `pip install . --user` 
     - you can install a [virtual environment](../users/install.md) first to protect your current pyDARN install 
-4. now run pytest `pytest` it should report no fails 
+4. Now run pytest `pytest` it should report no fails 
 5. If it reports a fail please look into it if you are the developer of the change, or report it on the pull request if you are testing
 
 ## Writing pytest tests 
@@ -56,6 +56,6 @@ Remember this is not to test the accuracy as pytest cannot look at the plot but 
 !!! Note
     There are files provided for testing in the `test/data/` directory. If you need to add please keep the file size as small as possible and check in with other before adding. If its too big, it may not be able to be added to GitHub and cause pydarn to be slow to download. 
 
-To avoid writing several tests with the same body of code, consider using the `paranetrize` to provide various types of inputs for one function. 
+To avoid writing several tests with the same body of code, consider using the `parameterize` to provide various types of inputs for one function. 
 
 If you want to reuse `parameterize` parameters for other tests place them in a class, all methods of that class have to take the `parameterize` parameters. One can add more parameters to a method by placing the `parameterize` decorator and parameter name above it and then include in the methods input. 
