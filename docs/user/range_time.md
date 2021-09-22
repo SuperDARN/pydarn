@@ -92,6 +92,7 @@ To see all the customisation options, check out all the parameters listed in 'rt
 |------------------------------|-------------------------------------------------------------|
 | start_time=(datetime object) | Control the start time of the plot                          |
 | end_time=(datetime object)   | Control the end time of the plot                            |
+| channel=(int or string)      | Choose which channel to plot. Default is 'all'.             |
 | groundscatter=(bool)         | True or false to showing ground scatter as grey             |
 | date_fmt=(string)            | How the x-tick labels look. Default is ('%y/%m/%d\n %H:%M') |
 | zmin=(int)                   | Minimum data value to be plotted                            |
