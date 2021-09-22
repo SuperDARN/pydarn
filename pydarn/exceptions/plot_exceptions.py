@@ -1,5 +1,9 @@
 # Copyright (C) SuperDARN Canada, University of Saskatchewan
 # Authors: Marina Schmidt
+#
+# Modifications:
+# 20210909: CJM - Added NoChannelError
+#
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
 # Everyone is permitted to copy and distribute verbatim copies of this license
@@ -173,5 +177,21 @@ class OutOfRangeGateError(Exception):
             " between 0 - {max_gate}".format(gate_num=self.gate_num,
                                              param=self.parameter,
                                              max_gate=self.max_range_gate-1)
+        super().__init__(self.message)
+        pydarn_log.error(self.message)
+
+
+class NoChannelError(Exception):
+    """
+    This error is raised when the channel specified by user
+    does not exist
+    """
+    def __init__(self, channel: int, opt_channel: int = None):
+        self.channel = channel
+        self.opt_channel = opt_channel
+        self.message = "There is no data for channel {channel},"\
+                       " try channel {opt_channel}."\
+                       .format(channel=self.channel,
+                       opt_channel=self.opt_channel)
         super().__init__(self.message)
         pydarn_log.error(self.message)

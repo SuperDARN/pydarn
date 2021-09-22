@@ -5,7 +5,9 @@
 # 2021-05-07: CJM - Included radar position and labels in plotting
 # 2021-04-01 Shane Coyle added pcolormesh to the code
 # 2021-05-19 Marina Schmidt - Added scan index with datetimes
+# 2021-09-09: CJM - Included a channel option for plot_fan
 # 2021-09-08: CJM - Included individual gate and beam boundary plotting for FOV
+
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
@@ -33,7 +35,8 @@ import aacgmv2
 
 from pydarn import (PyDARNColormaps, build_scan, radar_fov, citing_warning,
                     time2datetime, plot_exceptions, Coords,
-                    SuperDARNRadars, Hemisphere, Projections)
+                    SuperDARNRadars, Hemisphere, Projections, 
+                    partial_record_warning)
 
 
 class Fan():
@@ -61,7 +64,7 @@ class Fan():
                  groundscatter: bool = False, zmin: int = None,
                  zmax: int = None, colorbar: bool = True,
                  colorbar_label: str = '', title: bool = True,
-                 **kwargs):
+                 channel = 'all', **kwargs):
         """
         Plots a radar's Field Of View (FOV) fan plot for the given data and
         scan number
@@ -76,8 +79,9 @@ class Fan():
                 Default: Generates a polar projection for the user
                 with MLT/latitude labels
             scan_index: int or datetime
-                Scan number from beginning of first record in file
-                or datetime given first record to match the index
+                Scan number starting from the first record in file with 
+                associated channel number or datetime given first record 
+                to match the index
                 Default: 1
             parameter: str
                 Key name indicating which parameter to plot.
@@ -111,6 +115,10 @@ class Fan():
                 if true then will create a title, else user
                 can define it with plt.title
                 default: true
+            channel : int or str
+                integer indicating which channel to plot or 'all' to
+                plot all channels
+                Default: 'all'
             kwargs: key = value
                 Additional keyword arguments to be used in projection plotting
                 and plot_fov for possible keywords, see: projections.axis_polar
@@ -131,6 +139,15 @@ class Fan():
         --------
             plot_fov
         """
+        # Remove all data from dmap_data that is not in chosen channel
+        if channel != 'all':
+            # Get the first channel used in case of no data in given channel
+            opt_channel = dmap_data[0]['channel']
+            dmap_data = [rec for rec in dmap_data if rec['channel'] == channel]
+            # If no records exist, advise user that the channel is not used
+            if not dmap_data:
+                raise plot_exceptions.NoChannelError(channel,opt_channel)
+        
         try:
             ranges = kwargs['ranges']
         except KeyError:
@@ -159,7 +176,7 @@ class Fan():
                                                          scan_time)
         # Locate scan in loaded data
         plot_beams = np.where(beam_scan == scan_index)
-
+        
         # Time for coordinate conversion
         if not scan_time:
         	date = time2datetime(dmap_data[plot_beams[0][0]])
@@ -218,6 +235,7 @@ class Fan():
                 grndsct[slist, beam] = temp_ground
             # if there is no slist field this means partial record
             except KeyError:
+                partial_record_warning()
                 continue
         # Begin plotting by iterating over ranges and beams
         thetas = thetas[ranges[0]:ranges[1]]
@@ -261,7 +279,6 @@ class Fan():
         return beam_corners_aacgm_lats, beam_corners_aacgm_lons, scan, grndsct
 
     @classmethod
-
     def plot_fov(cls, stid: str, date: dt.datetime,
                  ax=None, ranges: List = [], boundary: bool = True,
                  fov_color: str = None, alpha: int = 0.5,
