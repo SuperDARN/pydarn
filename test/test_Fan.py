@@ -46,20 +46,23 @@ class TestFan_defaults:
 @pytest.mark.parametrize('radar_location', [False])
 @pytest.mark.parametrize('radar_label', [True])
 @pytest.mark.parametrize('line_color', ['red'])
+@pytest.mark.parametrize('line_alpha', [0.8, 1])
 @pytest.mark.parametrize('date', [dt.datetime(2020, 4, 4, 6, 2)])
+@pytest.mark.parametrize('grid', [True, False])
 class TestFov:
 
-    def test_parameters_range_time(self, stid, ranges, boundary, fov_color,
+    def test_fov_plot(self, stid, ranges, boundary, fov_color,
                                    alpha, radar_location, radar_label,
-                                   line_color, date):
+                                   line_color, date, grid, line_alpha):
         """ this test will give bare minimum input needed for """
         with warnings.catch_warnings(record=True):
             pydarn.Fan.plot_fov(stid=stid, ranges=ranges,
                                 boundary=boundary, fov_color=fov_color,
                                 alpha=alpha,
                                 radar_location=radar_location,
-                                radar_label=radar_label,
-                                line_color=line_color, date=date)
+                                radar_label=radar_label, grid=grid,
+                                line_color=line_color, date=date,
+                                line_alpha=line_alpha)
         plt.close('all')
 
 
