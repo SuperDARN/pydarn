@@ -1,7 +1,21 @@
+#  (C) Copyright 2021 SuperDARN Canada, University of Saskatachewan
+#  Author(s): Marina Schmidt
+#
+# This file is part of the pyDARN Library.
+#
+# pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
+# Everyone is permitted to copy and distribute verbatim copies of this license
+# document, but changing it is not allowed.
+#
+# This version of the GNU Lesser General Public License incorporates the terms
+# and conditions of version 3 of the GNU Lesser General Public License,
+# supplemented by the additional permissions listed below.
+#
+# Modifications:
+#  2021-09-15 Francis Tholley moved the chisham and standard virtual heigh models to separate file for better encapsulation/modularity
 """ virtual_heights.py comprises of different types of virtual heights"""
 
 def chisham(slant_range: float):
-    # Gareth Chisham Virtual height model:
     """
     Mapping ionospheric backscatter measured by the SuperDARN HF
     radars – Part 1: A new empirical virtual height model by

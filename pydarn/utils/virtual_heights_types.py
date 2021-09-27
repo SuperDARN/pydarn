@@ -1,5 +1,5 @@
-# (C) Copyright 2021 SuperDARN Canada, University of Saskatchewan
-# Author(s): Marina Schmidt
+# (C) Copyright 2021 University of Scranton
+# Author(s): Francis Tholley
 #
 # This file is part of the pyDARN Library.
 #
