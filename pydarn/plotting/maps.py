@@ -17,19 +17,21 @@
 Grid plots, mapped to AACGM coordinates in a polar format
 """
 
-import datetime as dt
-import matplotlib.pyplot as plt
+# import datetime as dt
+# import matplotlib.pyplot as plt
 import numpy as np
+import scipy
 import warnings
 
-from matplotlib import ticker, cm, colors
-from typing import List
+# from matplotlib import ticker, cm, colors
+# from typing import List
 
 # Third party libraries
-import aacgmv2
+# import aacgmv2
+
 
 from pydarn import (PyDARNColormaps, Grid, plot_exceptions, citing_warning,
-                    standard_warning_format)
+                    standard_warning_format, Re)
 
 warnings.formatwarning = standard_warning_format
 
@@ -50,52 +52,196 @@ class Maps():
 
     @classmethod
     def plot_map(cls, dmap_data, parameter="vector.vel.median",
-                 alpha=1.0, **kwargs):
+                 alpha=1.0, len_factor=500, **kwargs):
         """
         """
 
         # If the parameter is velocity then plot the LOS vectors
-        if parameter == "vector.vel.median":
+        if parameter == "fitted":
             record = 0
-            data = dmap_data[0]['vector.vel.median']
-            # Get the azimuths from the data
+            # Get the velocity data and magnetic coordinates
             azm_v = dmap_data[record]['vector.kvect']
+            mlat = np.deg2rad(dmap_data[record]['vector.mlat'])
+            mlon = np.deg2rad(dmap_data[record]['vector.mlon'])
+            # velocities = dmap_data[record]['vector.vel.median']
+            hemisphere = dmap_data[record]['hemisphere']
+            fit_coefficient = dmap_data[record]['N+2']
+            fit_order = dmap_data[record]['fit.order']
+            # lat_shift = np.deg2rad(dmap_data[record]['lat.shft'])
+            # lon_shift = np.deg2rad(dmap_data[record]['lon.shft'])
+            lat_min = np.deg2rad(dmap_data[record]['latmin'])
 
-            # Number of data points
-            num_pts = range(len(data))
+            theta = np.pi/2 - abs(mlat)
+            theta_max = np.pi/2 - lat_min
 
             # Angle to "rotate" each vector by to get into same
             # reference frame Controlled by longitude, or "mltitude"
-            alpha = thetas
+            alpha = np.pi / theta_max
+            theta_prime = alpha * theta
+            x = np.cos(theta_prime)
 
-            # Convert initial positions to Cartesian
-            start_pos_x = (90 - rs) * np.cos(thetas)
-            start_pos_y = (90 - rs) * np.sin(thetas)
+            for j, xj in enumerate(x):
+                temp_poly = scipy.special.lpmn(fit_order, fit_order, xj)
+                if j == 0:
+                    legendre_poly = np.append([temp_poly[0]], [temp_poly[0]],
+                                              axis=0)
+                else:
+                    legendre_poly = np.append(legendre_poly, [temp_poly[0]],
+                                              axis=0)
+            legendre_poly = np.delete(legendre_poly, 0, 0)
+            phi = mlon
 
-            # Resolve LOS vector in x and y directions,
-            # with respect to mag pole
-            # Gives zonal and meridional components of LOS vector
-            los_x = -data * np.cos(np.radians(-azm_v))
-            los_y = -data * np.sin(np.radians(-azm_v))
+            # now do the index legender part,
+            # We are doing Associated Legendre Polynomials but
+            # for each polynomial we have two coefficients one
+            # for cos(phi) and the other for sin(phi),
+            # so we do spherical harmonics for a real valued function using
+            # sin(phi) and cos(phi) rather than exp(i*phi).
+            # we place an inner function to copying code
+            def index_legendre(m, l):
+                if m == 0:
+                    return l**2
+                elif fit_order != 0 and fit_order != 0:
+                    return l**2 + 2 * m - 1
+                else:
+                    return 0
 
-            # Rotate each vector into same reference frame
-            # following vector rotation matrix
-            # https://en.wikipedia.org/wiki/Rotation_matrix
-            vec_x = (los_x * np.cos(alpha)) - (los_y * np.sin(alpha))
-            vec_y = (los_x * np.sin(alpha)) + (los_y * np.cos(alpha))
+            k_max = index_legendre(fit_order, fit_order)
 
-            # New vector end points, in Cartesian
-            end_pos_x = start_pos_x + (vec_x / len_factor)
-            end_pos_y = start_pos_y + (vec_y / len_factor)
+            # set up arrays and small stuff for the eFld coeffs calculation
+            theta_ecoeffs = np.zeros((k_max + 2, len(theta)))
+            phi_ecoeffs = np.zeros((k_max + 2, len(theta)))
 
-            # Convert back to polar for plotting
-            end_rs = 90 - (np.sqrt(end_pos_x**2 + end_pos_y**2))
-            end_thetas = np.arctan2(end_pos_y, end_pos_x)
+            q_prime = np.array(np.where(theta_prime != 0.0))
+            q_prime = q_prime[0]
+            q = np.array(np.where(theta != 0.0))
+            q = q[0]
 
+            # finally get to converting coefficients for the potential into
+            # coefficients for elec. Field
+            fit_coefficient_flat = fit_coefficient.flatten()
+            for m in range(fit_order + 1):
+                for l in range(m, fit_order + 1):
+                    k3 = index_legendre(l, m)
+                    k4 = index_legendre(l, m)
+
+                    if k3 >= 0:
+                        theta_ecoeffs[k4, q_prime] =\
+                                theta_ecoeffs[k4, q_prime] -\
+                                fit_coefficient_flat[k3] * alpha * l *\
+                                np.cos(theta_prime[q_prime]) \
+                                / np.sin(theta_prime[q_prime]) / Re
+                        phi_ecoeffs[k4, q] = phi_ecoeffs[k4, q] - \
+                            fit_coefficient_flat[k3 + 1] * m /\
+                            np.sin(theta[q]) / Re
+                        phi_ecoeffs[k4 + 1, q] = phi_ecoeffs[k4 + 1, q] + \
+                            fit_coefficient_flat[k3] * m /\
+                            np.sin(theta[q]) / Re
+
+                    if l < fit_order:
+                        k1 = index_legendre(l+1, m)
+                    else:
+                        k1 = -1
+
+                    k2 = index_legendre(l, m)
+
+                    if k1 >= 0:
+                        theta_ecoeffs[k2, q_prime] =\
+                            theta_ecoeffs[k2, q_prime] + \
+                            fit_coefficient_flat[k1] * alpha * (l + 1 + m) / \
+                            np.sin(theta_prime[q_prime]) / Re
+
+                    if m > 0:
+                        if k3 >= 0:
+                            k3 = k3 + 1
+                        k4 = k4 + 1
+
+                        if k1 >= 0:
+                            k1 = k1 + 1
+                        k2 = k2 + 1
+
+                        if k3 >= 0:
+                            theta_ecoeffs[k4, q_prime] =\
+                                    theta_ecoeffs[k4, q_prime] \
+                                    - fit_coefficient_flat[k3] * alpha * l * \
+                                    np.cos(theta_prime[q_prime]) / \
+                                    np.sin(theta_prime[q_prime]) / Re
+
+                        if k1 >= 0:
+                            theta_ecoeffs[k2, q_prime] = \
+                                theta_ecoeffs[k2, q_prime] \
+                                + fit_coefficient_flat[k1] * alpha *\
+                                (l + 1 + m) / np.sin(theta_prime[q_prime]) / Re
+
+            # Calculate the Elec. fld positions where
+            theta_ecomp = np.zeros(theta.shape)
+            phi_ecomp = np.zeros(theta.shape)
+
+            for m in range(fit_order + 1):
+                for l in range(m, fit_order + 1):
+                    k = index_legendre(l, m)
+                    # Now in the IDL code we use
+                    # legendre_poly[:,l,m] instead of
+                    # legendre_poly[:,m,l] like here, this is
+                    # because we have a different
+                    # organization of legendre_poly due to the
+                    # way scipy.special.lpmn
+                    # stores values in arrays...
+                    if m == 0:
+                        theta_ecomp = theta_ecomp + theta_ecoeffs[k, :] * \
+                                legendre_poly[:, m, l]
+                        phi_ecomp = phi_ecomp + phi_ecoeffs[k, :] * \
+                            legendre_poly[:, m, l]
+                    else:
+                        theta_ecomp = theta_ecomp + theta_ecoeffs[k, :] * \
+                            legendre_poly[:, m, l] * np.cos(m * phi) + \
+                            theta_ecoeffs[k+1, :] * legendre_poly[:, m, l] * \
+                            np.sin(m * phi)
+                        phi_ecomp = phi_ecomp + phi_ecoeffs[k, :] * \
+                            legendre_poly[:, m, l] * np.cos(m * phi) + \
+                            phi_ecoeffs[k+1, :] * legendre_poly[:, m, l] * \
+                            np.sin(m * phi)
+
+            # Store the two components of EFld into a single array
+            efield_fit = np.append([theta_ecomp], [phi_ecomp], axis=0)
+
+            # We'll calculate Bfld magnitude now, need to initialize some more
+            # stuff
+            alti = 300.0 * 1000.0
+            b_fld_polar = -0.62e-4
+            b_fld_mag = b_fld_polar * (1.0 - 3.0 * alti / Re) \
+                * np.sqrt(3.0 * np.square(np.cos(theta)) + 1.0) / 2
+
+            # get the velocity components from E-field
+            vel_fit_vecs = np.zeros(efield_fit.shape)
+            vel_fit_vecs[0, :] = efield_fit[1, :] / b_fld_mag
+            vel_fit_vecs[1, :] = -efield_fit[0, :] / b_fld_mag
+
+            vel_mag = np.sqrt(np.square(vel_fit_vecs[0, :]) +
+                              np.square(vel_fit_vecs[1, :]))
+            vel_chk_zero_inds = np.where(vel_mag != 0.0)
+            vel_chk_zero_inds = vel_chk_zero_inds[0]
+
+            azm_v = np.zeros(vel_mag.shape)
+
+            if len(vel_chk_zero_inds) == 0:
+                vel_mag = np.array([0.0])
+                azm_v = np.array([0.0])
+            else:
+                if hemisphere == -1:
+                    azm_v[vel_chk_zero_inds] =\
+                            np.rad2deg(np.arctan2(vel_fit_vecs[1, vel_chk_zero_inds],
+                                                  vel_fit_vecs[0, vel_chk_zero_inds]))
+                else:
+                    azm_v[vel_chk_zero_inds] =\
+                            np.rad2deg(np.arctan2(vel_fit_vecs[1, vel_chk_zero_inds],
+                                                  -vel_fit_vecs[0, vel_chk_zero_inds]))
             # Plot the vectors
             for i in num_pts:
                 plt.plot([thetas[i], end_thetas[i]],
                          [rs[i], end_rs[i]], c=cmap(norm(data[i])),
                          linewidth=0.5)
+
+
         else:
-            Grid.plot_grid(dmap_data, parameter, alpha, **kwargs)
+           Grid.plot_grid(dmap_data, parameter, alpha, **kwargs)
