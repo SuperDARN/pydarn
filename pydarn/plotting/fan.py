@@ -5,9 +5,9 @@
 # 2021-05-07: CJM - Included radar position and labels in plotting
 # 2021-04-01 Shane Coyle added pcolormesh to the code
 # 2021-05-19 Marina Schmidt - Added scan index with datetimes
+# 2021-09-15 Marina Schmidt - removed fov file options
 # 2021-09-09: CJM - Included a channel option for plot_fan
 # 2021-09-08: CJM - Included individual gate and beam boundary plotting for FOV
-
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
@@ -284,7 +284,6 @@ class Fan():
                  fov_color: str = None, alpha: int = 0.5,
                  radar_location: bool = True, radar_label: bool = False,
                  line_color: str = 'black',
-                 fov_files: bool = False, 
                  grid: bool = False, 
                  line_alpha: int = 0.5 , **kwargs):
         """
@@ -326,10 +325,6 @@ class Fan():
                 line_alpha controls the transparency of
                 the boundary and grid lines of the fov
                 Default: 0.5
-            fov_files: bool
-                boolean determine if the fov should be read by the files
-                provided in pyDARN. Else it will use radar position code.
-                Default: False
             radar_location: bool
                 Add a dot where radar is located if True
                 Default: False
