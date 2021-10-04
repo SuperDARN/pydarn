@@ -8,6 +8,9 @@
             "name": "Schmidt, M.T.",
             "orcid": "0000-0002-3265-977X"
         },
+        {   "affiliation": "University of Scranton",
+            "name":  "Tholley, F."
+        },
         {
             "affiliation": "University of Saskatchewan",
             "name": "Martin, C.J.",
@@ -55,8 +58,5 @@
         {
             "affiliation": "University of Saskatchewan",
             "name": "Roberston, C.R."
-        },
-        {   "affiliation": "University of Scranton",
-            "name":  "Tholley, F."
         }]
 }
