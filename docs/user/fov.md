@@ -31,9 +31,11 @@ Here is a list of all the current options than can be used with `plot_fov`
 | colorbar=(bool)             | Set true to plot a colorbar (default: True)                                                                      |
 | colorbar_label=(string) | Label for the colour bar (requires colorbar to be true)                                                 |
 | boundary=(bool)         | Set false to not show the outline of the radar FOV (default: True)                                      |
+| grid=(bool)             | Set true to show the outline of the range gates inside the FOV (default: False)                         |
 | fov_color=(string)      | Sets the fill in color for the fov plot (default: transparency)                                         |
 | line_color=(string)     | Sets the boundary line and radar location dot color (default: black)                                    |
 | alpha=(int)             | Sets the transparency of the fill color (default: 0.5)                                                  |
+| line_alpha=(int)        | Sets the transparency of the boundary and grid lines if shown (default: 0.5)                            |
 | radar_location=(bool)   | Places a dot in the plot representing the radar location (default: True)                                |
 | radar_label=(bool)      | Places the radar 3-letter abbreviation next to the radar location                                       |
 | kwargs **               | Axis Polar settings. See [polar axis](axis.md)                                                          |

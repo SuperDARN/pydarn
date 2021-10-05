@@ -56,7 +56,7 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 setup(
     cmdclass={'install': initialize_submodules, 'develop': update_submodules},
     name="pydarn",
-    version="2.1.1",
+    version="2.2",
     long_description=long_description,
     long_description_content_type='text/markdown',
     description="Data visualization library for SuperDARN data",

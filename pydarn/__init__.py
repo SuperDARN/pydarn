@@ -23,6 +23,7 @@ from .exceptions import radar_exceptions
 from .exceptions.warning_formatting import standard_warning_format
 from .exceptions.warning_formatting import only_message_warning_format
 from .exceptions.warning_formatting import citing_warning
+from .exceptions.warning_formatting import partial_record_warning
 
 # importing utils
 from .utils.coordinates import Coords
