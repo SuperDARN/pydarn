@@ -20,10 +20,10 @@ Grid plots, mapped to AACGM coordinates in a polar format
 # import datetime as dt
 # import matplotlib.pyplot as plt
 import numpy as np
-import scipy
+from scipy import special
 import warnings
-
-# from matplotlib import ticker, cm, colors
+import matplotlib.pyplot as plt
+from matplotlib import ticker, cm, colors
 # from typing import List
 
 # Third party libraries
@@ -81,7 +81,7 @@ class Maps():
             x = np.cos(theta_prime)
 
             for j, xj in enumerate(x):
-                temp_poly = scipy.special.lpmn(fit_order, fit_order, xj)
+                temp_poly = special.lpmn(fit_order, fit_order, xj)
                 if j == 0:
                     legendre_poly = np.append([temp_poly[0]], [temp_poly[0]],
                                               axis=0)
@@ -237,11 +237,7 @@ class Maps():
                             np.rad2deg(np.arctan2(vel_fit_vecs[1, vel_chk_zero_inds],
                                                   -vel_fit_vecs[0, vel_chk_zero_inds]))
             # Plot the vectors
-            for i in num_pts:
-                plt.plot([thetas[i], end_thetas[i]],
-                         [rs[i], end_rs[i]], c=cmap(norm(data[i])),
-                         linewidth=0.5)
+            for i in range(len(theta)):
+                plt.plot([theta[i], azm_v[i]],
+                         [vel_fit_vecs[i], vel_mag[i]])
 
-
-        else:
-           Grid.plot_grid(dmap_data, parameter, alpha, **kwargs)
