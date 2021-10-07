@@ -112,8 +112,8 @@ class Maps():
         if parameter == "fitted":
             # Get the velocity data and magnetic coordinates
             azm_v = dmap_data[record]['vector.kvect']
-            #mlat = np.deg2rad(dmap_data[record]['vector.mlat'])
-            #mlon = np.deg2rad(dmap_data[record]['vector.mlon'])
+            mlats = np.deg2rad(dmap_data[record]['vector.mlat'])
+            mlons = np.deg2rad(dmap_data[record]['vector.mlon'])
             # velocities = dmap_data[record]['vector.vel.median']
             hemisphere = dmap_data[record]['hemisphere']
             fit_coefficient = dmap_data[record]['N+2']
@@ -123,7 +123,7 @@ class Maps():
             lat_min = np.deg2rad(dmap_data[record]['latmin'])
 
             theta = np.pi/2 - abs(mlat)
-            theta_max = np.pi/2 - lat_min
+            theta_max = np.pi/2 - abs(lat_min)
 
             # Angle to "rotate" each vector by to get into same
             # reference frame Controlled by longitude, or "mltitude"
@@ -152,7 +152,7 @@ class Maps():
             def index_legendre(m, l):
                 if m == 0:
                     return l**2
-                elif fit_order != 0 and fit_order != 0:
+                elif l != 0 and m != 0: # this seem redundant?
                     return l**2 + 2 * m - 1
                 else:
                     return 0
@@ -287,8 +287,30 @@ class Maps():
                     azm_v[vel_chk_zero_inds] =\
                             np.rad2deg(np.arctan2(vel_fit_vecs[1, vel_chk_zero_inds],
                                                   -vel_fit_vecs[0, vel_chk_zero_inds]))
-            # Plot the vectors
-            for i in range(len(theta)):
-                plt.plot([theta[i], azm_v[i]],
-                         [vel_fit_vecs[0, i], vel_fit_vecs[1, i]],
-                         c=cmap(norm(vel_mag[i])))
+
+        for nn, nn_mlats in enumerate(mlats):
+            vec_len = vel_mag[nn] * len_factor / Re / 1000.0
+            end_lat = np.arcsin(np.sin(nn_mlats) * np.cos(vec_len) +
+                                np.cos(nn_mlats) * np.sin(vec_len) *
+                                np.cos(azm_v[nn]))
+            end_lat = np.degrees(end_lat)
+
+            del_lon = np.arctan2(np.sin(azm_v[nn]) *
+                                 np.sin(vec_len) * np.cos(nn_mlats),
+                                 np.cos(vec_len) - np.sin(nn_mlats)
+                                 * np.sin(np.deg2rad(end_lat)))
+
+            end_lon = mlons[nn] + del_lon
+
+            x_vec_strt = mlons[nn]
+            y_vec_strt = nn_mlats
+            x_vec_end = end_lon
+            y_vec_end = end_lat
+
+            plt.scatter(x_vec_strt, y_vec_strt, c=vel_mag[nn], s=10.0,
+                        alpha=0.7, cmap=cmap, zorder=5.0, edgecolor='none')
+
+            plt.plot([x_vec_strt, x_vec_end], [y_vec_strt, y_vec_end],
+                     c=cmap(norm(vel_mag[nn])))
+           # ax.scatter(theta, rs, c=vel_mag),
+           #            s=2.0, vmin=zmin, vmax=zmax, zorder=5, cmap=cmap)
