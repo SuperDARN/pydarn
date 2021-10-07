@@ -52,7 +52,7 @@ class Maps():
     @classmethod
     def plot_map(cls, dmap_data, ax=None, parameter="vector.vel.median",
                  record=0, start_time=None, time_delta: int = 1,  alpha=1.0,
-                 len_factor=500, cmap=None, zmin=None, zmax=None, **kwargs):
+                 len_factor=150, cmap=None, zmin=None, zmax=None, **kwargs):
         """
         """
         # Find the record corresponding to the start time
@@ -77,20 +77,6 @@ class Maps():
                                dmap_data[record]['start.hour'],
                                dmap_data[record]['start.minute'])
 
-        for stid in dmap_data[record]['stid']:
-            _, aacgm_lons, _, _, ax =\
-                    Fan.plot_fov(stid, date,
-                                 ax=ax, **kwargs)
-            data_lons = dmap_data[record]['vector.mlon']
-            data_lats = dmap_data[record]['vector.mlat']
-
-            # Hold the beam positions
-            shifted_mlts = aacgm_lons[0, 0] - \
-                (aacgmv2.convert_mlt(aacgm_lons[0, 0], date) * 15)
-            shifted_lons = data_lons - shifted_mlts
-            mlon = np.radians(shifted_lons)
-            mlat = data_lats
-
         if cmap is None:
             cmap = {'fitted': 'plasma',
                     'vector.vel.median': 'plasma_r',
@@ -108,22 +94,34 @@ class Maps():
         norm = colors.Normalize
         norm = norm(zmin, zmax)
 
+        for stid in dmap_data[record]['stid']:
+            _, aacgm_lons, _, _, ax =\
+                    Fan.plot_fov(stid, date,
+                                 ax=ax, **kwargs)
+            data_lons = dmap_data[record]['vector.mlon']
+            data_lats = dmap_data[record]['vector.mlat']
+
+            # Hold the beam positions
+            shifted_mlts = aacgm_lons[0, 0] - \
+                (aacgmv2.convert_mlt(aacgm_lons[0, 0], date) * 15)
+            shifted_lons = data_lons - shifted_mlts
+            mlons = np.radians(shifted_lons)
+            mlats = data_lats
+
         # If the parameter is velocity then plot the LOS vectors
         if parameter == "fitted":
             # Get the velocity data and magnetic coordinates
             azm_v = dmap_data[record]['vector.kvect']
-            mlats = np.deg2rad(dmap_data[record]['vector.mlat'])
-            mlons = np.deg2rad(dmap_data[record]['vector.mlon'])
             # velocities = dmap_data[record]['vector.vel.median']
             hemisphere = dmap_data[record]['hemisphere']
             fit_coefficient = dmap_data[record]['N+2']
             fit_order = dmap_data[record]['fit.order']
             # lat_shift = np.deg2rad(dmap_data[record]['lat.shft'])
             # lon_shift = np.deg2rad(dmap_data[record]['lon.shft'])
-            lat_min = np.deg2rad(dmap_data[record]['latmin'])
+            lat_min = dmap_data[record]['latmin']
 
-            theta = np.pi/2 - abs(mlat)
-            theta_max = np.pi/2 - abs(lat_min)
+            theta = np.radians(90 - abs(mlats))
+            theta_max = np.radians(90 - abs(lat_min))
 
             # Angle to "rotate" each vector by to get into same
             # reference frame Controlled by longitude, or "mltitude"
@@ -140,7 +138,7 @@ class Maps():
                     legendre_poly = np.append(legendre_poly, [temp_poly[0]],
                                               axis=0)
             legendre_poly = np.delete(legendre_poly, 0, 0)
-            phi = mlon
+            phi = mlons
 
             # now do the index legender part,
             # We are doing Associated Legendre Polynomials but
@@ -288,6 +286,8 @@ class Maps():
                             np.rad2deg(np.arctan2(vel_fit_vecs[1, vel_chk_zero_inds],
                                                   -vel_fit_vecs[0, vel_chk_zero_inds]))
 
+
+
         for nn, nn_mlats in enumerate(mlats):
             vec_len = vel_mag[nn] * len_factor / Re / 1000.0
             end_lat = np.arcsin(np.sin(nn_mlats) * np.cos(vec_len) +
@@ -306,11 +306,10 @@ class Maps():
             y_vec_strt = nn_mlats
             x_vec_end = end_lon
             y_vec_end = end_lat
+            plt.scatter(x_vec_strt, y_vec_strt, c=vel_mag[nn], s=2.0,
+                        vmin=zmin, vmax=zmax,  cmap=cmap, zorder=5.0)
 
-            plt.scatter(x_vec_strt, y_vec_strt, c=vel_mag[nn], s=10.0,
-                        alpha=0.7, cmap=cmap, zorder=5.0, edgecolor='none')
-
-            plt.plot([x_vec_strt, x_vec_end], [y_vec_strt, y_vec_end],
-                     c=cmap(norm(vel_mag[nn])))
+            #plt.plot([x_vec_strt, x_vec_end], [y_vec_strt, y_vec_end],
+            #         c=cmap(norm(vel_mag[nn])))
            # ax.scatter(theta, rs, c=vel_mag),
            #            s=2.0, vmin=zmin, vmax=zmax, zorder=5, cmap=cmap)
