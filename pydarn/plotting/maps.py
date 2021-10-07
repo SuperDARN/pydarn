@@ -179,13 +179,13 @@ class Maps():
                                 theta_ecoeffs[k4, q_prime] -\
                                 fit_coefficient_flat[k3] * alpha * l *\
                                 np.cos(theta_prime[q_prime]) \
-                                / np.sin(theta_prime[q_prime]) / Re
+                                / np.sin(theta_prime[q_prime]) / (Re * 1000)
                         phi_ecoeffs[k4, q] = phi_ecoeffs[k4, q] - \
                             fit_coefficient_flat[k3 + 1] * m /\
-                            np.sin(theta[q]) / Re
+                            np.sin(theta[q]) / (Re * 1000)
                         phi_ecoeffs[k4 + 1, q] = phi_ecoeffs[k4 + 1, q] + \
                             fit_coefficient_flat[k3] * m /\
-                            np.sin(theta[q]) / Re
+                            np.sin(theta[q]) / (Re * 1000)
 
                     if l < fit_order:
                         k1 = index_legendre(l+1, m)
@@ -198,7 +198,7 @@ class Maps():
                         theta_ecoeffs[k2, q_prime] =\
                             theta_ecoeffs[k2, q_prime] + \
                             fit_coefficient_flat[k1] * alpha * (l + 1 + m) / \
-                            np.sin(theta_prime[q_prime]) / Re
+                            np.sin(theta_prime[q_prime]) / (Re * 1000)
 
                     if m > 0:
                         if k3 >= 0:
@@ -214,13 +214,14 @@ class Maps():
                                     theta_ecoeffs[k4, q_prime] \
                                     - fit_coefficient_flat[k3] * alpha * l * \
                                     np.cos(theta_prime[q_prime]) / \
-                                    np.sin(theta_prime[q_prime]) / Re
+                                    np.sin(theta_prime[q_prime]) / (Re * 1000)
 
                         if k1 >= 0:
                             theta_ecoeffs[k2, q_prime] = \
                                 theta_ecoeffs[k2, q_prime] \
                                 + fit_coefficient_flat[k1] * alpha *\
-                                (l + 1 + m) / np.sin(theta_prime[q_prime]) / Re
+                                (l + 1 + m) / np.sin(theta_prime[q_prime]) /\
+                                (Re * 1000)
 
             # Calculate the Elec. fld positions where
             theta_ecomp = np.zeros(theta.shape)
@@ -256,16 +257,15 @@ class Maps():
 
             # We'll calculate Bfld magnitude now, need to initialize some more
             # stuff
-            alti = 300.0 * 1000.0
+            alti = 300.0 * 1000.0 # F-region altitude 300 km
             b_fld_polar = -0.62e-4
-            b_fld_mag = b_fld_polar * (1.0 - 3.0 * alti / Re) \
+            b_fld_mag = b_fld_polar * (1.0 - 3.0 * alti / (Re * 1000)) \
                 * np.sqrt(3.0 * np.square(np.cos(theta)) + 1.0) / 2
 
             # get the velocity components from E-field
             vel_fit_vecs = np.zeros(efield_fit.shape)
             vel_fit_vecs[0, :] = efield_fit[1, :] / b_fld_mag
             vel_fit_vecs[1, :] = -efield_fit[0, :] / b_fld_mag
-
             vel_mag = np.sqrt(np.square(vel_fit_vecs[0, :]) +
                               np.square(vel_fit_vecs[1, :]))
             vel_chk_zero_inds = np.where(vel_mag != 0.0)
@@ -279,25 +279,24 @@ class Maps():
             else:
                 if hemisphere == -1:
                     azm_v[vel_chk_zero_inds] =\
-                            np.rad2deg(np.arctan2(vel_fit_vecs[1, vel_chk_zero_inds],
-                                                  vel_fit_vecs[0, vel_chk_zero_inds]))
+                            np.arctan2(vel_fit_vecs[1, vel_chk_zero_inds],
+                                       vel_fit_vecs[0, vel_chk_zero_inds])
                 else:
                     azm_v[vel_chk_zero_inds] =\
-                            np.rad2deg(np.arctan2(vel_fit_vecs[1, vel_chk_zero_inds],
-                                                  -vel_fit_vecs[0, vel_chk_zero_inds]))
-
-
+                            np.arctan2(vel_fit_vecs[1, vel_chk_zero_inds],
+                                       -vel_fit_vecs[0, vel_chk_zero_inds])
 
         for nn, nn_mlats in enumerate(mlats):
-            vec_len = vel_mag[nn] * len_factor / Re / 1000.0
-            end_lat = np.arcsin(np.sin(nn_mlats) * np.cos(vec_len) +
-                                np.cos(nn_mlats) * np.sin(vec_len) *
+            r_mlats = np.radians(nn_mlats)
+            vec_len = vel_mag[nn] * len_factor / (Re / 1000.0)
+            end_lat = np.arcsin(np.sin(r_mlats) * np.cos(vec_len) +
+                                np.cos(r_mlats) * np.sin(vec_len) *
                                 np.cos(azm_v[nn]))
             end_lat = np.degrees(end_lat)
 
             del_lon = np.arctan2(np.sin(azm_v[nn]) *
-                                 np.sin(vec_len) * np.cos(nn_mlats),
-                                 np.cos(vec_len) - np.sin(nn_mlats)
+                                 np.sin(vec_len) * np.cos(r_mlats),
+                                 np.cos(vec_len) - np.sin(r_mlats)
                                  * np.sin(np.deg2rad(end_lat)))
 
             end_lon = mlons[nn] + del_lon
@@ -309,7 +308,5 @@ class Maps():
             plt.scatter(x_vec_strt, y_vec_strt, c=vel_mag[nn], s=2.0,
                         vmin=zmin, vmax=zmax,  cmap=cmap, zorder=5.0)
 
-            #plt.plot([x_vec_strt, x_vec_end], [y_vec_strt, y_vec_end],
-            #         c=cmap(norm(vel_mag[nn])))
-           # ax.scatter(theta, rs, c=vel_mag),
-           #            s=2.0, vmin=zmin, vmax=zmax, zorder=5, cmap=cmap)
+            plt.plot([x_vec_strt, x_vec_end], [y_vec_strt, y_vec_end],
+                     c=cmap(norm(vel_mag[nn])))
