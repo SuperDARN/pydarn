@@ -17,21 +17,20 @@
 Grid plots, mapped to AACGM coordinates in a polar format
 """
 
-# import datetime as dt
-# import matplotlib.pyplot as plt
+import datetime as dt
+import matplotlib.pyplot as plt
 import numpy as np
 from scipy import special
 import warnings
-import matplotlib.pyplot as plt
 from matplotlib import ticker, cm, colors
 # from typing import List
 
 # Third party libraries
-# import aacgmv2
+import aacgmv2
 
 
 from pydarn import (PyDARNColormaps, Grid, plot_exceptions, citing_warning,
-                    standard_warning_format, Re)
+                    standard_warning_format, Re, Fan)
 
 warnings.formatwarning = standard_warning_format
 
@@ -51,18 +50,70 @@ class Maps():
                 "   - plot_maps()\n"
 
     @classmethod
-    def plot_map(cls, dmap_data, parameter="vector.vel.median",
-                 alpha=1.0, len_factor=500, **kwargs):
+    def plot_map(cls, dmap_data, ax=None, parameter="vector.vel.median",
+                 record=0, start_time=None, time_delta: int = 1,  alpha=1.0,
+                 len_factor=500, cmap=None, zmin=None, zmax=None, **kwargs):
         """
         """
+        # Find the record corresponding to the start time
+        if start_time is not None:
+            for record in range(len(dmap_data)):
+                date = dt.datetime(dmap_data[record]['start.year'],
+                                   dmap_data[record]['start.month'],
+                                   dmap_data[record]['start.day'],
+                                   dmap_data[record]['start.hour'],
+                                   dmap_data[record]['start.minute'])
+                time_diff = date - start_time
+                if time_diff.seconds/60 <= time_delta:
+                    break
+            if time_diff.seconds/60 > time_delta:
+                raise plot_exceptions.NoDataFoundError(parameter,
+                                                       start_time=start_time)
+        else:
+            record = 0
+            date = dt.datetime(dmap_data[record]['start.year'],
+                               dmap_data[record]['start.month'],
+                               dmap_data[record]['start.day'],
+                               dmap_data[record]['start.hour'],
+                               dmap_data[record]['start.minute'])
+
+        for stid in dmap_data[record]['stid']:
+            _, aacgm_lons, _, _, ax =\
+                    Fan.plot_fov(stid, date,
+                                 ax=ax, **kwargs)
+            data_lons = dmap_data[record]['vector.mlon']
+            data_lats = dmap_data[record]['vector.mlat']
+
+            # Hold the beam positions
+            shifted_mlts = aacgm_lons[0, 0] - \
+                (aacgmv2.convert_mlt(aacgm_lons[0, 0], date) * 15)
+            shifted_lons = data_lons - shifted_mlts
+            mlon = np.radians(shifted_lons)
+            mlat = data_lats
+
+        if cmap is None:
+            cmap = {'fitted': 'plasma',
+                    'vector.vel.median': 'plasma_r',
+                    'vector.wdt.median': PyDARNColormaps.PYDARN_VIRIDIS}
+            cmap = plt.cm.get_cmap(cmap[parameter])
+        # Setting zmin and zmax
+        defaultzminmax = {'fitted': [0, 50],
+                          'vector.vel.median': [0, 1000],
+                          'vector.wdt.median': [0, 250]}
+        if zmin is None:
+            zmin = defaultzminmax[parameter][0]
+        if zmax is None:
+            zmax = defaultzminmax[parameter][1]
+
+        norm = colors.Normalize
+        norm = norm(zmin, zmax)
 
         # If the parameter is velocity then plot the LOS vectors
         if parameter == "fitted":
-            record = 0
             # Get the velocity data and magnetic coordinates
             azm_v = dmap_data[record]['vector.kvect']
-            mlat = np.deg2rad(dmap_data[record]['vector.mlat'])
-            mlon = np.deg2rad(dmap_data[record]['vector.mlon'])
+            #mlat = np.deg2rad(dmap_data[record]['vector.mlat'])
+            #mlon = np.deg2rad(dmap_data[record]['vector.mlon'])
             # velocities = dmap_data[record]['vector.vel.median']
             hemisphere = dmap_data[record]['hemisphere']
             fit_coefficient = dmap_data[record]['N+2']
@@ -239,5 +290,5 @@ class Maps():
             # Plot the vectors
             for i in range(len(theta)):
                 plt.plot([theta[i], azm_v[i]],
-                         [vel_fit_vecs[i], vel_mag[i]])
-
+                         [vel_fit_vecs[0, i], vel_fit_vecs[1, i]],
+                         c=cmap(norm(vel_mag[i])))
