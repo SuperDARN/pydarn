@@ -52,9 +52,10 @@ class Maps():
     @classmethod
     def plot_map(cls, dmap_data, ax=None, parameter="vector.vel.median",
                  record=0, start_time=None, time_delta: int = 1,  alpha=1.0,
-                 len_factor=150, cmap=None, zmin=None, zmax=None, **kwargs):
+                 len_factor=500, cmap=None, zmin=None, zmax=None, **kwargs):
         """
         """
+        Re_meters = Re * 1000
         # Find the record corresponding to the start time
         if start_time is not None:
             for record in range(len(dmap_data)):
@@ -70,20 +71,18 @@ class Maps():
                 raise plot_exceptions.NoDataFoundError(parameter,
                                                        start_time=start_time)
         else:
-            record = 0
             date = dt.datetime(dmap_data[record]['start.year'],
                                dmap_data[record]['start.month'],
                                dmap_data[record]['start.day'],
                                dmap_data[record]['start.hour'],
                                dmap_data[record]['start.minute'])
-
         if cmap is None:
             cmap = {'fitted': 'plasma',
                     'vector.vel.median': 'plasma_r',
                     'vector.wdt.median': PyDARNColormaps.PYDARN_VIRIDIS}
             cmap = plt.cm.get_cmap(cmap[parameter])
         # Setting zmin and zmax
-        defaultzminmax = {'fitted': [0, 50],
+        defaultzminmax = {'fitted': [0, 1000],
                           'vector.vel.median': [0, 1000],
                           'vector.wdt.median': [0, 250]}
         if zmin is None:
@@ -98,20 +97,20 @@ class Maps():
             _, aacgm_lons, _, _, ax =\
                     Fan.plot_fov(stid, date,
                                  ax=ax, **kwargs)
-            data_lons = dmap_data[record]['vector.mlon']
-            data_lats = dmap_data[record]['vector.mlat']
+        data_lons = dmap_data[record]['vector.mlon']
+        data_lats = dmap_data[record]['vector.mlat']
 
-            # Hold the beam positions
-            shifted_mlts = aacgm_lons[0, 0] - \
-                (aacgmv2.convert_mlt(aacgm_lons[0, 0], date) * 15)
-            shifted_lons = data_lons - shifted_mlts
-            mlons = np.radians(shifted_lons)
-            mlats = data_lats
+        # Hold the beam positions
+        shifted_mlts = aacgm_lons[0, 0] - \
+            (aacgmv2.convert_mlt(aacgm_lons[0, 0], date) * 15)
+        shifted_lons = data_lons - shifted_mlts
+        mlons = np.radians(shifted_lons)
+        mlats = data_lats
 
         # If the parameter is velocity then plot the LOS vectors
         if parameter == "fitted":
             # Get the velocity data and magnetic coordinates
-            azm_v = dmap_data[record]['vector.kvect']
+            #azm_v = dmap_data[record]['vector.kvect']
             # velocities = dmap_data[record]['vector.vel.median']
             hemisphere = dmap_data[record]['hemisphere']
             fit_coefficient = dmap_data[record]['N+2']
@@ -120,8 +119,8 @@ class Maps():
             # lon_shift = np.deg2rad(dmap_data[record]['lon.shft'])
             lat_min = dmap_data[record]['latmin']
 
-            theta = np.radians(90 - abs(mlats))
-            theta_max = np.radians(90 - abs(lat_min))
+            theta = np.radians(90.0 - abs(mlats))
+            theta_max = np.radians(90.0 - abs(lat_min))
 
             # Angle to "rotate" each vector by to get into same
             # reference frame Controlled by longitude, or "mltitude"
@@ -147,13 +146,9 @@ class Maps():
             # so we do spherical harmonics for a real valued function using
             # sin(phi) and cos(phi) rather than exp(i*phi).
             # we place an inner function to copying code
-            def index_legendre(m, l):
-                if m == 0:
-                    return l**2
-                elif l != 0 and m != 0: # this seem redundant?
-                    return l**2 + 2 * m - 1
-                else:
-                    return 0
+            def index_legendre(l, m):
+                return (m == 0 and l**2) or ((l != 0) and (m != 0)\
+                                             and l**2 + 2 * m - 1) or 0
 
             k_max = index_legendre(fit_order, fit_order)
 
@@ -178,14 +173,14 @@ class Maps():
                         theta_ecoeffs[k4, q_prime] =\
                                 theta_ecoeffs[k4, q_prime] -\
                                 fit_coefficient_flat[k3] * alpha * l *\
-                                np.cos(theta_prime[q_prime]) \
-                                / np.sin(theta_prime[q_prime]) / (Re * 1000)
+                                np.cos(theta_prime[q_prime]) / \
+                                np.sin(theta_prime[q_prime]) / Re_meters
                         phi_ecoeffs[k4, q] = phi_ecoeffs[k4, q] - \
                             fit_coefficient_flat[k3 + 1] * m /\
-                            np.sin(theta[q]) / (Re * 1000)
+                            np.sin(theta[q]) / Re_meters
                         phi_ecoeffs[k4 + 1, q] = phi_ecoeffs[k4 + 1, q] + \
                             fit_coefficient_flat[k3] * m /\
-                            np.sin(theta[q]) / (Re * 1000)
+                            np.sin(theta[q]) / Re_meters
 
                     if l < fit_order:
                         k1 = index_legendre(l+1, m)
@@ -198,7 +193,7 @@ class Maps():
                         theta_ecoeffs[k2, q_prime] =\
                             theta_ecoeffs[k2, q_prime] + \
                             fit_coefficient_flat[k1] * alpha * (l + 1 + m) / \
-                            np.sin(theta_prime[q_prime]) / (Re * 1000)
+                            np.sin(theta_prime[q_prime]) / Re_meters
 
                     if m > 0:
                         if k3 >= 0:
@@ -214,14 +209,13 @@ class Maps():
                                     theta_ecoeffs[k4, q_prime] \
                                     - fit_coefficient_flat[k3] * alpha * l * \
                                     np.cos(theta_prime[q_prime]) / \
-                                    np.sin(theta_prime[q_prime]) / (Re * 1000)
+                                    np.sin(theta_prime[q_prime]) / Re_meters
 
                         if k1 >= 0:
                             theta_ecoeffs[k2, q_prime] = \
                                 theta_ecoeffs[k2, q_prime] \
                                 + fit_coefficient_flat[k1] * alpha *\
-                                (l + 1 + m) / np.sin(theta_prime[q_prime]) /\
-                                (Re * 1000)
+                                (l + 1 + m) / np.sin(theta_prime[q_prime]) / Re_meters
 
             # Calculate the Elec. fld positions where
             theta_ecomp = np.zeros(theta.shape)
@@ -257,9 +251,11 @@ class Maps():
 
             # We'll calculate Bfld magnitude now, need to initialize some more
             # stuff
-            alti = 300.0 * 1000.0 # F-region altitude 300 km
+            # F-region altitude 300 km * 1000 to convert to meteres
+            alti = 300.0 * 1000.0
+            # dipole earth field in Tesla
             b_fld_polar = -0.62e-4
-            b_fld_mag = b_fld_polar * (1.0 - 3.0 * alti / (Re * 1000)) \
+            b_fld_mag = b_fld_polar * (1.0 - 3.0 * alti / Re_meters ) \
                 * np.sqrt(3.0 * np.square(np.cos(theta)) + 1.0) / 2
 
             # get the velocity components from E-field
@@ -288,7 +284,7 @@ class Maps():
 
         for nn, nn_mlats in enumerate(mlats):
             r_mlats = np.radians(nn_mlats)
-            vec_len = vel_mag[nn] * len_factor / (Re / 1000.0)
+            vec_len = (vel_mag[nn] * len_factor) / Re_meters
             end_lat = np.arcsin(np.sin(r_mlats) * np.cos(vec_len) +
                                 np.cos(r_mlats) * np.sin(vec_len) *
                                 np.cos(azm_v[nn]))
@@ -305,6 +301,7 @@ class Maps():
             y_vec_strt = nn_mlats
             x_vec_end = end_lon
             y_vec_end = end_lat
+
             plt.scatter(x_vec_strt, y_vec_strt, c=vel_mag[nn], s=2.0,
                         vmin=zmin, vmax=zmax,  cmap=cmap, zorder=5.0)
 
