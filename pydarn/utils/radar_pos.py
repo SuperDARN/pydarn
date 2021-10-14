@@ -43,15 +43,16 @@ import os
 
 import aacgmv2
 
-from pydarn import SuperDARNRadars, gate2slant, Coords
+from pydarn import SuperDARNRadars, gate2slant, gate2GroundScatter, Coords
 from pydarn.utils.constants import EARTH_EQUATORIAL_RADIUS, Re, C
 
 from pydarn.utils.virtual_heights_types import VH_types
 from pydarn.utils.virtual_heights import standard_virtual_height, chisham
 
 def radar_fov(stid: int, rsep: int = 45, frang: int = 180,
-              ranges: tuple = None, coords: object = Coords.AACGM,
-              max_beams: int = None, date: dt.datetime = None, **kwargs):
+              ranges: tuple = None, fov_files: bool = False, coords: object = Coords.AACGM,
+              max_beams: int = None, reflection_height: float = 250,
+              date: dt.datetime = None, **kwargs):
     """
     Returning beam/gate coordinates of a specified radar's field-of-view
 
@@ -63,6 +64,14 @@ def radar_fov(stid: int, rsep: int = 45, frang: int = 180,
     coords: Coords object
         Type of coordinates returned
         Default: Coords.AACGM
+    fov_files: bool
+        boolean if the fov data should be read in by a file
+        pyDARN supplies. If false then it uses radar position
+        code.
+        default: False
+    reflection_height: float
+        reflection height
+        default:  250
     date: datetime
         datetime object date to be used for AACGMv2 conversion
         Default: Current day
@@ -77,31 +86,71 @@ def radar_fov(stid: int, rsep: int = 45, frang: int = 180,
         for range gate corners
     """
     # Locate base PyDARN directory
-    if ranges is None:
-        ranges = [0, SuperDARNRadars.radars[stid].range_gate_45]
-    if max_beams is None:
-        max_beams = SuperDARNRadars.radars[stid].hardware_info.beams
-    # Plus 1 is due to the fact fov files index at 1 so in the plotting
-    # of the boundary there is a subtraction of 1 to offset this as python
-    # converts to index of 0 which my code already accounts for
-    beam_corners_lats = np.zeros((ranges[1], max_beams+1))
-    beam_corners_lons = np.zeros((ranges[1], max_beams+1))
+    if fov_files:
+        my_path = os.path.abspath(os.path.dirname(__file__))
+        base_path = os.path.join(my_path, '..')
 
-    for beam in range(0, max_beams+1):
-        for gate in range(ranges[0], ranges[1]):
-            lat, lon = geographic_cell_positions(stid, beam, gate, rsep,
-                                                 frang, height=300)
+        # Find files holding radar beam/gate locations
+        beam_lats = base_path+'/radar_fov_files/' + \
+            str(stid).zfill(3)+'_lats.txt'
+        beam_lons = base_path+'/radar_fov_files/' + \
+            str(stid).zfill(3)+'_lons.txt'
 
-            if coords == Coords.AACGM:
-                if date is None:
-                    date = datetime.datetime.now()
+        # Read in geographic coordinates
+        beam_corners_lats = np.loadtxt(beam_lats)
+        beam_corners_lons = np.loadtxt(beam_lons)
+        # AACGMv2 conversion
+        if coords == Coords.AACGM:
+            if date is None:
+                date = datetime.datetime.now()
+            # Initialise arrays
+            fan_shape = beam_corners_lons.shape
+            beam_corners_aacgm_lons = \
+                np.zeros((fan_shape[0], fan_shape[1]))
+            beam_corners_aacgm_lats = \
+                np.zeros((fan_shape[0], fan_shape[1]))
 
-                geomag = np.array(aacgmv2. get_aacgm_coord(lat, lon,
-                                                           250, date))
-                lat = geomag[0]
-                lon = geomag[1]
-            beam_corners_lats[gate, beam] = lat
-            beam_corners_lons[gate, beam] = lon
+            for x in range(fan_shape[0]):
+                for y in range(fan_shape[1]):
+                    # Conversion
+                    geomag = np.array(aacgmv2.
+                                      get_aacgm_coord(beam_corners_lats[x, y],
+                                                      beam_corners_lons[x, y],
+                                                      250, date))
+                    beam_corners_aacgm_lats[x, y] = geomag[0]
+                    beam_corners_aacgm_lons[x, y] = geomag[1]
+
+            # Return AACGMv2 latitudes and longitudes
+            return beam_corners_aacgm_lats, beam_corners_aacgm_lons
+    else:
+        if ranges is None:
+            ranges = [0, SuperDARNRadars.radars[stid].range_gate_45]
+        if max_beams is None:
+            max_beams = SuperDARNRadars.radars[stid].hardware_info.beams
+        # Plus 1 is due to the fact fov files index at 1 so in the plotting
+        # of the boundary there is a subtraction of 1 to offset this as python
+        # converts to index of 0 which my code already accounts for
+        
+        beam_corners_lats = np.zeros((ranges[1]+1, max_beams+1))
+        beam_corners_lons = np.zeros((ranges[1]+1, max_beams+1))
+
+        for beam in range(max_beams+1):
+            for gate in range(ranges[1]+1):
+                lat, lon = geographic_cell_positions(stid, beam, gate, rsep,
+                                                     frang, coords = coords,
+                                                     reflection_height=reflection_height,
+                                                     height=300)
+
+                if coords == Coords.AACGM:
+                    if date is None:
+                        date = datetime.datetime.now()
+
+                    geomag = np.array(aacgmv2.get_aacgm_coord(lat, lon,
+                                                               250, date))
+                    lat = geomag[0]
+                    lon = geomag[1]
+                beam_corners_lats[gate, beam] = lat
+                beam_corners_lons[gate, beam] = lon
 
     # Return geographic coordinates
     return beam_corners_lats, beam_corners_lons
@@ -111,8 +160,9 @@ def radar_fov(stid: int, rsep: int = 45, frang: int = 180,
 def geographic_cell_positions(stid: int, beam: int, range_gate: int,
                               rsep: int = 45, frang: int = 180,
                               height: float = None, elv_angle: float = 0.0,
-                              center: bool = True, chisham: bool = False,
-                              virtual_height_type: object = VH_types.STANDARD_VIRTUAL_HEIGHT):
+                              coords: object = Coords.SLANT_RANGE,
+                              center: bool = True, reflection_height: float = 250, 
+                              virtual_height_type: object =VH_types.STANDARD_VIRTUAL_HEIGHT):
     """
     determines the geographic cell position for a given range gate and beam
 
@@ -143,6 +193,12 @@ def geographic_cell_positions(stid: int, beam: int, range_gate: int,
             obtain geographic location of the centre of the range gates
             False obtains the front edge of the range gates.
             default: True
+        reflection_height: float
+            reflection height
+            default:  250
+        coords: Coords
+            set the y-axis to a desired coordinate system
+            Default: Coords.SLANT_RANGE
         virtual_height_type: object
             use for choosing type of virtual height
             default: VH_types.STANDARD_VIRTUAL_HEIGHT
@@ -180,17 +236,39 @@ def geographic_cell_positions(stid: int, beam: int, range_gate: int,
 
     # psi [rad] in the angle from the boresight
     psi = beam_sep * (beam - offset) + beam_edge
-    # Calculate the slant range [km]
-    slant_range = gate2slant(frang, rsep, rxrise, gate=range_gate)
-
-    # If no height is specified then use elevation angle (default 0)
-    # to calculate the transmutation height
-    if height is None:
-        height = -Re + np.sqrt(Re**2 + 2 * slant_range * Re *
-                               np.sin(np.radians(elv_angle)) + slant_range**2)
-
-    lat, lon = geocentric_coordinates(radar_lat, radar_lon, slant_range,
+    
+    # Initialize lon and lat to allow use outside of if statement
+    lon = np.empty((2,2))
+    lat = np.empty((2,2))
+    
+    #calculates lon and lat for slant range 
+    if coords == Coords.SLANT_RANGE:
+        # Calculate the slant range [km]
+        slant_range = gate2slant(frang, rsep, rxrise, gate=range_gate)
+        # If no height is specified then use elevation angle (default 0)
+        # to calculate the transmutation height
+        if height is None:
+            height = -Re + np.sqrt(Re**2 + 2 * slant_range * Re *
+                                    np.sin(np.radians(elv_angle)) + slant_range**2)  
+                                          
+        lat, lon = geocentric_coordinates(radar_lat, radar_lon, slant_range,
                                       height, psi, boresight, virtual_height_type = virtual_height_type)
+                                      
+    #calculates lon and lat for ground scatter mapped range
+    if coords == Coords.GROUND_SCATTER_MAPPED_RANGE:
+        # Calculate the ground scatter mapped range
+        slant_range = gate2slant(frang, rsep, rxrise, gate=range_gate)
+        
+        ground_scatter_mapped_range = gate2GroundScatter(slant_range, reflection_height)
+        # If no height is specified then use elevation angle (default 0)
+        # to calculate the transmutation height
+        if height is None:
+            height = -Re + np.sqrt(Re**2 + 2 * ground_scatter_mapped_range * Re *
+                                   np.sin(np.radians(elv_angle)) + ground_scatter_mapped_range**2)
+
+        lat, lon = geocentric_coordinates(radar_lat, radar_lon, ground_scatter_mapped_range,
+                                         height, psi, boresight, 
+                                         virtual_height_type =virtual_height_type)
 
     # convert back degrees as preferred units to use?
     return np.degrees(lat), np.degrees(lon)

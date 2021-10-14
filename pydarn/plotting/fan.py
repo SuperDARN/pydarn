@@ -38,6 +38,15 @@ from pydarn import (PyDARNColormaps, build_scan, radar_fov, citing_warning,
                     SuperDARNRadars, Hemisphere, Projections, 
                     partial_record_warning)
 
+# handle cartopy ad-hoc
+try:
+    from cartopy.mpl import geoaxes
+    import cartopy.crs as ccrs
+    import cartopy.feature as cfeature
+    from cartopy.mpl.gridliner import LONGITUDE_FORMATTER, LATITUDE_FORMATTER
+    cartopyInstalled = True
+except Exception:
+    cartopyInstalled = False
 
 class Fan():
     """
@@ -60,10 +69,15 @@ class Fan():
     @classmethod
     def plot_fan(cls, dmap_data: List[dict], ax=None,
                  scan_index: Union[int, dt.datetime] = 1,
-                 parameter: str = 'v', cmap: str = None,
-                 groundscatter: bool = False, zmin: int = None,
-                 zmax: int = None, colorbar: bool = True,
-                 colorbar_label: str = '', title: bool = True,
+                 ranges: List = [], boundary: bool = True,
+                 line_color: str = 'black', alpha: int = 0.5,
+                 parameter: str = 'v', lowlat: int = 30, cmap: str = None,
+                 groundscatter: bool = False, reflection_height: float = 250,
+                 zmin: int = None, zmax: int = None,
+                 colorbar: bool = True, coords: object = Coords.AACGM,
+                 colorbar_label: str = '', radar_location: bool = True,
+                 radar_label: bool = False, title: bool = True,
+                 fov_files: bool = False,
                  channel = 'all', **kwargs):
         """
         Plots a radar's Field Of View (FOV) fan plot for the given data and
@@ -79,13 +93,26 @@ class Fan():
                 Default: Generates a polar projection for the user
                 with MLT/latitude labels
             scan_index: int or datetime
-                Scan number starting from the first record in file with 
-                associated channel number or datetime given first record 
-                to match the index
+                Scan number from beginning of first record in file
+                or datetime given first record to match the index
                 Default: 1
             parameter: str
                 Key name indicating which parameter to plot.
                 Default: v (Velocity). Alternatives: 'p_l', 'w_l', 'elv'
+            ranges: list
+                Set to a two element list of the lower and upper ranges to plot
+                If None, then nrang from the data is used
+                Default: None
+            boundary: bool
+                Set to false to not plot the outline of the FOV
+                Default: True
+            line_color: str
+                set the line and dot color
+                default: black
+            alpha: int
+                alpha controls the transparency of
+                the fov color
+                Default: 0.5
             cmap: matplotlib.cm
                 matplotlib colour map
                 https://matplotlib.org/tutorials/colors/colormaps.html
@@ -93,6 +120,9 @@ class Fan():
             groundscatter : bool
                 Set true to indicate if groundscatter should be plotted in grey
                 Default: False
+            reflection_height: float
+                reflection height
+                default:  250
             zmin: int
                 The minimum parameter value for coloring
                 Default: {'p_l': [0], 'v': [-200], 'w_l': [0], 'elv': [0]}
@@ -102,6 +132,9 @@ class Fan():
             colorbar: bool
                 Draw a colourbar if True
                 Default: True
+            coords: Coords
+                set the y-axis to a desired coordinate system
+                Default: Coords.AACGM
             colorbar_label: str
                 the label that appears next to the colour bar.
                 Requires colorbar to be true
@@ -187,9 +220,20 @@ class Fan():
         if ranges is None:
             ranges = [0, dmap_data[0]['nrang']]
 
-        beam_corners_aacgm_lats, beam_corners_aacgm_lons, thetas, rs, ax = \
-            cls.plot_fov(dmap_data[0]['stid'], date, **kwargs)
+        beam_corners_aacgm_lats, beam_corners_aacgm_lons = \
+            radar_fov(dmap_data[0]['stid'], date=date,rsep=dmap_data[0]['rsep'], 
+            frang=dmap_data[0]['frang'], reflection_height=reflection_height, 
+            coords=coords, ranges=ranges,
+            max_beams=None, fov_files=fov_files, **kwargs)
 
+        # Where in the world are we
+        if np.all(beam_corners_aacgm_lats > 0):
+            northern_hemisphere = True
+        else:
+            northern_hemisphere = False
+        pole_lat = 90 if northern_hemisphere else -90
+
+        # How many beams and gates do we need
         fan_shape = beam_corners_aacgm_lons.shape
 
         # Get range-gate data and groundscatter array for given scan
@@ -237,27 +281,200 @@ class Fan():
             except KeyError:
                 partial_record_warning()
                 continue
-        # Begin plotting by iterating over ranges and beams
-        thetas = thetas[ranges[0]:ranges[1]]
-        rs = rs[ranges[0]:ranges[1]]
-        scan = scan[ranges[0]:ranges[1]-1]
-        ax.pcolormesh(thetas, rs,
-                      np.ma.masked_array(scan, ~scan.astype(bool)),
-                      norm=norm, cmap=cmap)
+        
+        # Initializes lons and lats to be used in cartopy coordinate transformation
+        lons = np.concatenate(
+                (beam_corners_aacgm_lons[ranges[0], :],
+                 beam_corners_aacgm_lons[ranges[0]:ranges[1], -1],
+                 beam_corners_aacgm_lons[ranges[1], ::-1],
+                 beam_corners_aacgm_lons[ranges[1]:ranges[0]:-1, 0],
+                 [beam_corners_aacgm_lons[0, 0]]))
+        lats = np.concatenate(
+                (beam_corners_aacgm_lats[ranges[0], :],
+                 beam_corners_aacgm_lats[ranges[0]:ranges[1], -1],
+                 beam_corners_aacgm_lats[ranges[1], ::-1],
+                 beam_corners_aacgm_lats[ranges[1]:ranges[0]:-1, 0],
+                 [beam_corners_aacgm_lats[0, 0]]))
+        
+        if np.isnan(beam_corners_aacgm_lons).any() or np.isnan(beam_corners_aacgm_lats).any():
+            # Reshapes  longitude when there are nans
+            y0inx = np.min(np.where(np.isfinite(beam_corners_aacgm_lons))[0])
+            beam_corners_aacgm_lons = beam_corners_aacgm_lons[y0inx:]
+            # Reshapes  latitude when there are nans    
+            y0inx = np.min(np.where(np.isfinite(beam_corners_aacgm_lats))[0])
+            beam_corners_aacgm_lats = beam_corners_aacgm_lats[y0inx:]
+            fan_shape=beam_corners_aacgm_lons.shape
+            # Reshapes  scan data when both lons and lats have nans 
+            scan=scan[y0inx:]
 
-        # plot the groundscatter as grey fill
-        if groundscatter:
-            grndsct = grndsct[ranges[0]:ranges[1]-1]
-            ax.pcolormesh(thetas, rs,
-                          np.ma.masked_array(grndsct,
-                                             ~grndsct.astype(bool)),
-                          norm=norm, cmap='Greys')
+            #Reinitialize lons and lats to be used in cartopy coordinate transform 
+            #when lons and lats have nans
+            lons = np.concatenate(
+                    (beam_corners_aacgm_lons[ranges[0], :],
+                     beam_corners_aacgm_lons[ranges[0]:fan_shape[0], -1],
+                     beam_corners_aacgm_lons[fan_shape[0]-1, ::-1],
+                     beam_corners_aacgm_lons[fan_shape[0]:ranges[0]:-1, 0],
+                     [beam_corners_aacgm_lons[0, 0]]))
+            lats = np.concatenate(
+                    (beam_corners_aacgm_lats[ranges[0], :],
+                     beam_corners_aacgm_lats[ranges[0]:fan_shape[0], -1],
+                     beam_corners_aacgm_lats[fan_shape[0]-1, ::-1],
+                     beam_corners_aacgm_lats[fan_shape[0]:ranges[0]:-1, 0],
+                     [beam_corners_aacgm_lats[0, 0]]))
+                     
+        # Initializes stid
+        stid = dmap_data[0]['stid'] 
+        
+        if coords == Coords.AACGM:  
+            # Work out shift due in MLT
+            beam_corners_mlts = np.zeros((fan_shape[0], fan_shape[1]))
+            mltshift = beam_corners_aacgm_lons[0, 0] - \
+                (aacgmv2.convert_mlt(beam_corners_aacgm_lons[0, 0], date) * 15)
+            beam_corners_mlts = beam_corners_aacgm_lons - mltshift
 
-        azm = np.linspace(0, 2 * np.pi, 100)
-        r, th = np.meshgrid(rs, azm)
-        plt.plot(azm, r, color='k', ls='none')
-        plt.grid()
+            # Hold the beam positions
+            thetas = np.radians(beam_corners_mlts)
+            rs = beam_corners_aacgm_lats
 
+            # Setup plot
+            # This may screw up references
+            if ax is None:
+                # Get the hemisphere to pass to plotting projection
+                kwargs['hemisphere'] = SuperDARNRadars.radars[stid].hemisphere
+                # Get a polar projection using any kwarg input
+                fig = plt.figure(figsize=(12,12))
+                ax = Projections.axis_polar(**kwargs)
+                
+            # a single* call to pcolormesh to handle all the
+            # range gates in the scan
+            ax.pcolormesh(thetas,
+                          rs,
+                          np.ma.masked_array(scan, ~scan.astype(bool)),
+                          norm=norm, cmap=cmap)     
+            # plot the groundscatter as grey fill
+
+            if boundary:
+                lons = np.concatenate(
+                     (thetas[ranges[0], :],
+                      thetas[ranges[0]:ranges[1], -1],
+                      thetas[ranges[1], ::-1],
+                      thetas[ranges[1]:ranges[0]:-1, 0],
+                      [thetas[0, 0]]))
+                lats = np.concatenate(
+                     (rs[ranges[0], :],
+                      rs[ranges[0]:ranges[1], -1],
+                      rs[ranges[1], ::-1],
+                      rs[ranges[1]:ranges[0]:-1, 0],
+                      [rs[0, 0]]))
+                # right boundary line
+                plt.polar(lons, lats, color=line_color, linewidth=1.2)
+
+
+            if groundscatter:
+                ax.pcolormesh(thetas,
+                              rs,
+                              np.ma.masked_array(grndsct,
+                                                 ~grndsct.astype(bool)),
+                              norm=norm, cmap='Greys')
+                              
+            azm = np.linspace(0, 2 * np.pi, 100)
+            r, th = np.meshgrid(rs, azm)
+            plt.plot(azm, r, color='k', ls='none')
+            plt.grid()
+            
+            # *There exists a bug in matplotlib pcolormesh when plotting in
+            # polar projections that gets rid of the rgrid. Replot them here:
+            for lat in range(pole_lat, lowlat, -10
+                             if northern_hemisphere else 10):
+                ax.plot(np.linspace(0, np.radians(360), 360),
+                        [lat] * 360, 'grey', alpha=0.6)
+            for lon in range(0, 360, 45):
+                ax.plot([np.radians(lon)] * 2,
+                        [pole_lat, lowlat], 'grey', alpha=0.6) 
+                        
+        # the alternative is to plot using catropy
+        else:
+            # first, check if cartopy is installed:
+            if not cartopyInstalled:
+                raise plot_exceptions.CartopyMissingError()
+            # no need to shift any coords, let cartopy do that
+            # however, we do need to figure out
+            # how much to rotate the projection
+            deg_from_midnight = (date.hour + date.minute / 60) / 24 * 360
+            if northern_hemisphere:
+                noon = -deg_from_midnight
+            else:
+                noon = 360 - deg_from_midnight
+            # handle none types or wrongly built axes
+            if type(ax) != geoaxes.GeoAxesSubplot:
+                proj = ccrs.Orthographic(noon, pole_lat)
+                ax = plt.subplot(111, projection=proj, aspect='auto')
+                grid_lines = ax.gridlines(draw_labels=True,linewidth=1, color='black',)
+                grid_lines.xformatter = LONGITUDE_FORMATTER
+                grid_lines.yformatter = LATITUDE_FORMATTER
+                ax.coastlines(resolution='110m')
+                ax.add_feature(cfeature.LAND, color='lightgrey')
+                ax.add_feature(cfeature.OCEAN, color = 'white')
+
+
+                geo = ccrs.Geodetic()
+                point = proj.transform_points(geo,lons, lats)
+                """ax.gridlines(ylocs=np.arange(pole_lat, 0, -5
+                                             if northern_hemisphere else 5))"""
+                           
+
+
+                ax.pcolormesh(beam_corners_aacgm_lons,
+                              beam_corners_aacgm_lats,
+                              np.ma.masked_array(scan, ~scan.astype(bool)),
+                              norm=norm, cmap=cmap,
+                              transform=ccrs.PlateCarree())
+                if boundary:
+                    plt.plot(point[:,0], point[:,1], color=line_color, linewidth=1)  
+                                        
+                if groundscatter:
+                    ax.pcolormesh(beam_corners_aacgm_lons,
+                                  beam_corners_aacgm_lats,
+                                  np.ma.masked_array(grndsct,
+                                                     ~grndsct.astype(bool)),
+                                  norm=norm, cmap='Greys',
+                                  transform=ccrs.PlateCarree())
+                                  
+                azm = np.linspace(0, 2 * np.pi, 100)
+                r, th = np.meshgrid(point[:,1], azm)
+                plt.plot(azm, r, color='k', ls='none')
+                plt.grid() 
+                # For some reason, cartopy won't allow extents
+                # much greater than this
+                # - there should probably be an option to allow autscaling
+                # - perhaps this is a projection issue?
+                extent = min(45e5,
+                             (abs(proj.transform_point(noon, lowlat,
+                                                       ccrs.PlateCarree())
+                                  [1])))
+                ax.set_extent(extents=(-extent, extent, -extent, extent),
+                              crs=proj)
+                #ax.set_extent([-180, 90, 0, 0], crs=ccrs.PlateCarree())
+            else:
+                ax.pcolormesh(beam_corners_aacgm_lons,
+                              beam_corners_aacgm_lats,
+                              np.ma.masked_array(scan, ~scan.astype(bool)),
+                              norm=norm, cmap=cmap,
+                              transform=ccrs.PlateCarree())
+                extent = min(45e5,
+                             (abs(proj.transform_point(noon, lowlat,
+                                                       ccrs.PlateCarree())
+                                  [1])))
+                ax.set_extent(extents=(-extent, extent, -extent, extent),
+                              crs=proj)
+                #ax.set_extent([-180, 90, 0, 0], crs=ccrs.PlateCarree())
+        # plots radar position                            
+        if radar_location:
+            cls.plot_radar_position(stid, date, line_color, coords = coords, **kwargs)
+        # plots radar label position
+        if radar_label:
+            cls.plot_radar_label(stid, date, line_color, coords = coords, **kwargs)
+            
         # Create color bar if True
         if colorbar is True:
             mappable = cm.ScalarMappable(norm=norm, cmap=cmap)
@@ -273,18 +490,19 @@ class Fan():
         if title:
             start_time = time2datetime(dmap_data[plot_beams[0][0]])
             end_time = time2datetime(dmap_data[plot_beams[-1][-1]])
-            title = cls.__add_title__(start_time, end_time)
+            title = cls.__add_title__(start_time, end_time, coords=coords)
             plt.title(title)
         citing_warning()
         return beam_corners_aacgm_lats, beam_corners_aacgm_lons, scan, grndsct
 
     @classmethod
-    def plot_fov(cls, stid: str, date: dt.datetime,
-                 ax=None, ranges: List = [], boundary: bool = True,
-                 fov_color: str = None, alpha: int = 0.5,
-                 radar_location: bool = True, radar_label: bool = False,
-                 line_color: str = 'black',
-                 grid: bool = False, 
+    def plot_fov(cls, stid: str, date: dt.datetime, rsep: int = 45,
+                 coords: object = Coords.AACGM, frang: int = 180,
+                 ax=None, boundary: bool = True, 
+                 fov_color: str = None, fov_files: bool = False,
+                 radar_location: bool = False, radar_label: bool = False,
+                 max_beams: int = None,  line_color: str = 'black',
+                 ranges: List = [], grid: bool = False, 
                  line_alpha: int = 0.5 , **kwargs):
         """
         plots only the field of view (FOV) for a given radar station ID (stid)
@@ -293,6 +511,15 @@ class Fan():
         -----------
             stid: int
                 Radar station ID
+            rsep: int
+                gate seperation [km], set by the radar control program.
+                default: 45 common mode
+            coords: Coords
+                set the y-axis to a desired coordinate system
+                Default: Coords.AACGM
+            frang: int
+                distance from the radar site to the edge of the range gate [km]
+                default: 180 km
             ax: matplotlib.pyplot axis
                 Pre-defined axis object to pass in, must currently be
                 polar projection
@@ -308,30 +535,30 @@ class Fan():
             boundary: bool
                 Set to false to not plot the outline of the FOV
                 Default: True
-            grid: bool
-                Set to false to not plot the grid of gates in the FOV
-                Default: False
             fov_color: str
                 fov color to fill in the boundary
                 default: None
             line_color: str
                 line color of the fov plot
                 default: black
-            alpha: int
-                alpha controls the transparency of
-                the fov color
-                Default: 0.5
-            line_alpha: int
-                line_alpha controls the transparency of
-                the boundary and grid lines of the fov
-                Default: 0.5
+            fov_files: bool
+                boolean determine if the fov should be read by the files
+                provided in pyDARN. Else it will use radar position code.
+                Default: False
             radar_location: bool
                 Add a dot where radar is located if True
                 Default: False
             radar_label: bool
                 Add a label with the radar abbreviation if True
                 Default: False
-            kwargs: key = value
+            line_alpha: int
+                line_alpha controls the transparency of
+                the boundary and grid lines of the fov
+                Default: 0.5
+            grid: bool
+                Set to false to not plot the grid of gates in the FOV
+                Default: False
+            kawrgs: key = value
                 Additional keyword arguments to be used in projection plotting
                 For possible keywords, see: projections.axis_polar
 
@@ -430,7 +657,7 @@ class Fan():
 
     @classmethod
     def plot_radar_position(cls, stid: int, date: dt.datetime,
-                            line_color: str = 'black', **kwargs):
+                            line_color: str = 'black', coords: object = Coords.AACGM, **kwargs):
         """
         plots only a dot at the position of a given radar station ID (stid)
 
@@ -444,28 +671,62 @@ class Fan():
             line_color: str
                 color of the dot
                 default: black
-
+            coords: Coords
+                set the y-axis to a desired coordinate system
+                Default: Coords.AACGM
         Returns
         -------
             No variables returned
         """
-        # Get location of radar
-        lat = SuperDARNRadars.radars[stid].hardware_info.geographic.lat
-        lon = SuperDARNRadars.radars[stid].hardware_info.geographic.lon
-        # Convert to geomag coords
-        geomag_radar = aacgmv2.get_aacgm_coord(lat, lon, 250, date)
-        mltshift = geomag_radar[1] - (aacgmv2.convert_mlt(geomag_radar[1],
+        if coords == Coords.AACGM:
+            # Get location of radar
+            lat = SuperDARNRadars.radars[stid].hardware_info.geographic.lat
+            lon = SuperDARNRadars.radars[stid].hardware_info.geographic.lon
+            # Convert to geomag coords
+            geomag_radar = aacgmv2.get_aacgm_coord(lat, lon, 250, date)
+            mltshift = geomag_radar[1] - (aacgmv2.convert_mlt(geomag_radar[1],
                                                           date) * 15)
-        # Convert to MLT then radians for theta
-        theta_lon = np.radians(geomag_radar[1] - mltshift)
-        r_lat = geomag_radar[0]
-        # Plot a dot at the radar site
-        plt.scatter(theta_lon, r_lat, c=line_color, s=5)
+            # Convert to MLT then radians for theta
+            theta_lon = np.radians(geomag_radar[1] - mltshift)
+            r_lat = geomag_radar[0]
+            # Plot a dot at the radar site
+            plt.scatter(theta_lon, r_lat, c=line_color, linewidths=5, s=5)
+
+        if coords == Coords.SLANT_RANGE or coords == Coords.GROUND_SCATTER_MAPPED_RANGE: 
+            # Get location of radar
+            radar_position_lat = np.array(SuperDARNRadars.radars[stid].hardware_info.geographic.lat)
+            radar_position_lon = np.array(SuperDARNRadars.radars[stid].hardware_info.geographic.lon)
+            
+            # Where in the world are we
+            if np.all(radar_position_lat > 0):
+                northern_hemisphere = True
+            else:
+                northern_hemisphere = False
+            pole_lat = 90 if northern_hemisphere else -90
+            
+            # no need to shift any coords, let cartopy do that
+            # however, we do need to figure out
+            # how much to rotate the projection
+            deg_from_midnight = (date.hour + date.minute / 60) / 24 * 360
+            if northern_hemisphere:
+                noon = -deg_from_midnight
+            else:
+                noon = 360 - deg_from_midnight
+            
+            # projection for radar postion coordinate transformation
+            proj = ccrs.Orthographic(noon, pole_lat) 
+            
+            # radar position coordinate transformation to geo coordinates
+            geo = ccrs.Geodetic()
+            position=proj.transform_points(geo,radar_position_lon, radar_position_lat) 
+            # plot radar position                 
+            plt.scatter(position[:,0], position[:,1], c=line_color, linewidths=5, s=5)
+ 
         return
 
     @classmethod
     def plot_radar_label(cls, stid: int, date: dt.datetime,
-                         line_color: str = 'black', **kwargs):
+                         line_color: str = 'black', coords: object = Coords.AACGM, **kwargs):
         """
         plots only string at the position of a given radar station ID (stid)
 
@@ -479,40 +740,95 @@ class Fan():
             line_color: str
                 color of the text
                 default: black
+            coords: Coords
+                set the y-axis to a desired coordinate system
+                Default: Coords.AACGM
 
         Returns
         -------
             No variables returned
         """
-        # Label text
-        label_str = ' ' + SuperDARNRadars.radars[stid]\
-                    .hardware_info.abbrev.upper()
-        # Get location of radar
-        lat = SuperDARNRadars.radars[stid].hardware_info.geographic.lat
-        lon = SuperDARNRadars.radars[stid].hardware_info.geographic.lon
-        # Convert to geomag coords
-        geomag_radar = aacgmv2.get_aacgm_coord(lat, lon, 250, date)
-        mltshift = geomag_radar[1] - \
-            (aacgmv2.convert_mlt(geomag_radar[1], date) * 15)
-        # Convert to MLT then radians for theta
-        theta_lon = np.radians(geomag_radar[1] - mltshift)
-        r_lat = geomag_radar[0]
+        if coords == Coords.AACGM:
+            # Label text
+            label_str = ' ' + SuperDARNRadars.radars[stid]\
+                        .hardware_info.abbrev.upper()
+            # Get location of radar
+            lat = SuperDARNRadars.radars[stid].hardware_info.geographic.lat
+            lon = SuperDARNRadars.radars[stid].hardware_info.geographic.lon
+        
+            # Convert to geomag coords
+            geomag_radar = aacgmv2.get_aacgm_coord(lat, lon, 250, date)
+            mltshift = geomag_radar[1] - \
+                 (aacgmv2.convert_mlt(geomag_radar[1], date) * 15)
+            # Convert to MLT then radians for theta
+            theta_lon = np.radians(geomag_radar[1] - mltshift)
+            r_lat = geomag_radar[0]
 
-        theta_text = theta_lon
-        # Shift in latitude (dependent on hemisphere)
-        if SuperDARNRadars.radars[stid].hemisphere == Hemisphere.North:
-            r_text = r_lat - 5
-        else:
-            r_text = r_lat + 5
-        plt.text(theta_text, r_text, label_str, ha='center', c=line_color)
+            theta_text = theta_lon
+            # Shift in latitude (dependent on hemisphere)
+            if SuperDARNRadars.radars[stid].hemisphere == Hemisphere.North:
+                r_text = r_lat - 7
+            else:
+                r_text = r_lat + 5
+            plt.text(theta_text, r_text, label_str, ha='center', c=line_color)
+        
+        if coords == Coords.SLANT_RANGE or coords == Coords.GROUND_SCATTER_MAPPED_RANGE: 
+            # Get location of radar
+            radar_position_lat = np.array(SuperDARNRadars.radars[stid].hardware_info.geographic.lat)
+            radar_position_lon = np.array(SuperDARNRadars.radars[stid].hardware_info.geographic.lon)
+            
+            # Where in the world are we
+            if np.all(radar_position_lat > 0):
+                northern_hemisphere = True
+            else:
+                northern_hemisphere = False
+            pole_lat = 90 if northern_hemisphere else -90
+            
+            # no need to shift any coords, let cartopy do that
+            # however, we do need to figure out
+            # how much to rotate the projection
+            deg_from_midnight = (date.hour + date.minute / 60) / 24 * 360
+            if northern_hemisphere:
+                noon = -deg_from_midnight
+            else:
+                noon = 360 - deg_from_midnight
+            
+            # projection for radar postion coordinate transformation
+            proj = ccrs.Orthographic(noon, pole_lat) 
+            
+            # radar position coordinate transformation to geo coordinates
+            geo = ccrs.Geodetic()
+            position=proj.transform_points(geo,radar_position_lon, radar_position_lat) 
+            
+            # Label text
+            label_str = ''
+            label_str = ' ' + SuperDARNRadars.radars[stid]\
+                .hardware_info.abbrev.upper()
+            theta_text=position[:,0]
+            # Shift in latitude (dependent on hemisphere)
+            if SuperDARNRadars.radars[stid].hemisphere == Hemisphere.North:
+                r_text = position[:,1] - 7
+            else:
+                r_text = position[:,1] + 5
+
+            plt.text(theta_text, r_text, label_str, ha='center', c=line_color)
+
         return
 
     @classmethod
     def __add_title__(cls, first_timestamp: dt.datetime,
-                      end_timestamp: dt.datetime):
-        title = "{year}-{month}-{day} {start_hour}:{start_minute}:{second} -"\
+                      end_timestamp: dt.datetime, coords: object = Coords.AACGM):
+        """
+            coords: Coords
+                set the y-axis to a desired coordinate system
+                Default: Coords.AACGM
+        Returns
+        -------
+            title
+        """
+        title = "{coords}\n{year}-{month}-{day} {start_hour}:{start_minute}:{second} -"\
                 " {end_hour}:{end_minute}:{end_second}"\
-                "".format(year=first_timestamp.year,
+                "".format(coords=str(coords)[7:], year=first_timestamp.year,
                           month=str(first_timestamp.month).zfill(2),
                           day=str(first_timestamp.day).zfill(2),
                           start_hour=str(first_timestamp.hour).zfill(2),
