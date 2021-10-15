@@ -351,17 +351,9 @@ class Fan():
                           rs,
                           np.ma.masked_array(scan, ~scan.astype(bool)),
                           norm=norm, cmap=cmap)     
-            for gates in range(ranges[0],ranges[1]-1):
-                for beams in range(thetas.shape[1] - 2):
-                    #Angle for polar plotting
-                    theta = [thetas[gates, beams], thetas[gates + 1, beams],
-                             thetas[gates + 1, beams + 1],
-                             thetas[gates, beams + 1]]
-                    #Radius for polar plotting
-                    r = [rs[gates, beams], rs[gates + 1, beams],
-                         rs[gates + 1, beams + 1], rs[gates, beams + 1]]
+
             if boundary:
-                """lons = np.concatenate(
+                lons = np.concatenate(
                      (thetas[ranges[0], :],
                       thetas[ranges[0]:ranges[1], -1],
                       thetas[ranges[1], ::-1],
@@ -374,19 +366,8 @@ class Fan():
                       rs[ranges[1]:ranges[0]:-1, 0],
                       [rs[0, 0]]))
                 # right boundary line
-                plt.polar(lons, lats, color=line_color, linewidth=1.2)"""
+                plt.polar(lons, lats, color=line_color, linewidth=1.2)
 
-                plt.polar(thetas[0:ranges[1], 0], rs[0:ranges[1], 0], color='black',
-                          linewidth=0.5)
-                plt.polar(thetas[ranges[1] - 1, 0:thetas.shape[1] - 1],
-                          rs[ranges[1] - 1, 0:thetas.shape[1] - 1], color='black',
-                          linewidth=0.5)
-                plt.polar(thetas[0:ranges[1], thetas.shape[1] - 2],
-                          rs[0:ranges[1], thetas.shape[1] - 2],
-                          color='black', linewidth=0.5)
-                plt.polar(thetas[0, 0:thetas.shape[1] - 2],
-                          rs[0, 0:thetas.shape[1] - 2], color='black',
-                          linewidth=0.5)
 
             # plot the groundscatter as grey fill
             if groundscatter:

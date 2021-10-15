@@ -87,27 +87,24 @@ def radar_fov(stid: int, rsep: int = 45, frang: int = 180,
     # Plus 1 is due to the fact fov files index at 1 so in the plotting
     # of the boundary there is a subtraction of 1 to offset this as python
     # converts to index of 0 which my code already accounts for
-    beam_corners_lats = np.zeros((ranges[1]+1, max_beams+1))
-    beam_corners_lons = np.zeros((ranges[1]+1, max_beams+1))
+        beam_corners_lats = np.zeros((ranges[1]+1, max_beams+1))
+        beam_corners_lons = np.zeros((ranges[1]+1, max_beams+1))
 
-    for beam in range(max_beams):
-        for gate in range(ranges[1]):
-            if coords == Coords.AACGM:
-                if date is None:
-                    date = datetime.datetime.now()
-                geomag = np.array(aacgmv2.get_aacgm_coord(beam_corners_lats[ranges[1],max_beams],
-                                          beam_corners_lons[ranges[1],max_beams],
-                                          250, date))
-                beam_corners_lats[ranges[1],max_beams] = geomag[0]
-                beam_corners_lons[ranges[1],max_beams] = geomag[1]
-                import pdb; pdb.set_trace()
-            else:
+        for beam in range(max_beams+1):
+            for gate in range(ranges[1]+1):
                 lat, lon = geographic_cell_positions(stid, beam, gate, rsep,
-                                                     frang, coords = coords, height=300)
+                                                     frang, coords = coords, reflection_height=reflection_height, height=300)
+
+                if coords == Coords.AACGM:
+                    if date is None:
+                        date = datetime.datetime.now()
+
+                    geomag = np.array(aacgmv2.get_aacgm_coord(lat, lon,
+                                                               250, date))
+                    lat = geomag[0]
+                    lon = geomag[1]
                 beam_corners_lats[gate, beam] = lat
                 beam_corners_lons[gate, beam] = lon
-                
-
     # Return geographic coordinates
     return beam_corners_lats, beam_corners_lons
 
@@ -196,7 +193,18 @@ def geographic_cell_positions(stid: int, beam: int, range_gate: int,
     # Initialize lon and lat to allow use outside of if statement
     lon = np.empty((2,2))
     lat = np.empty((2,2))
-    
+    if coords == Coords.AACGM:
+        # Calculate the slant range [km]
+        slant_range = gate2slant(frang, rsep, rxrise, gate=range_gate)
+        # If no height is specified then use elevation angle (default 0)
+        # to calculate the transmutation height
+        if height is None:
+            height = -Re + np.sqrt(Re**2 + 2 * slant_range * Re *
+                                    np.sin(np.radians(elv_angle)) + slant_range**2)  
+                                          
+        lat, lon = geocentric_coordinates(radar_lat, radar_lon, slant_range,
+                                      height, psi, boresight, virtual_height_type = virtual_height_type)
+                                         
     #calculates lon and lat for slant range 
     if coords == Coords.SLANT_RANGE:
         # Calculate the slant range [km]
