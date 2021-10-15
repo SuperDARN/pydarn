@@ -361,7 +361,6 @@ class Fan():
                     r = [rs[gates, beams], rs[gates + 1, beams],
                          rs[gates + 1, beams + 1], rs[gates, beams + 1]]
             if boundary:
-                import pdb; pdb.set_trace()
                 """lons = np.concatenate(
                      (thetas[ranges[0], :],
                       thetas[ranges[0]:ranges[1], -1],

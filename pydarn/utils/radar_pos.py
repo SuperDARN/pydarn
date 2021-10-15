@@ -95,16 +95,18 @@ def radar_fov(stid: int, rsep: int = 45, frang: int = 180,
             if coords == Coords.AACGM:
                 if date is None:
                     date = datetime.datetime.now()
-                geomag = np.array(aacgmv2.get_aacgm_coord(beam_corners_lats[gate,beam],
-                                          beam_corners_lons[gate,beam],
+                geomag = np.array(aacgmv2.get_aacgm_coord(beam_corners_lats[ranges[1],max_beams],
+                                          beam_corners_lons[ranges[1],max_beams],
                                           250, date))
-                beam_corners_lats[gate,beam] = geomag[0]
-                beam_corners_lons[gate,beam] = geomag[1]
+                beam_corners_lats[ranges[1],max_beams] = geomag[0]
+                beam_corners_lons[ranges[1],max_beams] = geomag[1]
+                import pdb; pdb.set_trace()
             else:
                 lat, lon = geographic_cell_positions(stid, beam, gate, rsep,
                                                      frang, coords = coords, height=300)
                 beam_corners_lats[gate, beam] = lat
                 beam_corners_lons[gate, beam] = lon
+                
 
     # Return geographic coordinates
     return beam_corners_lats, beam_corners_lons
