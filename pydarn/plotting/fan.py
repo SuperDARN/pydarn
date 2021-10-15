@@ -351,7 +351,6 @@ class Fan():
                           rs,
                           np.ma.masked_array(scan, ~scan.astype(bool)),
                           norm=norm, cmap=cmap)     
-            # plot the groundscatter as grey fill
 
             if boundary:
                 lons = np.concatenate(
@@ -369,7 +368,7 @@ class Fan():
                 # right boundary line
                 plt.polar(lons, lats, color=line_color, linewidth=1.2)
 
-
+            # plot the groundscatter as grey fill
             if groundscatter:
                 ax.pcolormesh(thetas,
                               rs,
@@ -377,10 +376,7 @@ class Fan():
                                                  ~grndsct.astype(bool)),
                               norm=norm, cmap='Greys')
                               
-            azm = np.linspace(0, 2 * np.pi, 100)
-            r, th = np.meshgrid(rs, azm)
-            plt.plot(azm, r, color='k', ls='none')
-            plt.grid()
+
             
             # *There exists a bug in matplotlib pcolormesh when plotting in
             # polar projections that gets rid of the rgrid. Replot them here:
@@ -430,8 +426,8 @@ class Fan():
                               norm=norm, cmap=cmap,
                               transform=ccrs.PlateCarree())
                 if boundary:
-                    plt.plot(point[:,0], point[:,1], color=line_color, linewidth=1)  
-                                        
+                    plt.plot(point[:,0], point[:,1], color=line_color, linewidth=1)
+                                         
                 if groundscatter:
                     ax.pcolormesh(beam_corners_aacgm_lons,
                                   beam_corners_aacgm_lats,
