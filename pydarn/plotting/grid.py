@@ -33,6 +33,7 @@ from pydarn import (PyDARNColormaps, Fan, plot_exceptions, citing_warning,
 
 warnings.formatwarning = standard_warning_format
 
+
 class Grid():
     """
         Grid plots for SuperDARN data
