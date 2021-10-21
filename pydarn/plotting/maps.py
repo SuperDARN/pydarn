@@ -1,6 +1,7 @@
-# Copyright (C) 2020 SuperDARN Canada, University of Saskatchewan
-# Author: Daniel Billett, Marina Schmidt
-#
+# Copyright (C) 2021 SuperDARN Canada, University of Saskatchewan
+# Author: Marina Schmidt
+# Copyright (C) 2012  VT SuperDARN Lab
+# Author: ???
 # Modifications:
 #
 # Disclaimer:
@@ -20,14 +21,15 @@ Grid plots, mapped to AACGM coordinates in a polar format
 import datetime as dt
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy import special
 import warnings
+
+from enum import Enum
 from matplotlib import ticker, cm, colors
+from scipy import special
 from typing import List
 
 # Third party libraries
 import aacgmv2
-
 
 from pydarn import (PyDARNColormaps, plot_exceptions, citing_warning,
                     standard_warning_format, Re, Hemisphere,
@@ -53,9 +55,9 @@ class Maps():
 
     @classmethod
     def plot_mapdata(cls, dmap_data: List[dict], ax=None,
-                     parameter=MapParams.FITTED_VELOCITY,
-                     record:int = 0, start_time:dt.datetime = None,
-                     time_delta: float = 1,  alpha:float = 1.0,
+                     parameter: Enum = MapParams.FITTED_VELOCITY,
+                     record: int = 0, start_time: dt.datetime = None,
+                     time_delta: float = 1,  alpha: float = 1.0,
                      len_factor: float = 150, cmap: str = None,
                      colorbar: bool = True, colorbar_label: str = '',
                      title: str = '', zmin: float = None, zmax: float = None,
@@ -121,15 +123,11 @@ class Maps():
                 Normalisation factor for the vectors, to control size on plot
                 Larger number means smaller vectors on plot
                 Default: 150.0
-            ref_vector: int
-                Velocity value to be used for the reference vector, in m/s
-                Default: 300
             kwargs: key=value
                 uses the parameters for plot_fov and projections.axis
 
         """
         # Find the record corresponding to the start time
-        Re_meters = Re * 1000
         if start_time is not None:
             record = find_record(dmap_data, start_time, time_delta)
         date = time2datetime(dmap_data[record])
@@ -141,50 +139,31 @@ class Maps():
                     MapParams.SPECTRAL_WIDTH: PyDARNColormaps.PYDARN_VIRIDIS}
             cmap = plt.cm.get_cmap(cmap[parameter])
         # Setting zmin and zmax
-        defaultzminmax = { MapParams.FITTED_VELOCITY: [0, 1000],
-                           MapParams.MODEL_VELOCITY: [0, 1000],
-                           MapParams.RAW_VELOCITY: [0, 1000],
-                           MapParams.POWER: [0, 250],
-                           MapParams.SPECTRAL_WIDTH: [0, 250]}
+        defaultzminmax = {MapParams.FITTED_VELOCITY: [0, 1000],
+                          MapParams.MODEL_VELOCITY: [0, 1000],
+                          MapParams.RAW_VELOCITY: [0, 1000],
+                          MapParams.POWER: [0, 250],
+                          MapParams.SPECTRAL_WIDTH: [0, 250]}
         if zmin is None:
             zmin = defaultzminmax[parameter][0]
         if zmax is None:
             zmax = defaultzminmax[parameter][1]
 
-        hemisphere_num = dmap_data[record]['hemisphere']
+        hemisphere = Hemisphere(dmap_data[record]['hemisphere'])
         norm = colors.Normalize
         norm = norm(zmin, zmax)
-        #if ax is None and fov is False:
-        #    kwargs['hemisphere'] = Hemisphere(hemisphere_num)
-        #    ax = Projections(kwargs)
 
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             for stid in dmap_data[record]['stid']:
                 _, aacgm_lons, _, _, ax =\
                         Fan.plot_fov(stid, date, ax=ax, **kwargs)
-        data_lons = dmap_data[record]['vector.mlon']
-        data_lats = dmap_data[record]['vector.mlat']
-
-        # Hold the beam positions
-        shifted_mlts = aacgm_lons[0, 0] - \
-            (aacgmv2.convert_mlt(aacgm_lons[0, 0], date) * 15)
-        shifted_lons = data_lons - shifted_mlts
-        mlons = np.radians(shifted_lons)
-        mlats = data_lats
-
-        # If the parameter is velocity then plot the LOS vectors
-        if parameter == MapParams.FITTED_VELOCITY:
-            v_mag, azm_v =\
-                    cls.calculated_fitted_velocities(mlats=mlats, mlons=mlons,
-                                                     hemisphere=hemisphere_num,
-                                                     fit_coefficient=dmap_data[record]['N+2'],
-                                                     fit_order=dmap_data[record]['fit.order'],
-                                                     lat_min=dmap_data[record]['latmin'],
-                                                     len_factor=len_factor)
-        elif parameter == MapParams.MODEL_VELOCITY:
+        if parameter == MapParams.MODEL_VELOCITY:
             data_lons = dmap_data[record]['model.mlon']
             data_lats = dmap_data[record]['model.mlat']
+        else:
+            data_lons = dmap_data[record]['vector.mlon']
+            data_lats = dmap_data[record]['vector.mlat']
 
             # Hold the beam positions
             shifted_mlts = aacgm_lons[0, 0] - \
@@ -193,81 +172,64 @@ class Maps():
             mlons = np.radians(shifted_lons)
             mlats = data_lats
 
+        # If the parameter is velocity then plot the LOS vectors
+        if parameter == MapParams.FITTED_VELOCITY:
+            v_mag, azm_v =\
+                    cls.calculated_fitted_velocities(mlats=mlats, mlons=mlons,
+                                                     hemisphere=hemisphere,
+                                                     fit_coefficient=dmap_data[record]['N+2'],
+                                                     fit_order=dmap_data[record]['fit.order'],
+                                                     lat_min=dmap_data[record]['latmin'],
+                                                     len_factor=len_factor)
+        elif parameter == MapParams.MODEL_VELOCITY:
             v_mag = dmap_data[record]['model.vel.median']
-            azm_v = dmap_data[record]['model.kvect']
+            azm_v = np.radians(dmap_data[record]['model.kvect'])
         elif parameter == MapParams.RAW_VELOCITY:
             v_mag = dmap_data[record]['vector.vel.median']
-            azm_v = dmap_data[record]['vector.kvect']
+            azm_v = np.radians(dmap_data[record]['vector.kvect'])
         elif parameter == MapParams.POWER:
-            v_mag = dmap_data[record]['model.pwr.median']
-            azm_v = dmap_data[record]['vector.kvect']
+            v_mag = dmap_data[record]['vector.pwr.median']
+            azm_v = np.radians(dmap_data[record]['vector.kvect'])
 
         elif parameter == MapParams.SPECTRAL_WIDTH:
-            v_mag = dmap_data[record]['vector.sdt.median']
-            azm_v = dmap_data[record]['vector.kvect']
+            v_mag = dmap_data[record]['vector.wdt.median']
+            azm_v = np.radians(dmap_data[record]['vector.kvect'])
 
-        #if parameter in [MapParams.FITTED_VELOCITY, MapParams.MODEL_VELOCITY, MapParams.RAW_VELOCITY]:
-        #    # Number of v_mag points
-        #    num_pts = range(len(v_mag))
+        if parameter in [MapParams.FITTED_VELOCITY, MapParams.MODEL_VELOCITY,
+                         MapParams.RAW_VELOCITY]:
+            # Angle to "rotate" each vector by to get into same
+            # reference frame Controlled by longitude, or "mltitude"
+            alpha = mlons
 
-        #    # Angle to "rotate" each vector by to get into same
-        #    # reference frame Controlled by longitude, or "mltitude"
-        #    alpha = mlons
+            # Convert initial positions to Cartesian
+            start_pos_x = (90 - mlats) * np.cos(mlons)
+            start_pos_y = (90 - mlats) * np.sin(mlons)
 
-        #    # Convert initial positions to Cartesian
-        #    start_pos_x = (90 - mlats) * np.cos(mlons)
-        #    start_pos_y = (90 - mlats) * np.sin(mlons)
+            # Resolve LOS vector in x and y directions,
+            # with respect to mag pole
+            # Gives zonal and meridional components of LOS vector
+            x = -v_mag * np.cos(-azm_v)
+            y = -v_mag * np.sin(-azm_v)
 
-        #    # Resolve LOS vector in x and y directions,
-        #    # with respect to mag pole
-        #    # Gives zonal and meridional components of LOS vector
-        #    los_x = -v_mag * np.cos(np.radians(-azm_v))
-        #    los_y = -v_mag * np.sin(np.radians(-azm_v))
+            # Rotate each vector into same reference frame
+            # following vector rotation matrix
+            # https://en.wikipedia.org/wiki/Rotation_matrix
+            vec_x = (x * np.cos(alpha)) - (y * np.sin(alpha))
+            vec_y = (x * np.sin(alpha)) + (y * np.cos(alpha))
 
-        #    # Rotate each vector into same reference frame
-        #    # following vector rotation matrix
-        #    # https://en.wikipedia.org/wiki/Rotation_matrix
-        #    vec_x = (los_x * np.cos(alpha)) - (los_y * np.sin(alpha))
-        #    vec_y = (los_x * np.sin(alpha)) + (los_y * np.cos(alpha))
+            # New vector end points, in Cartesian
+            end_pos_x = start_pos_x + (vec_x / len_factor)
+            end_pos_y = start_pos_y + (vec_y / len_factor)
 
-        #    # New vector end points, in Cartesian
-        #    end_pos_x = start_pos_x + (vec_x / len_factor)
-        #    end_pos_y = start_pos_y + (vec_y / len_factor)
+            # Convert back to polar for plotting
+            end_mlats = 90.0 - (np.sqrt(end_pos_x**2 + end_pos_y**2))
+            end_mlons = np.arctan2(end_pos_y, end_pos_x)
 
-        #    # Convert back to polar for plotting
-        #    end_mlats = 90 - (np.sqrt(end_pos_x**2 + end_pos_y**2))
-        #    end_mlons = np.arctan2(end_pos_y, end_pos_x)
-
-        #    # Plot the vectomlats
-        #    for i in num_pts:
-        #        plt.plot([mlons[i], end_mlons[i]],
-        #                 [mlats[i], end_mlats[i]], c=cmap(norm(v_mag[i])),
-        #                 linewidth=0.5)
-
-        for nn, nn_mlats in enumerate(mlats):
-            r_mlats = np.radians(nn_mlats)
-            vec_len = (v_mag[nn] * len_factor) / Re_meters
-            end_lat = np.arcsin(np.sin(r_mlats) * np.cos(vec_len) +
-                                np.cos(r_mlats) * np.sin(vec_len) *
-                                np.cos(azm_v[nn]))
-            end_lat = np.degrees(end_lat)
-
-            del_lon = np.arctan2(np.sin(azm_v[nn]) *
-                                 np.sin(vec_len) * np.cos(r_mlats),
-                                 np.cos(vec_len) - np.sin(r_mlats)
-                                 * np.sin(np.deg2rad(end_lat)))
-
-            end_lon = mlons[nn] + del_lon
-
-            x_vec_strt = mlons[nn]
-            y_vec_strt = nn_mlats
-            x_vec_end = end_lon
-            y_vec_end = end_lat
-
-            plt.plot([x_vec_strt, x_vec_end],
-                      [y_vec_strt, y_vec_end], c=cmap(norm(v_mag[nn])),
-                      linewidth=0.5)
-
+            # Plot the vectomlats
+            for i in range(len(v_mag)):
+                plt.plot([mlons[i], end_mlons[i]],
+                         [mlats[i], end_mlats[i]], c=cmap(norm(v_mag[i])),
+                         linewidth=0.5)
         plt.scatter(mlons, mlats, c=v_mag, s=2.0,
                     vmin=zmin, vmax=zmax,  cmap=cmap, zorder=5.0)
 
@@ -296,12 +258,13 @@ class Maps():
                               end_minute=str(dmap_data[record]['end.minute']).
                               zfill(2))
         plt.title(title)
+        citing_warning()
         return mlats, mlons, v_mag
-
 
     @classmethod
     def calculated_fitted_velocities(cls, mlats: list, mlons: list,
-                                     fit_coefficient: list, hemisphere: int = 1,
+                                     fit_coefficient: list,
+                                     hemisphere: Enum = Hemisphere.North,
                                      fit_order: int = 6, lat_min: int = 60,
                                      len_factor: int = 150):
         """
@@ -328,8 +291,9 @@ class Maps():
                 length of the vector socks multiplied by
                 default: 150
         """
+        # convert earth radius to meters
+        Re_meters = Re * 1000.0
         # theta values in radians
-        Re_meters = Re * 1000
         thetas = np.radians(90.0 - abs(mlats))
         thetas_max = np.radians(90.0 - abs(lat_min))
 
@@ -339,9 +303,9 @@ class Maps():
         thetas_prime = alpha * thetas
         x = np.cos(thetas_prime)
 
-        for j, xj in enumerate(x):
+        for index, xj in enumerate(x):
             temp_poly = special.lpmn(fit_order, fit_order, xj)
-            if j == 0:
+            if index == 0:
                 legendre_poly = np.append([temp_poly[0]], [temp_poly[0]],
                                           axis=0)
             else:
@@ -357,10 +321,25 @@ class Maps():
         # so we do spherical harmonics for a real valued function using
         # sin(phi) and cos(phi) rather than exp(i*phi).
         # we place an inner function to copying code
-        def index_legendre(l, m):
+        def index_legendre(l: int, m: int): -> int
+            """
+            not a 100% how this works some black magic
+
+            parameter
+            ---------
+                l : int
+                    doping level
+                m : int
+                    fit order
+
+            return
+            ------
+                legendre index?
+            """
             return (m == 0 and l**2) or \
                     ((l != 0) and (m != 0) and l**2 + 2 * m - 1) or 0
 
+        # max index value
         k_max = index_legendre(fit_order, fit_order)
 
         # set up arrays and small stuff for the E field
@@ -428,9 +407,9 @@ class Maps():
                             thetas_ecoeffs[k2, q_prime] \
                             + fit_coefficient_flat[k1] * alpha *\
                             (l + 1 + m) / np.sin(thetas_prime[q_prime]) /\
-                                Re_meters
+                            Re_meters
 
-        # Calculate the Elec. field positions where
+        # Calculate the Electric field positions
         thetas_ecomp = np.zeros(thetas.shape)
         phi_ecomp = np.zeros(thetas.shape)
 
@@ -486,12 +465,16 @@ class Maps():
             velocity = np.array([0.0])
             azm_v = np.array([0.0])
         else:
-            if hemisphere == -1:
+            if hemisphere == Hemisphere.South:
                 azm_v[velocity_chk_zero_inds] =\
-                        np.arctan2(velocity_fit_vectors[1, velocity_chk_zero_inds],
-                                   velocity_fit_vectors[0, velocity_chk_zero_inds])
+                        np.arctan2(velocity_fit_vectors[1,
+                                                        velocity_chk_zero_inds],
+                                   velocity_fit_vectors[0,
+                                                        velocity_chk_zero_inds])
             else:
                 azm_v[velocity_chk_zero_inds] =\
-                        np.arctan2(velocity_fit_vectors[1, velocity_chk_zero_inds],
-                                   -velocity_fit_vectors[0, velocity_chk_zero_inds])
+                        np.arctan2(velocity_fit_vectors[1,
+                                                        velocity_chk_zero_inds],
+                                   -velocity_fit_vectors[0,
+                                                         velocity_chk_zero_inds])
         return velocity, azm_v

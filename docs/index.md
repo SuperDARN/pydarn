@@ -25,6 +25,7 @@ If you have any questions or concerns please submit an **Issue** on the SuperDAR
     - [FOV plots](user/fov.md)
     - [Fan plots](user/fan.md)
     - [Grid plots](user/grid.md)
+    - [Convection Map Potential plots](user/map.md)
     - [Power plots](user/power.md)
     - [ACF plotting](user/acf.md)
     - [Logging](user/logging.md)
