@@ -303,9 +303,11 @@ class Maps():
         thetas_prime = alpha * thetas
         x = np.cos(thetas_prime)
 
-        for index, xj in enumerate(x):
-            temp_poly = special.lpmn(fit_order, fit_order, xj)
-            if index == 0:
+        # i is the index of the list
+        # x_i is the element of x at ith index
+        for i, x_i in enumerate(x):
+            temp_poly = special.lpmn(fit_order, fit_order, x_i)
+            if i == 0:
                 legendre_poly = np.append([temp_poly[0]], [temp_poly[0]],
                                           axis=0)
             else:
