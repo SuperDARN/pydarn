@@ -17,7 +17,7 @@ the additional permissions listed below.
 
 Map plots are a way to visualise data from a MAP file of a SuperDARN radars. Please read RST documentation on how to process [MAP files](https://radar-software-toolkit-rst.readthedocs.io/en/latest/user_guide/map_grid/) from GRID files.    
 
-[Map field descriptions can be found [here](https://radar-software-toolkit-rst.readthedocs.io/en/latest/references/general/map/). pyDARN uses a `enum` object to select different common parameters to plot in a MAP file:
+Map field descriptions can be found [here](https://radar-software-toolkit-rst.readthedocs.io/en/latest/references/general/map/). pyDARN uses a `enum` object to select different common parameters to plot in a MAP file:
 
 | Name               | parameter name                | Map field name                |
 | ------------------ | ----------------------------- | ----------------------------- |
