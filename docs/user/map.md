@@ -27,7 +27,7 @@ Map plots are a way to visualise data from a MAP file of a SuperDARN radars. Ple
 | Power              | `MapParams.POWER`             | `vector.pwr.median`           |
 | Spectral Width     | `MapParams.SPECTRAL_WIDTH`    | `vector.wdt.median`           |
 
-for a given `start_time` or `record` number projected onto a polar format plot in [AACGMv2](http://superdarn.thayer.dartmouth.edu/aacgm.html) coordinates. 
+for a given `start_time` or `record` number projected onto a polar plot in [AACGMv2](http://superdarn.thayer.dartmouth.edu/aacgm.html) coordinates. 
 
 Currently, map plots in pyDARN get geomagnetic positions of the mapped data in [`mlon` and `mlat`](https://pypi.org/project/aacgmv2/) from the MAP file, which uses AACGMv2 coordinates. In the future, pyDARN will also generate the geographic position of the data points, which will bring support for non-standard gridded vector layouts.
 
