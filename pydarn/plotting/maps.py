@@ -1,7 +1,6 @@
 # Copyright (C) 2021 SuperDARN Canada, University of Saskatchewan
 # Author: Marina Schmidt
 # Copyright (C) 2012  VT SuperDARN Lab
-# Author: ???
 # Modifications:
 #
 # Disclaimer:
