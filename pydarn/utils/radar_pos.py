@@ -193,20 +193,9 @@ def geographic_cell_positions(stid: int, beam: int, range_gate: int,
     # Initialize lon and lat to allow use outside of if statement
     lon = np.empty((2,2))
     lat = np.empty((2,2))
-    if coords == Coords.AACGM:
-        # Calculate the slant range [km]
-        slant_range = gate2slant(frang, rsep, rxrise, gate=range_gate)
-        # If no height is specified then use elevation angle (default 0)
-        # to calculate the transmutation height
-        if height is None:
-            height = -Re + np.sqrt(Re**2 + 2 * slant_range * Re *
-                                    np.sin(np.radians(elv_angle)) + slant_range**2)  
-                                          
-        lat, lon = geocentric_coordinates(radar_lat, radar_lon, slant_range,
-                                      height, psi, boresight, virtual_height_type = virtual_height_type)
                                          
     #calculates lon and lat for slant range 
-    if coords == Coords.SLANT_RANGE:
+    if coords == Coords.SLANT_RANGE or coords == Coords.AACGM:
         # Calculate the slant range [km]
         slant_range = gate2slant(frang, rsep, rxrise, gate=range_gate)
         # If no height is specified then use elevation angle (default 0)
