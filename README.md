@@ -22,11 +22,7 @@ pyDARN release v2.2 includes the following features:
 - Bug fix in Range-time plots with groundscatter
 - Bug fix in Range-time plots with time-shifting 
 
-!!! Warning
-    `slant` option in `plot_range-time` and `plot_summary` is deprecated now uses `coords` 
-
-!!! Warning
-    `matplotlib` need to be equal or greater than 3.3.4 version. 
+**Deprecation**: `slant` option in `plot_range-time` and `plot_summary` is deprecated now uses `coords` 
 
 ## Documentation
 
