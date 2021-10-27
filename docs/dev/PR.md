@@ -40,13 +40,13 @@ and click on `New pull request`. If templates are available select which one is 
 When in doubt merge to `develop`! Otherwise here are some other options:
 
 - merge to another branch if you `checkout` from that branch this helps to break things into smaller parts for quicker review and testing
-- merge to `master` **ONLY** if it is a **HOTFIX** or **RELEASE** branch. 
+- merge to `main` **ONLY** if it is a **HOTFIX** or **RELEASE** branch. 
 
     !!! Note
         **HOTFIX** is a substantial fix for a bug that prevents users from installing or using pyDARN or gives inaccurate data. Document fixes can 
         also be seen as a **HOTFIX** as they do not require release and DOI'ing on the code. 
 
-- In some cases, documentation can be merged to `master` if it is fixing some typos. 
+- In some cases, documentation can be merged to `main` if it is fixing some typos. 
 
 ### Writing a PR
 

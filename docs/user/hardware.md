@@ -16,7 +16,7 @@ the additional permissions listed below.
 # Accessing Hardware File Information 
 
 SuperDARN Radar hardware information is stored in hardware files located [here](https://github.com/SuperDARN/hdw). 
-pyDARN pulls down the hardware files from the `master` branch on the [repository](https://github.com/SuperDARN/hdw) to obtain geographical and hardware information for plotting functionality. 
+pyDARN pulls down the hardware files from the `main` branch on the [repository](https://github.com/SuperDARN/hdw) to obtain geographical and hardware information for plotting functionality. 
 
 Users can also read and access these hardware files information by using the function `read_hdw_file`.
 ``` python 
