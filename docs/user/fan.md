@@ -1,6 +1,7 @@
 <!--Copyright (C) SuperDARN Canada, University of Saskatchewan 
 Author(s): Daniel Billet 
 Modifications:
+20210922: CJM - included info on new channel option
 
 Disclaimer:
 pyDARN is under the LGPL v3 license found in the root directory LICENSE.md 
@@ -89,7 +90,8 @@ Here is a list of all the current options than can be used with `plot_fan`
 
 | Option                        | Action                                                                                                  |
 | ----------------------------- | ------------------------------------------------------------------------------------------------------- |
-| scan_index=(int or  datetime) | Scan number or datetime, from start of records in file                                                  |
+| scan_index=(int or  datetime) | Scan number or datetime, from start of records in file corresponding to channel if given                |
+| channel=(int or 'all')        | Specify channel number or choose 'all' (default = 'all')                                                |
 | groundscatter=(bool)          | True or false to showing ground scatter as grey                                                         |
 | ranges=(list)                 | Two element list giving the lower and upper ranges to plot, grabs ranges from hardware file (default [] |
 | cmap=matplotlib.cm            | A matplotlib color map object. Will override the pyDARN defaults for chosen parameter                   |
@@ -105,6 +107,11 @@ Here is a list of all the current options than can be used with `plot_fan`
 | radar_label=(bool)            | Places the radar 3-letter abbreviation next to the radar location                                       |
 | kwargs **                     | Axis Polar settings. See [polar axis](axis.md)                                                          |
 
+
+!!! Note
+    For some control programs, the user may need to specify a channel integer as `'all'` will not correctly show the data.
+    In other cases, the user may want to specify the channel and use an integer (N) for the `scan_index`. Be aware that this will show the
+    data for the Nth scan of only the chosen channel, not that of the entire file. 
 
 `plot_fan` can concatenate with other plots including itself, here is an example of plotting two different radars with some of the above parameters:
 

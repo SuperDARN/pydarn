@@ -28,7 +28,7 @@ the additional permissions listed below.
 
 ## Prerequisites
 
-pyDARN requires **python 3.6** or later.
+pyDARN requires **python 3.6** or later and **matplotlib 3.3.4** or later.
 
 Depending on your operating system or distribution, the following package installers, development environments or data parsers are required: 
  
@@ -51,7 +51,7 @@ pyDARN's setup will download the following dependencies:
 - [Git](https://git-scm.com/) (For developers)
 - [pip3](https://help.dreamhost.com/hc/en-us/articles/115000699011-Using-pip3-to-install-Python3-modules)
 - [NumPy](https://numpy.org/)
-- [matplotlib](https://matplotlib.org/)
+- [matplotlib 3.3.4+](https://matplotlib.org/) 
 - [PyYAML](https://pyyaml.org/wiki/PyYAMLDocumentation)
 - [pyDARNio](https://pydarnio.readthedocs.io/en/latest/user/install/)
 - [AACGMv2](https://pypi.org/project/aacgmv2/) 
@@ -154,4 +154,12 @@ Solution:
 Credit to this solution is Marina Schmidt brought up by Remington Rohel from SuperDARN Canada
 
 
-> If you find any problems/solutions, please make a [github issue](https://github.com/superdarn/pydarn/issues/new) so the community can help you or add it to the documentation 
+> If you find any problems/solutions, please make a [github issue](https://github.com/superdarn/pydarn/issues/new) so the community can help you or add it to the documentation
+
+### Summary plots get a ValueError 
+
+Issue: `ValueError: Cannot convert 0 to a date.  This often happens if non-datetime values are passed to an axis that expects datetime objects.` when using `plot_summary`
+
+Solution:
+1. check matplotlib version, if lower than 3.3.4 then upgrade matplotlib equal or higher version.  
+2. `pip install -U matplotlib`

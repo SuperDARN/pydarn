@@ -23,6 +23,7 @@ from .exceptions import radar_exceptions
 from .exceptions.warning_formatting import standard_warning_format
 from .exceptions.warning_formatting import only_message_warning_format
 from .exceptions.warning_formatting import citing_warning
+from .exceptions.warning_formatting import partial_record_warning
 
 # importing utils
 from .utils.coordinates import Coords
@@ -41,6 +42,7 @@ from .utils.superdarn_radars import read_hdw_file
 from .utils.superdarn_radars import get_hdw_files
 from .utils.scan import build_scan
 from .utils.radar_pos import radar_fov
+from .utils.radar_pos import geographic_cell_positions
 
 # import plotting
 from .plotting.color_maps import PyDARNColormaps
