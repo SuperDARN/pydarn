@@ -12,8 +12,10 @@ Python data visualization library for the Super Dual Auroral Radar Network (Supe
 
 ## Changelog
 
-## Version 2.1.1 - Release!
+## Version 2.2 - Release!
 
+!!! Warning
+    pyDARN 2.2 requires minimum matplotlib version of 3.3.4
 
 pyDARN release v2.2 includes the following features:
 - **New** Radar geographical Field-of-View (FOV) calculations functionality
