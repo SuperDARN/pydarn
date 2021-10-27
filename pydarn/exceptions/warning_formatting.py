@@ -19,6 +19,15 @@ def citing_warning():
               " https://pydarn.readthedocs.io/en/master/user/citing/")
 
 
+def partial_record_warning():
+    """
+    prints a warning that the data chosen to be plotted is missing some 
+    keys that may produce a blank/half a plot
+    """
+    warnings.warn("Please be aware that the data chosen to be plotted"
+                  " contains a partial record. As such the plot may"
+                  " be empty or only partially filled.")
+
 def standard_warning_format(message: str, category: str, filename: str,
                             lineno: int, file: str = None,
                             line: int = None) -> str:

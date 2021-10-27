@@ -12,9 +12,9 @@
             "name":  "Tholley, F."
         },
         {
-            "affiliation": "University of Scranton",
-            "name":  "Frissell, N.",
-            "orcid": "0000-0002-8398-4222" 
+            "affiliation": "University of Saskatchewan",
+            "name": "Martin, C.J.",
+            "orcid": "0000-0002-8278-9783"
         },
         {
             "affiliation": "University of Saskatchewan",
@@ -22,19 +22,9 @@
             "orcid": "0000-0002-8905-8609"
         },
         {
-            "affiliation": "University of Saskatchewan",
-            "name": "Martin, C.J.",
-            "orcid": "0000-0002-8278-9783"
-        },
-        {
             "affiliation": "The University Centre in Svalbard",
             "name": "Bland, E.C.",
             "orcid": "0000-0002-0252-0400"
-        },
-        {
-            "affiliation": "US Naval Research Laboratory",
-            "name": "Burrell, A.G.",
-            "orcid": "0000-0001-8875-9326"
         },
         {
             "affiliation": "Virginia Tech",
@@ -46,6 +36,11 @@
             "name": "Detwiller, M.H."
         },
         {
+            "affiliation": "University of Scranton",
+            "name":  "Frissell, N.",
+            "orcid": "0000-0002-8398-4222" 
+        },
+        {
             "affiliation": "The University Centre in Svalbard",
             "name": "Herlingshaw, K.",
             "orcid": "0000-0001-6861-1914"
@@ -54,11 +49,6 @@
             "affiliation": "University of Saskatchewan",
             "name": "Huyghebaert, D.",
             "orcid": "0000-0002-4257-4235"
-        },
-        {
-            "affiliation": "SRI International",
-            "name": "Reimer, A.S.",
-            "orcid": "0000-0002-4621-3453"
         },
         {
             "affiliation": "University of Bergen",

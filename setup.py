@@ -56,7 +56,7 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 setup(
     cmdclass={'install': initialize_submodules, 'develop': update_submodules},
     name="pydarn",
-    version="2.1",
+    version="2.2",
     long_description=long_description,
     long_description_content_type='text/markdown',
     description="Data visualization library for SuperDARN data",
@@ -73,6 +73,6 @@ setup(
     # used to import the logging config file into pydarn.
     include_package_data=True,
     # setup_requires=['pyyaml', 'numpy', 'matplotlib', 'aacgmv2'],
-    install_requires=['pyyaml', 'numpy', 'matplotlib', 'aacgmv2',
+    install_requires=['pyyaml', 'numpy', 'matplotlib>=3.3.4', 'aacgmv2',
                       'pydarnio'],
 )
