@@ -21,6 +21,7 @@
 """
 Range-Time Parameter (aka Intensity) plots
 """
+import copy
 import matplotlib.pyplot as plt
 import numpy as np
 import warnings
@@ -390,9 +391,11 @@ class RTP():
                           " options".format(zmax))
         norm = norm(zmin, zmax)
         if isinstance(cmap, str):
-            cmap = cm.get_cmap(cmap)
+            cmap = colors.Colormap(cmap)
         else:
-            cmaps = {'p_l': plt.get_cmap('plasma'),
+            # need to do this as matplotlib 3.5 will
+            # not all direct mutations of the object
+            cmaps = {'p_l': copy.copy(cm.get_cmap('plasma')),
                      'v': PyDARNColormaps.PYDARN_VELOCITY,
                      'w_l': PyDARNColormaps.PYDARN_VIRIDIS,
                      'elv': PyDARNColormaps.PYDARN}
