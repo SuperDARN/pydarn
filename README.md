@@ -7,9 +7,6 @@
 
 Python data visualization library for the Super Dual Auroral Radar Network (SuperDARN).
 
-**WARNING!**
-    This is the `develop` branch that is not DOI'd yet, please click on the above DOI to get the most recently released pyDARN version. 
-
 ## Changelog
 
 ## Version 2.2 - Release!
