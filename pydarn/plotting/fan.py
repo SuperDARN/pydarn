@@ -101,6 +101,11 @@ class Fan():
                 the label that appears next to the colour bar.
                 Requires colorbar to be true
                 Default: ''
+            fov_files: bool
+                boolean if the fov data should be read in by a file
+                pyDARN supplies. If false then it uses radar position
+                code.
+                default: False
             title: bool
                 if true then will create a title, else user
                 can define it with plt.title
@@ -161,6 +166,9 @@ class Fan():
         	date = scan_time
 
         # Plot FOV outline
+        if ranges is None:
+            ranges = [0, dmap_data[0]['nrang']]
+
         beam_corners_aacgm_lats, beam_corners_aacgm_lons, thetas, rs, ax = \
             cls.plot_fov(dmap_data[0]['stid'], date, **kwargs)
 
@@ -252,11 +260,13 @@ class Fan():
         return beam_corners_aacgm_lats, beam_corners_aacgm_lons, scan, grndsct
 
     @classmethod
+
     def plot_fov(cls, stid: str, date: dt.datetime,
                  ax=None, ranges: List = [], boundary: bool = True,
                  fov_color: str = None, alpha: int = 0.5,
                  radar_location: bool = True, radar_label: bool = False,
-                 line_color: str = 'black', **kwargs):
+                 line_color: str = 'black',
+                 fov_files: bool = False, **kwargs):
         """
         plots only the field of view (FOV) for a given radar station ID (stid)
 
@@ -274,9 +284,8 @@ class Fan():
                 Default: Current time
             ranges: list
                 Set to a two element list of the lower and upper ranges to plot
-                If an empty array will obtain the max range gate from the
-                hardware file.
-                Default: []
+                If None, the  max will be obtained by SuperDARNRadars
+                Default: None
             boundary: bool
                 Set to false to not plot the outline of the FOV
                 Default: True
@@ -290,6 +299,10 @@ class Fan():
                 alpha controls the transparency of
                 the fov color
                 Default: 0.5
+            fov_files: bool
+                boolean determine if the fov should be read by the files
+                provided in pyDARN. Else it will use radar position code.
+                Default: False
             radar_location: bool
                 Add a dot where radar is located if True
                 Default: False
@@ -307,14 +320,16 @@ class Fan():
             thetas - theta polar coordinates
             rs - radius polar coordinates
         """
-
-        # Set datetime object to current computer time if not given
-        if not date:
-            date = dt.datetime.now()
+        if ranges == [] or ranges is None:
+            ranges = [0, SuperDARNRadars.radars[stid].range_gate_45]
 
         # Get radar beam/gate locations
         beam_corners_aacgm_lats, beam_corners_aacgm_lons = \
-            radar_fov(stid, coords=Coords.AACGM, date=date)
+            radar_fov(stid, ranges=ranges, date=date, **kwargs)
+
+        if not date:
+            date = dt.datetime.now()
+
         fan_shape = beam_corners_aacgm_lons.shape
         if ranges == []:
             ranges = [0, fan_shape[0]]
@@ -338,6 +353,7 @@ class Fan():
 
         if boundary:
             # left boundary line
+
             plt.plot(thetas[0:ranges[1], 0], rs[0:ranges[1], 0],
                      color=line_color, linewidth=0.5)
             # top radar arc
@@ -357,6 +373,7 @@ class Fan():
             cls.plot_radar_position(stid, date, line_color, **kwargs)
         if radar_label:
             cls.plot_radar_label(stid, date, line_color, **kwargs)
+
 
         if fov_color is not None:
             theta = thetas[0:ranges[1], 0]
