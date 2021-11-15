@@ -391,7 +391,7 @@ class RTP():
                           " options".format(zmax))
         norm = norm(zmin, zmax)
         if isinstance(cmap, str):
-            cmap = colors.Colormap(cmap)
+            cmap = cm.get_cmap(cmap)
         else:
             # need to do this as matplotlib 3.5 will
             # not all direct mutations of the object
