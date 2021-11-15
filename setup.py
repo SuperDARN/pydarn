@@ -74,5 +74,5 @@ setup(
     include_package_data=True,
     # setup_requires=['pyyaml', 'numpy', 'matplotlib', 'aacgmv2'],
     install_requires=['pyyaml', 'numpy', 'matplotlib>=3.3.4', 'aacgmv2',
-                      'pydarnio'],
+                      'pydarnio>=1.1.0'],
 )
