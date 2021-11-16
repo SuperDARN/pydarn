@@ -323,7 +323,7 @@ class Maps():
         # so we do spherical harmonics for a real valued function using
         # sin(phi) and cos(phi) rather than exp(i*phi).
         # we place an inner function to copying code
-        def index_legendre(l: int, m: int): -> int
+        def index_legendre(l: int, m: int):
             """
             not a 100% how this works some black magic
 
