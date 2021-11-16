@@ -93,7 +93,7 @@ Here is a list of all the current options than can be used with `plot_mapdata`
 | line_color=(str)      | Fill color of fov lines                                                                          |
 
 
-As an example, the following code plots multiple radar Grid plot:
+As an example, the following code plots multiple radar map plot, equivalent to a grid plot:
 ```python
 import matplotlib.pyplot as plt 
 import datetime as dt
