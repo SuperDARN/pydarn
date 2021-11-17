@@ -10,6 +10,7 @@ author:
 Marina Schmidt
 """
 import sys
+import warnings
 
 from os import path
 from setuptools import setup, find_packages
@@ -17,6 +18,11 @@ from setuptools.command.install import install, orig
 from setuptools.command.develop import develop
 from glob import glob
 from subprocess import check_call
+
+warnings.warn("If you are going to use Fan, Grid, and/or Convection Map "
+                 "plots, then make sure cartopy is installed on your machine. "
+                 "If you do not need to use cartopy for your plotting, ignore "
+                 "this message.")
 
 class update_submodules(develop):
     def run(self):
