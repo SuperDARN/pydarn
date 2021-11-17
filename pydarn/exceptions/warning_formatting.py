@@ -18,10 +18,20 @@ def citing_warning():
               " for SuperDARN data is found at"
               " https://pydarn.readthedocs.io/en/master/user/citing/")
 
+def cartopy_warning():
+    """
+    This warning prints on installation to inform users they
+    need to install cartopy and should read the docs before
+    using pyDARN if they wish to use geographical layouts.
+    """
+    warning.warn("If you are going to use Fan, Grid, and/or Convection Map "
+                 "plots, then make sure cartopy is installed on your machine. "
+                 "If you do not need to use cartopy for your plotting, ignore "
+                 "this message.")
 
 def partial_record_warning():
     """
-    prints a warning that the data chosen to be plotted is missing some 
+    prints a warning that the data chosen to be plotted is missing some
     keys that may produce a blank/half a plot
     """
     warnings.warn("Please be aware that the data chosen to be plotted"
