@@ -63,10 +63,11 @@ setup(
     cmdclass={'install': initialize_submodules, 'develop': update_submodules},
     name="pydarn",
     version="2.2",
+    author="Data Visualization Working Group",
     long_description=long_description,
     long_description_content_type='text/markdown',
     description="Data visualization library for SuperDARN data",
-    url='https://github.com/SuperDARN/pydarn.git',
+    url='https://pydarn.readthedocs.io/en/latest/',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)',
