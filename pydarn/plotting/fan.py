@@ -33,9 +33,9 @@ from typing import List, Union
 # Third party libraries
 import aacgmv2
 
-from pydarn import (PyDARNColormaps, build_scan, radar_fov, citing_warning,
+from pydarn import (PyDARNColormaps, build_scan, radar_fov,
                     time2datetime, plot_exceptions, Coords,
-                    SuperDARNRadars, Hemisphere, Projections, 
+                    SuperDARNRadars, Hemisphere, Projections,
                     partial_record_warning)
 
 
@@ -79,8 +79,8 @@ class Fan():
                 Default: Generates a polar projection for the user
                 with MLT/latitude labels
             scan_index: int or datetime
-                Scan number starting from the first record in file with 
-                associated channel number or datetime given first record 
+                Scan number starting from the first record in file with
+                associated channel number or datetime given first record
                 to match the index
                 Default: 1
             parameter: str
@@ -147,7 +147,7 @@ class Fan():
             # If no records exist, advise user that the channel is not used
             if not dmap_data:
                 raise plot_exceptions.NoChannelError(channel,opt_channel)
-        
+
         try:
             ranges = kwargs['ranges']
         except KeyError:
@@ -176,7 +176,7 @@ class Fan():
                                                          scan_time)
         # Locate scan in loaded data
         plot_beams = np.where(beam_scan == scan_index)
-        
+
         # Time for coordinate conversion
         if not scan_time:
         	date = time2datetime(dmap_data[plot_beams[0][0]])
@@ -275,7 +275,6 @@ class Fan():
             end_time = time2datetime(dmap_data[plot_beams[-1][-1]])
             title = cls.__add_title__(start_time, end_time)
             plt.title(title)
-        citing_warning()
         return beam_corners_aacgm_lats, beam_corners_aacgm_lons, scan, grndsct
 
     @classmethod
@@ -284,7 +283,7 @@ class Fan():
                  fov_color: str = None, alpha: int = 0.5,
                  radar_location: bool = True, radar_label: bool = False,
                  line_color: str = 'black',
-                 grid: bool = False, 
+                 grid: bool = False,
                  line_alpha: int = 0.5 , **kwargs):
         """
         plots only the field of view (FOV) for a given radar station ID (stid)
@@ -425,7 +424,6 @@ class Fan():
             r = np.append(r, np.flip(rs[0:ranges[1], thetas.shape[1]-1]))
             r = np.append(r, np.flip(rs[0, 0:thetas.shape[1]-1]))
             ax.fill(theta, r, color=fov_color, alpha=alpha, zorder=0)
-        citing_warning()
         return beam_corners_aacgm_lats, beam_corners_aacgm_lons, thetas, rs, ax
 
     @classmethod
