@@ -12,7 +12,6 @@ module, classes, and functions.
 # KEEP THIS FILE AS MINIMAL AS POSSIBLE!
 
 import os
-import warnings
 
 # Import io for pyDARN
 from .io.superdarn_io import SuperDARNRead
@@ -26,6 +25,7 @@ from .exceptions.warning_formatting import only_message_warning_format
 from .exceptions.warning_formatting import citing_warning
 from .exceptions.warning_formatting import partial_record_warning
 from .exceptions.warning_formatting import cartopy_warning
+from .exceptions.warning_formatting import cartopy_print_warning
 
 # importing utils
 from .utils.coordinates import Coords
@@ -56,4 +56,4 @@ from .plotting.grid import Grid
 from .plotting.acf import ACF
 from .plotting.power import Power
 
-cartopy_warning()
+cartopy_print_warning()
