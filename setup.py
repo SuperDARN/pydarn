@@ -62,7 +62,7 @@ warnings.warn("If you are going to use Fan, Grid, and/or Convection Map "
 setup(
     cmdclass={'install': initialize_submodules, 'develop': update_submodules},
     name="pydarn",
-    version="3.0 - beta",
+    version="3.0",
     long_description=long_description,
     long_description_content_type='text/markdown',
     description="Data visualization library for SuperDARN data",
