@@ -392,7 +392,7 @@ class Fan():
                 if cartopyInstalled:
                     pass
                 else:
-                    plot_exceptions.CartopyMissingError()
+                    raise plot_exceptions.CartopyMissingError()
 
         if boundary:
             # left boundary line
