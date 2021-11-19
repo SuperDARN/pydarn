@@ -25,6 +25,7 @@ def cartopy_print_warning():
     need to install cartopy and should read the docs before
     using pyDARN if they wish to use geographical layouts.
     """
+    print() # add a new line to break up more of the text
     print("IMPORTANT!: If you are going to use Fan, Grid, "
           "and/or Convection Map "
           "plots, then make sure cartopy is installed on your machine. "
