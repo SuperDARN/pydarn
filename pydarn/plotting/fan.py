@@ -8,6 +8,7 @@
 # 2021-09-15 Marina Schmidt - removed fov file options
 # 2021-09-09: CJM - Included a channel option for plot_fan
 # 2021-09-08: CJM - Included individual gate and beam boundary plotting for FOV
+# 2021-11-22: MTS - pass in axes object to plot_fov
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
@@ -35,7 +36,7 @@ import aacgmv2
 
 from pydarn import (PyDARNColormaps, build_scan, radar_fov, citing_warning,
                     time2datetime, plot_exceptions, Coords,
-                    SuperDARNRadars, Hemisphere, Projections, 
+                    SuperDARNRadars, Hemisphere, Projections,
                     partial_record_warning)
 
 
@@ -79,8 +80,8 @@ class Fan():
                 Default: Generates a polar projection for the user
                 with MLT/latitude labels
             scan_index: int or datetime
-                Scan number starting from the first record in file with 
-                associated channel number or datetime given first record 
+                Scan number starting from the first record in file with
+                associated channel number or datetime given first record
                 to match the index
                 Default: 1
             parameter: str
@@ -147,7 +148,7 @@ class Fan():
             # If no records exist, advise user that the channel is not used
             if not dmap_data:
                 raise plot_exceptions.NoChannelError(channel,opt_channel)
-        
+
         try:
             ranges = kwargs['ranges']
         except KeyError:
@@ -176,7 +177,7 @@ class Fan():
                                                          scan_time)
         # Locate scan in loaded data
         plot_beams = np.where(beam_scan == scan_index)
-        
+
         # Time for coordinate conversion
         if not scan_time:
         	date = time2datetime(dmap_data[plot_beams[0][0]])
@@ -188,7 +189,7 @@ class Fan():
             ranges = [0, dmap_data[0]['nrang']]
 
         beam_corners_aacgm_lats, beam_corners_aacgm_lons, thetas, rs, ax = \
-            cls.plot_fov(dmap_data[0]['stid'], date, **kwargs)
+            cls.plot_fov(dmap_data[0]['stid'], date, ax=ax, **kwargs)
 
         fan_shape = beam_corners_aacgm_lons.shape
 
@@ -284,7 +285,7 @@ class Fan():
                  fov_color: str = None, alpha: int = 0.5,
                  radar_location: bool = True, radar_label: bool = False,
                  line_color: str = 'black',
-                 grid: bool = False, 
+                 grid: bool = False,
                  line_alpha: int = 0.5 , **kwargs):
         """
         plots only the field of view (FOV) for a given radar station ID (stid)
