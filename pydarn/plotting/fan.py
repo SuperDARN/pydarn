@@ -343,7 +343,7 @@ class Fan():
                 kwargs['hemisphere'] = SuperDARNRadars.radars[stid].hemisphere
                 # Get a polar projection using any kwarg input
                 fig = plt.figure(figsize=(12,12))
-                ax = Projections.axis_polar(**kwargs)
+                ax = Projections.axis_polar(lowlat,**kwargs)
                 
             # a single* call to pcolormesh to handle all the
             # range gates in the scan
