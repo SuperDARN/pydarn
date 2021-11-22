@@ -19,6 +19,18 @@ import datetime
 pydarn_log = logging.getLogger('pydarn')
 
 
+class CartopyMissingError(Exception):
+    """
+    Error given when attmpting a cartopy style plot but cartopy isn't installed
+    """
+    def __init__(self):
+        self.message = 'An attempt to plot using cartopy was made'\
+            ' without cartopy being installed. Please either change'\
+            ' plot styles or install cartopy and dependencies.'
+        super().__init__(self.message)
+        pydarn_log.error(self.message)
+
+
 class IncorrectPlotMethodError(Exception):
     """
     This error is raised when the incorrect plotting

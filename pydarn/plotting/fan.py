@@ -9,6 +9,7 @@
 # 2021-09-09: CJM - Included a channel option for plot_fan
 # 2021-09-08: CJM - Included individual gate and beam boundary plotting for FOV
 # 2021-11-22: MTS - pass in axes object to plot_fov
+# 2021-11-18: MTS - Added Projectsion class for cartopy use
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
@@ -37,8 +38,15 @@ import aacgmv2
 from pydarn import (PyDARNColormaps, build_scan, radar_fov, citing_warning,
                     time2datetime, plot_exceptions, Coords,
                     SuperDARNRadars, Hemisphere, Projections,
-                    partial_record_warning)
+                    Projs, partial_record_warning)
 
+
+try:
+    from cartopy.mpl import geoaxes
+    import cartopy.crs as ccrs
+    cartopyInstalled = True
+except Exception:
+    cartopyInstalled = False
 
 class Fan():
     """
@@ -281,7 +289,8 @@ class Fan():
 
     @classmethod
     def plot_fov(cls, stid: str, date: dt.datetime,
-                 ax=None, ranges: List = [], boundary: bool = True,
+                 ax=None, ranges: List = [], projs: object = Projs.POLAR,
+                 boundary: bool = True,
                  fov_color: str = None, alpha: int = 0.5,
                  radar_location: bool = True, radar_label: bool = False,
                  line_color: str = 'black',
@@ -306,6 +315,9 @@ class Fan():
                 Set to a two element list of the lower and upper ranges to plot
                 If None, the  max will be obtained by SuperDARNRadars
                 Default: None
+            projs: Pojs object
+                Sets the projection type for the plot
+                Default: Projs.POLAR
             boundary: bool
                 Set to false to not plot the outline of the FOV
                 Default: True
@@ -371,8 +383,17 @@ class Fan():
         if ax is None:
             # Get the hemisphere to pass to plotting projection
             kwargs['hemisphere'] = SuperDARNRadars.radars[stid].hemisphere
-            # Get a polar projection using any kwarg input
-            ax = Projections.axis_polar(**kwargs)
+
+            if projs is Projs.POLAR:
+                # Get a polar projection using any kwarg input
+                ax = Projections.axis_polar(**kwargs)
+            else:
+                # TODO: Move check to axis once we have a coastaline
+                # projection
+                if cartopyInstalled:
+                    pass
+                else:
+                    raise plot_exceptions.CartopyMissingError()
 
         if boundary:
             # left boundary line

@@ -9,20 +9,12 @@ Python data visualization library for the Super Dual Auroral Radar Network (Supe
 
 ## Changelog
 
-## Version 2.2 - Release!
+## Version 3.0 - Release!
 
-**New Requirement**: pyDARN 2.2 requires minimum matplotlib version of 3.3.4
+**New Requirement**: pyDARN 3.0 requires minimum matplotlib version of 3.3.4
 
-pyDARN release v2.2 includes the following features:
-- **New** Radar geographical Field-of-View (FOV) calculations functionality
-- **Deprecation** Removed FOV files for radars geographic beam location
-- **New** pytesting environment for testing pydarn for development
-- **New** FOV grid lines to show range gates
-- **New** `channel` option in Fan plots
-- Bug fix in Range-time plots with groundscatter
-- Bug fix in Range-time plots with time-shifting 
-
-**Deprecation**: `slant` option in `plot_range-time` and `plot_summary` is deprecated now uses `coords` 
+pyDARN release v2.0 includes the following features:
+- **New** optional cartopy dependency 
 
 ## Documentation
 

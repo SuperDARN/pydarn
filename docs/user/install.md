@@ -56,6 +56,18 @@ pyDARN's setup will download the following dependencies:
 - [pyDARNio](https://pydarnio.readthedocs.io/en/latest/user/install/)
 - [AACGMv2](https://pypi.org/project/aacgmv2/) 
 
+!!! Note
+    If you wish to plot coastlines you will need to install cartopy separately
+
+### Cartopy 
+
+[Cartopy](https://scitools.org.uk/cartopy/docs/latest/) is a Python package designed for geospatial data processing in order to produce maps and other geospatial data analyses. This library is used when invoking a projection system needing overlapped coastline maps in Fan, Grid and Map plots. 
+
+For installing cartopy please follow the packages [installation](https://scitools.org.uk/cartopy/docs/latest/installing.html) instructions. 
+
+!!! Note
+    cartopy is a challenging package to install so please provide any information on troubleshoot or solutions to common issue on [pyDARN github](https://github.com/SuperDARN/pydarn) page. 
+
 ## Virtual Environments
 It is recommended to install pyDARN in one of the suggested virtual environments if you have multiple python/pip 3 version on your computer, or do not want to affect the main system's python libraries. 
 
