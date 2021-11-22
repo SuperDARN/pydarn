@@ -34,7 +34,7 @@ from typing import List, Union
 # Third party libraries
 import aacgmv2
 
-from pydarn import (PyDARNColormaps, build_scan, radar_fov, citing_warning,
+from pydarn import (PyDARNColormaps, build_scan, radar_fov,
                     time2datetime, plot_exceptions, Coords,
                     SuperDARNRadars, Hemisphere, Projections,
                     partial_record_warning)
@@ -276,7 +276,6 @@ class Fan():
             end_time = time2datetime(dmap_data[plot_beams[-1][-1]])
             title = cls.__add_title__(start_time, end_time)
             plt.title(title)
-        citing_warning()
         return beam_corners_aacgm_lats, beam_corners_aacgm_lons, scan, grndsct
 
     @classmethod
@@ -426,7 +425,6 @@ class Fan():
             r = np.append(r, np.flip(rs[0:ranges[1], thetas.shape[1]-1]))
             r = np.append(r, np.flip(rs[0, 0:thetas.shape[1]-1]))
             ax.fill(theta, r, color=fov_color, alpha=alpha, zorder=0)
-        citing_warning()
         return beam_corners_aacgm_lats, beam_corners_aacgm_lons, thetas, rs, ax
 
     @classmethod
