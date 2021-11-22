@@ -227,7 +227,7 @@ class Fan():
             max_beams=None, fov_files=fov_files, **kwargs)
 
         # Where in the world are we
-        if np.all(beam_corners_aacgm_lats > 0):
+        if np.all(beam_corners_aacgm_lats[~np.isnan(beam_corners_aacgm_lats)] > 0):
             northern_hemisphere = True
         else:
             northern_hemisphere = False
