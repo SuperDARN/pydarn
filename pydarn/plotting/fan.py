@@ -804,7 +804,8 @@ class Fan():
             theta_text=position[:,0]
             # Shift in latitude (dependent on hemisphere)
             if SuperDARNRadars.radars[stid].hemisphere == Hemisphere.North:
-                r_text = position[:,1] - 7
+                r_text = position[:,1]+100000
+                theta_text=position[:,0]-100000
             else:
                 r_text = position[:,1] + 5
 
