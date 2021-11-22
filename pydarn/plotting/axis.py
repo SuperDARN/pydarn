@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from pydarn import Hemisphere
-
+import cartopy.crs as ccrs
 
 class Projections():
     """
@@ -73,3 +73,58 @@ class Projections():
         ax.set_theta_zero_location("S")
 
         return ax
+
+    @classmethod
+    def axis_geological(cls):
+        """
+        """
+        # no need to shift any coords, let cartopy do that
+        # however, we do need to figure out
+        # how much to rotate the projection
+        deg_from_midnight = (dtime.hour + dtime.minute / 60) / 24 * 360
+        if northern_hemisphere:
+            noon = -deg_from_midnight
+        else:
+            noon = 360 - deg_from_midnight
+        # handle none types or wrongly built axes
+        if type(ax) != geoaxes.GeoAxesSubplot:
+            proj = ccrs.Orthographic(noon, pole_lat)
+            ax = plt.subplot(111, projection=proj, aspect='auto')
+            ax.coastlines()
+            ax.gridlines(ylocs=np.arange(pole_lat, 0, -5
+                                         if northern_hemisphere else 5))
+            ax.pcolormesh(beam_corners_aacgm_lons,
+                          beam_corners_aacgm_lats,
+                          np.ma.masked_array(scan, ~scan.astype(bool)),
+                          norm=norm, cmap=cmap,
+                          transform=ccrs.PlateCarree())
+            if groundscatter:
+                ax.pcolormesh(beam_corners_aacgm_lons,
+                              beam_corners_aacgm_lats,
+                              np.ma.masked_array(grndsct,
+                                                 ~grndsct.astype(bool)),
+                              norm=norm, cmap='Greys',
+                              transform=ccrs.PlateCarree())
+
+            # For some reason, cartopy won't allow extents
+            # much greater than this
+            # - there should probably be an option to allow autscaling
+            # - perhaps this is a projection issue?
+            extent = min(45e5,
+                         (abs(proj.transform_point(noon, lowlat,
+                                                   ccrs.PlateCarree())
+                              [1])))
+            ax.set_extent(extents=(-extent, extent, -extent, extent),
+                          crs=proj)
+        else:
+            ax.pcolormesh(beam_corners_aacgm_lons,
+                          beam_corners_aacgm_lats,
+                          np.ma.masked_array(scan, ~scan.astype(bool)),
+                          norm=norm, cmap=cmap,
+                          transform=ccrs.PlateCarree())
+            extent = min(45e5,
+                         (abs(proj.transform_point(noon, lowlat,
+                                                   ccrs.PlateCarree())
+                              [1])))
+            ax.set_extent(extents=(-extent, extent, -extent, extent),
+                          crs=proj)
