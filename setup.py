@@ -52,11 +52,12 @@ this_directory = path.abspath(path.dirname(__file__))
 with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
+exec(open('pydarn/version.py').read())
 # Setup information
 setup(
     cmdclass={'install': initialize_submodules, 'develop': update_submodules},
     name="pydarn",
-    version="2.2",
+    version=__version__,
     long_description=long_description,
     long_description_content_type='text/markdown',
     description="Data visualization library for SuperDARN data",
