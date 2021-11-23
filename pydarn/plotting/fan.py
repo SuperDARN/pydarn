@@ -41,12 +41,6 @@ from pydarn import (PyDARNColormaps, build_scan, radar_fov, citing_warning,
                     Projs, partial_record_warning)
 
 
-try:
-    from cartopy.mpl import geoaxes
-    import cartopy.crs as ccrs
-    cartopyInstalled = True
-except Exception:
-    cartopyInstalled = False
 
 class Fan():
     """
@@ -388,13 +382,7 @@ class Fan():
                 # Get a polar projection using any kwarg input
                 ax = Projections.axis_polar(**kwargs)
             else:
-                # TODO: Move check to axis once we have a coastaline
-                # projection
-                if cartopyInstalled:
-                    pass
-                else:
-                    raise plot_exceptions.CartopyMissingError()
-
+                ax = Projections.axis_geological(**kwargs)
         if boundary:
             # left boundary line
             plt.plot(thetas[0:ranges[1], 0], rs[0:ranges[1], 0],

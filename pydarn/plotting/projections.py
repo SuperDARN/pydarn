@@ -19,7 +19,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from pydarn import Hemisphere
-import cartopy.crs as ccrs
+try:
+    from cartopy.mpl import geoaxes
+    import cartopy.crs as ccrs
+    cartopyInstalled = True
+except Exception:
+    cartopyInstalled = False
 
 class Projections():
     """
@@ -75,41 +80,30 @@ class Projections():
         return ax
 
     @classmethod
-    def axis_geological(cls):
+    def axis_geological(cls, date, lowlat):
         """
         """
+        if cartopyInstalled == False:
+            raise plot_exceptions.CartopyMissingError()
         # no need to shift any coords, let cartopy do that
         # however, we do need to figure out
         # how much to rotate the projection
-        deg_from_midnight = (dtime.hour + dtime.minute / 60) / 24 * 360
-        if northern_hemisphere:
+        deg_from_midnight = (date.hour + date.minute / 60) / 24 * 360
+        if hemisphere == Hemisphere.North:
+            pole_lat = 90
             noon = -deg_from_midnight
+            ylocations = -5
         else:
+            pole_lat = -90
             noon = 360 - deg_from_midnight
+            ylocations = 5
         # handle none types or wrongly built axes
         if type(ax) != geoaxes.GeoAxesSubplot:
             proj = ccrs.Orthographic(noon, pole_lat)
             ax = plt.subplot(111, projection=proj, aspect='auto')
             ax.coastlines()
-            ax.gridlines(ylocs=np.arange(pole_lat, 0, -5
-                                         if northern_hemisphere else 5))
-            ax.pcolormesh(beam_corners_aacgm_lons,
-                          beam_corners_aacgm_lats,
-                          np.ma.masked_array(scan, ~scan.astype(bool)),
-                          norm=norm, cmap=cmap,
-                          transform=ccrs.PlateCarree())
-            if groundscatter:
-                ax.pcolormesh(beam_corners_aacgm_lons,
-                              beam_corners_aacgm_lats,
-                              np.ma.masked_array(grndsct,
-                                                 ~grndsct.astype(bool)),
-                              norm=norm, cmap='Greys',
-                              transform=ccrs.PlateCarree())
+            ax.gridlines(ylocs=np.arange(pole_lat, 0, ylocations))
 
-            # For some reason, cartopy won't allow extents
-            # much greater than this
-            # - there should probably be an option to allow autscaling
-            # - perhaps this is a projection issue?
             extent = min(45e5,
                          (abs(proj.transform_point(noon, lowlat,
                                                    ccrs.PlateCarree())
@@ -128,3 +122,4 @@ class Projections():
                               [1])))
             ax.set_extent(extents=(-extent, extent, -extent, extent),
                           crs=proj)
+        return ccrs
