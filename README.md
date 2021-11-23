@@ -24,7 +24,7 @@ pyDARN release v2.2 includes the following features:
 
 ## Documentation
 
-pyDARN's documentation can found [here](https://pydarn.readthedocs.io/en/latest/index.html)
+pyDARN's documentation can be found [here](https://pydarn.readthedocs.io/en/latest/index.html)
 
 ## Getting Started
 
