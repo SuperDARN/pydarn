@@ -122,4 +122,4 @@ class Projections():
                               [1])))
             ax.set_extent(extents=(-extent, extent, -extent, extent),
                           crs=proj)
-        return ccrs
+        return ax, ccrs
