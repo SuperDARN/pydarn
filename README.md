@@ -13,7 +13,7 @@ Python data visualization library for the Super Dual Auroral Radar Network (Supe
 
 **New Requirement**: pyDARN 2.2.1 requires minimum matplotlib version of 3.3.4
 
-pyDARN release v2.2 includes the following features:
+pyDARN release v2.2.1 includes the following features:
 * Bug fix: fixed but in Summary plot not rendering 
 * Bug fix: fixed axes object not being properly handled in plot_fan
 * Enhancement: Added `__version__` ability in pydarn 
