@@ -59,4 +59,4 @@ from .plotting.grid import Grid
 from .plotting.acf import ACF
 from .plotting.power import Power
 
-cartopy_print_warning()
+citing_warning()

@@ -40,7 +40,8 @@ class Projections():
                 "   - axis_polar()\n"
 
     @classmethod
-    def axis_polar(cls, lowlat: int = 30, hemisphere: object = Hemisphere.North):
+    def axis_polar(cls, lowlat: int = 30,
+                   hemisphere: object = Hemisphere.North, **kwargs):
         """
         Plots a radar's Field Of View (FOV) fan plot for the given data and
         scan number
@@ -80,7 +81,8 @@ class Projections():
         return ax
 
     @classmethod
-    def axis_geological(cls, date, lowlat):
+    def axis_geological(cls, date, hemisphere: object = Hemisphere.North,
+                        lowlat: int = 30, **kwargs):
         """
         """
         if cartopyInstalled == False:

@@ -35,23 +35,22 @@ from typing import List, Union
 # Third party libraries
 import aacgmv2
 
-from pydarn import (PyDARNColormaps, build_scan, radar_fov, citing_warning,
-                    time2datetime, plot_exceptions,
-                    SuperDARNRadars, Hemisphere, Projections,
-                    Projs, partial_record_warning)
+from pydarn import (PyDARNColormaps, build_scan, radar_fov,
+                    partial_record_warning, time2datetime, plot_exceptions,
+                    SuperDARNRadars, Projs, Hemisphere, Projections)
 
 
 class Fan():
     """
-        'Fan', or 'Field-of-view' plots for SuperDARN FITACF data
-        This class inherits from matplotlib to generate the figures
-        Methods
-        -------
-        plot_fan
-        plot_fov
-        plot_radar_position
-        plot_radar_label
-        """
+    'Fan', or 'Field-of-view' plots for SuperDARN FITACF data
+    This class inherits from matplotlib to generate the figures
+    Methods
+    -------
+    plot_fan
+    plot_fov
+    plot_radar_position
+    plot_radar_label
+    """
 
     def __str__(self):
         return "This class is static class that provides"\
@@ -179,6 +178,7 @@ class Fan():
                                                          scan_time)
         # Locate scan in loaded data
         plot_beams = np.where(beam_scan == scan_index)
+        hemisphere = SuperDARNRadars.radars[dmap_data[0]['stid']].hemisphere
 
         # Time for coordinate conversion
         if not scan_time:
@@ -250,7 +250,7 @@ class Fan():
         scan = scan[ranges[0]:ranges[1]-1]
 
         if projs == Projs.POLAR:
-            ax = Projections.axis_polar(**kwargs)
+            ax = Projections.axis_polar(hemisphere=hemisphere, **kwargs)
             ax.pcolormesh(beam_corners_lon, beam_corners_lat,
                           np.ma.masked_array(scan, ~scan.astype(bool)),
                           norm=norm, cmap=cmap)
@@ -302,7 +302,6 @@ class Fan():
             end_time = time2datetime(dmap_data[plot_beams[-1][-1]])
             title = cls.__add_title__(start_time, end_time)
             plt.title(title)
-        citing_warning()
         return beam_corners_lat, beam_corners_lon, scan, grndsct
 
     @classmethod
@@ -379,7 +378,7 @@ class Fan():
             date = dt.datetime.now()
 
         # Get radar beam/gate locations
-        beam_corners_lats, beam_corners_lons = \
+        beam_corners_lats, beam_corners_lon = \
             radar_fov(stid, ranges=ranges, date=date, **kwargs)
 
         # Setup plot
@@ -392,7 +391,7 @@ class Fan():
                 # Get a polar projection using any kwarg input
                 ax = Projections.axis_polar(**kwargs)
                 # Hold the beam positions
-                beam_corners_lon = np.radians(beam_corners_lons)
+                beam_corners_lon = np.radians(beam_corners_lon)
             else:
                 ax, ccrs = Projections.axis_geological(**kwargs)
         # left boundary line
@@ -461,8 +460,7 @@ class Fan():
                           np.flip(beam_corners_lats[0,
                                                     0:beam_corners_lon.shape[1]-1]))
             ax.fill(theta, r, color=fov_color, alpha=alpha, zorder=0)
-        citing_warning()
-        return beam_corners_lats, beam_corners_lon
+        return beam_corners_lats, beam_corners_lon, ax
 
     @classmethod
     def plot_radar_position(cls, stid: int, date: dt.datetime,

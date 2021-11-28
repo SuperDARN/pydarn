@@ -37,4 +37,6 @@ class Coords(enum.Enum):
     SLANT_RANGE = enum.auto()
     GROUND_SCATTER_MAPPED_RANGE = enum.auto()
     GEOGRAPHIC = enum.auto()
+    GEOGRAPHIC_MLT = enum.auto()
     AACGM = enum.auto()
+    AACGM_MLT = enum.auto()

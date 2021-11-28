@@ -64,7 +64,6 @@ setup(
     cmdclass={'install': initialize_submodules, 'develop': update_submodules},
     name="pydarn",
     version=__version__,
-    version="3.0",
     long_description=long_description,
     long_description_content_type='text/markdown',
     description="Data visualization library for SuperDARN data",
