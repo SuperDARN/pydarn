@@ -92,7 +92,7 @@ def radar_fov(stid: int, rsep: int = 45, frang: int = 180,
             lat, lon = geographic_cell_positions(stid, beam, gate, rsep,
                                                  frang, height=300)
 
-            if coords == Coords.AACGM:
+            if coords == Coords.AACGM_MLT:
                 if date is None:
                     date = dt.datetime.now()
 
