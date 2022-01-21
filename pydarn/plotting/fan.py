@@ -256,6 +256,7 @@ class Fan():
             stid=dmap_data[0]['stid']
             kwargs['hemisphere'] = SuperDARNRadars.radars[stid].hemisphere
             ax = Projections.axis_polar(**kwargs)
+            ccrs = None
             ax.pcolormesh(thetas, rs,
                           np.ma.masked_array(scan, ~scan.astype(bool)),
                           norm=norm, cmap=cmap)
@@ -273,7 +274,7 @@ class Fan():
             plt.grid()
 
         else:
-            ax, ccrs = Projections.axis_geological(date, ax=ax, **kwargs)
+            ax, ccrs = Projections.axis_geological(date, **kwargs)
             ax.pcolormesh(np.degrees(thetas), rs,
                           np.ma.masked_array(scan, ~scan.astype(bool)),
                           norm=norm, cmap=cmap,
@@ -287,7 +288,8 @@ class Fan():
 
 
         if boundary:
-            cls.plot_fov(stid=dmap_data[0]['stid'], date=date, ax=ax, **kwargs)
+            cls.plot_fov(stid=dmap_data[0]['stid'], date=date, ax=ax,
+                         ccrs=ccrs, **kwargs)
 
         # Create color bar if True
         if colorbar is True:
@@ -310,7 +312,7 @@ class Fan():
 
     @classmethod
     def plot_fov(cls, stid: str, date: dt.datetime,
-                 ax=None, ranges: List = [], projs: object = Projs.POLAR,
+                 ax=None, ccrs=None, ranges: List = [], projs: object = Projs.POLAR,
                  fov_color: str = None, alpha: int = 0.5,
                  radar_location: bool = True, radar_label: bool = False,
                  line_color: str = 'black',
@@ -394,29 +396,34 @@ class Fan():
             kwargs['hemisphere'] = SuperDARNRadars.radars[stid].hemisphere
             if projs is Projs.POLAR:
                 # Get a polar projection using any kwarg input
-                ax = Projections.axis_polar(**kwargs)
+                ax = Projections.axis_polar(date=date, **kwargs)
             else:
-                ax, ccrs = Projections.axis_geological(**kwargs)
+                ax, ccrs = Projections.axis_geological(date=date, **kwargs)
+        if ccrs is None:
+            transform = None
+        else:
+            transform = ccrs.PlateCarree()
 
         # left boundary line
         plt.plot(beam_corners_lon[0:ranges[1], 0],
                  beam_corners_lats[0:ranges[1], 0],
                  color=line_color, linewidth=0.5,
-                 alpha=line_alpha)
+                 alpha=line_alpha, transform=transform)
         # top radar arc
         plt.plot(beam_corners_lon[ranges[1] - 1, 0:beam_corners_lon.shape[1]],
                  beam_corners_lats[ranges[1] - 1, 0:beam_corners_lon.shape[1]],
                  color=line_color, linewidth=0.5,
-                 alpha=line_alpha)
+                 alpha=line_alpha, transform=transform)
         # right boundary line
         plt.plot(beam_corners_lon[0:ranges[1], beam_corners_lon.shape[1] - 1],
                  beam_corners_lats[0:ranges[1], beam_corners_lon.shape[1] - 1],
                  color=line_color, linewidth=0.5,
-                 alpha=line_alpha)
+                 alpha=line_alpha, transform=transform)
         # bottom arc
         plt.plot(beam_corners_lon[0, 0:beam_corners_lon.shape[1] - 1],
                  beam_corners_lats[0, 0:beam_corners_lon.shape[1] - 1],
-                 color=line_color, linewidth=0.5, alpha=line_alpha)
+                 color=line_color, linewidth=0.5, alpha=line_alpha,
+                 transform=transform)
 
         fan_shape = beam_corners_lon.shape
 
@@ -426,13 +433,13 @@ class Fan():
                 plt.plot(beam_corners_lon[0:ranges[1], bm - 1],
                          beam_corners_lats[0:ranges[1], bm - 1],
                          color=line_color, linewidth=0.2,
-                         alpha=line_alpha)
+                         alpha=line_alpha, transform=transform)
             # This plots arcs along the gates
             for g in range(ranges[1]):
                 plt.plot(beam_corners_lon[g-1, 0:beam_corners_lon.shape[1]],
                          beam_corners_lats[g - 1, 0:beam_corners_lon.shape[1]],
                          color=line_color, linewidth=0.2,
-                         alpha=line_alpha)
+                         alpha=line_alpha,transform=transform )
 
         if radar_location:
             cls.plot_radar_position(stid, date, line_color, **kwargs)
@@ -463,7 +470,7 @@ class Fan():
             r = np.append(r,
                           np.flip(beam_corners_lats[0,
                                                     0:beam_corners_lon.shape[1]-1]))
-            ax.fill(theta, r, color=fov_color, alpha=alpha, zorder=0)
+            ax.fill(theta, r, color=fov_color, alpha=alpha, zorder=0, transform=transform)
         return beam_corners_lats, beam_corners_lon, ax
 
     @classmethod
