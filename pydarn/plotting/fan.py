@@ -190,13 +190,16 @@ class Fan():
         if ranges is None:
             ranges = [0, dmap_data[0]['nrang']]
 
-        beam_corners_lon, beam_corners_lat =\
+        beam_corners_lats, beam_corners_lons =\
             radar_fov(stid=dmap_data[0]['stid'],
                       rsep=dmap_data[0]['rsep'],
                       frang=dmap_data[0]['frang'],
                       ranges=ranges, date=date, **kwargs)
 
-        fan_shape = beam_corners_lon.shape
+        fan_shape = beam_corners_lons.shape
+
+        rs = beam_corners_lats
+        thetas = np.radians(beam_corners_lons)
 
         # Get range-gate data and groundscatter array for given scan
         scan = np.zeros((fan_shape[0] - 1, fan_shape[1]-1))
@@ -245,64 +248,65 @@ class Fan():
                 continue
 
         # Begin plotting by iterating over ranges and beams
-        beam_corners_lon = beam_corners_lon[ranges[0]:ranges[1]]
-        beam_corners_lat = beam_corners_lat[ranges[0]:ranges[1]]
+        thetas = thetas[ranges[0]:ranges[1]]
+        rs = rs[ranges[0]:ranges[1]]
         scan = scan[ranges[0]:ranges[1]-1]
 
         if projs == Projs.POLAR:
-            ax = Projections.axis_polar(hemisphere=hemisphere, **kwargs)
-            ax.pcolormesh(beam_corners_lon, beam_corners_lat,
-                          np.ma.masked_array(scan, ~scan.astype(bool)),
-                          norm=norm, cmap=cmap)
+            stid=dmap_data[0]['stid']
+            kwargs['hemisphere'] = SuperDARNRadars.radars[stid].hemisphere
+            ax = Projections.axis_polar(**kwargs)
+            #ax.pcolormesh(thetas, rs,
+            #              np.ma.masked_array(scan, ~scan.astype(bool)),
+            #              norm=norm, cmap=cmap)
 
-            # plot the groundscatter as grey fill
-            if groundscatter:
-                grndsct = grndsct[ranges[0]:ranges[1]-1]
-                ax.pcolormesh(beam_corners_lon, beam_corners_lat,
-                              np.ma.masked_array(grndsct,
-                                                 ~grndsct.astype(bool)),
-                              norm=norm, cmap='Greys')
+            ## plot the groundscatter as grey fill
+            #if groundscatter:
+            #    grndsct = grndsct[ranges[0]:ranges[1]-1]
+            #    ax.pcolormesh(thetas, rs,
+            #                  np.ma.masked_array(grndsct,
+            #                                     ~grndsct.astype(bool)),
+            #                  norm=norm, cmap='Greys')
+            #azm = np.linspace(0, 2 * np.pi, 100)
+            #r, th = np.meshgrid(rs, azm)
+            #plt.plot(azm, r, color='k', ls='none')
+            #plt.grid()
+
         else:
-            ax = ccrs = Projections.axis_geological(date, **kwargs)
-            ax.pcolormesh(beam_corners_lon,
-                          beam_corners_lat,
+            ax = Projections.axis_geological(date, **kwargs)
+            ax.pcolormesh(thetas, rs,
                           np.ma.masked_array(scan, ~scan.astype(bool)),
                           norm=norm, cmap=cmap,
                           transform=ccrs.PlateCarree())
             if groundscatter:
-                ax.pcolormesh(beam_corners_lon,
-                              beam_corners_lat,
+                ax.pcolormesh(thetas, rs,
                               np.ma.masked_array(grndsct,
                                                  ~grndsct.astype(bool)),
                               norm=norm, cmap='Greys',
                               transform=ccrs.PlateCarree())
 
-        azm = np.linspace(0, 2 * np.pi, 100)
-        r, th = np.meshgrid(beam_corners_lat, azm)
-        plt.plot(azm, r, color='k', ls='none')
-        plt.grid()
 
         if boundary:
-            cls.plot_fov(dmap_data[0]['stid'], date, ax=ax, **kwargs)
+            cls.plot_fov(stid=dmap_data[0]['stid'], date=date, ax=ax, **kwargs)
 
         # Create color bar if True
-        if colorbar is True:
-            mappable = cm.ScalarMappable(norm=norm, cmap=cmap)
-            locator = ticker.MaxNLocator(symmetric=True, min_n_ticks=3,
-                                         integer=True, nbins='auto')
-            ticks = locator.tick_values(vmin=zmin, vmax=zmax)
+        #if colorbar is True:
+        #    mappable = cm.ScalarMappable(norm=norm, cmap=cmap)
+        #    locator = ticker.MaxNLocator(symmetric=True, min_n_ticks=3,
+        #                                 integer=True, nbins='auto')
+        #    ticks = locator.tick_values(vmin=zmin, vmax=zmax)
 
-            cb = ax.figure.colorbar(mappable, ax=ax,
-                                    extend='both', ticks=ticks)
+        #    cb = ax.figure.colorbar(mappable, ax=ax,
+        #                            extend='both', ticks=ticks)
 
-            if colorbar_label != '':
-                cb.set_label(colorbar_label)
+        #    if colorbar_label != '':
+        #        cb.set_label(colorbar_label)
         if title:
             start_time = time2datetime(dmap_data[plot_beams[0][0]])
             end_time = time2datetime(dmap_data[plot_beams[-1][-1]])
             title = cls.__add_title__(start_time, end_time)
             plt.title(title)
-        return beam_corners_lat, beam_corners_lon, scan, grndsct
+        return beam_corners_lats, beam_corners_lons, scan, grndsct
 
     @classmethod
     def plot_fov(cls, stid: str, date: dt.datetime,
@@ -386,7 +390,6 @@ class Fan():
         if ax is None:
             # Get the hemisphere to pass to plotting projection
             kwargs['hemisphere'] = SuperDARNRadars.radars[stid].hemisphere
-
             if projs is Projs.POLAR:
                 # Get a polar projection using any kwarg input
                 ax = Projections.axis_polar(**kwargs)
