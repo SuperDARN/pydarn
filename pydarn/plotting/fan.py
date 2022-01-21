@@ -273,13 +273,13 @@ class Fan():
             plt.grid()
 
         else:
-            ax = Projections.axis_geological(date, **kwargs)
-            ax.pcolormesh(thetas, rs,
+            ax, ccrs = Projections.axis_geological(date, ax=ax, **kwargs)
+            ax.pcolormesh(np.degrees(thetas), rs,
                           np.ma.masked_array(scan, ~scan.astype(bool)),
                           norm=norm, cmap=cmap,
                           transform=ccrs.PlateCarree())
             if groundscatter:
-                ax.pcolormesh(thetas, rs,
+                ax.pcolormesh(np.degrees(thetas), rs,
                               np.ma.masked_array(grndsct,
                                                  ~grndsct.astype(bool)),
                               norm=norm, cmap='Greys',

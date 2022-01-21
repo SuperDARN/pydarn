@@ -81,7 +81,7 @@ class Projections():
         return ax
 
     @classmethod
-    def axis_geological(cls, date, hemisphere: object = Hemisphere.North,
+    def axis_geological(cls, date, ax: None, hemisphere: object = Hemisphere.North,
                         lowlat: int = 30, **kwargs):
         """
         """
