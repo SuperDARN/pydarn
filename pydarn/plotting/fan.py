@@ -256,21 +256,21 @@ class Fan():
             stid=dmap_data[0]['stid']
             kwargs['hemisphere'] = SuperDARNRadars.radars[stid].hemisphere
             ax = Projections.axis_polar(**kwargs)
-            #ax.pcolormesh(thetas, rs,
-            #              np.ma.masked_array(scan, ~scan.astype(bool)),
-            #              norm=norm, cmap=cmap)
+            ax.pcolormesh(thetas, rs,
+                          np.ma.masked_array(scan, ~scan.astype(bool)),
+                          norm=norm, cmap=cmap)
 
-            ## plot the groundscatter as grey fill
-            #if groundscatter:
-            #    grndsct = grndsct[ranges[0]:ranges[1]-1]
-            #    ax.pcolormesh(thetas, rs,
-            #                  np.ma.masked_array(grndsct,
-            #                                     ~grndsct.astype(bool)),
-            #                  norm=norm, cmap='Greys')
-            #azm = np.linspace(0, 2 * np.pi, 100)
-            #r, th = np.meshgrid(rs, azm)
-            #plt.plot(azm, r, color='k', ls='none')
-            #plt.grid()
+            # plot the groundscatter as grey fill
+            if groundscatter:
+                grndsct = grndsct[ranges[0]:ranges[1]-1]
+                ax.pcolormesh(thetas, rs,
+                              np.ma.masked_array(grndsct,
+                                                 ~grndsct.astype(bool)),
+                              norm=norm, cmap='Greys')
+            azm = np.linspace(0, 2 * np.pi, 100)
+            r, th = np.meshgrid(rs, azm)
+            plt.plot(azm, r, color='k', ls='none')
+            plt.grid()
 
         else:
             ax = Projections.axis_geological(date, **kwargs)
@@ -290,17 +290,17 @@ class Fan():
             cls.plot_fov(stid=dmap_data[0]['stid'], date=date, ax=ax, **kwargs)
 
         # Create color bar if True
-        #if colorbar is True:
-        #    mappable = cm.ScalarMappable(norm=norm, cmap=cmap)
-        #    locator = ticker.MaxNLocator(symmetric=True, min_n_ticks=3,
-        #                                 integer=True, nbins='auto')
-        #    ticks = locator.tick_values(vmin=zmin, vmax=zmax)
+        if colorbar is True:
+            mappable = cm.ScalarMappable(norm=norm, cmap=cmap)
+            locator = ticker.MaxNLocator(symmetric=True, min_n_ticks=3,
+                                         integer=True, nbins='auto')
+            ticks = locator.tick_values(vmin=zmin, vmax=zmax)
 
-        #    cb = ax.figure.colorbar(mappable, ax=ax,
-        #                            extend='both', ticks=ticks)
+            cb = ax.figure.colorbar(mappable, ax=ax,
+                                    extend='both', ticks=ticks)
 
-        #    if colorbar_label != '':
-        #        cb.set_label(colorbar_label)
+            if colorbar_label != '':
+                cb.set_label(colorbar_label)
         if title:
             start_time = time2datetime(dmap_data[plot_beams[0][0]])
             end_time = time2datetime(dmap_data[plot_beams[-1][-1]])
