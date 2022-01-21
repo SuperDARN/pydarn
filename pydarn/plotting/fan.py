@@ -384,6 +384,8 @@ class Fan():
         # Get radar beam/gate locations
         beam_corners_lats, beam_corners_lon = \
             radar_fov(stid, ranges=ranges, date=date, **kwargs)
+        if projs is Projs.POLAR:
+            beam_corners_lon = np.radians(beam_corners_lon)
 
         # Setup plot
         # This may screw up references
@@ -393,10 +395,9 @@ class Fan():
             if projs is Projs.POLAR:
                 # Get a polar projection using any kwarg input
                 ax = Projections.axis_polar(**kwargs)
-                # Hold the beam positions
-                beam_corners_lon = np.radians(beam_corners_lon)
             else:
                 ax, ccrs = Projections.axis_geological(**kwargs)
+
         # left boundary line
         plt.plot(beam_corners_lon[0:ranges[1], 0],
                  beam_corners_lats[0:ranges[1], 0],
