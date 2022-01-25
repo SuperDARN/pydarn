@@ -37,7 +37,7 @@ import aacgmv2
 
 from pydarn import (PyDARNColormaps, build_scan, radar_fov,
                     partial_record_warning, time2datetime, plot_exceptions,
-                    SuperDARNRadars, Projs, Hemisphere, Projections)
+                    SuperDARNRadars, Projs, Coords, Hemisphere, Projections)
 
 
 class Fan():
@@ -65,7 +65,7 @@ class Fan():
                  groundscatter: bool = False, zmin: int = None,
                  zmax: int = None, colorbar: bool = True,
                  colorbar_label: str = '', title: bool = True,
-                 boundary: bool = True, projs: object = Projs.POLAR,
+                 boundary: bool = True, projs: Projs = Projs.POLAR,
                  channel: int = 'all', **kwargs):
         """
         Plots a radar's Field Of View (FOV) fan plot for the given data and
@@ -289,7 +289,7 @@ class Fan():
 
         if boundary:
             cls.plot_fov(stid=dmap_data[0]['stid'], date=date, ax=ax,
-                         ccrs=ccrs, **kwargs)
+                         ccrs=ccrs, projs=projs, **kwargs)
 
         # Create color bar if True
         if colorbar is True:
@@ -312,7 +312,9 @@ class Fan():
 
     @classmethod
     def plot_fov(cls, stid: str, date: dt.datetime,
-                 ax=None, ccrs=None, ranges: List = [], projs: object = Projs.POLAR,
+                 ax=None, ccrs=None, ranges: List = [],
+                 projs: object = Projs.POLAR,
+                 coords: Coords = Coords.AACGM_MLT,
                  fov_color: str = None, alpha: int = 0.5,
                  radar_location: bool = True, radar_label: bool = False,
                  line_color: str = 'black',
@@ -403,7 +405,6 @@ class Fan():
             transform = None
         else:
             transform = ccrs.PlateCarree()
-
         # left boundary line
         plt.plot(beam_corners_lon[0:ranges[1], 0],
                  beam_corners_lats[0:ranges[1], 0],
@@ -439,12 +440,16 @@ class Fan():
                 plt.plot(beam_corners_lon[g-1, 0:beam_corners_lon.shape[1]],
                          beam_corners_lats[g - 1, 0:beam_corners_lon.shape[1]],
                          color=line_color, linewidth=0.2,
-                         alpha=line_alpha,transform=transform )
+                         alpha=line_alpha,transform=transform)
 
         if radar_location:
-            cls.plot_radar_position(stid, date, line_color, **kwargs)
+            cls.plot_radar_position(stid, date=date, line_color=line_color,
+                                    transform=transform, projs=projs,
+                                    coords=coords, ccrs=ccrs, **kwargs)
         if radar_label:
-            cls.plot_radar_label(stid, date, line_color, **kwargs)
+            cls.plot_radar_label(stid, date=date, line_color=line_color,
+                                 transform=transform, projs=projs,
+                                 coords=coords, ccrs=ccrs, **kwargs)
 
         if fov_color is not None:
             theta = beam_corners_lon[0:ranges[1], 0]
@@ -471,10 +476,13 @@ class Fan():
                           np.flip(beam_corners_lats[0,
                                                     0:beam_corners_lon.shape[1]-1]))
             ax.fill(theta, r, color=fov_color, alpha=alpha, zorder=0, transform=transform)
-        return beam_corners_lats, beam_corners_lon, ax
+        return beam_corners_lats, beam_corners_lon, ax, ccrs
 
     @classmethod
     def plot_radar_position(cls, stid: int, date: dt.datetime,
+                            transform: object = None,
+                            coords: Coords = Coords.AACGM_MLT,
+                            projs: Projs = Projs.POLAR,
                             line_color: str = 'black', **kwargs):
         """
         plots only a dot at the position of a given radar station ID (stid)
@@ -498,19 +506,25 @@ class Fan():
         lat = SuperDARNRadars.radars[stid].hardware_info.geographic.lat
         lon = SuperDARNRadars.radars[stid].hardware_info.geographic.lon
         # Convert to geomag coords
-        geomag_radar = aacgmv2.get_aacgm_coord(lat, lon, 250, date)
-        mltshift = geomag_radar[1] - (aacgmv2.convert_mlt(geomag_radar[1],
-                                                          date) * 15)
-        # Convert to MLT then radians for theta
-        theta_lon = np.radians(geomag_radar[1] - mltshift)
-        r_lat = geomag_radar[0]
+        if coords == Coords.AACGM_MLT or coords == Coords.AACGM:
+            geomag_radar = aacgmv2.get_aacgm_coord(lat, lon, 250, date)
+            lat = geomag_radar[0]
+            lon = geomag_radar[1]
+            if coords == Coords.AACGM_MLT:
+                mltshift = geomag_radar[1] - (aacgmv2.convert_mlt(geomag_radar[1], date) * 15)
+                lon = geomag_radar[1] - mltshift
+        if projs == Projs.POLAR:
+            lon = np.radians(lon)
         # Plot a dot at the radar site
-        plt.scatter(theta_lon, r_lat, c=line_color, s=5)
+        plt.scatter(lon, lat, c=line_color, s=5, transform=transform)
         return
 
     @classmethod
     def plot_radar_label(cls, stid: int, date: dt.datetime,
-                         line_color: str = 'black', **kwargs):
+                         coords: Coords = Coords.AACGM_MLT,
+                         projs: Projs = Projs.POLAR,
+                         line_color: str = 'black', transform: object = None,
+                         **kwargs):
         """
         plots only string at the position of a given radar station ID (stid)
 
@@ -535,21 +549,26 @@ class Fan():
         # Get location of radar
         lat = SuperDARNRadars.radars[stid].hardware_info.geographic.lat
         lon = SuperDARNRadars.radars[stid].hardware_info.geographic.lon
-        # Convert to geomag coords
-        geomag_radar = aacgmv2.get_aacgm_coord(lat, lon, 250, date)
-        mltshift = geomag_radar[1] - \
-            (aacgmv2.convert_mlt(geomag_radar[1], date) * 15)
-        # Convert to MLT then radians for theta
-        theta_lon = np.radians(geomag_radar[1] - mltshift)
-        r_lat = geomag_radar[0]
 
-        theta_text = theta_lon
+        # Convert to geomag coords
+        if coords == Coords.AACGM_MLT or coords == Coords.AACGM:
+            geomag_radar = aacgmv2.get_aacgm_coord(lat, lon, 250, date)
+            lat = geomag_radar[0]
+            lon = geomag_radar[1]
+            if coords == Coords.AACGM_MLT:
+                mltshift = geomag_radar[1] - (aacgmv2.convert_mlt(geomag_radar[1], date) * 15)
+                lon = geomag_radar[1] - mltshift
+        if projs == Projs.POLAR:
+            lon = np.radians(lon)
+
+        theta_text = lon
         # Shift in latitude (dependent on hemisphere)
         if SuperDARNRadars.radars[stid].hemisphere == Hemisphere.North:
-            r_text = r_lat - 5
+            r_text = lat - 5
         else:
-            r_text = r_lat + 5
-        plt.text(theta_text, r_text, label_str, ha='center', c=line_color)
+            r_text = lat + 5
+        plt.text(theta_text, r_text, label_str, ha='center',
+                 transform=transform, c=line_color)
         return
 
     @classmethod
