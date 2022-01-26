@@ -81,7 +81,7 @@ class Projections():
         return ax
 
     @classmethod
-    def axis_geological(cls, date, ax: None, hemisphere: object = Hemisphere.North,
+    def axis_geological(cls, date, ax: object = None, hemisphere: object = Hemisphere.North,
                         lowlat: int = 30, **kwargs):
         """
         """
@@ -104,7 +104,7 @@ class Projections():
             proj = ccrs.Orthographic(noon, pole_lat)
             ax = plt.subplot(111, projection=proj, aspect='auto')
             ax.coastlines()
-            ax.gridlines(ylocs=np.arange(pole_lat, 0, ylocations))
+            #ax.gridlines(ylocs=np.arange(pole_lat, 0, ylocations))
 
             extent = min(45e5,
                          (abs(proj.transform_point(noon, lowlat,

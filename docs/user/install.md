@@ -60,7 +60,6 @@ pyDARN's setup will download the following dependencies:
     If you wish to plot coastlines you will need to install cartopy separately
 
 ### Cartopy 
-
 [Cartopy](https://scitools.org.uk/cartopy/docs/latest/) is a Python package designed for geospatial data processing in order to produce maps and other geospatial data analyses. This library is used when invoking a projection system needing overlapped coastline maps in Fan, Grid and Map plots. 
 
 For installing cartopy please follow the packages [installation](https://scitools.org.uk/cartopy/docs/latest/installing.html) instructions. 

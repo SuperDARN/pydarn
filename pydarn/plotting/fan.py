@@ -195,6 +195,8 @@ class Fan():
                       rsep=dmap_data[0]['rsep'],
                       frang=dmap_data[0]['frang'],
                       ranges=ranges, date=date, **kwargs)
+        beam_corners_lons = np.where(beam_corners_lons<0 , beam_corners_lons,
+                                     beam_corners_lons + 360)
 
         fan_shape = beam_corners_lons.shape
 
@@ -387,7 +389,10 @@ class Fan():
 
         # Get radar beam/gate locations
         beam_corners_lats, beam_corners_lon = \
-            radar_fov(stid, ranges=ranges, date=date, **kwargs)
+            radar_fov(stid, ranges=ranges, date=date, coords=coords,
+                      **kwargs)
+        beam_corners_lon = np.where(beam_corners_lon<0 , beam_corners_lon,
+                                    beam_corners_lon + 360)
         if projs is Projs.POLAR:
             beam_corners_lon = np.radians(beam_corners_lon)
 
