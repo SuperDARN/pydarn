@@ -39,7 +39,6 @@ from pydarn import (PyDARNColormaps, build_scan, radar_fov,
                     partial_record_warning, time2datetime, plot_exceptions,
                     SuperDARNRadars, Projs, Coords, Hemisphere, Projections)
 
-
 class Fan():
     """
     'Fan', or 'Field-of-view' plots for SuperDARN FITACF data
@@ -195,8 +194,8 @@ class Fan():
                       rsep=dmap_data[0]['rsep'],
                       frang=dmap_data[0]['frang'],
                       ranges=ranges, date=date, **kwargs)
-        beam_corners_lons = np.where(beam_corners_lons<0 , beam_corners_lons,
-                                     beam_corners_lons + 360)
+        #beam_corners_lons = np.where(beam_corners_lons<0 , beam_corners_lons,
+        #                             beam_corners_lons + 360)
 
         fan_shape = beam_corners_lons.shape
 
@@ -391,8 +390,6 @@ class Fan():
         beam_corners_lats, beam_corners_lon = \
             radar_fov(stid, ranges=ranges, date=date, coords=coords,
                       **kwargs)
-        beam_corners_lon = np.where(beam_corners_lon<0 , beam_corners_lon,
-                                    beam_corners_lon + 360)
         if projs is Projs.POLAR:
             beam_corners_lon = np.radians(beam_corners_lon)
 
@@ -407,9 +404,9 @@ class Fan():
             else:
                 ax, ccrs = Projections.axis_geological(date=date, **kwargs)
         if ccrs is None:
-            transform = None
+            transform = ax.transData
         else:
-            transform = ccrs.PlateCarree()
+            transform = ccrs.Geodetic()
         # left boundary line
         plt.plot(beam_corners_lon[0:ranges[1], 0],
                  beam_corners_lats[0:ranges[1], 0],
@@ -445,7 +442,7 @@ class Fan():
                 plt.plot(beam_corners_lon[g-1, 0:beam_corners_lon.shape[1]],
                          beam_corners_lats[g - 1, 0:beam_corners_lon.shape[1]],
                          color=line_color, linewidth=0.2,
-                         alpha=line_alpha,transform=transform)
+                         alpha=line_alpha, transform=transform)
 
         if radar_location:
             cls.plot_radar_position(stid, date=date, line_color=line_color,
@@ -480,7 +477,9 @@ class Fan():
             r = np.append(r,
                           np.flip(beam_corners_lats[0,
                                                     0:beam_corners_lon.shape[1]-1]))
-            ax.fill(theta, r, color=fov_color, alpha=alpha, zorder=0, transform=transform)
+
+            ax.fill(theta, r, color=fov_color, alpha=alpha, zorder=2,
+                    transform=ccrs.PlateCarree())
         return beam_corners_lats, beam_corners_lon, ax, ccrs
 
     @classmethod
