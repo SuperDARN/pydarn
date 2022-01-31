@@ -31,6 +31,7 @@ import numpy as np
 
 from matplotlib import ticker, cm, colors
 from typing import List, Union
+from shapely.geometry import Point, Polygon
 
 # Third party libraries
 import aacgmv2
@@ -478,8 +479,18 @@ class Fan():
                           np.flip(beam_corners_lats[0,
                                                     0:beam_corners_lon.shape[1]-1]))
 
+            # TODO:
+            # Flipping doesn't affect the polar plot so I've left it outside
+            # an if loop here. We will need to check the winding order of 
+            # all the radars FOV to make sure they fill the inside instead 
+            # of outside, for some reason when I came across this problem 
+            # using D3.js it was really random which came out the wrong way
+            theta = np.flip(theta)
+            r = np.flip(r)
+
             ax.fill(theta, r, color=fov_color, alpha=alpha, zorder=2,
-                    transform=ccrs.PlateCarree())
+                    transform=transform)
+                    
         return beam_corners_lats, beam_corners_lon, ax, ccrs
 
     @classmethod
