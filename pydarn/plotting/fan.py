@@ -28,6 +28,7 @@ Fan plots, mapped to AACGM coordinates in a polar format
 import datetime as dt
 import matplotlib.pyplot as plt
 import numpy as np
+from cartopy.util import add_cyclic_point
 
 from matplotlib import ticker, cm, colors
 from typing import List, Union
@@ -478,8 +479,9 @@ class Fan():
                           np.flip(beam_corners_lats[0,
                                                     0:beam_corners_lon.shape[1]-1]))
 
+
             ax.fill(theta, r, color=fov_color, alpha=alpha, zorder=2,
-                    transform=ccrs.PlateCarree())
+                    transform=ccrs.PlateCarree().as_geodetic())
         return beam_corners_lats, beam_corners_lon, ax, ccrs
 
     @classmethod
