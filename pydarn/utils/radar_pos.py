@@ -173,8 +173,10 @@ def geographic_cell_positions(stid: int, beam: int, range_gate: int,
                            radars[stid].hardware_info.geographic.lat)
     radar_lon = np.radians(SuperDARNRadars.
                            radars[stid].hardware_info.geographic.lon)
-    beam_sep = np.radians(SuperDARNRadars.
-                          radars[stid].hardware_info.beam_separation)
+    # Some beam seperations are negative which changes how the coordinates wrap
+    # we absolute to make it easier of fov-color for cartopy plotting
+    beam_sep = np.radians(abs(SuperDARNRadars.
+                          radars[stid].hardware_info.beam_separation))
     rxrise = SuperDARNRadars.radars[stid].hardware_info.rx_rise_time
 
     # TODO: fix after slant range change

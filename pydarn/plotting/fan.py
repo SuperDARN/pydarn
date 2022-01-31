@@ -262,7 +262,7 @@ class Fan():
             ccrs = None
             ax.pcolormesh(thetas, rs,
                           np.ma.masked_array(scan, ~scan.astype(bool)),
-                          norm=norm, cmap=cmap)
+                          norm=norm, cmap=cmap, zorder=5)
 
             # plot the groundscatter as grey fill
             if groundscatter:
@@ -281,13 +281,13 @@ class Fan():
             ax.pcolormesh(np.degrees(thetas), rs,
                           np.ma.masked_array(scan, ~scan.astype(bool)),
                           norm=norm, cmap=cmap,
-                          transform=ccrs.PlateCarree())
+                          transform=ccrs.PlateCarree(), zorder=2)
             if groundscatter:
                 ax.pcolormesh(np.degrees(thetas), rs,
                               np.ma.masked_array(grndsct,
                                                  ~grndsct.astype(bool)),
                               norm=norm, cmap='Greys',
-                              transform=ccrs.PlateCarree())
+                              transform=ccrs.PlateCarree(), zorder=2)
 
 
         if boundary:
@@ -397,9 +397,10 @@ class Fan():
 
         # Setup plot
         # This may screw up references
+        hemisphere = SuperDARNRadars.radars[stid].hemisphere
         if ax is None:
             # Get the hemisphere to pass to plotting projection
-            kwargs['hemisphere'] = SuperDARNRadars.radars[stid].hemisphere
+            kwargs['hemisphere'] = hemisphere
             if projs is Projs.POLAR:
                 # Get a polar projection using any kwarg input
                 ax = Projections.axis_polar(date=date, **kwargs)
@@ -489,7 +490,7 @@ class Fan():
             theta = np.flip(theta)
             r = np.flip(r)
 
-            ax.fill(theta, r, color=fov_color, alpha=alpha, zorder=2,
+            ax.fill(theta, r, color=fov_color, alpha=alpha, zorder=3,
                     transform=transform)
 
         return beam_corners_lats, beam_corners_lon, ax, ccrs
