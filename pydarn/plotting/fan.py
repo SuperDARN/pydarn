@@ -255,9 +255,10 @@ class Fan():
         rs = rs[ranges[0]:ranges[1]]
         scan = scan[ranges[0]:ranges[1]-1]
 
+        stid=dmap_data[0]['stid']
+        kwargs['hemisphere'] = SuperDARNRadars.radars[stid].hemisphere
+        
         if projs == Projs.POLAR:
-            stid=dmap_data[0]['stid']
-            kwargs['hemisphere'] = SuperDARNRadars.radars[stid].hemisphere
             ax = Projections.axis_polar(**kwargs)
             ccrs = None
             ax.pcolormesh(thetas, rs,
