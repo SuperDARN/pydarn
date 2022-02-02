@@ -9,6 +9,8 @@
 # 2021-09-09: CJM - Included a channel option for plot_fan
 # 2021-09-08: CJM - Included individual gate and beam boundary plotting for FOV
 # 2021-11-22: MTS - pass in axes object to plot_fov
+# 2021-02-02: CJM - Included rsep and frang options in plot_fov
+#                 - Re-arranged logic for ranges option
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
@@ -191,9 +193,17 @@ class Fan():
             except KeyError:
                 # Otherwise, default to [0,75]
                 ranges = [0,75]
-                
-        frang = dmap_data[0]['frang']
-        rsep = dmap_data[0]['rsep']
+        
+        # Get rsep and frang from data unless not there then take defaults
+        try:
+            frang = dmap_data[0]['frang']
+        except KeyError:
+            frang = 180
+        
+        try:
+            rsep = dmap_data[0]['rsep']
+        except:
+            rsep = 45
 
         beam_corners_aacgm_lats, beam_corners_aacgm_lons, thetas, rs, ax = \
             cls.plot_fov(dmap_data[0]['stid'], date, ranges=ranges, rsep=rsep, 
