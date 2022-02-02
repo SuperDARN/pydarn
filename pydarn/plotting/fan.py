@@ -149,10 +149,6 @@ class Fan():
             if not dmap_data:
                 raise plot_exceptions.NoChannelError(channel,opt_channel)
 
-        try:
-            ranges = kwargs['ranges']
-        except KeyError:
-            ranges = [0, 75]
         # Get scan numbers for each record
         beam_scan = build_scan(dmap_data)
         scan_time = None
@@ -185,11 +181,23 @@ class Fan():
         	date = scan_time
 
         # Plot FOV outline
-        if ranges is None:
-            ranges = [0, dmap_data[0]['nrang']]
+        try:
+            # Ranges given in call to function
+            ranges = kwargs['ranges']
+        except KeyError:
+            try:
+                # If not given, get ranges from data file
+                ranges = [0, dmap_data[0]['nrang']]
+            except KeyError:
+                # Otherwise, default to [0,75]
+                ranges = [0,75]
+                
+        frang = dmap_data[0]['frang']
+        rsep = dmap_data[0]['rsep']
 
         beam_corners_aacgm_lats, beam_corners_aacgm_lons, thetas, rs, ax = \
-            cls.plot_fov(dmap_data[0]['stid'], date, ax=ax, **kwargs)
+            cls.plot_fov(dmap_data[0]['stid'], date, ranges=ranges, rsep=rsep, 
+                         frang=frang, ax=ax, **kwargs)
 
         fan_shape = beam_corners_aacgm_lons.shape
 
@@ -280,11 +288,12 @@ class Fan():
 
     @classmethod
     def plot_fov(cls, stid: str, date: dt.datetime,
-                 ax=None, ranges: List = [], boundary: bool = True,
+                 ax=None, ranges: List = [], rsep: int = 45, 
+                 frang: int = 180, boundary: bool = True,
                  fov_color: str = None, alpha: int = 0.5,
                  radar_location: bool = True, radar_label: bool = False,
-                 line_color: str = 'black',
-                 grid: bool = False,
+                 line_color: str = 'black', 
+                 grid: bool = False, 
                  line_alpha: int = 0.5 , **kwargs):
         """
         plots only the field of view (FOV) for a given radar station ID (stid)
@@ -347,7 +356,8 @@ class Fan():
 
         # Get radar beam/gate locations
         beam_corners_aacgm_lats, beam_corners_aacgm_lons = \
-            radar_fov(stid, ranges=ranges, date=date, **kwargs)
+            radar_fov(stid, ranges=ranges, rsep=rsep, frang=frang,
+                      date=date, **kwargs)
 
         if not date:
             date = dt.datetime.now()
