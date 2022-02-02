@@ -20,6 +20,7 @@
 #              variable and function names to readability
 #   2020-09-15 Marina Schmidt removed fov file reading option
 #   2021-09-15 Francis Tholley relocated the virtual height models to another file
+#   2022-02-02 CJM - radar_fov updated to correctly use lower limit for ranges
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
 # Everyone is permitted to copy and distribute verbatim copies of this license

@@ -11,6 +11,7 @@
 # 2021-11-22: MTS - pass in axes object to plot_fov
 # 2021-02-02: CJM - Included rsep and frang options in plot_fov
 #                 - Re-arranged logic for ranges option
+#                 - Indexing fixed for give lower ranges that are non-zero
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
