@@ -61,7 +61,7 @@ class Fan():
                 "   - plot_fov()\n"
 
     @classmethod
-    def plot_fan(cls, dmap_data: List[dict], ax=None,
+    def plot_fan(cls, dmap_data: List[dict], ax=None, ranges: List = [],
                  scan_index: Union[int, dt.datetime] = 1,
                  parameter: str = 'v', cmap: str = None,
                  groundscatter: bool = False, zmin: int = None,
@@ -183,10 +183,7 @@ class Fan():
         	date = scan_time
 
         # Plot FOV outline
-        try:
-            # Ranges given in call to function
-            ranges = kwargs['ranges']
-        except KeyError:
+        if ranges == [] or ranges is None:
             try:
                 # If not given, get ranges from data file
                 ranges = [0, dmap_data[0]['nrang']]
