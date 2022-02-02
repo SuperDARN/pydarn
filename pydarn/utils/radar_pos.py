@@ -84,8 +84,8 @@ def radar_fov(stid: int, rsep: int = 45, frang: int = 180,
     # Plus 1 is due to the fact fov files index at 1 so in the plotting
     # of the boundary there is a subtraction of 1 to offset this as python
     # converts to index of 0 which my code already accounts for
-    beam_corners_lats = np.zeros((ranges[1], max_beams+1))
-    beam_corners_lons = np.zeros((ranges[1], max_beams+1))
+    beam_corners_lats = np.zeros((ranges[1]-ranges[0], max_beams+1))
+    beam_corners_lons = np.zeros((ranges[1]-ranges[0], max_beams+1))
 
     for beam in range(0, max_beams+1):
         for gate in range(ranges[0], ranges[1]):
@@ -100,10 +100,9 @@ def radar_fov(stid: int, rsep: int = 45, frang: int = 180,
                                                            250, date))
                 lat = geomag[0]
                 lon = geomag[1]
-            beam_corners_lats[gate, beam] = lat
-            beam_corners_lons[gate, beam] = lon
+            beam_corners_lats[gate-ranges[0], beam] = lat
+            beam_corners_lons[gate-ranges[0], beam] = lon
 
-    # Return geographic coordinates
     return beam_corners_lats, beam_corners_lons
 
 

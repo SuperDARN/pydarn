@@ -9,6 +9,8 @@
 # 2021-09-09: CJM - Included a channel option for plot_fan
 # 2021-09-08: CJM - Included individual gate and beam boundary plotting for FOV
 # 2021-11-22: MTS - pass in axes object to plot_fov
+# 2021-02-02: CJM - Included rsep and frang options in plot_fov
+#                 - Re-arranged logic for ranges option
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
@@ -59,7 +61,7 @@ class Fan():
                 "   - plot_fov()\n"
 
     @classmethod
-    def plot_fan(cls, dmap_data: List[dict], ax=None,
+    def plot_fan(cls, dmap_data: List[dict], ax=None, ranges: List=[],
                  scan_index: Union[int, dt.datetime] = 1,
                  parameter: str = 'v', cmap: str = None,
                  groundscatter: bool = False, zmin: int = None,
@@ -149,10 +151,6 @@ class Fan():
             if not dmap_data:
                 raise plot_exceptions.NoChannelError(channel,opt_channel)
 
-        try:
-            ranges = kwargs['ranges']
-        except KeyError:
-            ranges = [0, 75]
         # Get scan numbers for each record
         beam_scan = build_scan(dmap_data)
         scan_time = None
@@ -185,18 +183,34 @@ class Fan():
         	date = scan_time
 
         # Plot FOV outline
-        if ranges is None:
-            ranges = [0, dmap_data[0]['nrang']]
+        if ranges == [] or ranges is None:
+            try:
+                # If not given, get ranges from data file
+                ranges = [0, dmap_data[0]['nrang']]
+            except KeyError:
+                # Otherwise, default to [0,75]
+                ranges = [0,75]
+
+        # Get rsep and frang from data unless not there then take defaults
+        try:
+            frang = dmap_data[0]['frang']
+        except KeyError:
+            frang = 180
+
+        try:
+            rsep = dmap_data[0]['rsep']
+        except:
+            rsep = 45
 
         beam_corners_aacgm_lats, beam_corners_aacgm_lons, thetas, rs, ax = \
-            cls.plot_fov(dmap_data[0]['stid'], date, ax=ax, **kwargs)
+            cls.plot_fov(dmap_data[0]['stid'], date, ranges=ranges, rsep=rsep, 
+                         frang=frang, ax=ax, **kwargs)
 
         fan_shape = beam_corners_aacgm_lons.shape
 
         # Get range-gate data and groundscatter array for given scan
         scan = np.zeros((fan_shape[0] - 1, fan_shape[1]-1))
         grndsct = np.zeros((fan_shape[0] - 1, fan_shape[1]-1))
-
         # Colour table and max value selection depending on parameter plotted
         # Load defaults if none given
         if cmap is None:
@@ -280,7 +294,8 @@ class Fan():
 
     @classmethod
     def plot_fov(cls, stid: str, date: dt.datetime,
-                 ax=None, ranges: List = [], boundary: bool = True,
+                 ax=None, ranges: List = [],  rsep: int = 45,
+                 frang: int = 180, boundary: bool = True,
                  fov_color: str = None, alpha: int = 0.5,
                  radar_location: bool = True, radar_label: bool = False,
                  line_color: str = 'black',
@@ -347,7 +362,8 @@ class Fan():
 
         # Get radar beam/gate locations
         beam_corners_aacgm_lats, beam_corners_aacgm_lons = \
-            radar_fov(stid, ranges=ranges, date=date, **kwargs)
+            radar_fov(stid, ranges=ranges, rsep=rsep, frang=frang,
+                      date=date, **kwargs)
 
         if not date:
             date = dt.datetime.now()
@@ -375,17 +391,17 @@ class Fan():
 
         if boundary:
             # left boundary line
-            plt.plot(thetas[0:ranges[1], 0], rs[0:ranges[1], 0],
+            plt.plot(thetas[0:ranges[1]-ranges[0], 0], rs[0:ranges[1]-ranges[0], 0],
                      color=line_color, linewidth=0.5,
                      alpha=line_alpha)
             # top radar arc
-            plt.plot(thetas[ranges[1] - 1, 0:thetas.shape[1]],
-                     rs[ranges[1] - 1, 0:thetas.shape[1]],
+            plt.plot(thetas[ranges[1]-ranges[0] - 1, 0:thetas.shape[1]],
+                     rs[ranges[1]-ranges[0] - 1, 0:thetas.shape[1]],
                      color=line_color, linewidth=0.5,
                      alpha=line_alpha)
             # right boundary line
-            plt.plot(thetas[0:ranges[1], thetas.shape[1] - 1],
-                     rs[0:ranges[1], thetas.shape[1] - 1],
+            plt.plot(thetas[0:ranges[1]-ranges[0], thetas.shape[1] - 1],
+                     rs[0:ranges[1]-ranges[0], thetas.shape[1] - 1],
                      color=line_color, linewidth=0.5,
                      alpha=line_alpha)
             # bottom arc
@@ -401,7 +417,7 @@ class Fan():
                         color=line_color, linewidth=0.2,
                         alpha=line_alpha)
             # This plots arcs along the gates
-            for g in range(ranges[1]):
+            for g in range(ranges[1]-ranges[0]):
                 plt.plot(thetas[g-1, 0:thetas.shape[1]],
                         rs[g - 1, 0:thetas.shape[1]],
                         color=line_color, linewidth=0.2,
@@ -415,14 +431,14 @@ class Fan():
 
         if fov_color is not None:
             theta = thetas[0:ranges[1], 0]
-            theta = np.append(theta, thetas[ranges[1]-1, 0:thetas.shape[1]-1])
-            theta = np.append(theta, np.flip(thetas[0:ranges[1],
+            theta = np.append(theta, thetas[ranges[1]-ranges[0]-1, 0:thetas.shape[1]-1])
+            theta = np.append(theta, np.flip(thetas[0:ranges[1]-ranges[0],
                                                     thetas.shape[1]-1]))
             theta = np.append(theta, np.flip(thetas[0, 0:thetas.shape[1]-1]))
 
             r = rs[0:ranges[1], 0]
-            r = np.append(r, rs[ranges[1]-1, 0:thetas.shape[1]-1])
-            r = np.append(r, np.flip(rs[0:ranges[1], thetas.shape[1]-1]))
+            r = np.append(r, rs[ranges[1]-ranges[0]-1, 0:thetas.shape[1]-1])
+            r = np.append(r, np.flip(rs[0:ranges[1]-ranges[0], thetas.shape[1]-1]))
             r = np.append(r, np.flip(rs[0, 0:thetas.shape[1]-1]))
             ax.fill(theta, r, color=fov_color, alpha=alpha, zorder=0)
         return beam_corners_aacgm_lats, beam_corners_aacgm_lons, thetas, rs, ax
