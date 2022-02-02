@@ -209,8 +209,8 @@ class Fan():
         fan_shape = beam_corners_aacgm_lons.shape
 
         # Get range-gate data and groundscatter array for given scan
-        scan = np.zeros((fan_shape[0] - 1, fan_shape[1]-1))
-        grndsct = np.zeros((fan_shape[0] - 1, fan_shape[1]-1))
+        scan = np.zeros((fan_shape[0], fan_shape[1]-1))
+        grndsct = np.zeros((fan_shape[0], fan_shape[1]-1))
         # Colour table and max value selection depending on parameter plotted
         # Load defaults if none given
         if cmap is None:
@@ -241,28 +241,28 @@ class Fan():
                 # This is a temporary fix to manage inconsistencies between the
                 # fitacf files and the hardware files. The issue will be
                 # fully resolved when the `rpos` code is committed.
-                good_data=slist<(fan_shape[0] - 1)
+                good_data=np.where((slist>ranges[0])&(slist<ranges[1]))
                 slist=slist[good_data]
                 temp_data=dmap_data[i.astype(int)][parameter][good_data]
                 temp_ground=dmap_data[i.astype(int)]['gflg'][good_data]
 
-                scan[slist, beam] = temp_data
-                grndsct[slist, beam] = temp_ground
+                scan[slist-ranges[0], beam] = temp_data
+                grndsct[slist-ranges[0], beam] = temp_ground
             # if there is no slist field this means partial record
             except KeyError:
                 partial_record_warning()
                 continue
         # Begin plotting by iterating over ranges and beams
-        thetas = thetas[ranges[0]:ranges[1]]
-        rs = rs[ranges[0]:ranges[1]]
-        scan = scan[ranges[0]:ranges[1]-1]
+        thetas = thetas[0:ranges[1]-ranges[0]]
+        rs = rs[0:ranges[1]-ranges[0]]
+        scan = scan[0:ranges[1]-ranges[0]-1]
         ax.pcolormesh(thetas, rs,
                       np.ma.masked_array(scan, ~scan.astype(bool)),
                       norm=norm, cmap=cmap)
 
         # plot the groundscatter as grey fill
         if groundscatter:
-            grndsct = grndsct[ranges[0]:ranges[1]-1]
+            grndsct = grndsct[0:ranges[1]-ranges[0]-1]
             ax.pcolormesh(thetas, rs,
                           np.ma.masked_array(grndsct,
                                              ~grndsct.astype(bool)),
