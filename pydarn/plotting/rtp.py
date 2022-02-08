@@ -21,6 +21,7 @@
 """
 Range-Time Parameter (aka Intensity) plots
 """
+import copy
 import matplotlib.pyplot as plt
 import numpy as np
 import warnings
@@ -33,7 +34,7 @@ from pydarn import (gate2GroundScatter, gate2slant, check_data_type,
                     time2datetime, rtp_exceptions, plot_exceptions,
                     SuperDARNCpids, SuperDARNRadars,
                     standard_warning_format, PyDARNColormaps,
-                    Coords, citing_warning)
+                    Coords)
 
 warnings.formatwarning = standard_warning_format
 
@@ -392,7 +393,9 @@ class RTP():
         if isinstance(cmap, str):
             cmap = cm.get_cmap(cmap)
         else:
-            cmaps = {'p_l': plt.get_cmap('plasma'),
+            # need to do this as matplotlib 3.5 will
+            # not all direct mutations of the object
+            cmaps = {'p_l': copy.copy(cm.get_cmap('plasma')),
                      'v': PyDARNColormaps.PYDARN_VELOCITY,
                      'w_l': PyDARNColormaps.PYDARN_VIRIDIS,
                      'elv': PyDARNColormaps.PYDARN}
@@ -504,7 +507,6 @@ class RTP():
                                                       norm) from None
         if colorbar_label != '':
             cb.set_label(colorbar_label)
-        citing_warning()
         return im, cb, cmap, x, y, z_data
 
     @classmethod
@@ -794,7 +796,6 @@ class RTP():
         ax.margins(x=0)
         ax.tick_params(axis='y', which='minor')
 
-        citing_warning()
         return lines, x, y
 
     @classmethod
@@ -1168,7 +1169,6 @@ class RTP():
                      color='gray', ha='right', va='top',
                      rotation=-38, alpha=0.3)
 
-        citing_warning()
         return fig, axes
 
     @classmethod

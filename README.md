@@ -7,28 +7,24 @@
 
 Python data visualization library for the Super Dual Auroral Radar Network (SuperDARN).
 
-**WARNING!**
-    This is the `develop` branch that is not DOI'd yet, please click on the above DOI to get the most recently released pyDARN version. 
-
 ## Changelog
 
-## Version 2.1.1 - Release!
+## Version 2.2.1 - Release!
 
+**New Requirement**: pyDARN 2.2.1 requires minimum matplotlib version of 3.3.4
 
-pyDARN release v2.2 includes the following features:
-- **New** Radar geographical Field-of-View (FOV) calculations functionality
-- **Deprecation** Removed FOV files for radars geographic beam location
-- **New** pytesting environment for testing pydarn for development
-- **New** FOV grid lines to show range gates
-- Bug fix in Range-time plots with groundscatter
-- Bug fix in Range-time plots with time-shifting 
+pyDARN release v2.2.1 includes the following features:
+* Bug fix: fixed but in Summary plot not rendering 
+* Bug fix: fixed axes object not being properly handled in plot_fan
+* Enhancement: Added `__version__` ability in pydarn 
+* Updated: citing warning printing on `import` instead of plotting 
+* Updated: pyDARNio 1.1.0 is requirement 
 
-!!! Warning
-    `slant` option in `plot_range-time` and `plot_summary` is deprecated now uses `coords` 
+**Deprecation**: `slant` option in `plot_range-time` and `plot_summary` is deprecated now uses `coords` 
 
 ## Documentation
 
-pyDARN's documentation can found [here](https://pydarn.readthedocs.io/en/latest/index.html)
+pyDARN's documentation can be found [here](https://pydarn.readthedocs.io/en/latest/index.html)
 
 ## Getting Started
 

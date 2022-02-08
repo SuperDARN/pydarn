@@ -94,7 +94,7 @@ def radar_fov(stid: int, rsep: int = 45, frang: int = 180,
 
             if coords == Coords.AACGM:
                 if date is None:
-                    date = datetime.datetime.now()
+                    date = dt.datetime.now()
 
                 geomag = np.array(aacgmv2. get_aacgm_coord(lat, lon,
                                                            250, date))

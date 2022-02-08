@@ -14,7 +14,7 @@ from typing import List
 
 from pydarn import (plot_exceptions, SuperDARNRadars,
                     standard_warning_format, time2datetime,
-                    check_data_type, citing_warning)
+                    check_data_type)
 
 warnings.formatwarning = standard_warning_format
 
@@ -258,7 +258,6 @@ class ACF():
                           date=time.strftime("%Y %b %d %H:%M"),
                           cpid=record['cp'])
         ax.set_title(title)
-        citing_warning()
 
     @classmethod
     def __found_scan(cls, scan_num: int, count_num: int,

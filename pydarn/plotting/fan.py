@@ -8,6 +8,7 @@
 # 2021-09-15 Marina Schmidt - removed fov file options
 # 2021-09-09: CJM - Included a channel option for plot_fan
 # 2021-09-08: CJM - Included individual gate and beam boundary plotting for FOV
+# 2021-11-22: MTS - pass in axes object to plot_fov
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
@@ -33,7 +34,7 @@ from typing import List, Union
 # Third party libraries
 import aacgmv2
 
-from pydarn import (PyDARNColormaps, build_scan, radar_fov, citing_warning,
+from pydarn import (PyDARNColormaps, build_scan, radar_fov,
                     time2datetime, plot_exceptions, Coords,
                     SuperDARNRadars, Hemisphere, Projections,
                     partial_record_warning)
@@ -188,7 +189,7 @@ class Fan():
             ranges = [0, dmap_data[0]['nrang']]
 
         beam_corners_aacgm_lats, beam_corners_aacgm_lons, thetas, rs, ax = \
-            cls.plot_fov(dmap_data[0]['stid'], date, **kwargs)
+            cls.plot_fov(dmap_data[0]['stid'], date, ax=ax, **kwargs)
 
         fan_shape = beam_corners_aacgm_lons.shape
 
@@ -275,7 +276,6 @@ class Fan():
             end_time = time2datetime(dmap_data[plot_beams[-1][-1]])
             title = cls.__add_title__(start_time, end_time)
             plt.title(title)
-        citing_warning()
         return beam_corners_aacgm_lats, beam_corners_aacgm_lons, scan, grndsct
 
     @classmethod
@@ -425,7 +425,6 @@ class Fan():
             r = np.append(r, np.flip(rs[0:ranges[1], thetas.shape[1]-1]))
             r = np.append(r, np.flip(rs[0, 0:thetas.shape[1]-1]))
             ax.fill(theta, r, color=fov_color, alpha=alpha, zorder=0)
-        citing_warning()
         return beam_corners_aacgm_lats, beam_corners_aacgm_lons, thetas, rs, ax
 
     @classmethod

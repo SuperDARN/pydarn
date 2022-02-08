@@ -25,7 +25,7 @@ Every contribution helps!
 
 If you haven't cloned pyDARN before this will get you the correct branch installed to just test:
 `pip install git+https://github.com/superdarn/pydarn@<branchname>`
-Make sure to install any new instances of pyDARN, or branches that are not master in a virtual environment to avoid mixing pyDARN versions! 
+Make sure to install any new instances of pyDARN, or branches that are not main in a virtual environment to avoid mixing pyDARN versions! 
 
 
 If you wish to clone pyDARN for multi-branch comparison or testing in the future: 

@@ -54,7 +54,7 @@ Make sure to add what is needed to test and not too many parameterization option
 Remember this is not to test the accuracy as pytest cannot look at the plot but rather to test edge cases of parameters that make it fail.
 
 !!! Note
-    There are files provided for testing in the `test/data/` directory. If you need to add please keep the file size as small as possible and check in with other before adding. If its too big, it may not be able to be added to GitHub and cause pydarn to be slow to download. 
+    There are files provided for testing in the `test/data/` directory. If you need to add a file, please keep the file size as small as possible and check in with other developers before adding. If it's too big, it may not be able to be added to GitHub and cause pydarn to be slow to download. 
 
 To avoid writing several tests with the same body of code, consider using the `parameterize` to provide various types of inputs for one function. 
 
