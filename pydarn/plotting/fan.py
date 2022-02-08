@@ -188,12 +188,13 @@ class Fan():
             try:
                 # If not given, get ranges from data file
                 ranges = [0, dmap_data[0]['nrang']]
-                print(ranges)
             except KeyError:
                 # Otherwise, default to [0,75]
                 ranges = [0,75]
-
+        
         # Get rsep and frang from data unless not there then take defaults
+        # of 180 km for frang and 45 km for rsep as these are most commonly
+        # used
         try:
             frang = dmap_data[0]['frang']
         except KeyError:
@@ -301,12 +302,12 @@ class Fan():
 
     @classmethod
     def plot_fov(cls, stid: str, date: dt.datetime,
-                 ax=None, ranges: List = [],  rsep: int = 45,
+                 ax=None, ranges: List = [], rsep: int = 45, 
                  frang: int = 180, boundary: bool = True,
                  fov_color: str = None, alpha: int = 0.5,
                  radar_location: bool = True, radar_label: bool = False,
-                 line_color: str = 'black',
-                 grid: bool = False,
+                 line_color: str = 'black', 
+                 grid: bool = False, 
                  line_alpha: int = 0.5 , **kwargs):
         """
         plots only the field of view (FOV) for a given radar station ID (stid)
