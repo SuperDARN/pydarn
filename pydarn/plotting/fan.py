@@ -263,7 +263,6 @@ class Fan():
         thetas = thetas[0:ranges[1]-ranges[0]+1]
         rs = rs[0:ranges[1]-ranges[0]+1]
         scan = scan[0:ranges[1]-ranges[0]]
-        print(thetas.shape, rs.shape,scan.shape)
         ax.pcolormesh(thetas, rs,
                       np.ma.masked_array(scan, ~scan.astype(bool)),
                       norm=norm, cmap=cmap)
