@@ -188,6 +188,7 @@ class Fan():
             try:
                 # If not given, get ranges from data file
                 ranges = [0, dmap_data[0]['nrang']]
+                print(ranges)
             except KeyError:
                 # Otherwise, default to [0,75]
                 ranges = [0,75]
@@ -210,6 +211,8 @@ class Fan():
         fan_shape = beam_corners_aacgm_lons.shape
 
         # Get range-gate data and groundscatter array for given scan
+        # fan_shape has no -1 as when given ranges we want to include the
+        # both ends fo the ranges given
         scan = np.zeros((fan_shape[0], fan_shape[1]-1))
         grndsct = np.zeros((fan_shape[0], fan_shape[1]-1))
         # Colour table and max value selection depending on parameter plotted
@@ -242,7 +245,7 @@ class Fan():
                 # This is a temporary fix to manage inconsistencies between the
                 # fitacf files and the hardware files. The issue will be
                 # fully resolved when the `rpos` code is committed.
-                good_data=np.where((slist>ranges[0])&(slist<ranges[1]))
+                good_data=np.where((slist>=ranges[0])&(slist<ranges[1]))
                 slist=slist[good_data]
                 temp_data=dmap_data[i.astype(int)][parameter][good_data]
                 temp_ground=dmap_data[i.astype(int)]['gflg'][good_data]
@@ -254,16 +257,19 @@ class Fan():
                 partial_record_warning()
                 continue
         # Begin plotting by iterating over ranges and beams
-        thetas = thetas[0:ranges[1]-ranges[0]]
-        rs = rs[0:ranges[1]-ranges[0]]
-        scan = scan[0:ranges[1]-ranges[0]-1]
+        
+        
+        thetas = thetas[0:ranges[1]-ranges[0]+1]
+        rs = rs[0:ranges[1]-ranges[0]+1]
+        scan = scan[0:ranges[1]-ranges[0]]
+        print(thetas.shape, rs.shape,scan.shape)
         ax.pcolormesh(thetas, rs,
                       np.ma.masked_array(scan, ~scan.astype(bool)),
                       norm=norm, cmap=cmap)
 
         # plot the groundscatter as grey fill
         if groundscatter:
-            grndsct = grndsct[0:ranges[1]-ranges[0]-1]
+            grndsct = grndsct[0:ranges[1]-ranges[0]]
             ax.pcolormesh(thetas, rs,
                           np.ma.masked_array(grndsct,
                                              ~grndsct.astype(bool)),
@@ -392,33 +398,34 @@ class Fan():
 
         if boundary:
             # left boundary line
-            plt.plot(thetas[0:ranges[1]-ranges[0], 0], rs[0:ranges[1]-ranges[0], 0],
+            plt.plot(thetas[0:ranges[1]-ranges[0]+1, 0], 
+                     rs[0:ranges[1]-ranges[0]+1, 0],
                      color=line_color, linewidth=0.5,
                      alpha=line_alpha)
             # top radar arc
-            plt.plot(thetas[ranges[1]-ranges[0] - 1, 0:thetas.shape[1]],
-                     rs[ranges[1]-ranges[0] - 1, 0:thetas.shape[1]],
+            plt.plot(thetas[ranges[1]-ranges[0], 0:thetas.shape[1]],
+                     rs[ranges[1]-ranges[0], 0:thetas.shape[1]],
                      color=line_color, linewidth=0.5,
                      alpha=line_alpha)
             # right boundary line
-            plt.plot(thetas[0:ranges[1]-ranges[0], thetas.shape[1] - 1],
-                     rs[0:ranges[1]-ranges[0], thetas.shape[1] - 1],
+            plt.plot(thetas[0:ranges[1]-ranges[0]+1, thetas.shape[1] - 1],
+                     rs[0:ranges[1]-ranges[0]+1, thetas.shape[1] - 1],
                      color=line_color, linewidth=0.5,
                      alpha=line_alpha)
             # bottom arc
-            plt.plot(thetas[0, 0:thetas.shape[1] - 1],
-                     rs[0, 0:thetas.shape[1] - 1], color=line_color,
+            plt.plot(thetas[0, 0:thetas.shape[1]],
+                     rs[0, 0:thetas.shape[1]], color=line_color,
                      linewidth=0.5, alpha=line_alpha)
 
         if grid:
             # This plots lines along the beams
             for bm in range(fan_shape[1]):
-                plt.plot(thetas[0:ranges[1], bm - 1],
-                        rs[0:ranges[1], bm - 1],
+                plt.plot(thetas[0:ranges[1]+1, bm - 1],
+                        rs[0:ranges[1]+1, bm - 1],
                         color=line_color, linewidth=0.2,
                         alpha=line_alpha)
             # This plots arcs along the gates
-            for g in range(ranges[1]-ranges[0]):
+            for g in range(ranges[1]-ranges[0]+1):
                 plt.plot(thetas[g-1, 0:thetas.shape[1]],
                         rs[g - 1, 0:thetas.shape[1]],
                         color=line_color, linewidth=0.2,
@@ -431,15 +438,15 @@ class Fan():
 
 
         if fov_color is not None:
-            theta = thetas[0:ranges[1], 0]
-            theta = np.append(theta, thetas[ranges[1]-ranges[0]-1, 0:thetas.shape[1]-1])
-            theta = np.append(theta, np.flip(thetas[0:ranges[1]-ranges[0],
+            theta = thetas[0:ranges[1]+1, 0]
+            theta = np.append(theta, thetas[ranges[1]-ranges[0], 0:thetas.shape[1]-1])
+            theta = np.append(theta, np.flip(thetas[0:ranges[1]-ranges[0]+1,
                                                     thetas.shape[1]-1]))
             theta = np.append(theta, np.flip(thetas[0, 0:thetas.shape[1]-1]))
 
-            r = rs[0:ranges[1], 0]
-            r = np.append(r, rs[ranges[1]-ranges[0]-1, 0:thetas.shape[1]-1])
-            r = np.append(r, np.flip(rs[0:ranges[1]-ranges[0], thetas.shape[1]-1]))
+            r = rs[0:ranges[1]+1, 0]
+            r = np.append(r, rs[ranges[1]-ranges[0], 0:thetas.shape[1]-1])
+            r = np.append(r, np.flip(rs[0:ranges[1]-ranges[0]+1, thetas.shape[1]-1]))
             r = np.append(r, np.flip(rs[0, 0:thetas.shape[1]-1]))
             ax.fill(theta, r, color=fov_color, alpha=alpha, zorder=0)
         return beam_corners_aacgm_lats, beam_corners_aacgm_lons, thetas, rs, ax
