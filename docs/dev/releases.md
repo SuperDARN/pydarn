@@ -91,7 +91,7 @@ and to confirm the version number is correct. State why a release is needed and 
     Do this before the pull request to make it part of the review process 
 
 - Make sure the `.zenodo.json` file is updated to reflect the [DVWG authorship guidelines]() and everyone is okay with the order. Please confirm with additional new members if their name and ORCID iD is correct. 
-- Update `setup.py` file to have the new version number on the line `version=""`
+- Update `version.py` file to have the new version number on the line `__version__=""`
 - Update `README.md` file to reflect the new changes of the release and version number 
 
 ### Release Checklist
