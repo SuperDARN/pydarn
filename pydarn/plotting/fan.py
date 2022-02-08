@@ -192,6 +192,8 @@ class Fan():
                 ranges = [0,75]
         
         # Get rsep and frang from data unless not there then take defaults
+        # of 180 km for frang and 45 km for rsep as these are most commonly
+        # used
         try:
             frang = dmap_data[0]['frang']
         except KeyError:
