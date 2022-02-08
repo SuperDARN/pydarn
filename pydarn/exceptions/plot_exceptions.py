@@ -24,9 +24,9 @@ class CartopyMissingError(Exception):
     Error given when attmpting a cartopy style plot but cartopy isn't installed
     """
     def __init__(self):
-        self.message = 'An attempt to plot using cartopy was made'\
-            ' without cartopy being installed. Please either change'\
-            ' plot styles or install cartopy and dependencies.'
+        self.message = 'cartopy is independent library that the user must'\
+                'install to use. Please either change'\
+                ' plot styles or install cartopy and dependencies: https://pydarn.readthedocs.io/en/main/user/install/.'
         super().__init__(self.message)
         pydarn_log.error(self.message)
 
