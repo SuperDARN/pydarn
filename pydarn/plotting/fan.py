@@ -413,7 +413,7 @@ class Fan():
                       date=date, **kwargs)
 
         if projs is Projs.POLAR:
-            beam_corners_lon = np.radians(beam_corners_lon)
+            beam_corners_lons = np.radians(beam_corners_lons)
 
         # Setup plot
         # This may screw up references
