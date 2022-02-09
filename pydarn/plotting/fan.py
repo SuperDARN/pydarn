@@ -10,6 +10,8 @@
 # 2021-09-08: CJM - Included individual gate and beam boundary plotting for FOV
 # 2021-11-22: MTS - pass in axes object to plot_fov
 # 2021-11-18: MTS - Added Projectsion class for cartopy use
+# 2021-02-02: CJM - Included rsep and frang options in plot_fov
+#                 - Re-arranged logic for ranges option
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
@@ -60,7 +62,7 @@ class Fan():
                 "   - plot_fov()\n"
 
     @classmethod
-    def plot_fan(cls, dmap_data: List[dict], ax=None,
+    def plot_fan(cls, dmap_data: List[dict], ax=None, ranges: List = [],
                  scan_index: Union[int, dt.datetime] = 1,
                  parameter: str = 'v', cmap: str = None,
                  groundscatter: bool = False, zmin: int = None,
@@ -151,10 +153,6 @@ class Fan():
             if not dmap_data:
                 raise plot_exceptions.NoChannelError(channel, opt_channel)
 
-        try:
-            ranges = kwargs['ranges']
-        except KeyError:
-            ranges = [0, 75]
         # Get scan numbers for each record
         beam_scan = build_scan(dmap_data)
         scan_time = None
@@ -188,14 +186,32 @@ class Fan():
             date = scan_time
 
         # Plot FOV outline
-        if ranges is None:
-            ranges = [0, dmap_data[0]['nrang']]
+        if ranges == [] or ranges is None:
+            try:
+                # If not given, get ranges from data file
+                ranges = [0, dmap_data[0]['nrang']]
+            except KeyError:
+                # Otherwise, default to [0,75]
+                ranges = [0,75]
+
+        # Get rsep and frang from data unless not there then take defaults
+        # of 180 km for frang and 45 km for rsep as these are most commonly
+        # used
+        try:
+            frang = dmap_data[0]['frang']
+        except KeyError:
+            frang = 180
+
+        try:
+            rsep = dmap_data[0]['rsep']
+        except:
+            rsep = 45
 
         beam_corners_lats, beam_corners_lons =\
             radar_fov(stid=dmap_data[0]['stid'],
                       rsep=dmap_data[0]['rsep'],
                       frang=dmap_data[0]['frang'],
-                      ranges=ranges, date=date, **kwargs)
+                      ranges=ranges, date=date, ax=ax, **kwargs)
         #beam_corners_lons = np.where(beam_corners_lons<0 , beam_corners_lons,
         #                             beam_corners_lons + 360)
 
@@ -257,7 +273,7 @@ class Fan():
 
         stid=dmap_data[0]['stid']
         kwargs['hemisphere'] = SuperDARNRadars.radars[stid].hemisphere
-        
+
         if projs == Projs.POLAR:
             ax = Projections.axis_polar(**kwargs)
             ccrs = None
@@ -293,7 +309,8 @@ class Fan():
 
         if boundary:
             cls.plot_fov(stid=dmap_data[0]['stid'], date=date, ax=ax,
-                         ccrs=ccrs, projs=projs, **kwargs)
+                         ccrs=ccrs, projs=projs, rsep=rsep, frang=frang,
+                         **kwargs)
 
         # Create color bar if True
         if colorbar is True:
@@ -317,6 +334,7 @@ class Fan():
     @classmethod
     def plot_fov(cls, stid: str, date: dt.datetime,
                  ax=None, ccrs=None, ranges: List = [],
+                 rsep: int = 45, frang: int = 180,
                  projs: object = Projs.POLAR,
                  coords: Coords = Coords.AACGM_MLT,
                  fov_color: str = None, alpha: int = 0.5,
@@ -390,9 +408,10 @@ class Fan():
             date = dt.datetime.now()
 
         # Get radar beam/gate locations
-        beam_corners_lats, beam_corners_lon = \
-            radar_fov(stid, ranges=ranges, date=date, coords=coords,
-                      **kwargs)
+        beam_corners_aacgm_lats, beam_corners_aacgm_lons = \
+            radar_fov(stid, ranges=ranges, rsep=rsep, frang=frang,
+                      date=date, **kwargs)
+
         if projs is Projs.POLAR:
             beam_corners_lon = np.radians(beam_corners_lon)
 
