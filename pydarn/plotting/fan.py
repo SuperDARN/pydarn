@@ -408,7 +408,7 @@ class Fan():
             date = dt.datetime.now()
 
         # Get radar beam/gate locations
-        beam_corners_aacgm_lats, beam_corners_aacgm_lons = \
+        beam_corners_lats, beam_corners_lons = \
             radar_fov(stid, ranges=ranges, rsep=rsep, frang=frang,
                       date=date, **kwargs)
 
@@ -431,39 +431,39 @@ class Fan():
         else:
             transform = ccrs.Geodetic()
         # left boundary line
-        plt.plot(beam_corners_lon[0:ranges[1], 0],
+        plt.plot(beam_corners_lons[0:ranges[1], 0],
                  beam_corners_lats[0:ranges[1], 0],
                  color=line_color, linewidth=0.5,
                  alpha=line_alpha, transform=transform)
         # top radar arc
-        plt.plot(beam_corners_lon[ranges[1] - 1, 0:beam_corners_lon.shape[1]],
-                 beam_corners_lats[ranges[1] - 1, 0:beam_corners_lon.shape[1]],
+        plt.plot(beam_corners_lons[ranges[1] - 1, 0:beam_corners_lons.shape[1]],
+                 beam_corners_lats[ranges[1] - 1, 0:beam_corners_lons.shape[1]],
                  color=line_color, linewidth=0.5,
                  alpha=line_alpha, transform=transform)
         # right boundary line
-        plt.plot(beam_corners_lon[0:ranges[1], beam_corners_lon.shape[1] - 1],
-                 beam_corners_lats[0:ranges[1], beam_corners_lon.shape[1] - 1],
+        plt.plot(beam_corners_lons[0:ranges[1], beam_corners_lons.shape[1] - 1],
+                 beam_corners_lats[0:ranges[1], beam_corners_lons.shape[1] - 1],
                  color=line_color, linewidth=0.5,
                  alpha=line_alpha, transform=transform)
         # bottom arc
-        plt.plot(beam_corners_lon[0, 0:beam_corners_lon.shape[1] - 1],
-                 beam_corners_lats[0, 0:beam_corners_lon.shape[1] - 1],
+        plt.plot(beam_corners_lons[0, 0:beam_corners_lons.shape[1] - 1],
+                 beam_corners_lats[0, 0:beam_corners_lons.shape[1] - 1],
                  color=line_color, linewidth=0.5, alpha=line_alpha,
                  transform=transform)
 
-        fan_shape = beam_corners_lon.shape
+        fan_shape = beam_corners_lons.shape
 
         if grid:
             # This plots lines along the beams
             for bm in range(fan_shape[1]):
-                plt.plot(beam_corners_lon[0:ranges[1], bm - 1],
+                plt.plot(beam_corners_lons[0:ranges[1], bm - 1],
                          beam_corners_lats[0:ranges[1], bm - 1],
                          color=line_color, linewidth=0.2,
                          alpha=line_alpha, transform=transform)
             # This plots arcs along the gates
             for g in range(ranges[1]):
-                plt.plot(beam_corners_lon[g-1, 0:beam_corners_lon.shape[1]],
-                         beam_corners_lats[g - 1, 0:beam_corners_lon.shape[1]],
+                plt.plot(beam_corners_lons[g-1, 0:beam_corners_lons.shape[1]],
+                         beam_corners_lats[g - 1, 0:beam_corners_lons.shape[1]],
                          color=line_color, linewidth=0.2,
                          alpha=line_alpha, transform=transform)
 
@@ -477,29 +477,29 @@ class Fan():
                                  coords=coords, ccrs=ccrs, **kwargs)
 
         if fov_color is not None:
-            theta = beam_corners_lon[0:ranges[1], 0]
+            theta = beam_corners_lons[0:ranges[1], 0]
             theta = np.append(theta,
-                              beam_corners_lon[ranges[1]-1,
-                                               0:beam_corners_lon.shape[1]-1])
+                              beam_corners_lons[ranges[1]-1,
+                                               0:beam_corners_lons.shape[1]-1])
             theta =\
                 np.append(theta,
-                          np.flip(beam_corners_lon[0:ranges[1],
-                                                   beam_corners_lon.shape[1]-1]))
+                          np.flip(beam_corners_lons[0:ranges[1],
+                                                   beam_corners_lons.shape[1]-1]))
             theta =\
                 np.append(theta,
-                          np.flip(beam_corners_lon[0,
-                                                   0:beam_corners_lon.shape[1]-1]))
+                          np.flip(beam_corners_lons[0,
+                                                   0:beam_corners_lons.shape[1]-1]))
 
             r = beam_corners_lats[0:ranges[1], 0]
             r = np.append(r,
                           beam_corners_lats[ranges[1]-1,
-                                            0:beam_corners_lon.shape[1]-1])
+                                            0:beam_corners_lons.shape[1]-1])
             r = np.append(r,
                           np.flip(beam_corners_lats[0:ranges[1],
-                                                    beam_corners_lon.shape[1]-1]))
+                                                    beam_corners_lons.shape[1]-1]))
             r = np.append(r,
                           np.flip(beam_corners_lats[0,
-                                                    0:beam_corners_lon.shape[1]-1]))
+                                                    0:beam_corners_lons.shape[1]-1]))
 
             # TODO:
             # Flipping doesn't affect the polar plot so I've left it outside
@@ -513,7 +513,7 @@ class Fan():
             ax.fill(theta, r, color=fov_color, alpha=alpha, zorder=3,
                     transform=transform)
 
-        return beam_corners_lats, beam_corners_lon, ax, ccrs
+        return beam_corners_lats, beam_corners_lons, ax, ccrs
 
     @classmethod
     def plot_radar_position(cls, stid: int, date: dt.datetime,
