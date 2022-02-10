@@ -29,4 +29,4 @@ class Projs(enum.Enum):
     """
 
     POLAR = enum.auto()
-    COASTALINE = enum.auto
+    GEO_COASTALINE = enum.auto()
