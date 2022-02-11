@@ -52,12 +52,13 @@ Other information a user can access from the `_HdwInfo` object is:
 | :---:                   | :---                                                                                                                                                                            |
 | `stid`                  | Station Id of the radar                                                                                                                                                         |
 | `abbrev`                | 3 letter radar abbreviation                                                                                                                                                     |
+| `date`                  | Date the hardware specifications were changed                                                                                                                                   | 
 | `geographic`            | Geographic coordinates of the radar and altitude in meters (lat, long, alt)                                                                                                     |
-| `boresight`             | Boresight of the centre beam                                                                                                                                                    |
+| `boresight`             | Boresight of the centre beam (physical, electronic)                                                                                                                             |
 | `beam_separation`       | Angular separation between radar beams in degrees                                                                                                                               |
 | `velocity_sign`         | To help identify backscatter velocities which the signs can be reversed based on receiver design                                                                                |
 | `rx_attenuator`         | Analog Rx attenuator step in dB                                                                                                                                                 |
-| `tdiff`                 | propagation time from interferometer array antenna to phasing matrix input minus propagation time from main array antenna through transmitter in phasing matrix in microseconds |
+| `tdiff`                 | propagation time from interferometer array antenna to phasing matrix input minus propagation time from main array antenna through transmitter in phasing matrix in microseconds (channel_a, channel_b)|
 | `phase_sign`            | Account for cable error in analyzing data                                                                                                                                       |
 | `interferometer_offset` | Cartesian coordinates (x,y,z) from midpoint interferometer array to midpoint main array in meters                                                                               |
 | `rx_rise_time`          | Analog Rx rise time measured in microseconds                                                                                                                                    |
@@ -82,7 +83,7 @@ print(radar_info)
 
 Expected output:
 ```python
-_Radar(name='Prince George', institution='University of Saskatchewan', hemisphere=<Hemisphere.North: 1>, hardware_info=_HdwInfo(stid=6, abbrev='pgr', geographic=_Coord(lat=53.98, lon=-122.59, alt=670.0), boresight=-5.0, beam_separation=3.24, velocity_sign=1.0, rx_attenuator=10.0, tdiff=0.0, phase_sign=1.0, interferometer_offset=_InterferometerOffset(x=0.0, y=-100.0, z=0.0), rx_rise_time=0.0, attenuation_stages=0.0, gates=225, beams=16))
+_Radar(name='Prince George', institution='University of Saskatchewan', hemisphere=<Hemisphere.North: 1>, hardware_info=_HdwInfo(stid=6, status=<Status.online: 1>, abbrev='pgr', date=datetime.datetime(2000, 3, 3, 0, 0), geographic=_Coord(lat=53.98, lon=-122.59, alt=670.0), boresight=_Boresight(physical=-5.0, electronic=0.0), beam_separation=3.24, velocity_sign=1.0, rx_attenuator=10.0, tdiff=_Tdiff(channel_a=0.0, channel_b=0.0), phase_sign=1.0, interferometer_offset=_InterferometerOffset(x=0.0, y=-100.0, z=0.0), rx_rise_time=0.0, attenuation_stages=0, gates=225, beams=16))
 ```
 
 !!! Warning
