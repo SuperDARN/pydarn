@@ -69,6 +69,7 @@ class Fan():
                  zmax: int = None, colorbar: bool = True,
                  colorbar_label: str = '', title: bool = True,
                  boundary: bool = True, projs: Projs = Projs.POLAR,
+                 coords: Coords = Coords.AACGM_MLT,
                  channel: int = 'all', **kwargs):
         """
         Plots a radar's Field Of View (FOV) fan plot for the given data and
@@ -192,7 +193,7 @@ class Fan():
                 ranges = [0, dmap_data[0]['nrang']]
             except KeyError:
                 # Otherwise, default to [0,75]
-                ranges = [0,75]
+                ranges = [0, SuperDARNRadars.radars[stid].range_gate_45]
 
         # Get rsep and frang from data unless not there then take defaults
         # of 180 km for frang and 45 km for rsep as these are most commonly
@@ -204,14 +205,13 @@ class Fan():
 
         try:
             rsep = dmap_data[0]['rsep']
-        except:
+        except KeyError:
             rsep = 45
-
         beam_corners_lats, beam_corners_lons =\
             radar_fov(stid=dmap_data[0]['stid'],
-                      rsep=dmap_data[0]['rsep'],
-                      frang=dmap_data[0]['frang'],
-                      ranges=ranges, date=date, ax=ax, **kwargs)
+                      rsep=rsep, frang=frang,
+                      ranges=ranges, date=date, coords=coords,
+                      **kwargs)
         #beam_corners_lons = np.where(beam_corners_lons<0 , beam_corners_lons,
         #                             beam_corners_lons + 360)
 
@@ -309,8 +309,8 @@ class Fan():
 
         if boundary:
             cls.plot_fov(stid=dmap_data[0]['stid'], date=date, ax=ax,
-                         ccrs=ccrs, projs=projs, rsep=rsep, frang=frang,
-                         **kwargs)
+                         ccrs=ccrs, coords=coords, projs=projs, rsep=rsep,
+                         frang=frang, ranges=ranges, **kwargs)
 
         # Create color bar if True
         if colorbar is True:
@@ -410,7 +410,7 @@ class Fan():
         # Get radar beam/gate locations
         beam_corners_lats, beam_corners_lons = \
             radar_fov(stid, ranges=ranges, rsep=rsep, frang=frang,
-                      date=date, **kwargs)
+                      date=date, coords=coords, **kwargs)
 
         if projs is Projs.POLAR:
             beam_corners_lons = np.radians(beam_corners_lons)
