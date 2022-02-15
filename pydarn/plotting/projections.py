@@ -21,6 +21,7 @@ from packaging import version
 
 from pydarn import Hemisphere, plot_exceptions
 try:
+    import cartopy
     from cartopy.mpl import geoaxes
     import cartopy.crs as ccrs
     cartopyInstalled = True
@@ -95,7 +96,7 @@ class Projections():
         if cartopyInstalled == False:
             raise plot_exceptions.CartopyMissingError()
         if cartopyVersion == False:
-            raise plot_exceptions.CartopyVersionError()
+            raise plot_exceptions.CartopyVersionError(cartopy.__version__)
         # no need to shift any coords, let cartopy do that
         # however, we do need to figure out
         # how much to rotate the projection
