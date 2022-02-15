@@ -17,14 +17,21 @@ Code which generates axis objects for use in plotting functions
 
 import matplotlib.pyplot as plt
 import numpy as np
+from packaging import version
 
-from pydarn import Hemisphere
+from pydarn import Hemisphere, plot_exceptions
 try:
     from cartopy.mpl import geoaxes
     import cartopy.crs as ccrs
     cartopyInstalled = True
+    if version.parse(cartopy.__version__) < version.parse("0.19"):
+        cartopyVersion = False
+    else:
+        cartopyVersion = True
 except Exception:
     cartopyInstalled = False
+
+
 
 class Projections():
     """
@@ -87,6 +94,8 @@ class Projections():
         """
         if cartopyInstalled == False:
             raise plot_exceptions.CartopyMissingError()
+        if cartopyVersion == False:
+            raise plot_exceptions.CartopyVersionError()
         # no need to shift any coords, let cartopy do that
         # however, we do need to figure out
         # how much to rotate the projection

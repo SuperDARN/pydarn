@@ -30,11 +30,9 @@ Fan plots, mapped to AACGM coordinates in a polar format
 import datetime as dt
 import matplotlib.pyplot as plt
 import numpy as np
-from cartopy.util import add_cyclic_point
 
 from matplotlib import ticker, cm, colors
 from typing import List, Union
-from shapely.geometry import Point, Polygon
 
 # Third party libraries
 import aacgmv2

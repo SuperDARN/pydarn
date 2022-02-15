@@ -31,6 +31,17 @@ class CartopyMissingError(Exception):
         pydarn_log.error(self.message)
 
 
+class CartopyVersionError(Exception):
+    """
+    Error given when attmpting a cartopy style plot but cartopy isn't installed
+    """
+    def __init__(self, version):
+        self.message = 'cartopy is independent library that the user must'\
+                'install to use. Please insure the version number is >= 0.19. Your current version is: {}'.format(version)
+        super().__init__(self.message)
+        pydarn_log.error(self.message)
+
+
 class IncorrectPlotMethodError(Exception):
     """
     This error is raised when the incorrect plotting
