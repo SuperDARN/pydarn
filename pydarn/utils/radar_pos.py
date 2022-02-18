@@ -51,7 +51,7 @@ from pydarn.utils.virtual_heights_types import VH_types
 from pydarn.utils.virtual_heights import standard_virtual_height, chisham
 
 def radar_fov(stid: int, rsep: int = 45, frang: int = 180,
-              ranges: tuple = None, coords: object = Coords.AACGM,
+              ranges: tuple = None, coords: object = Coords.AACGM_MLT,
               max_beams: int = None, date: dt.datetime = None, **kwargs):
     """
     Returning beam/gate coordinates of a specified radar's field-of-view
@@ -72,10 +72,10 @@ def radar_fov(stid: int, rsep: int = 45, frang: int = 180,
     ----------
     latitudes: np.array
         n_beams x n_gates array of geographic or AACGMv2 latitudes
-        for range gate corners
+        for range gate corners in degrees
     longitudes/mlts: np.array
         n_beams x n_gates array of geographic or AACGMv2 longitudes
-        for range gate corners
+        for range gate corners in degrees
     """
     # Locate base PyDARN directory
     if ranges is None:
@@ -87,25 +87,32 @@ def radar_fov(stid: int, rsep: int = 45, frang: int = 180,
     # converts to index of 0 which my code already accounts for
     beam_corners_lats = np.zeros((ranges[1]-ranges[0]+1, max_beams+1))
     beam_corners_lons = np.zeros((ranges[1]-ranges[0]+1, max_beams+1))
-
     for beam in range(0, max_beams+1):
         for gate in range(ranges[0], ranges[1]+1):
             lat, lon = geographic_cell_positions(stid, beam, gate, rsep,
                                                  frang, height=300)
 
-            if coords == Coords.AACGM:
+            if coords == Coords.AACGM_MLT:
                 if date is None:
                     date = dt.datetime.now()
 
-                geomag = np.array(aacgmv2. get_aacgm_coord(lat, lon,
+                geomag = np.array(aacgmv2.get_aacgm_coord(lat, lon,
                                                            250, date))
                 lat = geomag[0]
                 lon = geomag[1]
             beam_corners_lats[gate-ranges[0], beam] = lat
             beam_corners_lons[gate-ranges[0], beam] = lon
-
-    return beam_corners_lats, beam_corners_lons
-
+    if coords == Coords.AACGM_MLT:
+        fan_shape = beam_corners_lons.shape
+        # Work out shift due in MLT
+        beam_corners_mlts = np.zeros((fan_shape[0], fan_shape[1]))
+        mltshift = beam_corners_lons[0, 0] - \
+            (aacgmv2.convert_mlt(beam_corners_lons[0, 0], date) * 15)
+        beam_corners_mlts = beam_corners_lons - mltshift
+        return beam_corners_lats, beam_corners_mlts
+    else:
+        # Return geographic coordinates
+        return beam_corners_lats, beam_corners_lons
 
 # RPosGeo line 335
 def geographic_cell_positions(stid: int, beam: int, range_gate: int,
@@ -166,8 +173,10 @@ def geographic_cell_positions(stid: int, beam: int, range_gate: int,
                            radars[stid].hardware_info.geographic.lat)
     radar_lon = np.radians(SuperDARNRadars.
                            radars[stid].hardware_info.geographic.lon)
-    beam_sep = np.radians(SuperDARNRadars.
-                          radars[stid].hardware_info.beam_separation)
+    # Some beam seperations are negative which changes how the coordinates wrap
+    # we absolute to make it easier of fov-color for cartopy plotting
+    beam_sep = np.radians(abs(SuperDARNRadars.
+                          radars[stid].hardware_info.beam_separation))
     rxrise = SuperDARNRadars.radars[stid].hardware_info.rx_rise_time
 
     # TODO: fix after slant range change
