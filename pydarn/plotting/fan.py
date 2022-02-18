@@ -42,6 +42,7 @@ from pydarn import (PyDARNColormaps, build_scan, radar_fov,
                     partial_record_warning, time2datetime, plot_exceptions,
                     SuperDARNRadars, Projs, Coords, Hemisphere, Projections)
 
+
 class Fan():
     """
     'Fan', or 'Field-of-view' plots for SuperDARN FITACF data
@@ -61,7 +62,7 @@ class Fan():
                 "   - plot_fov()\n"
 
     @classmethod
-    def plot_fan(cls, dmap_data: List[dict], ax=None, ranges: List=[],
+    def plot_fan(cls, dmap_data: List[dict], ax=None, ranges: List = [],
                  scan_index: Union[int, dt.datetime] = 1,
                  parameter: str = 'v', cmap: str = None,
                  groundscatter: bool = False, zmin: int = None,
@@ -177,8 +178,6 @@ class Fan():
                                                          scan_time)
         # Locate scan in loaded data
         plot_beams = np.where(beam_scan == scan_index)
-        hemisphere = SuperDARNRadars.radars[dmap_data[0]['stid']].hemisphere
-
         # Time for coordinate conversion
         if not scan_time:
             date = time2datetime(dmap_data[plot_beams[0][0]])
@@ -186,6 +185,7 @@ class Fan():
             date = scan_time
 
         # Plot FOV outline
+        stid = dmap_data[0]['stid']
         if ranges == [] or ranges is None:
             try:
                 # If not given, get ranges from data file
@@ -211,8 +211,6 @@ class Fan():
                       rsep=rsep, frang=frang,
                       ranges=ranges, date=date, coords=coords,
                       **kwargs)
-        #beam_corners_lons = np.where(beam_corners_lons<0 , beam_corners_lons,
-        #                             beam_corners_lons + 360)
 
         fan_shape = beam_corners_lons.shape
 
@@ -254,10 +252,11 @@ class Fan():
                 # This is a temporary fix to manage inconsistencies between the
                 # fitacf files and the hardware files. The issue will be
                 # fully resolved when the `rpos` code is committed.
-                good_data=np.where((slist>=ranges[0])&(slist<ranges[1]))
-                slist=slist[good_data]
-                temp_data=dmap_data[i.astype(int)][parameter][good_data]
-                temp_ground=dmap_data[i.astype(int)]['gflg'][good_data]
+                good_data = np.where((slist >= ranges[0]) &
+                                     (slist < ranges[1]))
+                slist = slist[good_data]
+                temp_data = dmap_data[i.astype(int)][parameter][good_data]
+                temp_ground = dmap_data[i.astype(int)]['gflg'][good_data]
 
                 scan[slist-ranges[0], beam] = temp_data
                 grndsct[slist-ranges[0], beam] = temp_ground
@@ -270,9 +269,6 @@ class Fan():
         thetas = thetas[0:ranges[1]-ranges[0]+1]
         rs = rs[0:ranges[1]-ranges[0]+1]
         scan = scan[0:ranges[1]-ranges[0]]
-
-        stid=dmap_data[0]['stid']
-        kwargs['hemisphere'] = SuperDARNRadars.radars[stid].hemisphere
 
         if projs == Projs.POLAR:
             ax = Projections.axis_polar(**kwargs)
@@ -305,7 +301,6 @@ class Fan():
                                                  ~grndsct.astype(bool)),
                               norm=norm, cmap='Greys',
                               transform=ccrs.PlateCarree(), zorder=2)
-
 
         if boundary:
             cls.plot_fov(stid=dmap_data[0]['stid'], date=date, ax=ax,
@@ -470,7 +465,7 @@ class Fan():
                 plt.plot(beam_corners_lons[g - 1,
                                            0:beam_corners_lons.shape[1]],
                          beam_corners_lats[g - 1,
-                                          0:beam_corners_lons.shape[1]],
+                                           0:beam_corners_lons.shape[1]],
                          color=line_color, linewidth=0.2,
                          alpha=line_alpha, transform=transform,
                          zorder=3)
@@ -486,35 +481,38 @@ class Fan():
 
         if fov_color is not None:
             theta = beam_corners_lons[0:ranges[1] + 1, 0]
-            theta = np.append(theta,
-                              beam_corners_lons[ranges[1]-ranges[0],
-                                                0:beam_corners_lons.shape[1]-1])
             theta =\
                 np.append(theta,
-                          np.flip(beam_corners_lons[0:ranges[1]-ranges[0]+1,
-                                                   beam_corners_lons.shape[1]-1]))
+                          beam_corners_lons[ranges[1]-ranges[0],
+                                            0:beam_corners_lons.shape[1]-1])
+            theta =\
+                np.append(theta,
+                          np.flip(beam_corners_lons[0:ranges[1] -
+                                                    ranges[0] + 1,
+                                                    beam_corners_lons.
+                                                    shape[1] - 1]))
             theta =\
                 np.append(theta,
                           np.flip(beam_corners_lons[0,
-                                                    0:beam_corners_lons.shape[1]-1]))
+                                                    0:beam_corners_lons.
+                                                    shape[1] - 1]))
 
             r = beam_corners_lats[0:ranges[1] + 1, 0]
-            r = np.append(r,
-                          beam_corners_lats[ranges[1]-ranges[0],
-                                            0:beam_corners_lons.shape[1]-1])
-            r = np.append(r,
-                          np.flip(beam_corners_lats[0:ranges[1]-ranges[0]+1,
-                                                    beam_corners_lons.shape[1]-1]))
-            r = np.append(r,
+            r =\
+                np.append(r, beam_corners_lats[ranges[1]-ranges[0],
+                                               0:beam_corners_lons.
+                                               shape[1] - 1])
+            r =\
+                np.append(r,
+                          np.flip(beam_corners_lats[0:ranges[1] - ranges[0]+1,
+                                                    beam_corners_lons.
+                                                    shape[1] - 1]))
+            r =\
+                np.append(r,
                           np.flip(beam_corners_lats[0,
-                                                    0:beam_corners_lons.shape[1]-1]))
+                                                    0:beam_corners_lons.
+                                                    shape[1] - 1]))
 
-            # TODO:
-            # Flipping doesn't affect the polar plot so I've left it outside
-            # an if loop here. We will need to check the winding order of
-            # all the radars FOV to make sure they fill the inside instead
-            # of outside, for some reason when I came across this problem
-            # using D3.js it was really random which came out the wrong way
             theta = np.flip(theta)
             r = np.flip(r)
 
@@ -556,7 +554,8 @@ class Fan():
             lat = geomag_radar[0]
             lon = geomag_radar[1]
             if coords == Coords.AACGM_MLT:
-                mltshift = geomag_radar[1] - (aacgmv2.convert_mlt(geomag_radar[1], date) * 15)
+                mltshift = geomag_radar[1] -\
+                        (aacgmv2.convert_mlt(geomag_radar[1], date) * 15)
                 lon = geomag_radar[1] - mltshift
         if projs == Projs.POLAR:
             lon = np.radians(lon)
@@ -601,7 +600,8 @@ class Fan():
             lat = geomag_radar[0]
             lon = geomag_radar[1]
             if coords == Coords.AACGM_MLT:
-                mltshift = geomag_radar[1] - (aacgmv2.convert_mlt(geomag_radar[1], date) * 15)
+                mltshift = geomag_radar[1] -\
+                        (aacgmv2.convert_mlt(geomag_radar[1], date) * 15)
                 lon = geomag_radar[1] - mltshift
         if projs == Projs.POLAR:
             lon = np.radians(lon)
