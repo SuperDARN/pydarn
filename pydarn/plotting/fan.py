@@ -269,7 +269,7 @@ class Fan():
         thetas = thetas[0:ranges[1]-ranges[0]+1]
         rs = rs[0:ranges[1]-ranges[0]+1]
         scan = scan[0:ranges[1]-ranges[0]]
-        
+
         # Set up axes in correct hemisphere
         stid=dmap_data[0]['stid']
         kwargs['hemisphere'] = SuperDARNRadars.radars[stid].hemisphere
