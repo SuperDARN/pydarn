@@ -10,6 +10,7 @@ author:
 Marina Schmidt
 """
 import sys
+import warnings
 
 from os import path
 from setuptools import setup, find_packages
@@ -52,15 +53,21 @@ this_directory = path.abspath(path.dirname(__file__))
 with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
+exec(open('pydarn/version.py').read())
+warnings.warn("If you are going to use Fan, Grid, and/or Convection Map "
+                 "plots, then make sure cartopy is installed on your machine. "
+                 "If you do not need to use cartopy for your plotting, ignore "
+                 "this message.")
+
 # Setup information
 setup(
     cmdclass={'install': initialize_submodules, 'develop': update_submodules},
     name="pydarn",
-    version="2.2",
+    version=__version__,
     long_description=long_description,
     long_description_content_type='text/markdown',
     description="Data visualization library for SuperDARN data",
-    url='https://github.com/SuperDARN/pydarn.git',
+    url='https://pydarn.readthedocs.io/en/latest/',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)',
@@ -69,10 +76,10 @@ setup(
     python_requires='>=3.6',
     data_files=[('pydarn/radar_fov_files',glob('radar_fov_files/**'))],
     packages=find_packages(exclude=['docs', 'test']),
-    author="SuperDARN",
+    author="SuperDARN Data Visualization Working Group",
     # used to import the logging config file into pydarn.
     include_package_data=True,
     # setup_requires=['pyyaml', 'numpy', 'matplotlib', 'aacgmv2'],
-    install_requires=['pyyaml', 'numpy', 'matplotlib', 'aacgmv2',
-                      'pydarnio'],
+    install_requires=['pyyaml', 'numpy', 'matplotlib>=3.3.4', 'aacgmv2',
+                      'pydarnio>=1.1.0'],
 )

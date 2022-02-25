@@ -35,11 +35,11 @@ In git, "branches" are used to make changes to the code without affecting the ma
 * Update the code
       
         git fetch
-        git pull origin master
+        git pull origin main
 
 * Decide what branch to break off from:
-    * HOTFIX: a fix that needs to be in master ASAP then branch from `master`
-    * Documentation: existing  main documentation with an update then branch from `master`
+    * HOTFIX: a fix that needs to be in main ASAP then branch from `main`
+    * Documentation: existing  main documentation with an update then branch from `main`
     * New Documentation: documentation that doesn't exist in the main documentation then branch from `develop`
     * New code/fix that can wait for a release then branch from `develop`
     * Removing legacy code then branch from `develop`
@@ -48,7 +48,7 @@ In git, "branches" are used to make changes to the code without affecting the ma
         git checkout <branch name>
 
 * Decide on the new branch name. It is recommended to use the following Prefixes:  
-    * HOTFIX/ : a bug that needs to be fixed ASAP and pushed to `master`
+    * HOTFIX/ : a bug that needs to be fixed ASAP and pushed to `main`
     * FIX/ : a bug fix that can wait to be released 
     * EHN/ : an enhancement or new feature to the `develop` code
     * DOC/ : new or updating existing documentation 

@@ -28,7 +28,7 @@ the additional permissions listed below.
 
 ## Prerequisites
 
-pyDARN requires **python 3.6** or later.
+pyDARN requires **python 3.6** or later and **matplotlib 3.3.4** or later.
 
 Depending on your operating system or distribution, the following package installers, development environments or data parsers are required: 
  
@@ -51,10 +51,27 @@ pyDARN's setup will download the following dependencies:
 - [Git](https://git-scm.com/) (For developers)
 - [pip3](https://help.dreamhost.com/hc/en-us/articles/115000699011-Using-pip3-to-install-Python3-modules)
 - [NumPy](https://numpy.org/)
-- [matplotlib](https://matplotlib.org/)
+- [matplotlib 3.3.4+](https://matplotlib.org/) 
 - [PyYAML](https://pyyaml.org/wiki/PyYAMLDocumentation)
 - [pyDARNio](https://pydarnio.readthedocs.io/en/latest/user/install/)
 - [AACGMv2](https://pypi.org/project/aacgmv2/) 
+
+!!! Note
+    If you wish to plot coastlines you will need to install cartopy>=0.19 separately
+
+### Cartopy 
+[Cartopy](https://scitools.org.uk/cartopy/docs/latest/) is a Python package designed for geospatial data processing in order to produce maps and other geospatial data analyses. This library is used when invoking a projection system needing overlapped coastline maps in Fan, Grid and Map plots. 
+
+For installing cartopy please follow the packages [installation](https://scitools.org.uk/cartopy/docs/latest/installing.html) instructions. For ubuntu here is good installation [link](https://techoverflow.net/2021/07/11/how-to-install-cartopy-on-ubuntu/) 
+
+!!! Warning
+    For cartopy to work with pyDARN please make sure it version `>=0.19`. Otherwise pydarn will throw an exception if you try to use it.  
+
+
+!!! Note
+    cartopy is a challenging package to install so please provide any information on troubleshoot or solutions to common issue on [pyDARN github](https://github.com/SuperDARN/pydarn) page. 
+
+
 
 ## Virtual Environments
 It is recommended to install pyDARN in one of the suggested virtual environments if you have multiple python/pip 3 version on your computer, or do not want to affect the main system's python libraries. 
@@ -154,4 +171,12 @@ Solution:
 Credit to this solution is Marina Schmidt brought up by Remington Rohel from SuperDARN Canada
 
 
-> If you find any problems/solutions, please make a [github issue](https://github.com/superdarn/pydarn/issues/new) so the community can help you or add it to the documentation 
+> If you find any problems/solutions, please make a [github issue](https://github.com/superdarn/pydarn/issues/new) so the community can help you or add it to the documentation
+
+### Summary plots get a ValueError 
+
+Issue: `ValueError: Cannot convert 0 to a date.  This often happens if non-datetime values are passed to an axis that expects datetime objects.` when using `plot_summary`
+
+Solution:
+1. check matplotlib version, if lower than 3.3.4 then upgrade matplotlib equal or higher version.  
+2. `pip install -U matplotlib`

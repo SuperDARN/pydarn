@@ -32,7 +32,7 @@ Currently, grid plots in pyDARN get geomagnetic positions of the gridded data in
 
 ### Basic usage
 
-pyDARN and pyplot need to be imported and the desired GRID file needs to be [read in](https://pydarn.readthedocs.io/en/master/user/SDarnRead/):
+pyDARN and pyplot need to be imported and the desired GRID file needs to be [read in](https://pydarn.readthedocs.io/en/latest/user/SDarnRead/):
 
 ```python
 import matplotlib.pyplot as plt

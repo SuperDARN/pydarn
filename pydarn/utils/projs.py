@@ -20,23 +20,13 @@ plotting
 """
 import enum
 
-class Coords(enum.Enum):
+class Projs(enum.Enum):
     """
-    This coordinate class is to list the current coordinate systems
-    a user can pick from
+    Projection class is a list of enums for the various
+    projects supported by pyDARN.
 
     enumerators:
-        RANGE_GATE: range gates
-        SLANT_RANGE: slant range (km)
-        GROUND_SCATTER_MAPPED_RANGE: ground scatter mapped range (km)
-        GEOGRAPHIC: geographical coordinates lat and longitude (degree)
-        AACGM: Magnetic geographical coordinates lat and longitude (degree)
     """
 
-    RANGE_GATE = enum.auto()
-    SLANT_RANGE = enum.auto()
-    GROUND_SCATTER_MAPPED_RANGE = enum.auto()
-    GEOGRAPHIC = enum.auto()
-    GEOGRAPHIC_MLT = enum.auto()
-    AACGM = enum.auto()
-    AACGM_MLT = enum.auto()
+    POLAR = enum.auto()
+    GEO_COASTALINE = enum.auto()

@@ -63,7 +63,7 @@ and to confirm the version number is correct. State why a release is needed and 
         git checkout -b release/<version number>
 
 3. Complete the Pre-Release Checklist below to make some minor changes before opening the pull request
-4. Now create a pull request for the release branch.  This should merge into `master`.
+4. Now create a pull request for the release branch.  This should merge into `main`.
 5. Add the following to the PR info: 
     - **Title**: Release pyDARN <version>
     - **Scope**: add information on the main focus of this release
@@ -91,7 +91,7 @@ and to confirm the version number is correct. State why a release is needed and 
     Do this before the pull request to make it part of the review process 
 
 - Make sure the `.zenodo.json` file is updated to reflect the [DVWG authorship guidelines]() and everyone is okay with the order. Please confirm with additional new members if their name and ORCID iD is correct. 
-- Update `setup.py` file to have the new version number on the line `version=""`
+- Update `version.py` file to have the new version number on the line `__version__=""`
 - Update `README.md` file to reflect the new changes of the release and version number 
 
 ### Release Checklist
@@ -99,21 +99,21 @@ and to confirm the version number is correct. State why a release is needed and 
 Once the test is complete and at least three approvals are obtained make sure the following steps are performed.  
 The pyDARN lead developer or DVWG chair should do this step; however, if you request to do it and get approval then go ahead! 
 
-1. **merge** the release branch in `master` and confirm the above updates are there
+1. **merge** the release branch in `main` and confirm the above updates are there
 2. [Tag and release the code](https://github.com/SuperDARN/pydarn/releases/new)
 - tag: v<version number>
-- target: `master`
+- target: `main`
 - Release Title: pyDARN v<version number>
 - Description: Header "Version *number* - Release!" then add "pyDARN release v*number* includes the following features:" listing all the new changes to the code. Please see other [releases](https://github.com/SuperDARN/pydarn/releases) to keep with consistency
 - Hit Publish Release!
 - Once a release has been made check on the [pyDARN Zenodo](https://zenodo.org/record/3727269) and look for the version you just released on the right hand side under **Versions**. Please note this may take some time. If this does not work Contact Lead Developer and DVWG Chair on the matter.
 - Once the Zenodo DOI is made for the new release, select the DOI markdown tag on the right hand side below **publication date**. Copy the markdown syntax. 
-- `git checkout master` and `git pull origin master`
+- `git checkout main` and `git pull origin main`
 - Paste this syntax in `docs/user/citing.md` under DOI's.       
     
         git add docs/user/citing.md
         git commit -m "updated DOI links"
-        git push origin master
+        git push origin main
 
 - Once this is done, double check everything looks correct
 
@@ -122,9 +122,9 @@ This step requires the lead developers help as they have access to the pyDARN Py
 
 1. Update to make sure everything looks good:
       
-        git checkout master
+        git checkout main
         git fetch
-        git pull origin master 
+        git pull origin main 
 
 2. Remove old builds
         
@@ -169,8 +169,8 @@ After the above is done do the following to make sure everything is up to date:
 
 - Let the DVWG chair know a pyDARN release has been made to update the DVWG website 
 - Email [DARN-users](darn-users@isee.nagoya-u.ac.jp) about the new release of pyDARN 
-- Merge `master` back into `develop`:
+- Merge `main` back into `develop`:
         
         git checkout develop
         git pull origin develop
-        git merge master
+        git merge main

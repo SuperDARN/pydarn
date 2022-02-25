@@ -28,8 +28,15 @@ from typing import List
 # Third party libraries
 import aacgmv2
 
-from pydarn import (PyDARNColormaps, Fan, plot_exceptions, citing_warning,
+from pydarn import (PyDARNColormaps, Fan, plot_exceptions,
     standard_warning_format)
+
+try:
+    from cartopy.mpl import geoaxes
+    import cartopy.crs as ccrs
+    cartopyInstalled = True
+except Exception:
+    cartopyInstalled = False
 
 warnings.formatwarning = standard_warning_format
 
@@ -276,5 +283,4 @@ class Grid():
         plt.title(title)
         if parameter == 'vector.vel.median':
             return thetas, end_thetas, rs, end_rs, data, azm_v
-        citing_warning()
         return thetas, rs, data
