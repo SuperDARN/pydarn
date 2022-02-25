@@ -19,7 +19,10 @@
 #   2020-04-20 Marina Schmidt converted the above link to python and changed
 #              variable and function names to readability
 #   2020-09-15 Marina Schmidt removed fov file reading option
-#   2021-09-15 Francis Tholley relocated the virtual height models to another file
+#   2021-09-15 Francis Tholley relocated the virtual height
+#              models to another file
+#   2022-02-25 Mariana Schmidt fixed coords.AACGM being missed in an if
+#              statement
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
 # Everyone is permitted to copy and distribute verbatim copies of this license
@@ -39,15 +42,15 @@ in AACGMv2 or geographic coordinates
 
 import datetime as dt
 import numpy as np
-import os
 
 import aacgmv2
 
 from pydarn import SuperDARNRadars, gate2slant, Coords
-from pydarn.utils.constants import EARTH_EQUATORIAL_RADIUS, Re, C
+from pydarn.utils.constants import EARTH_EQUATORIAL_RADIUS, Re
 
 from pydarn.utils.virtual_heights_types import VH_types
 from pydarn.utils.virtual_heights import standard_virtual_height, chisham
+
 
 def radar_fov(stid: int, rsep: int = 45, frang: int = 180,
               ranges: tuple = None, coords: object = Coords.AACGM_MLT,
@@ -95,8 +98,10 @@ def radar_fov(stid: int, rsep: int = 45, frang: int = 180,
                 if date is None:
                     date = dt.datetime.now()
 
-                geomag = np.array(aacgmv2.get_aacgm_coord(lat, lon,
-                                                           250, date))
+                geomag = np.array(aacgmv2.get_aacgm_coord(glat=lat,
+                                                          glon=lon,
+                                                          height=250,
+                                                          dtime=date))
                 lat = geomag[0]
                 lon = geomag[1]
             beam_corners_lats[gate, beam] = lat
@@ -119,7 +124,8 @@ def geographic_cell_positions(stid: int, beam: int, range_gate: int,
                               rsep: int = 45, frang: int = 180,
                               height: float = None, elv_angle: float = 0.0,
                               center: bool = True, chisham: bool = False,
-                              virtual_height_type: object = VH_types.STANDARD_VIRTUAL_HEIGHT):
+                              virtual_height_type: object =
+                              VH_types.STANDARD_VIRTUAL_HEIGHT):
     """
     determines the geographic cell position for a given range gate and beam
 
@@ -199,7 +205,8 @@ def geographic_cell_positions(stid: int, beam: int, range_gate: int,
                                np.sin(np.radians(elv_angle)) + slant_range**2)
 
     lat, lon = geocentric_coordinates(radar_lat, radar_lon, slant_range,
-                                      height, psi, boresight, virtual_height_type = virtual_height_type)
+                                      height, psi, boresight,
+                                      virtual_height_type=virtual_height_type)
 
     # convert back degrees as preferred units to use?
     return np.degrees(lat), np.degrees(lon)
@@ -209,7 +216,8 @@ def geographic_cell_positions(stid: int, beam: int, range_gate: int,
 def geocentric_coordinates(radar_lat: float, radar_lon: float,
                            slant_range: float, cell_height: float,
                            psi: float, boresight: float,
-                           virtual_height_type: object = VH_types.STANDARD_VIRTUAL_HEIGHT):
+                           virtual_height_type: object =
+                           VH_types.STANDARD_VIRTUAL_HEIGHT):
     """
     Calculates the geocentric coordinates of gate cell  point,
     using either the standard or Chisham virtual height model.
