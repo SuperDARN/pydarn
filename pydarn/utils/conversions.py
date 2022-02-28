@@ -112,7 +112,7 @@ def gate2groundscatter(reflection_height: float = 250, **kwargs):
     return ground_scatter_mapped_ranges
 
 
-def gate2slant(rxrise:int = 0, gate: int = 0, frang: int = 180,
+def gate2slant(rxrise:int = 0, range_gate: int = 0, frang: int = 180,
                rsep: int = 45, nrang: int = None, center: bool = True):
     """
     Calculate the slant range (km) for each range gate for SuperDARN data
@@ -164,7 +164,7 @@ def gate2slant(rxrise:int = 0, gate: int = 0, frang: int = 180,
     # Now calculate slant range in km
     if nrang is None:
              slant_ranges = (lag_first - rxrise +
-                                  gate * sample_sep) * speed_of_light /\
+                                  range_gate * sample_sep) * speed_of_light /\
                     distance_factor + range_offset
     else:
         slant_ranges = np.zeros(nrang+1)

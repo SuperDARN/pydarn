@@ -45,15 +45,12 @@ import numpy as np
 
 import aacgmv2
 
-from pydarn import SuperDARNRadars, gate2slant, Coords
-from pydarn.utils.constants import EARTH_EQUATORIAL_RADIUS, Re
+from pydarn import (SuperDARNRadars, Coords, Re, VH_types,
+                    EARTH_EQUATORIAL_RADIUS, Range_Estimation,
+                    radar_exceptions)
 
-from pydarn.utils.virtual_heights_types import VH_types
 
-
-def radar_fov(stid: int, ranges: tuple = None,
-              coords: object = Coords.AACGM_MLT,
-              max_beams: int = None,
+def radar_fov(stid: int, coords: object = Coords.AACGM_MLT,
               date: dt.datetime = None, **kwargs):
     """
     Returning beam/gate coordinates of a specified radar's field-of-view
@@ -84,10 +81,6 @@ def radar_fov(stid: int, ranges: tuple = None,
     TODO: make max_beams a range so you can show the fov of a single beam
     """
     # Locate base PyDARN directory
-    if ranges is None:
-        ranges = [0, SuperDARNRadars.radars[stid].range_gate_45]
-    if max_beams is None:
-        max_beams = SuperDARNRadars.radars[stid].hardware_info.beams
     # Plus 1 is due to the fact fov files index at 1 so in the plotting
     # of the boundary there is a subtraction of 1 to offset this as python
     # converts to index of 0 which my code already accounts for
@@ -98,7 +91,6 @@ def radar_fov(stid: int, ranges: tuple = None,
             lat, lon = geographic_cell_positions(stid=stid, beam=beam,
                                                  range_gate=gate, height=300,
                                                  **kwargs)
-
             if coords in [Coords.AACGM_MLT, Coords.AACGM]:
                 if date is None:
                     date = dt.datetime.now()
@@ -125,9 +117,10 @@ def radar_fov(stid: int, ranges: tuple = None,
 
 
 # RPosGeo line 335
-def geographic_cell_positions(stid: int, beam: int, range_gate: int,
-                              height: float = None, elv_angle: float = 0.0,
-                              center: bool = True, **kwargs):
+def geographic_cell_positions(stid: int, beam: int, height: float = None,
+                              elv_angle: float = 0.0, center: bool = True,
+                              range_estimation: Range_Estimation =
+                              Range_Estimation.SLANT_RANGE, **kwargs):
     """
     determines the geographic cell position for a given range gate and beam
 
@@ -198,7 +191,13 @@ def geographic_cell_positions(stid: int, beam: int, range_gate: int,
     # psi [rad] in the angle from the boresight
     psi = beam_sep * (beam - offset) + beam_edge
     # Calculate the slant range [km]
-    slant_range = gate2slant(rxrise=rxrise, gate=range_gate, **kwargs)
+    if range_estimation != Range_Estimation.RANGE_GATE:
+        slant_range = range_estimations(**kwargs)
+    else:
+        raise radar_exceptions.RangeEstimationError("Range Gates cannot be"
+                                                    "used in estimating the"
+                                                    " km for geographic"
+                                                    " coordinates systems")
 
     # If no height is specified then use elevation angle (default 0)
     # to calculate the transmutation height
