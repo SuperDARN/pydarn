@@ -15,7 +15,7 @@
 #  2021-09-15 Francis Tholley moved the chisham and standard virtual heigh models to separate file for better encapsulation/modularity
 """ virtual_heights.py comprises of different types of virtual heights"""
 
-def chisham(slant_range: float):
+def chisham(slant_range: float, **kwargs):
     """
     Mapping ionospheric backscatter measured by the SuperDARN HF
     radars – Part 1: A new empirical virtual height model by
@@ -38,9 +38,10 @@ def chisham(slant_range: float):
     else:
         return A_const[2] + B_const[2] * slant_range + C_const[2] *\
                  slant_range**2
-                 
-                 
-def standard_virtual_height(slant_range: float, cell_height: float):
+
+
+def standard_virtual_height(slant_range: float, cell_height: int = 300,
+                            **kwargs):
     """
     cell_height, slant_range and x_height are in km
     Default values set in virtual height model described
@@ -66,5 +67,5 @@ def standard_virtual_height(slant_range: float, cell_height: float):
         return (slant_range - 600) / 200 * (cell_height - 115) + 115
     # higher than 800 km
     else:
-        return cell_height       
-                  
+        return cell_height
+
