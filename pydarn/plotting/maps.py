@@ -572,7 +572,7 @@ class Maps():
         # in magnetic coordinates
         lat_step = 1
         lon_step = 2
-        num_lats = int((90.0 - lowlat) / lat_step)
+        num_lats = int((90.0 - lowlat) / lat_step) + 1
         num_lons = int(360.0 / lon_step) + 1
         lat_arr = np.array(range(num_lats)) * lat_step + lowlat
         lat_arr = lat_arr * hemi
