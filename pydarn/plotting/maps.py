@@ -176,7 +176,7 @@ class Maps():
         # If the parameter is velocity then plot the LOS vectors
         if parameter == MapParams.FITTED_VELOCITY:
             v_mag, azm_v =\
-                    cls.calculated_fitted_velocities(mlats=mlats, mlons=mlons,
+                    cls.calculated_fitted_velocities(mlats=mlats, mlons=np.radians(data_lons),
                                                      hemisphere=hemisphere,
                                                      fit_coefficient=dmap_data[record]['N+2'],
                                                      fit_order=dmap_data[record]['fit.order'],
