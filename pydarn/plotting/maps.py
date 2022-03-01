@@ -527,8 +527,7 @@ class Maps():
     @classmethod
     def calculate_potentials(cls, fit_coefficient: list, lat_min: list,
                              lat_shift: int=0, lon_shift: int=0, 
-                             fit_order: int=6, lowlat: int=30, 
-                             hemisphere: Enum = Hemisphere.North):
+                             fit_order: int=6, **kwargs):
         # TODO: No evaluation of coordinate system made! May need if in 
         # plotting to plot in radians/geo ect.
         '''
@@ -559,7 +558,17 @@ class Maps():
                 default: Hemisphere.North
  
         '''
-        # TODO: Do same updates Dan in doing for the fitted vels here
+        # Deal with required kwargs
+        try:
+            lowlat = kwargs['lowlat']
+        except KeyError:
+            lowlat = 60
+
+        try: 
+            hemisphere = kwargs['hemisphere']
+        except KeyError:
+            hemisphere = Hemisphere.North
+
         # Lowest latitude to calculate potential to
         theta_max = np.radians(90-np.abs(lat_min))
 
