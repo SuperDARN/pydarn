@@ -30,7 +30,7 @@ from typing import List
 # Third party libraries
 import aacgmv2
 
-from pydarn import (PyDARNColormaps, plot_exceptions, citing_warning,
+from pydarn import (PyDARNColormaps, plot_exceptions,
                     standard_warning_format, Re, Hemisphere,
                     time2datetime, find_record, Fan, MapParams, Projections)
 
@@ -257,7 +257,6 @@ class Maps():
                               end_minute=str(dmap_data[record]['end.minute']).
                               zfill(2))
         plt.title(title)
-        citing_warning()
         return mlats, mlons, v_mag
 
     @classmethod
