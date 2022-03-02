@@ -155,7 +155,7 @@ class Maps():
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             for stid in dmap_data[record]['stid']:
-                _, aacgm_lons, _, _, ax =\
+                _, aacgm_lons, ax, _ =\
                         Fan.plot_fov(stid, date, ax=ax, **kwargs)
         if parameter == MapParams.MODEL_VELOCITY:
             data_lons = dmap_data[record]['model.mlon']
