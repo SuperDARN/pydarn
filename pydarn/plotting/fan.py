@@ -331,7 +331,7 @@ class Fan():
 
     @classmethod
     def plot_fov(cls, stid: str, date: dt.datetime,
-                 ax=None, ccrs=None, ranges: List = [],
+                 ax=None, ccrs=None, ranges: List = [], boundary: bool = True,
                  rsep: int = 45, frang: int = 180,
                  projs: object = Projs.POLAR,
                  coords: Coords = Coords.AACGM_MLT,
@@ -428,26 +428,28 @@ class Fan():
             transform = ax.transData
         else:
             transform = ccrs.Geodetic()
-        # left boundary line
-        plt.plot(beam_corners_lons[0:ranges[1], 0],
-                 beam_corners_lats[0:ranges[1], 0],
-                 color=line_color, linewidth=0.5,
-                 alpha=line_alpha, transform=transform)
-        # top radar arc
-        plt.plot(beam_corners_lons[ranges[1] - 1, 0:beam_corners_lons.shape[1]],
-                 beam_corners_lats[ranges[1] - 1, 0:beam_corners_lons.shape[1]],
-                 color=line_color, linewidth=0.5,
-                 alpha=line_alpha, transform=transform)
-        # right boundary line
-        plt.plot(beam_corners_lons[0:ranges[1], beam_corners_lons.shape[1] - 1],
-                 beam_corners_lats[0:ranges[1], beam_corners_lons.shape[1] - 1],
-                 color=line_color, linewidth=0.5,
-                 alpha=line_alpha, transform=transform)
-        # bottom arc
-        plt.plot(beam_corners_lons[0, 0:beam_corners_lons.shape[1] - 1],
-                 beam_corners_lats[0, 0:beam_corners_lons.shape[1] - 1],
-                 color=line_color, linewidth=0.5, alpha=line_alpha,
-                 transform=transform)
+        
+        if boundary:
+            # left boundary line
+            plt.plot(beam_corners_lons[0:ranges[1], 0],
+                     beam_corners_lats[0:ranges[1], 0],
+                     color=line_color, linewidth=0.5,
+                     alpha=line_alpha, transform=transform)
+            # top radar arc
+            plt.plot(beam_corners_lons[ranges[1] - 1, 0:beam_corners_lons.shape[1]],
+                     beam_corners_lats[ranges[1] - 1, 0:beam_corners_lons.shape[1]],
+                     color=line_color, linewidth=0.5,
+                     alpha=line_alpha, transform=transform)
+            # right boundary line
+            plt.plot(beam_corners_lons[0:ranges[1], beam_corners_lons.shape[1] - 1],
+                     beam_corners_lats[0:ranges[1], beam_corners_lons.shape[1] - 1],
+                     color=line_color, linewidth=0.5,
+                     alpha=line_alpha, transform=transform)
+            # bottom arc
+            plt.plot(beam_corners_lons[0, 0:beam_corners_lons.shape[1] - 1],
+                     beam_corners_lats[0, 0:beam_corners_lons.shape[1] - 1],
+                     color=line_color, linewidth=0.5, alpha=line_alpha,
+                     transform=transform)
 
         fan_shape = beam_corners_lons.shape
 
