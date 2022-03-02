@@ -38,8 +38,10 @@ from .utils.constants import C
 from .utils.conversions import dmap2dict
 from .utils.conversions import gate2slant
 from .utils.conversions import gate2GroundScatter
+from .utils.plotting import MapParams
 from .utils.plotting import check_data_type
 from .utils.plotting import time2datetime
+from .utils.plotting import find_record
 from .utils.superdarn_radars import SuperDARNRadars
 from .utils.superdarn_cpid import SuperDARNCpids
 from .utils.superdarn_radars import Hemisphere
@@ -58,5 +60,6 @@ from .plotting.fan import Fan
 from .plotting.grid import Grid
 from .plotting.acf import ACF
 from .plotting.power import Power
+from .plotting.maps import Maps
 
 citing_warning()
