@@ -269,6 +269,7 @@ class Fan():
         thetas = thetas[0:ranges[1]-ranges[0]+1]
         rs = rs[0:ranges[1]-ranges[0]+1]
         scan = scan[0:ranges[1]-ranges[0]]
+        grndsct = grndsct[0:ranges[1]-ranges[0]]
 
         # Set up axes in correct hemisphere
         stid=dmap_data[0]['stid']
@@ -283,7 +284,6 @@ class Fan():
 
             # plot the groundscatter as grey fill
             if groundscatter:
-                grndsct = grndsct[0:ranges[1]-ranges[0]]
                 ax.pcolormesh(thetas, rs,
                               np.ma.masked_array(grndsct,
                                                  ~grndsct.astype(bool)),
