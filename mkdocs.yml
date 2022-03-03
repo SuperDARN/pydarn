@@ -22,6 +22,7 @@ nav:
             - FOV plots: user/fov.md
             - Fan plots: user/fan.md
             - Grid plots: user/grid.md
+            - Convection Map plots: user/map.md
             - Power plots: user/power.md
             - ACF plots: user/acf.md
             - Logging: user/logging.md

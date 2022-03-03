@@ -40,6 +40,7 @@ except Exception:
 
 warnings.formatwarning = standard_warning_format
 
+
 class Grid():
     """
         Grid plots for SuperDARN data
