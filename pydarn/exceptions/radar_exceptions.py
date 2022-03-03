@@ -27,3 +27,15 @@ class HardwareFileNotFoundError(Exception):
             "".format(abv=self.abbreviation, path=self.path)
         super().__init__(self.message)
         pydarn_log.error(self.message)
+
+
+class RangeEstimationError(Exception):
+    """
+    This error is raised when there is an incorrect range estimation
+    used.
+    """
+    def __init__(self, msg):
+        self.message = msg
+        super().__init__(self.message)
+        pydarn_log.error(self.message)
+

@@ -35,6 +35,9 @@ from .utils.coordinates import Coords
 from .utils.constants import Re
 from .utils.constants import EARTH_EQUATORIAL_RADIUS
 from .utils.constants import C
+from .utils.projs import Projs
+from .utils.virtual_heights_types import VH_Types
+from .utils.range_estimations import Range_Estimation
 from .utils.conversions import dmap2dict
 from .utils.conversions import gate2slant
 from .utils.conversions import gate2GroundScatter
@@ -48,7 +51,8 @@ from .utils.superdarn_radars import get_hdw_files
 from .utils.scan import build_scan
 from .utils.radar_pos import radar_fov
 from .utils.radar_pos import geographic_cell_positions
-from .utils.projs import Projs
+from .utils.virtual_heights import chisham
+from .utils.virtual_heights import standard_virtual_height
 
 # import plotting
 from .plotting.color_maps import PyDARNColormaps
