@@ -168,7 +168,7 @@ def geographic_cell_positions(stid: int, beam: int, range_gate: int,
     # radians are needed for numpy geometry calculations and to reduce
     # too much converting back and forth.
     boresight = np.radians(SuperDARNRadars.
-                           radars[stid].hardware_info.boresight)
+                           radars[stid].hardware_info.boresight.physical)
     radar_lat = np.radians(SuperDARNRadars.
                            radars[stid].hardware_info.geographic.lat)
     radar_lon = np.radians(SuperDARNRadars.
