@@ -31,7 +31,15 @@ import aacgmv2
 from pydarn import (PyDARNColormaps, Fan, plot_exceptions,
     standard_warning_format)
 
+try:
+    from cartopy.mpl import geoaxes
+    import cartopy.crs as ccrs
+    cartopyInstalled = True
+except Exception:
+    cartopyInstalled = False
+
 warnings.formatwarning = standard_warning_format
+
 
 class Grid():
     """
