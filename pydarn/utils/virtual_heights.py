@@ -1,5 +1,7 @@
-#  (C) Copyright 2021 SuperDARN Canada, University of Saskatachewan
-#  Author(s): Marina Schmidt
+# (C) Copyright 2021 SuperDARN Canada, University of Saskatachewan
+# Author(s): Marina Schmidt
+# (C) Copyright 2021 University of Scranton
+# Author(s): Francis Tholley
 #
 # This file is part of the pyDARN Library.
 #
@@ -12,14 +14,28 @@
 # supplemented by the additional permissions listed below.
 #
 # Modifications:
-#  2021-09-15 Francis Tholley moved the chisham and standard virtual heigh models to separate file for better encapsulation/modularity
-""" virtual_heights.py comprises of different types of virtual heights"""
+#  2021-09-15 Francis Tholley moved the chisham and standard virtual
+#  height models to separate file for better encapsulation/modularity
+#  2022-03-04 Marina Schmidt add the VH_Types class to the bottom
+""" virtual_heights.py comprises of different of virtual height models"""
 
-def chisham(slant_range: float, **kwargs):
+
+def chisham(target_range: float, **kwargs):
     """
     Mapping ionospheric backscatter measured by the SuperDARN HF
     radars – Part 1: A new empirical virtual height model by
     G. Chisham 2008 (https://doi.org/10.5194/angeo-26-823-2008)
+
+    Parameters
+    ----------
+    target_range: float
+        is the range from radar to the target (echos)
+        sometimes known as slant range [km]
+    kwargs: is only needed to avoid key item errors
+
+    Returns
+    -------
+    altered target_range (slant range) [km]
     """
     # Model constants
     A_const = (108.974, 384.416, 1098.28)
@@ -27,23 +43,23 @@ def chisham(slant_range: float, **kwargs):
     C_const = (6.68283e-5, 1.81405e-4, 9.39961e-5)
 
     # determine which region of ionosphere the gate
-    if slant_range < 115:
-        return (slant_range / 115.0) * 112.0
-    elif slant_range < 787.5:
-        return A_const[0] + B_const[0] * slant_range + C_const[0] *\
-                 slant_range**2
-    elif slant_range <= 2137.5:
-        return A_const[1] + B_const[1] * slant_range + C_const[1] *\
-                 slant_range**2
+    if target_range < 115:
+        return (target_range / 115.0) * 112.0
+    elif target_range < 787.5:
+        return A_const[0] + B_const[0] * target_range + C_const[0] *\
+                 target_range**2
+    elif target_range <= 2137.5:
+        return A_const[1] + B_const[1] * target_range + C_const[1] *\
+                 target_range**2
     else:
-        return A_const[2] + B_const[2] * slant_range + C_const[2] *\
-                 slant_range**2
+        return A_const[2] + B_const[2] * target_range + C_const[2] *\
+                 target_range**2
 
 
-def standard_virtual_height(slant_range: float, cell_height: int = 300,
+def standard_virtual_height(target_range: float, cell_height: int = 300,
                             **kwargs):
     """
-    cell_height, slant_range and x_height are in km
+    cell_height, target_range and x_height are in km
     Default values set in virtual height model described
     Mapping ionospheric backscatter measured by the SuperDARN HF
     radars – Part 1: A new empirical virtual height model by
@@ -53,19 +69,46 @@ def standard_virtual_height(slant_range: float, cell_height: int = 300,
     150 - 600 km E region scatter
     (Note in the paper 400 km is the edge of the E region)
     600 - 800 km is F region
+
+    Parameters
+    ----------
+    target_range: float
+        is the range from radar to the target (echos)
+        sometimes known as slant range [km]
+    cell_height: int
+        the default height of the echo if the target_range
+        is within a certain range
+    kwargs: is only needed to avoid key item errors
+
+    Returns
+    -------
+    altered target_range (slant range) [km]
     """
     # TODO: why 115?
     # map everything into the E region
-    if cell_height <= 150 and slant_range > 150:
+    if cell_height <= 150 and target_range > 150:
         return cell_height
     # virtual height equation (1) from the above paper
-    elif slant_range < 150:
-        return (slant_range / 150.0) * 115
-    elif slant_range >= 150 and slant_range <= 600:
+    elif target_range < 150:
+        return (target_range / 150.0) * 115
+    elif target_range >= 150 and target_range <= 600:
         return 115
-    elif slant_range > 600 and slant_range < 800:
-        return (slant_range - 600) / 200 * (cell_height - 115) + 115
+    elif target_range > 600 and target_range < 800:
+        return (target_range - 600) / 200 * (cell_height - 115) + 115
     # higher than 800 km
     else:
         return cell_height
 
+
+class VHModels():
+    """
+    This virtual height models class is to list the current
+    virtual height model user can pick from
+
+    enumerators:
+        STANDARD: Standard_Virtual_height (km)
+        CHISHAM: chisham (km)
+    """
+
+    STANDARD = (standard_virtual_height,)
+    CHISHAM = (chisham,)
