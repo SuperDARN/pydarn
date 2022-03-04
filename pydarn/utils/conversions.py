@@ -12,8 +12,6 @@ from typing import List
 import numpy as np
 from collections import OrderedDict
 
-from pydarn import (Re, C)
-
 
 # key is the format char type defined by python,
 # item is the DMAP int value for the type
@@ -84,92 +82,3 @@ def dmap2dict(dmap_records: List[dict]) -> List[dict]:
                      for field, data in dmap_record.items()}
         dmap_list.append(OrderedDict(dmap_dict))
     return dmap_list
-
-
-def gate2groundscatter(reflection_height: float = 250, **kwargs):
-    """
-    Calculate the ground scatter mapped range (km) for each slanted range
-    for SuperDARN data. This function is based on the Ground Scatter equation
-    from Bristow paper at https://doi.org/10.1029/93JA01470 on page 325
-    Parameters
-    ----------
-        slant_ranges : List[float]
-            list of slant ranges
-        reflection_height: float
-            reflection height
-            default:  250
-
-    Returns
-    -------
-        ground_scatter_mapped_ranges : np.array
-            returns an array of ground scatter mapped ranges for the radar
-    """
-    slant_ranges = gate2slant(**kwargs)
-
-    ground_scatter_mapped_ranges =\
-        Re*np.arcsin(np.sqrt((slant_ranges**2/4)-(reflection_height**2))/Re)
-
-    return ground_scatter_mapped_ranges
-
-
-def gate2slant(rxrise:int = 0, range_gate: int = 0, frang: int = 180,
-               rsep: int = 45, nrang: int = None, center: bool = True):
-    """
-    Calculate the slant range (km) for each range gate for SuperDARN data
-
-    Parameters
-    ----------
-        frang: int
-            range from the edge of first the gate to the radar [km]
-            This should be given in fitacf record of the control program
-        rsep: int
-            Radar seperation of the gates. Determined by control program.
-        rxrise: int
-            Use hardware value for this, avoid data file values
-        gate: int
-            range gate to determine the slant range [km], if nrang
-            is None
-            default: 0
-        nrang: int
-            max number of range gates in the list of records. If
-            not None, will calculate all slant ranges
-            default: None
-        center: boolean
-            Calculate the slant range in the center of range gate
-            or edge
-
-    Returns
-    -------
-        slant_ranges : np.array
-            returns an array of slant ranges for the radar
-    """
-
-    # lag to the first range gate in microseconds
-    # 0.3 - speed of light (km/us)
-    # 2 - two times for there and back
-    distance_factor = 2.0
-    # C - speed of light m/s to km/us
-    speed_of_light = C * 0.001 * 1e-6
-    lag_first = frang * distance_factor / speed_of_light
-
-    # sample separation in microseconds
-    sample_sep = rsep * distance_factor / speed_of_light
-    # Range offset
-    # If center is true, calculate at the center
-    if center:
-        # 0.5 off set to the centre of the range gate instead of edge
-        range_offset = -0.5 * rsep
-    else:
-        range_offset = 0.0
-    # Now calculate slant range in km
-    if nrang is None:
-             slant_ranges = (lag_first - rxrise +
-                                  range_gate * sample_sep) * speed_of_light /\
-                    distance_factor + range_offset
-    else:
-        slant_ranges = np.zeros(nrang+1)
-        for gate in range(nrang+1):
-            slant_ranges[gate] = (lag_first - rxrise +
-                                  gate * sample_sep) * speed_of_light /\
-                    distance_factor + range_offset
-    return slant_ranges
