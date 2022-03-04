@@ -7,6 +7,8 @@
 # 2021-05-12 Francis Tholley added gate2grounscatter to range-time plots
 # 2021-06-18 Marina Schmidt (SuperDARN Canada) fixed ground scatter colour bug
 # 2021-07-06 Carley Martin added keyword to aid in rounding start times
+# 2022-03-04 Marina Schmidt added RangeEstimations in
+#
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
 # Everyone is permitted to copy and distribute verbatim copies of this license
@@ -30,11 +32,10 @@ from datetime import datetime, timedelta
 from matplotlib import dates, colors, cm, ticker
 from typing import List
 
-from pydarn import (gate2GroundScatter, gate2slant, check_data_type,
+from pydarn import (RangeEstimation, check_data_type,
                     time2datetime, rtp_exceptions, plot_exceptions,
                     SuperDARNCpids, SuperDARNRadars,
-                    standard_warning_format, PyDARNColormaps,
-                    Coords)
+                    standard_warning_format, PyDARNColormaps)
 
 warnings.formatwarning = standard_warning_format
 
@@ -73,12 +74,13 @@ class RTP():
                         start_time: datetime = None, end_time: datetime = None,
                         colorbar: plt.colorbar = None, ymin: int = None,
                         ymax: int = None, yspacing: int = 200,
-                        coords: object = Coords.SLANT_RANGE,
+                        range_estimation: RangeEstimation =
+                        RangeEstimation.SLANT_RANGE,
                         colorbar_label: str = '',
                         norm=colors.Normalize, cmap: str = None,
                         filter_settings: dict = {},
                         date_fmt: str = '%y/%m/%d\n %H:%M',
-                        round_start: bool=True, **kwargs):
+                        round_start: bool = True, **kwargs):
         """
         Plots a range-time parameter plot of the given
         field name in the dmap_data
@@ -127,9 +129,9 @@ class RTP():
         yspacing: int
             sets the spacing between ticks
             Default: 200
-        coords: Coords
-            set the y-axis to a desired coordinate system
-            Default: Coords.SLANT_RANGE
+        range_estimation: RangeEstimation
+            set the y-axis to a desired range estimation calculation
+            Default: RangeEstimation.SLANT_RANGE
         norm: matplotlib.colors.Normalization object
             This object use dependency injection to use any normalization
             method with the zmin and zmax.
@@ -356,18 +358,19 @@ class RTP():
                                      start_time=start_time,
                                      end_time=end_time,
                                      opt_beam_num=cls.dmap_data[0]['bmnum'])
-        if coords is Coords.SLANT_RANGE or\
-           coords is Coords.GROUND_SCATTER_MAPPED_RANGE:
+        if range_estimation != RangeEstimation.RANGE_GATE:
             # Get rxrise from hardware files (consistent with RST)
             rxrise = SuperDARNRadars.radars[cls.dmap_data[0]['stid']]\
                                     .hardware_info.rx_rise_time
-            y = gate2slant(cls.dmap_data[0]['frang'], cls.dmap_data[0]['rsep'],
-                           rxrise, nrang=y_max)
-            if coords is Coords.GROUND_SCATTER_MAPPED_RANGE:
-                y = gate2GroundScatter(y, **kwargs)
-                y0inx = np.min(np.where(np.isfinite(y))[0])
-                y = y[y0inx:]
-                z = z[:, y0inx:]
+            frang = cls.dmap_data[0]['frang']
+            rsep = cls.dmap_data[0]['rsep'],
+
+            y = range_estimation(frang=frang, rxrise=rxrise,
+                                 rsep=rsep, **kwargs)
+
+            y0inx = np.min(np.where(np.isfinite(y))[0])
+            y = y[y0inx:]
+            z = z[:, y0inx:]
 
         time_axis, y_axis = np.meshgrid(x, y)
         z_data = np.ma.masked_where(np.isnan(z.T), z.T)
@@ -429,8 +432,7 @@ class RTP():
 
         ax.set_ylim(ymin, ymax)
 
-        if coords is Coords.SLANT_RANGE or\
-           coords is Coords.GROUND_SCATTER_MAPPED_RANGE:
+        if range_estimation != RangeEstimation.RANGE_GATE:
             ax.yaxis.set_ticks(np.arange(np.ceil(ymin/100.0)*100,
                                          ymax+1, yspacing))
         else:
@@ -449,7 +451,7 @@ class RTP():
         # byminute keyword makes sure that the ticks are situated at
         # the minute or half hour marks, rather than at a set interval
         ax.xaxis.set_minor_locator(
-            dates.MinuteLocator(byminute=range(0,60,tick_interval)))
+            dates.MinuteLocator(byminute=range(0, 60, tick_interval)))
 
         # Upon request of Daniel Billet and others, I am rounding
         # the time down so the plotting x-axis will show the origin
@@ -464,21 +466,20 @@ class RTP():
             if tick_sep > 0:
                 rounded_down_start_time = x[0] -\
                     timedelta(minutes=x[0].minute % tick_sep,
-                          seconds=x[0].second,
-                          microseconds=x[0].microsecond)
+                              seconds=x[0].second,
+                              microseconds=x[0].microsecond)
             else:
                 rounded_down_start_time = x[0] -\
                     timedelta(minutes=x[0].minute % 15,
-                          seconds=x[0].second,
-                          microseconds=x[0].microsecond)
+                              seconds=x[0].second,
+                              microseconds=x[0].microsecond)
         else:
             rounded_down_start_time = x[0]
 
         ax.set_xlim([rounded_down_start_time, x[-1]])
         ax.xaxis.set_major_formatter(dates.DateFormatter(date_fmt))
 
-        if coords is Coords.SLANT_RANGE or\
-           coords is Coords.GROUND_SCATTER_MAPPED_RANGE:
+        if range_estimation != RangeEstimation.RANGE_GATE:
             ax.yaxis.set_minor_locator(ticker.AutoMinorLocator(2))
         else:
             ax.yaxis.set_minor_locator(ticker.MultipleLocator(5))
@@ -518,7 +519,7 @@ class RTP():
                          channel='all', scale: str = 'linear',
                          cp_name: bool = True, color: str = 'black',
                          linestyle: str = '-', linewidth: float = 1,
-                         round_start: bool=True, **kwargs):
+                         round_start: bool = True, **kwargs):
         """
         Plots the time series of a scalar parameter
 
@@ -739,13 +740,13 @@ class RTP():
                 if tick_sep > 0:
                     rounded_down_start_time = x[0] -\
                         timedelta(minutes=x[0].minute % tick_sep,
-                            seconds=x[0].second,
-                            microseconds=x[0].microsecond)
+                                  seconds=x[0].second,
+                                  microseconds=x[0].microsecond)
                 else:
                     rounded_down_start_time = x[0] -\
                         timedelta(minutes=x[0].minute % 15,
-                            seconds=x[0].second,
-                            microseconds=x[0].microsecond)
+                                  seconds=x[0].second,
+                                  microseconds=x[0].microsecond)
             else:
                 rounded_down_start_time = x[0]
 
@@ -764,13 +765,13 @@ class RTP():
             if tick_sep > 0:
                 rounded_down_start_time = x[0] -\
                     timedelta(minutes=x[0].minute % tick_sep,
-                          seconds=x[0].second,
-                          microseconds=x[0].microsecond)
+                              seconds=x[0].second,
+                              microseconds=x[0].microsecond)
             else:
                 rounded_down_start_time = x[0] -\
                     timedelta(minutes=x[0].minute % 15,
-                          seconds=x[0].second,
-                          microseconds=x[0].microsecond)
+                              seconds=x[0].second,
+                              microseconds=x[0].microsecond)
         else:
             rounded_down_start_time = x[0]
 
@@ -791,7 +792,7 @@ class RTP():
         # byminute keyword makes sure that the ticks are situated at
         # the minute or half hour marks, rather than at a set interval
         ax.xaxis.set_minor_locator(
-            dates.MinuteLocator(byminute=range(0,60,tick_interval)))
+            dates.MinuteLocator(byminute=range(0, 60, tick_interval)))
 
         ax.margins(x=0)
         ax.tick_params(axis='y', which='minor')
@@ -806,7 +807,8 @@ class RTP():
                      plot_elv: bool = True, title=None,
                      background: str = 'w', groundscatter: bool = True,
                      channel: int = 'all', line_color: dict = {},
-                     coords: object = Coords.SLANT_RANGE, **kwargs):
+                     range_estimation: object =
+                     RangeEstimation.SLANT_RANGE, **kwargs):
         """
         Plots the summary of several SuperDARN parameters using time-series and
         range-time plots. Please see Notes for further description
@@ -838,9 +840,10 @@ class RTP():
             channel number that will be plotted
             in the summary plot.
             Default: 'all'
-        coords: Coord object
-            set the y-axis to a desired coordinate system
-            Default: Coord.SLANT_RANGE
+        range_estimation: RangeEstimation object
+            set the y-axis to a desired  range gate estimation
+            calculation
+            Default: RangeEstimation.SLANT_RANGE
         figsize : (int,int)
             tuple containing (height, width) figure size
             Default: 11 x 8.5
@@ -1022,9 +1025,11 @@ class RTP():
                         cls.plot_time_series(dmap_data, beam_num=beam_num,
                                              parameter=axes_parameters[i][0],
                                              scale=scale, channel=channel,
-                                             color=color[axes_parameters[i][0]],
+                                             color=color[
+                                                 axes_parameters[i][0]],
                                              ax=axes[i],
-                                             linestyle=line[axes_parameters[i][0]],
+                                             linestyle=line[
+                                                 axes_parameters[i][0]],
                                              label=labels[i][0], **kwargs)
                     axes[i].set_ylabel(labels[i][0], rotation=0, labelpad=30)
                     axes[i].\
@@ -1056,11 +1061,15 @@ class RTP():
                         with warnings.catch_warnings():
                             warnings.simplefilter("ignore")
                             cls.plot_time_series(dmap_data, beam_num=beam_num,
-                                                 parameter=axes_parameters[i][1],
-                                                 color=color[axes_parameters[i][1]],
+                                                 parameter=axes_parameters[
+                                                     i][1],
+                                                 color=color[axes_parameters[
+                                                     i][1]],
                                                  channel=channel,
                                                  scale=scale, ax=second_ax,
-                                                 linestyle=line[axes_parameters[i][1]], **kwargs)
+                                                 linestyle=line[
+                                                     axes_parameters[i][1]],
+                                                 **kwargs)
                         second_ax.set_xticklabels([])
                         second_ax.set_ylabel(labels[i][1], rotation=0,
                                              labelpad=25)
@@ -1104,9 +1113,9 @@ class RTP():
             else:
                 # Current standard is to only have groundscatter
                 # on the velocity plot. This may change in the future.
-                if coords is Coords.SLANT_RANGE:
+                if range_estimation == RangeEstimation.SLANT_RANGE:
                     ymax = 3517.5
-                elif coords is Coords.GROUND_SCATTER_MAPPED_RANGE:
+                elif range_estimation == RangeEstimation.GSMR:
                     ymax = 3517.5/2
                 else:
                     ymax = 75
@@ -1126,11 +1135,14 @@ class RTP():
                                             parameter=axes_parameters[i],
                                             ax=axes[i], groundscatter=grndflg,
                                             cmap=cmap[axes_parameters[i]],
-                                            zmin=boundary_ranges[axes_parameters[i]][0],
-                                            zmax=boundary_ranges[axes_parameters[i]][1],
+                                            zmin=boundary_ranges[
+                                                axes_parameters[i]][0],
+                                            zmax=boundary_ranges[
+                                                axes_parameters[i]][1],
                                             ymax=ymax, yspacing=500,
                                             background=background,
-                                            coords=coords, **kwargs)
+                                            range_estimation=range_estimation,
+                                            **kwargs)
                 # Overwriting velocity ticks to get a better pleasing
                 # look on the colorbar
                 # Preference by Marina Schmidt
@@ -1138,17 +1150,19 @@ class RTP():
                     locator = ticker.LinearLocator(numticks=5)
                     ticks =\
                         locator.\
-                        tick_values(vmin=boundary_ranges[axes_parameters[i]][0],
-                                    vmax=boundary_ranges[axes_parameters[i]][1])
+                        tick_values(vmin=boundary_ranges[
+                                        axes_parameters[i]][0],
+                                    vmax=boundary_ranges[
+                                        axes_parameters[i]][1])
                     if ticks[0] < boundary_ranges[axes_parameters[i]][0]:
                         ticks[0] = boundary_ranges[axes_parameters[i]][0]
 
                     if ticks[-1] > boundary_ranges[axes_parameters[i]][1]:
                         ticks[-1] = boundary_ranges[axes_parameters[i]][1]
                     cbar.set_ticks(ticks)
-                if coords is Coords.SLANT_RANGE:
+                if range_estimation == RangeEstimation.SLANT_RANGE:
                     axes[i].set_ylabel('Slant Range (km)')
-                elif coords is Coords.GROUND_SCATTER_MAPPED_RANGE:
+                elif range_estimation == RangeEstimation.GSMR:
                     axes[i].set_ylabel('Ground Scatter\nMapped Range\n(km)')
                 else:
                     axes[i].set_ylabel('Range Gates')
