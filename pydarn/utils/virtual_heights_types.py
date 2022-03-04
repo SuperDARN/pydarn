@@ -19,16 +19,4 @@ virtual_heights_types.py is a group of methods that focus on the type of virtual
 """
 from pydarn import chisham
 
-class VH_types(enum.Enum):
-    """
-    This virtual height types class is to list the current virtual height systems
-    a user can pick from
-
-    enumerators:
-        STANDARD_VIRTUAL_HEIGHT: Standard_Virtual_height (km)
-        CHISHAM: chisham (km)
-    """
-
-    STANDARD_VIRTUAL_HIGHT = standard_virtual_height
-    CHISHAM = chisham
 
