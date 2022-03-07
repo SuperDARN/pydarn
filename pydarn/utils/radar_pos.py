@@ -31,13 +31,13 @@ import numpy as np
 
 import aacgmv2
 
-from pydarn import (SuperDARNRadars, Coords, Re, VH_types,
+from pydarn import (SuperDARNRadars, Coords, Re,
                     EARTH_EQUATORIAL_RADIUS, Range_Estimation,
                     radar_exceptions)
 
 
-def radar_fov(stid: int, coords: object = Coords.AACGM_MLT,
-              date: dt.datetime = None, **kwargs):
+def radar_fov(coords: object = Coords.AACGM_MLT,
+              **kwargs):
     """
     Returning beam/gate coordinates of a specified radar's field-of-view
 
@@ -66,37 +66,4 @@ def radar_fov(stid: int, coords: object = Coords.AACGM_MLT,
 
     TODO: make max_beams a range so you can show the fov of a single beam
     """
-    # Locate base PyDARN directory
-    # Plus 1 is due to the fact fov files index at 1 so in the plotting
-    # of the boundary there is a subtraction of 1 to offset this as python
-    # converts to index of 0 which my code already accounts for
-    beam_corners_lats = np.zeros((ranges[1]-ranges[0]+1, max_beams+1))
-    beam_corners_lons = np.zeros((ranges[1]-ranges[0]+1, max_beams+1))
-    for beam in range(0, max_beams+1):
-        for gate in range(ranges[0], ranges[1]):
-            lat, lon = geographic_cell_positions(stid=stid, beam=beam,
-                                                 range_gate=gate, height=300,
-                                                 **kwargs)
-            if coords in [Coords.AACGM_MLT, Coords.AACGM]:
-                if date is None:
-                    date = dt.datetime.now()
-
-                geomag = np.array(aacgmv2.get_aacgm_coord(glat=lat,
-                                                          glon=lon,
-                                                          height=250,
-                                                          dtime=date))
-                lat = geomag[0]
-                lon = geomag[1]
-            beam_corners_lats[gate-ranges[0], beam] = lat
-            beam_corners_lons[gate-ranges[0], beam] = lon
-    if coords == Coords.AACGM_MLT:
-        fan_shape = beam_corners_lons.shape
-        # Work out shift due in MLT
-        beam_corners_mlts = np.zeros((fan_shape[0], fan_shape[1]))
-        mltshift = beam_corners_lons[0, 0] - \
-            (aacgmv2.convert_mlt(beam_corners_lons[0, 0], date) * 15)
-        beam_corners_mlts = beam_corners_lons - mltshift
-        return beam_corners_lats, beam_corners_mlts
-    else:
-        # Return geographic coordinates
-        return beam_corners_lats, beam_corners_lons
+    return coords(**kwargs)

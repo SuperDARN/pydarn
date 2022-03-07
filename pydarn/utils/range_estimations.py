@@ -47,7 +47,7 @@ def gate2groundscatter(reflection_height: float = 250, **kwargs):
 
 
 def gate2slant(rxrise: int = 0, range_gate: int = 0, frang: int = 180,
-               rsep: int = 45, nrang: int = None, center: bool = True):
+               rsep: int = 45, nrang: int = None, center: bool = True, **kwargs):
     """
     Calculate the slant range (km) for each range gate for SuperDARN data
 
@@ -77,7 +77,6 @@ def gate2slant(rxrise: int = 0, range_gate: int = 0, frang: int = 180,
         slant_ranges : np.array
             returns an array of slant ranges for the radar
     """
-
     # lag to the first range gate in microseconds
     # 0.3 - speed of light (km/us)
     # 2 - two times for there and back
@@ -123,3 +122,7 @@ class RangeEstimation(enum.Enum):
     RANGE_GATE = enum.auto()
     SLANT_RANGE = (gate2slant,)
     GSMR = (gate2groundscatter,)
+
+    # Need this to make the functions callable
+    def __call__(self, *args, **kwargs):
+        return self.value[0](*args, **kwargs)

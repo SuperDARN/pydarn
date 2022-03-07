@@ -27,7 +27,7 @@ from pydarn import (geocentric_coordinates, SuperDARNRadars, RangeEstimation,
                     radar_exceptions, Re)
 
 
-def geo_coordinates(stid: int, ranges: int, beams: tuple = None,
+def geo_coordinates(stid: int, beams: int = None,
                     gates: tuple = None, **kwargs):
     """
     geographic_coordinates calculates the geographic coordinate for a given
@@ -39,7 +39,7 @@ def geo_coordinates(stid: int, ranges: int, beams: tuple = None,
     if gates is None:
         gates = [0, SuperDARNRadars.radars[stid].range_gate_45]
     if beams is None:
-        beams = [0, SuperDARNRadars.radars[stid].hardware_info.beams]
+        beams = SuperDARNRadars.radars[stid].hardware_info.beams
 
     # Plus 1 is due to the fact fov files index at 1 so in the plotting
     # of the boundary there is a subtraction of 1 to offset this as python
@@ -47,51 +47,44 @@ def geo_coordinates(stid: int, ranges: int, beams: tuple = None,
     beam_corners_lats = np.zeros((gates[1]-gates[0]+1, beams+1))
     beam_corners_lons = np.zeros((gates[1]-gates[0]+1, beams+1))
 
-    for beam in range(beams[0], beams[1]+1):
-        for gate in range(gates[0], gates[1]):
+    for beam in range(0, beams+1):
+        for gate in range(gates[0], gates[1]+1):
             lat, lon = gate2geographic_location(stid=stid, beam=beam,
                                                 range_gate=gate, height=300,
                                                 **kwargs)
-            beam_corners_lats[gate, beam] = lat
-            beam_corners_lons[gate, beam] = lon
+            beam_corners_lats[gate-gates[0], beam] = lat
+            beam_corners_lons[gate-gates[0], beam] = lon
     return beam_corners_lats, beam_corners_lons
 
 
-def aacgm_coordinates(stid: int, beams: tuple = None, gates: tuple = None,
+def aacgm_coordinates(stid: int, beams: int = None, gates: tuple = None,
                       date: dt.datetime = dt.datetime.now, **kwargs):
     if gates is None:
         gates = [0, SuperDARNRadars.radars[stid].range_gate_45]
     if beams is None:
-        beams = [0, SuperDARNRadars.radars[stid].hardware_info.beams]
+        beams = SuperDARNRadars.radars[stid].hardware_info.beams
 
     # Plus 1 is due to the fact fov files index at 1 so in the plotting
     # of the boundary there is a subtraction of 1 to offset this as python
     # converts to index of 0 which my code already accounts for
     beam_corners_lats = np.zeros((gates[1]-gates[0]+1, beams+1))
     beam_corners_lons = np.zeros((gates[1]-gates[0]+1, beams+1))
-
-    for beam in range(beams[0], beams[1]+1):
-        for gate in range(gates[0], gates[1]):
+    for beam in range(0, beams+1):
+        for gate in range(gates[0], gates[1]+1):
             lat, lon = gate2geographic_location(stid=stid, beam=beam,
                                                 range_gate=gate, height=300,
                                                 **kwargs)
-            beam_corners_lats[gate, beam] = lat
-            beam_corners_lons[gate, beam] = lon
-
             geomag = np.array(aacgmv2.get_aacgm_coord(glat=lat,
                                                       glon=lon,
                                                       height=250,
                                                       dtime=date))
-            beam_corners_lats[gate, beam] = geomag[0]
-            beam_corners_lons[gate, beam] = geomag[1]
+            beam_corners_lats[gate-gates[0], beam] = geomag[0]
+            beam_corners_lons[gate-gates[0], beam] = geomag[1]
     return beam_corners_lats, beam_corners_lons
 
 
-def aacgm_MLT_coordinates(stid: int, beams: int = None,
-                          gates: int = None, **kwargs):
-    beam_corners_lats, beam_corners_lons = aacgm_coordinates(stid=stid,
-                                                             beams=beams,
-                                                             gates=gates)
+def aacgm_MLT_coordinates(**kwargs):
+    beam_corners_lats, beam_corners_lons = aacgm_coordinates(**kwargs)
     beam_corners_mlts = convert2MLT(beam_corners_lons, **kwargs)
     return beam_corners_lats, beam_corners_mlts
 
@@ -214,6 +207,10 @@ class Coords(enum.Enum):
         AACGM: Magnetic geographical coordinates lat and longitude (degree)
     """
 
-    GEOGRAPHIC = (geo_coordinates,)
-    AACGM = (aacgm_coordinates,)
-    AACGM_MLT = (aacgm_MLT_coordinates,)
+    GEOGRAPHIC = (geo_coordinates, )
+    AACGM = (aacgm_coordinates, )
+    AACGM_MLT = (aacgm_MLT_coordinates, )
+
+    # Need this to make the functions callable
+    def __call__(self, *args, **kwargs):
+        return self.value[0](*args, **kwargs)

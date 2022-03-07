@@ -32,13 +32,13 @@ information to geographic location
 """
 import numpy as np
 
-from pydarn import VH_types, EARTH_EQUATORIAL_RADIUS
+from pydarn import VHModels, EARTH_EQUATORIAL_RADIUS
 
 
 # fldpnth line 90
 def geocentric_coordinates(target_range: float, psi: float, boresight: float,
-                           virtual_height_type: object =
-                           VH_types.STANDARD_VIRTUAL_HEIGHT,
+                           virtual_height_model: VHModels =
+                           VHModels.STANDARD,
                            **kwargs):
     """
     Calculates the geocentric coordinates of gate cell  point,
@@ -58,9 +58,9 @@ def geocentric_coordinates(target_range: float, psi: float, boresight: float,
             [rad]
         boresight: float
             boresight of the radar beam [rad]
-        virtual_height_type: object
+        virtual_height_model: VHModels
             use for choosing type of virtual height
-            default: VH_types.STANDARD_VIRTUAL_HEIGHT
+            default: VHModels.STANDARD
 
     Returns
     -------
@@ -75,7 +75,7 @@ def geocentric_coordinates(target_range: float, psi: float, boresight: float,
     radars – Part 1: A new empirical virtual height model by
     G. Chisham 2008 (https://doi.org/10.5194/angeo-26-823-2008)
     """
-    x_height = virtual_height_type(target_range, **kwargs)
+    x_height = virtual_height_model(target_range=target_range, **kwargs)
 
     # calculate the radius over the earth underneath
     # the radar and range gate cell
@@ -93,7 +93,7 @@ def geocentric_coordinates(target_range: float, psi: float, boresight: float,
         rel_elv = np.arcsin(((cell_rho**2) - (r_radar**2) - target_range**2) /
                             (2.0 * r_radar * target_range))
         # estimate elevation for multi-hop propagation
-        if virtual_height_type == VH_types.CHISHAM and target_range > 2137.5:
+        if virtual_height_model == VHModels.CHISHAM and target_range > 2137.5:
             gamma = np.arccos((r_radar**2 + cell_rho**2 - target_range**2) /
                               (2.0 * r_radar * cell_rho))
             beta = np.arcsin(r_radar * np.sin(gamma/3.0) /
@@ -143,7 +143,8 @@ def geocentric_coordinates(target_range: float, psi: float, boresight: float,
 
 # fldpnt
 def cell_geocentric_coordinates(lat: float, lon: float, rho: float,
-                                azimuth: float, elv: float, r: float):
+                                azimuth: float, elv: float, r: float,
+                                **kwargs):
     """
     Calculates the geocentric coordinates of a gate cell point given the
     angular geocentric coordinates of the point of origin,
@@ -223,7 +224,7 @@ def cell_geocentric_coordinates(lat: float, lon: float, rho: float,
 
 
 # goecnvrt
-def geocentric2flattening(delta: float, azimuth: float, elv: float):
+def geocentric2flattening(delta: float, azimuth: float, elv: float, **kwargs):
     """
     Adjust azimuth for the oblateness of the Earth
 
@@ -264,7 +265,7 @@ def geocentric2flattening(delta: float, azimuth: float, elv: float):
 
 
 # geodtgc, iopt > 0
-def geodetic2geocentric(lat: float, lon: float):
+def geodetic2geocentric(lat: float, lon: float, **kwargs):
     """
     convert geodetic coordinates to geocentric
 
@@ -307,7 +308,7 @@ def geodetic2geocentric(lat: float, lon: float):
 
 
 # geodtgc, iopt < 0
-def geocentric2geodetic(lat: float, lon: float):
+def geocentric2geodetic(lat: float, lon: float, **kwargs):
     """
     convert geocentric coordinates to geodetic
 

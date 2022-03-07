@@ -31,16 +31,12 @@ from .exceptions.warning_formatting import cartopy_warning
 from .exceptions.warning_formatting import cartopy_print_warning
 
 # importing utils
-from .utils.coordinates import Coords
 from .utils.constants import Re
 from .utils.constants import EARTH_EQUATORIAL_RADIUS
 from .utils.constants import C
-from .utils.projs import Projs
-from .utils.virtual_heights_types import VH_Types
-from .utils.range_estimations import Range_Estimation
+from .utils.range_estimations import RangeEstimation
+from .utils.virtual_heights import VHModels
 from .utils.conversions import dmap2dict
-from .utils.conversions import gate2slant
-from .utils.conversions import gate2GroundScatter
 from .utils.plotting import MapParams
 from .utils.plotting import check_data_type
 from .utils.plotting import time2datetime
@@ -51,14 +47,13 @@ from .utils.superdarn_radars import Hemisphere
 from .utils.superdarn_radars import read_hdw_file
 from .utils.superdarn_radars import get_hdw_files
 from .utils.scan import build_scan
-from .utils.radar_pos import radar_fov
-from .utils.radar_pos import geographic_cell_positions
-from .utils.virtual_heights import chisham
-from .utils.virtual_heights import standard_virtual_height
+#from .utils.radar_pos import radar_fov
+from .utils.geo import geocentric_coordinates
+from .utils.coordinates import Coords
 
 # import plotting
 from .plotting.color_maps import PyDARNColormaps
-from .plotting.projections import Projections
+from .plotting.projections import Projs
 from .plotting.rtp import RTP
 from .plotting.fan import Fan
 from .plotting.grid import Grid

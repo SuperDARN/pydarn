@@ -18,7 +18,7 @@
 #  height models to separate file for better encapsulation/modularity
 #  2022-03-04 Marina Schmidt add the VH_Types class to the bottom
 """ virtual_heights.py comprises of different of virtual height models"""
-
+import enum
 
 def chisham(target_range: float, **kwargs):
     """
@@ -100,7 +100,7 @@ def standard_virtual_height(target_range: float, cell_height: int = 300,
         return cell_height
 
 
-class VHModels():
+class VHModels(enum.Enum):
     """
     This virtual height models class is to list the current
     virtual height model user can pick from
@@ -110,5 +110,9 @@ class VHModels():
         CHISHAM: chisham (km)
     """
 
-    STANDARD = (standard_virtual_height,)
-    CHISHAM = (chisham,)
+    STANDARD = (standard_virtual_height, )
+    CHISHAM = (chisham, )
+
+    # Need this to make the functions callable
+    def __call__(self, *args, **kwargs):
+        return self.value[0](*args, **kwargs)
