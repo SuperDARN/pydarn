@@ -170,8 +170,11 @@ class Grid():
                 _, aacgm_lons, ax, _ =\
                         Fan.plot_fov(stid, date,
                                      ax=ax, **kwargs)
-                data_lons = dmap_data[record]['vector.mlon']
-                data_lats = dmap_data[record]['vector.mlat']
+                try:
+                    data_lons = dmap_data[record]['vector.mlon']
+                    data_lats = dmap_data[record]['vector.mlat']
+                except KeyError:
+                    raise plot_exceptions.PartialRecordsError('vector.mlon')
 
                 # Hold the beam positions
                 shifted_mlts = aacgm_lons[0, 0] - \
