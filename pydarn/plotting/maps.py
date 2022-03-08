@@ -2,6 +2,7 @@
 # Author: Marina Schmidt
 # Copyright (C) 2012  VT SuperDARN Lab
 # Modifications:
+#   20220308 MTS added partial records exception
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
