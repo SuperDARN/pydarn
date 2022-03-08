@@ -3,7 +3,7 @@
 #
 # Modifications:
 # 20210909: CJM - Added NoChannelError
-#
+# 20220308 MTS - Added PartialRecordsError()
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
 # Everyone is permitted to copy and distribute verbatim copies of this license
@@ -19,14 +19,28 @@ import datetime
 pydarn_log = logging.getLogger('pydarn')
 
 
+class PartialRecordsError(Exception):
+    """
+    Error given when a partial record prevents a plotting algorithm to work
+    """
+    def __init__(self, missing_field):
+        self.message = "pyDARN could not plot the following due to the "\
+                "following field {} was missing. This may be due to partial"\
+                "records created in RST (data processing software for"\
+                " SuperDARN)".format(missing_field)
+        super().__init__(self.message)
+        pydarn_log.error(self.message)
+
+
 class CartopyMissingError(Exception):
     """
     Error given when attmpting a cartopy style plot but cartopy isn't installed
     """
     def __init__(self):
         self.message = 'cartopy is independent library that the user must'\
-                'install to use. Please either change'\
-                ' plot styles or install cartopy and dependencies: https://pydarn.readthedocs.io/en/main/user/install/.'
+                'install to use. Please either change '\
+                'plot styles or install cartopy and dependencies: '\
+                'https://pydarn.readthedocs.io/en/main/user/install/.'
         super().__init__(self.message)
         pydarn_log.error(self.message)
 
@@ -37,7 +51,8 @@ class CartopyVersionError(Exception):
     """
     def __init__(self, version):
         self.message = 'cartopy is independent library that the user must'\
-                'install to use. Please insure the version number is >= 0.19. Your current version is: {}'.format(version)
+                'install to use. Please insure the version number is '\
+                '>= 0.19. Your current version is: {}'.format(version)
         super().__init__(self.message)
         pydarn_log.error(self.message)
 
@@ -215,6 +230,6 @@ class NoChannelError(Exception):
         self.message = "There is no data for channel {channel},"\
                        " try channel {opt_channel}."\
                        .format(channel=self.channel,
-                       opt_channel=self.opt_channel)
+                               opt_channel=self.opt_channel)
         super().__init__(self.message)
         pydarn_log.error(self.message)
