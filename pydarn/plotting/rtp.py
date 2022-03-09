@@ -362,11 +362,11 @@ class RTP():
             # Get rxrise from hardware files (consistent with RST)
             rxrise = SuperDARNRadars.radars[cls.dmap_data[0]['stid']]\
                                     .hardware_info.rx_rise_time
-            frang = cls.dmap_data[0]['frang']
-            rsep = cls.dmap_data[0]['rsep'],
+            frang = int(cls.dmap_data[0]['frang'])
+            rsep = int(cls.dmap_data[0]['rsep'])
 
             y = range_estimation(frang=frang, rxrise=rxrise,
-                                 rsep=rsep, **kwargs)
+                                 rsep=rsep, nrang=y_max, **kwargs)
 
             y0inx = np.min(np.where(np.isfinite(y))[0])
             y = y[y0inx:]

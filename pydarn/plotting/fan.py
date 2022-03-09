@@ -215,7 +215,10 @@ class Fan():
         fan_shape = beam_corners_lons.shape
 
         rs = beam_corners_lats
-        thetas = np.radians(beam_corners_lons)
+        if projs != Projs.GEO:
+            thetas = np.radians(beam_corners_lons)
+        else:
+            thetas = beam_corners_lons
 
         # Get range-gate data and groundscatter array for given scan
         # fan_shape has no -1 as when given ranges we want to include the
@@ -279,10 +282,6 @@ class Fan():
 
         if ccrs is None:
             transform = ax.transData
-            azm = np.linspace(0, 2 * np.pi, 100)
-            r, th = np.meshgrid(rs, azm)
-            plt.plot(azm, r, color='k', ls='none')
-            plt.grid()
 
         else:
             transform = ccrs.PlateCarree()
@@ -298,6 +297,11 @@ class Fan():
                           np.ma.masked_array(grndsct,
                                              ~grndsct.astype(bool)),
                           norm=norm, cmap='Greys', transform=transform)
+        if ccrs is None:
+            azm = np.linspace(0, 2 * np.pi, 100)
+            r, th = np.meshgrid(rs, azm)
+            plt.plot(azm, r, color='k', ls='none')
+            plt.grid()
 
         if boundary:
             cls.plot_fov(stid=dmap_data[0]['stid'], date=date, ax=ax,
