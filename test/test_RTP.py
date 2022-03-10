@@ -37,7 +37,7 @@ class TestRTP_defaults:
         with warnings.catch_warnings(record=True):
             pydarn.RTP.plot_time_series(data)
 
-    def test_normal_time_series(self):
+    def test_normal_summary_plot(self):
         """ """
         with warnings.catch_warnings(record=True):
             pydarn.RTP.plot_summary(data)
@@ -85,7 +85,7 @@ class TestRangTime:
                                              zmax, start_time, end_time,
                                              ymin, ymax, colorbar_label,
                                              yspacing,
-                                             range_estimation=range_estimation,
+                                             range_estimation,
                                              cmap, date_fmt):
         """ this test will give bare minimum input needed for """
         with warnings.catch_warnings(record=True):
@@ -178,17 +178,20 @@ class TestSummaryPlots:
                                     boundary=boundary, cmaps=cmaps,
                                     lines=lines, plot_elv=plot_elv,
                                     title=title, background=background,
-                                    groundscatter=groundscatter, range_estimation=range_estimation)
+                                    groundscatter=groundscatter,
+                                    range_estimation=range_estimation)
         plt.close('all')
 
     def test_beam9_channel2_summary_plots(self, fig_size, watermark, boundary,
                                           cmaps, lines, plot_elv, title,
-                                          background, groundscatter, range_estimation):
+                                          background, groundscatter,
+                                          range_estimation):
         with warnings.catch_warnings(record=True):
             pydarn.RTP.plot_summary(data, beam_num=9, channel=2,
                                     figsize=fig_size, watermark=watermark,
                                     boundary=boundary, cmaps=cmaps,
                                     lines=lines, plot_elv=plot_elv,
                                     title=title, background=background,
-                                    groundscatter=groundscatter, range_estimation=range_estimation)
+                                    groundscatter=groundscatter,
+                                    range_estimation=range_estimation)
         plt.close('all')

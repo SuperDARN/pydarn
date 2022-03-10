@@ -1,5 +1,17 @@
 # Copyright (C) 2020 SuperDARN Canada, Universtiy of Saskatchewan
 # Author(s): Daniel Billett
+#
+# Disclaimer:
+# pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
+# Everyone is permitted to copy and distribute verbatim copies of this license
+# document, but changing it is not allowed.
+#
+# This version of the GNU Lesser General Public License incorporates the terms
+# and conditions of version 3 of the GNU General Public License,
+# supplemented by the additional permissions listed below.
+#
+# Modification:
+#
 """
 This module is used for sorting a given dmap_data list of dictionaries
 into scans

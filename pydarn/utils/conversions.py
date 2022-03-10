@@ -1,7 +1,18 @@
 # Copyright 2019 SuperDARN Canada, University of Saskatchewan
 # Author: Marina Schmidt
-# Copyright 2021 University of Scranton
-# Author: Francis Tholley and Dr. Nathaniel Frissel for gate2groundscatter
+#
+# Disclaimer:
+# pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
+# Everyone is permitted to copy and distribute verbatim copies of this license
+# document, but changing it is not allowed.
+#
+# This version of the GNU Lesser General Public License incorporates the terms
+# and conditions of version 3 of the GNU General Public License,
+# supplemented by the additional permissions listed below.
+#
+# Modification:
+# 2022-03-10 MTS removed gate2slant and gate2groundscatter
+#                to range_estimations.py
 """
 This module is to focus on data conversions
 

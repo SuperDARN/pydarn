@@ -13,7 +13,9 @@
 # 2021-02-02: CJM - Included rsep and frang options in plot_fov
 #                 - Re-arranged logic for ranges option
 #                 - Indexing fixed for give lower ranges that are non-zero
-#
+# 2022-03-10: MTS - switched coords involving range estimations to RangeEstimation
+#                 - Removed GEO_COASTALINE, replaced with GEO on projections
+#                 - reduced some parameters inputs to kwargs
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
 # Everyone is permitted to copy and distribute verbatim copies of this license

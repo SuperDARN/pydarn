@@ -15,13 +15,15 @@ the additional permissions listed below.
 # Coordinate Systems 
 ---
 
-pyDARN offers several different coordinate systems and units for plotting: 
+pyDARN offers several different measurement systems for various type of plotting: 
+- Range Estimation: the estimate of how far the target (echo) to the radar
+- Coordinates systems: Generic geographic coordinate systems with conversions to AACGM and AACGM MLT 
 
 ## Range-Time Plots 
 
-**Range Gates**: `Coords.RANGE_GATE` a rectangle section determined by beam width and set distance for each range (nominally 45 km). RAWACF and FITACF data give their parameter values with respect to range gates. Range gates are a unit-less measure of estimating distance.
+**Range Gates**: `RangeEstimation.RANGE_GATE` a rectangle section determined by beam width and set distance for each range (nominally 45 km). RAWACF and FITACF data give their parameter values with respect to range gates. Range gates are a unit-less measure of estimating distance.
 
-**Slant Range**: `Coords.SLANT_RANGE` is a conversion from range gates to km units.  Slant range estimates the distance of ionospheric echos from the radar, using the time it takes for the radio wave to travel to the ionosphere and return, assuming the radio wave is travelling at the speed of light.
+**Slant Range**: `RangeEstimation.SLANT_RANGE` is a conversion from range gates to km units.  Slant range estimates the distance of ionospheric echos from the radar, using the time it takes for the radio wave to travel to the ionosphere and return, assuming the radio wave is travelling at the speed of light.
 
 !!! Note
     Slant range is calculated from the value of `frang`, the distance to the first range gate. In pyDARN, we assume 
@@ -32,7 +34,7 @@ pyDARN offers several different coordinate systems and units for plotting:
     the value given in hardware files. Currently, pyDARN has decided to use the values for `rxrise` given in the 
     hardware files. We will amend or reconsider this approach as and when a solution to the differing values is found.
 
-**Ground Scatter Mapped Range**: `Coords.GROUND_SCATTER_MAPPED_RANGE` uses echos from ground scatter to adjust slant-range coordinates to be more accurate based on [Dr. Bill Bristow's paper](https://agupubs.onlinelibrary.wiley.com/doi/abs/10.1029/93JA01470). Implemented by Dr. Nathaniel Frissell and Francis Tholley from University of Scranton. Measured in km.
+**Ground Scatter Mapped Range**: `RangeEstimation.GSMR` uses echos from ground scatter to adjust slant-range coordinates to be more accurate based on [Dr. Bill Bristow's paper](https://agupubs.onlinelibrary.wiley.com/doi/abs/10.1029/93JA01470). Implemented by Dr. Nathaniel Frissell and Francis Tholley from University of Scranton. Measured in km.
 
 **Geographic Latitude** (Coming Soon)
 
@@ -46,6 +48,10 @@ Geographic plots include: fan, grid and convection map (coming soon) plots
 
 **AACGM**: `Coords.AACGM` is [Altitude Adjusted Corrected Geogmagnetic Coordinates developed by Dr. Simon Shepherd](http://superdarn.thayer.dartmouth.edu/aacgm.html) are an extension of corrected geomagnetic (CGM) coordinates that more accurately represent the actual magnetic field. In AACGM coordinates points along a given magnetic field line are given the same coordinates and thus are a better reflection of magnetic conjugacy. pyDARN uses AACGM-V2 from the [aacgmv2 python library](https://pypi.org/project/aacgmv2/). Implemented by Dr. Daniel Billett from University of Saskatchewan. 
 
-**Ground Scatter Mapped Geographic** (Coming Soon)
+**AACGM_MLT**: `Coords.AACGM_MLT` is `Coords.AACGM` with the longitude shift to line up 
 
-**Ground Scatter Mapped Geomagnetic** (Coming Soon)
+`RangeEstimation` methods can be used with `Coords` calculation for example, using `Coords.GEOGRAPHIC` using `RangeEstimation.GSMR` to determine the coordinates. 
+
+!!! Warning
+    You cannot use `RangeEstimation.RANGE_GATES` with any `Coords`, the default is `RangeEstimation.SLANT_RANGE`
+

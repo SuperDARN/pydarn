@@ -16,7 +16,8 @@
 # and converted to python for usage in pyDARN
 #
 # Modifications:
-#
+# 2022-03-10 MTS added kwargs to the functions just to avoid errors when
+#                extra keys are passed in from other functions
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
 # Everyone is permitted to copy and distribute verbatim copies of this license

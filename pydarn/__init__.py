@@ -1,11 +1,18 @@
+#Copyright 2018 SuperDARN Canada, Univeristy Saskatchewan
+#Author(s): Marina Schmidt
+#
+# Disclaimer:
+# pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
+# Everyone is permitted to copy and distribute verbatim copies of this license
+# document, but changing it is not allowed.
+#
+# This version of the GNU Lesser General Public License incorporates the terms
+# and conditions of version 3 of the GNU General Public License,
+# supplemented by the additional permissions listed below.
+#
+# Modifications:
+# 2022-03-10 MTS - removed radar_fov from the __init__ file
 """
-Copyright 2018 SuperDARN Canada, Univeristy Saskatchewan
-Author(s): Marina Schmidt
-
-Licensed under GNU v3.0
-
-__init__.py
-2018-11-05
 Init file to setup the logging configuration and linking pyDARN's
 module, classes, and functions.
 """
@@ -47,7 +54,6 @@ from .utils.superdarn_radars import Hemisphere
 from .utils.superdarn_radars import read_hdw_file
 from .utils.superdarn_radars import get_hdw_files
 from .utils.scan import build_scan
-#from .utils.radar_pos import radar_fov
 from .utils.geo import geocentric_coordinates
 from .utils.coordinates import Coords
 
