@@ -273,6 +273,7 @@ class Fan():
         # Begin plotting by iterating over ranges and beams
         thetas = thetas[0:ranges[1]-ranges[0]+1]
         rs = rs[0:ranges[1]-ranges[0]+1]
+
         scan = scan[0:ranges[1]-ranges[0]]
         grndsct = grndsct[0:ranges[1]-ranges[0]]
 
@@ -287,7 +288,6 @@ class Fan():
 
         else:
             transform = ccrs.PlateCarree()
-
         ax.pcolormesh(thetas, rs,
                       np.ma.masked_array(scan, ~scan.astype(bool)),
                       norm=norm, cmap=cmap, transform=transform,

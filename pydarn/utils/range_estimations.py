@@ -15,6 +15,7 @@
 
 import enum
 import numpy as np
+import math
 
 from pydarn import Re, C
 
@@ -26,8 +27,6 @@ def gate2groundscatter(reflection_height: float = 250, **kwargs):
     from Bristow paper at https://doi.org/10.1029/93JA01470 on page 325
     Parameters
     ----------
-        slant_ranges : List[float]
-            list of slant ranges
         reflection_height: float
             reflection height
             default:  250
@@ -38,9 +37,9 @@ def gate2groundscatter(reflection_height: float = 250, **kwargs):
             returns an array of ground scatter mapped ranges for the radar
     """
     slant_ranges = gate2slant(**kwargs)
-
     ground_scatter_mapped_ranges =\
-        Re*np.arcsin(np.sqrt((slant_ranges**2/4)-(reflection_height**2))/Re)
+            Re*np.arcsin(np.sqrt((slant_ranges**2/4)-
+                                 (reflection_height**2))/Re)
 
     return ground_scatter_mapped_ranges
 

@@ -369,6 +369,7 @@ class RTP():
                                  rsep=rsep, nrang=y_max, **kwargs)
 
             y0inx = np.min(np.where(np.isfinite(y))[0])
+            print(y0inx)
             y = y[y0inx:]
             z = z[:, y0inx:]
 
