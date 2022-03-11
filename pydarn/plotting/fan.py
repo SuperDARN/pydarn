@@ -42,7 +42,7 @@ import aacgmv2
 
 from pydarn import (PyDARNColormaps, build_scan, partial_record_warning,
                     time2datetime, plot_exceptions, SuperDARNRadars,
-                    Projs, Coords, Hemisphere)
+                    Projs, Coords, Hemisphere, RangeEstimation)
 
 
 class Fan():
@@ -209,13 +209,15 @@ class Fan():
         except KeyError:
             rsep = 45
         beam_corners_lats, beam_corners_lons =\
-            coords(stid=dmap_data[0]['stid'],
-                   rsep=rsep, frang=frang,
-                   gates=ranges, date=date,
-                   **kwargs)
+                coords(stid=dmap_data[0]['stid'],
+                       rsep=rsep, frang=frang,
+                       gates=ranges, date=date,
+                       **kwargs)
+
 
         fan_shape = beam_corners_lons.shape
-
+        if ranges[0] < ranges[1] - fan_shape[0]:
+            ranges[0] = ranges[1] - fan_shape[0] + 1
         rs = beam_corners_lats
         if projs != Projs.GEO:
             thetas = np.radians(beam_corners_lons)
@@ -224,7 +226,7 @@ class Fan():
 
         # Get range-gate data and groundscatter array for given scan
         # fan_shape has no -1 as when given ranges we want to include the
-        # both ends fo the ranges given
+        # both ends for the ranges given
         scan = np.zeros((fan_shape[0], fan_shape[1]-1))
         grndsct = np.zeros((fan_shape[0], fan_shape[1]-1))
         # Colour table and max value selection depending on parameter plotted
@@ -271,6 +273,7 @@ class Fan():
                 continue
 
         # Begin plotting by iterating over ranges and beams
+
         thetas = thetas[0:ranges[1]-ranges[0]+1]
         rs = rs[0:ranges[1]-ranges[0]+1]
 
