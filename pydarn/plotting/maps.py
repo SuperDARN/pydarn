@@ -294,7 +294,7 @@ class Maps():
         ------
             legendre index?
         """
-        return (m == 0 and l**2) or ((l != 0) 
+        return (m == 0 and l**2) or ((l != 0)
                                      and (m != 0) and l**2 + 2 * m - 1) or 0
 
 
@@ -503,8 +503,8 @@ class Maps():
 
 
     @classmethod
-    def plot_heppner_maynard_boundary(cls, mlats: list,
-                                      mlons: list, line_color: str = 'black'):
+    def plot_heppner_maynard_boundary(cls, mlats: list, mlons: list,
+                                      line_color: str = 'black', **kwargs):
         # TODO: No evaluation of coordinate system made! May need if in
         # plotting to plot in radians/geo ect.
         """
@@ -518,15 +518,20 @@ class Maps():
                 Magnetic Latitude in degrees
             mlons: List[float]
                 Magnetic Longitude in radians
+            line_color: str
+                Color of the Heppner-Maynard boundary
+                Default: black
 
         """
-        plt.plot(mlons, mlats, c=line_color, linewidth=1)
+        plt.plot(mlons, mlats, c=line_color, **kwargs)
 
 
     @classmethod
     def calculate_potentials(cls, fit_coefficient: list, lat_min: list,
                              lat_shift: int = 0, lon_shift: int = 0,
-                             fit_order: int = 6, **kwargs):
+                             fit_order: int = 6, lowlat: int = 60,
+                             hemisphere: Enum = Hemisphere.North,
+                             **kwargs):
         # TODO: No evaluation of coordinate system made! May need if in
         # plotting to plot in radians/geo ect.
         '''
@@ -551,23 +556,12 @@ class Maps():
                 default: 6
             lowlat: int
                 Lowest latitude on plot
-                default: 30
+                default: 60
             hemisphere: Enum
                 Describes the hemisphere, North or South
                 default: Hemisphere.North
 
         '''
-        # Deal with required kwargs
-        try:
-            lowlat = kwargs['lowlat']
-        except KeyError:
-            lowlat = 60
-
-        try:
-            hemisphere = kwargs['hemisphere']
-        except KeyError:
-            hemisphere = Hemisphere.North
-
         # Lowest latitude to calculate potential to
         theta_max = np.radians(90-np.abs(lat_min))
 
@@ -649,7 +643,8 @@ class Maps():
     @classmethod
     def plot_potential_contours(cls, fit_coefficient: list, lat_min: list,
                                 lat_shift: int = 0, lon_shift: int = 0,
-                                fit_order: int = 6, **kwargs):
+                                fit_order: int = 6, contour_cmap: str = 'PiYG',
+                                **kwargs):
         # TODO: No evaluation of coordinate system made! May need if in
         # plotting to plot in radians/geo ect.
         '''
@@ -694,7 +689,7 @@ class Maps():
                       -45, -40, -35, -30, -25, -20, -15, -10, -5, -1, 1, 5,
                       10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75,
                       80, 85, 90, 95, 100]),
-                     cmap='PiYG', alpha=0.6)
+                     cmap=contour_cmap, alpha=0.6)
 
         # Get max value of potential
         ind_max = np.where(pot_arr == pot_arr.max())
