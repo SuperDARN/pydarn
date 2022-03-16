@@ -234,7 +234,6 @@ class Maps():
         plt.scatter(mlons, mlats, c=v_mag, s=2.0,
                     vmin=zmin, vmax=zmax,  cmap=cmap, zorder=5.0)
 
-        
         # Plot potential contours
         fit_coefficient = dmap_data[record]['N+2']
         fit_order = dmap_data[record]['fit.order']
@@ -243,20 +242,20 @@ class Maps():
         lat_min = dmap_data[record]['latmin']
 
         cls.plot_potential_contours(fit_coefficient, lat_min,
-                             lat_shift=lat_shift, lon_shift=lon_shift, 
-                             fit_order=fit_order, **kwargs)
+                                    lat_shift=lat_shift, lon_shift=lon_shift,
+                                    fit_order=fit_order, **kwargs)
+
         if hmb is True:
             # Plot the HMB
             mlats_hmb = dmap_data[record]['boundary.mlat']
             mlons_hmb = dmap_data[record]['boundary.mlon']
             cls.plot_heppner_maynard_boundary(mlats_hmb, np.radians(mlons_hmb))
-        
+
         if colorbar is True:
             mappable = cm.ScalarMappable(norm=norm, cmap=cmap)
             locator = ticker.MaxNLocator(symmetric=True, min_n_ticks=3,
                                          integer=True, nbins='auto')
             ticks = locator.tick_values(vmin=zmin, vmax=zmax)
-
             cb = ax.figure.colorbar(mappable, ax=ax,
                                     extend='both', ticks=ticks)
 
@@ -295,8 +294,8 @@ class Maps():
         ------
             legendre index?
         """
-        return (m == 0 and l**2) or \
-                    ((l != 0) and (m != 0) and l**2 + 2 * m - 1) or 0
+        return (m == 0 and l**2) or ((l != 0) 
+                                     and (m != 0) and l**2 + 2 * m - 1) or 0
 
 
     @classmethod
@@ -490,23 +489,23 @@ class Maps():
         else:
             if hemisphere == Hemisphere.South:
                 azm_v[velocity_chk_zero_inds] =\
-                        np.arctan2(velocity_fit_vectors[1,
-                                                        velocity_chk_zero_inds],
-                                   velocity_fit_vectors[0,
-                                                        velocity_chk_zero_inds])
+                    np.arctan2(velocity_fit_vectors[1,
+                                                    velocity_chk_zero_inds],
+                               velocity_fit_vectors[0,
+                                                    velocity_chk_zero_inds])
             else:
                 azm_v[velocity_chk_zero_inds] =\
-                        np.arctan2(velocity_fit_vectors[1,
-                                                        velocity_chk_zero_inds],
-                                   -velocity_fit_vectors[0,
-                                                         velocity_chk_zero_inds])
+                    np.arctan2(velocity_fit_vectors[1,
+                                                    velocity_chk_zero_inds],
+                               -velocity_fit_vectors[0,
+                                                     velocity_chk_zero_inds])
         return velocity, azm_v
 
 
     @classmethod
-    def plot_heppner_maynard_boundary(cls, mlats: list, 
-                                      mlons: list, line_color: str='black'):
-        # TODO: No evaluation of coordinate system made! May need if in 
+    def plot_heppner_maynard_boundary(cls, mlats: list,
+                                      mlons: list, line_color: str = 'black'):
+        # TODO: No evaluation of coordinate system made! May need if in
         # plotting to plot in radians/geo ect.
         """
         Plots the position of the Heppner-Maynard Boundary
@@ -521,14 +520,14 @@ class Maps():
                 Magnetic Longitude in radians
 
         """
-        plt.plot(mlons,mlats, c=line_color, linewidth=1)
+        plt.plot(mlons, mlats, c=line_color, linewidth=1)
 
 
     @classmethod
     def calculate_potentials(cls, fit_coefficient: list, lat_min: list,
-                             lat_shift: int=0, lon_shift: int=0, 
-                             fit_order: int=6, **kwargs):
-        # TODO: No evaluation of coordinate system made! May need if in 
+                             lat_shift: int = 0, lon_shift: int = 0,
+                             fit_order: int = 6, **kwargs):
+        # TODO: No evaluation of coordinate system made! May need if in
         # plotting to plot in radians/geo ect.
         '''
         Calculates potential across a magnetic lat/lon grid for
@@ -556,7 +555,7 @@ class Maps():
             hemisphere: Enum
                 Describes the hemisphere, North or South
                 default: Hemisphere.North
- 
+
         '''
         # Deal with required kwargs
         try:
@@ -564,7 +563,7 @@ class Maps():
         except KeyError:
             lowlat = 60
 
-        try: 
+        try:
             hemisphere = kwargs['hemisphere']
         except KeyError:
             hemisphere = Hemisphere.North
@@ -588,7 +587,7 @@ class Maps():
         lon_arr = np.array(range(num_lons)) * lon_step
 
         # Set up Grid
-        grid_arr = np.zeros((2,num_lats * num_lons))
+        grid_arr = np.zeros((2, num_lats * num_lons))
         count1 = 0
         for lons in lon_arr:
             for lats in lat_arr:
@@ -597,8 +596,8 @@ class Maps():
                 count1 += 1
 
         # Convert grid vals to spherical coords
-        theta = np.radians(90.0 - np.abs(grid_arr[0,:]))
-        phi = np.radians(grid_arr[1,:])
+        theta = np.radians(90.0 - np.abs(grid_arr[0, :]))
+        phi = np.radians(grid_arr[1, :])
 
         # Adjusted/Normalised values (runs 0 - pi)
         alpha = np.pi / theta_max
@@ -624,33 +623,34 @@ class Maps():
             for l in range(m, lmax):
                 k = cls.index_legendre(l, m)
                 if m == 0:
-                    v = v + coeff_fit_flat[k] * plm_fit[:,0,l]
+                    v = v + coeff_fit_flat[k] * plm_fit[:, 0, l]
                 else:
-                    v = v + coeff_fit_flat[k] * np.cos(m * phi) * plm_fit[:,m,l] \
-                          + coeff_fit_flat[k+1] * np.sin(m * phi) * plm_fit[:,m,l]
+                    v = v + coeff_fit_flat[k] * np.cos(m * phi) \
+                          * plm_fit[:, m, l] + coeff_fit_flat[k+1] \
+                          * np.sin(m * phi) * plm_fit[:, m, l]
 
         pot_arr = np.zeros((num_lons, num_lats))
-        pot_arr = np.reshape(v,pot_arr.shape) / 1000.0
+        pot_arr = np.reshape(v, pot_arr.shape) / 1000.0
 
         # TODO: Account for lon_shift
         # TODO: Code for lat shift! (both rarely non-0 though)
         # grid_arr[1,:] = (grid_arr[1,:] + lon_shift)
 
-        mlat_center = grid_arr[0,:].reshape((num_lons,num_lats))
+        mlat_center = grid_arr[0, :].reshape((num_lons, num_lats))
         # Set everything below the latmin as 0
         ind = np.where(mlat_center < lat_min)
         pot_arr[ind] = 0
 
-        mlon_center = grid_arr[1,:].reshape((num_lons,num_lats))
+        mlon_center = grid_arr[1, :].reshape((num_lons, num_lats))
 
         return mlat_center, mlon_center, pot_arr
 
 
     @classmethod
     def plot_potential_contours(cls, fit_coefficient: list, lat_min: list,
-                             lat_shift: int=0, lon_shift: int=0, 
-                             fit_order: int=6, **kwargs):
-        # TODO: No evaluation of coordinate system made! May need if in 
+                                lat_shift: int = 0, lon_shift: int = 0,
+                                fit_order: int = 6, **kwargs):
+        # TODO: No evaluation of coordinate system made! May need if in
         # plotting to plot in radians/geo ect.
         '''
         Takes the grid of potentials, plots a contour plot and min and max
@@ -678,21 +678,23 @@ class Maps():
         '''
         mlat, mlon, pot_arr = cls.calculate_potentials(
                              fit_coefficient, lat_min,
-                             lat_shift=lat_shift, lon_shift=lon_shift, 
+                             lat_shift=lat_shift, lon_shift=lon_shift,
                              fit_order=fit_order, **kwargs)
 
-        # TODO: Other method to make ticker: this one is used to get the -1 1 
-        # level but it's a hack. 
+        # TODO: Other method to make ticker: this one is used to get the -1 1
+        # level but it's a hack.
         # TODO: Assess colormaps
         # TODO: Edge color is annoying me, don't know how to remove it theres
         # currently a long issue on matplotlib github for this
-        plt.contourf(np.radians(mlon), mlat, pot_arr, 2, vmax=abs(pot_arr).max(),
-                            vmin=-abs(pot_arr).max(),
-                            locator=ticker.FixedLocator(
-                            [-100,-95,-90,-85,-80,-75,-70,-65,-60,-55,-50,-45,
-                             -40,-35,-30,-25,-20,-15,-10,-5,-1,1,5,10,15,20,
-                             25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100]),
-                            cmap='PiYG', alpha=0.6)
+        plt.contourf(np.radians(mlon), mlat, pot_arr, 2,
+                     vmax=abs(pot_arr).max(),
+                     vmin=-abs(pot_arr).max(),
+                     locator=ticker.FixedLocator(
+                     [-100, -95, -90, -85, -80, -75, -70, -65, -60, -55, -50,
+                      -45, -40, -35, -30, -25, -20, -15, -10, -5, -1, 1, 5,
+                      10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75,
+                      80, 85, 90, 95, 100]),
+                     cmap='PiYG', alpha=0.6)
 
         # Get max value of potential
         ind_max = np.where(pot_arr == pot_arr.max())
@@ -702,5 +704,7 @@ class Maps():
         min_mlon = mlon[ind_min]
         min_mlat = mlat[ind_min]
 
-        plt.scatter(np.radians(max_mlon),max_mlat,marker='+',s=70, color='k')
-        plt.scatter(np.radians(min_mlon),min_mlat,marker='x',s=70, color='k')
+        plt.scatter(np.radians(max_mlon), max_mlat, marker='+', s=70,
+                    color='k')
+        plt.scatter(np.radians(min_mlon), min_mlat, marker='x', s=70,
+                    color='k')
