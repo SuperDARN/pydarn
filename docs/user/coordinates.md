@@ -15,9 +15,9 @@ the additional permissions listed below.
 # Coordinate Systems 
 ---
 
-pyDARN offers several different measurement systems for various type of plotting: 
-- Range Estimation: the estimate of how far the target (echo) to the radar
-- Coordinates systems: Generic geographic coordinate systems with conversions to AACGM and AACGM MLT 
+pyDARN offers several different measurement systems for various types of plotting: 
+- Range Estimation: the estimate of how far the target (echo) is from the radar
+- Coordinate systems: Generic geographic coordinate system with conversions to AACGM and AACGM MLT 
 
 ## Range-Time Plots 
 
@@ -48,9 +48,9 @@ Geographic plots include: fan, grid and convection map (coming soon) plots
 
 **AACGM**: `Coords.AACGM` is [Altitude Adjusted Corrected Geogmagnetic Coordinates developed by Dr. Simon Shepherd](http://superdarn.thayer.dartmouth.edu/aacgm.html) are an extension of corrected geomagnetic (CGM) coordinates that more accurately represent the actual magnetic field. In AACGM coordinates points along a given magnetic field line are given the same coordinates and thus are a better reflection of magnetic conjugacy. pyDARN uses AACGM-V2 from the [aacgmv2 python library](https://pypi.org/project/aacgmv2/). Implemented by Dr. Daniel Billett from University of Saskatchewan. 
 
-**AACGM_MLT**: `Coords.AACGM_MLT` is `Coords.AACGM` with the longitude shift to line up 
+**AACGM_MLT**: `Coords.AACGM_MLT` is `Coords.AACGM` with the geomagnetic longitude converted to magnetic local time
 
-`RangeEstimation` methods can be used with `Coords` calculation for example, using `Coords.GEOGRAPHIC` using `RangeEstimation.GSMR` to determine the coordinates. 
+`RangeEstimation` methods can be used with a `Coords` calculation. For example, using `Coords.GEOGRAPHIC` and `RangeEstimation.GSMR` together, will give a plot of ionospheric echoes at a distance from the radar calculated in ground scatter mapped range, in geographic coordinates. 
 
 !!! Warning
     You cannot use `RangeEstimation.RANGE_GATES` with any `Coords`, the default is `RangeEstimation.SLANT_RANGE`
