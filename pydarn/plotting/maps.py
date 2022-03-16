@@ -639,7 +639,7 @@ class Maps():
     def plot_potential_contours(cls, fit_coefficient: list, lat_min: list,
                                 lat_shift: int = 0, lon_shift: int = 0,
                                 fit_order: int = 6, contour_cmap: str = 'PiYG',
-                                **kwargs):
+                                pot_minmax_color: str = 'k', **kwargs):
         # TODO: No evaluation of coordinate system made! May need if in
         # plotting to plot in radians/geo ect.
         '''
@@ -662,6 +662,12 @@ class Maps():
             fit_order: int
                 order of the fit
                 default: 6
+            contour_cmap: matplotlib.cm
+                TBD
+            pot_minmax_color: str
+                Colour of the cross and plus symbols for 
+                minimum and maximum potentials
+                Default: 'k' - black
             **kwargs
                 including lowlat and hemisphere for calculating
                 potentials
@@ -695,6 +701,6 @@ class Maps():
         min_mlat = mlat[ind_min]
 
         plt.scatter(np.radians(max_mlon), max_mlat, marker='+', s=70,
-                    color='k')
+                    color=pot_minmax_color)
         plt.scatter(np.radians(min_mlon), min_mlat, marker='x', s=70,
-                    color='k')
+                    color=pot_minmax_color)
