@@ -530,7 +530,7 @@ class Maps():
     def calculate_potentials(cls, fit_coefficient: list, lat_min: list,
                              lat_shift: int = 0, lon_shift: int = 0,
                              fit_order: int = 6, lowlat: int = 60,
-                             hemisphere: Enum = Hemisphere.North,
+                             hemisphere: Hemisphere = Hemisphere.North,
                              **kwargs):
         # TODO: No evaluation of coordinate system made! May need if in
         # plotting to plot in radians/geo ect.
@@ -565,11 +565,6 @@ class Maps():
         # Lowest latitude to calculate potential to
         theta_max = np.radians(90-np.abs(lat_min))
 
-        if hemisphere == Hemisphere.North:
-            hemi = 1
-        else:
-            hemi = -1
-
         # Make a grid of the space the potential is evaluated on
         # in magnetic coordinates
         lat_step = 1
@@ -577,7 +572,7 @@ class Maps():
         num_lats = int((90.0 - lowlat) / lat_step) + 1
         num_lons = int(360.0 / lon_step) + 1
         lat_arr = np.array(range(num_lats)) * lat_step + lowlat
-        lat_arr = lat_arr * hemi
+        lat_arr = lat_arr * hemisphere.value
         lon_arr = np.array(range(num_lons)) * lon_step
 
         # Set up Grid
