@@ -638,7 +638,13 @@ class Maps():
     @classmethod
     def plot_potential_contours(cls, fit_coefficient: list, lat_min: list,
                                 lat_shift: int = 0, lon_shift: int = 0,
-                                fit_order: int = 6, contour_cmap: str = 'PiYG',
+                                fit_order: int = 6, 
+                                contour_levels: list = [],
+                                contour_color: str = 'dimgrey',
+                                contour_label: bool = True,
+                                contour_linewidths: float = 0.8,
+                                contour_fill: bool = False,
+                                contour_fill_cmap: str = 'RdBu',
                                 pot_minmax_color: str = 'k', **kwargs):
         # TODO: No evaluation of coordinate system made! May need if in
         # plotting to plot in radians/geo ect.
@@ -662,10 +668,37 @@ class Maps():
             fit_order: int
                 order of the fit
                 default: 6
-            contour_cmap: matplotlib.cm
-                TBD
+            contour_levels: np.arr
+                Array of values at which the contours
+                are plotted
+                Default: [] 
+                Default list is defined in function due
+                to length of the list, values higher or
+                lower than the minimum and maximum values
+                given are colored in as min and max color
+                values if contour_fill=True
+            contour_color: str
+                Colour of the contour lines plotted
+                Default: dimgrey
+            contour_label: bool
+                If contour_fill is True, contour labels will
+                be plotted on the contour lines
+                Default: True
+            contour_linewidths: float
+                Thickness of contour lines
+                Default: 0.8
+            contour_fill: bool
+                Option to use filled contours rather than
+                an outline. If True, contour_color and
+                contour_linewidths are ignored
+                If False
+                Default: False
+            contour_fill_cmap: matplotlib.cm
+                Colormap used to fill the contours if
+                contour_fill is True
+                Default: 'RdBu'
             pot_minmax_color: str
-                Colour of the cross and plus symbols for 
+                Colour of the cross and plus symbols for
                 minimum and maximum potentials
                 Default: 'k' - black
             **kwargs
@@ -677,20 +710,29 @@ class Maps():
                              lat_shift=lat_shift, lon_shift=lon_shift,
                              fit_order=fit_order, **kwargs)
 
-        # TODO: Other method to make ticker: this one is used to get the -1 1
-        # level but it's a hack.
-        # TODO: Assess colormaps
-        # TODO: Edge color is annoying me, don't know how to remove it theres
-        # currently a long issue on matplotlib github for this
-        plt.contourf(np.radians(mlon), mlat, pot_arr, 2,
-                     vmax=abs(pot_arr).max(),
-                     vmin=-abs(pot_arr).max(),
-                     locator=ticker.FixedLocator(
-                     [-100, -95, -90, -85, -80, -75, -70, -65, -60, -55, -50,
-                      -45, -40, -35, -30, -25, -20, -15, -10, -5, -1, 1, 5,
-                      10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75,
-                      80, 85, 90, 95, 100]),
-                     cmap=contour_cmap, alpha=0.6)
+        # Contained in function as too long to go into the function call
+        if contour_levels == []:
+            contour_levels = [-100, -95, -90, -85, -80, -75, -70, -65, -60,
+                              -55, -50, -45, -40, -35, -30, -25, -20, -15,
+                              -10, -5, -1, 1, 5, 10, 15, 20, 25, 30, 35, 40,
+                              45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]
+
+        if contour_fill:
+            plt.contourf(np.radians(mlon), mlat, pot_arr, 2,
+                         vmax=abs(pot_arr).max(),
+                         vmin=-abs(pot_arr).max(),
+                         locator=ticker.FixedLocator(contour_levels),
+                         cmap=contour_fill_cmap, alpha=0.6,
+                         extend='both')
+        else:
+            cs = plt.contour(np.radians(mlon), mlat, pot_arr, 2,
+                         vmax=abs(pot_arr).max(),
+                         vmin=-abs(pot_arr).max(),
+                         locator=ticker.FixedLocator(contour_levels),
+                         colors=contour_color, alpha=0.8,
+                         linewidths=contour_linewidths)
+            if contour_label:
+                plt.clabel(cs, cs.levels, inline=True, fmt='%d', fontsize=5)
 
         # Get max value of potential
         ind_max = np.where(pot_arr == pot_arr.max())
@@ -702,5 +744,5 @@ class Maps():
 
         plt.scatter(np.radians(max_mlon), max_mlat, marker='+', s=70,
                     color=pot_minmax_color)
-        plt.scatter(np.radians(min_mlon), min_mlat, marker='x', s=70,
+        plt.scatter(np.radians(min_mlon), min_mlat, marker='_', s=70,
                     color=pot_minmax_color)
