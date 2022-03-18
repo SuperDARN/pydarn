@@ -674,7 +674,7 @@ class Maps():
             contour_levels: np.arr
                 Array of values at which the contours
                 are plotted
-                Default: [] 
+                Default: []
                 Default list is defined in function due
                 to length of the list, values higher or
                 lower than the minimum and maximum values
@@ -705,7 +705,7 @@ class Maps():
                 contour_fill is True
                 Default: 'RdBu'
             contour_colorbar_label: str
-                Label for the colorbar describing the 
+                Label for the colorbar describing the
                 contours if contour_fill is True
                 Default: empty string ''
             pot_minmax_color: str
@@ -750,14 +750,13 @@ class Maps():
         else:
             # Contour lines only
             cs = plt.contour(np.radians(mlon), mlat, pot_arr, 2,
-                         vmax=abs(pot_arr).max(),
-                         vmin=-abs(pot_arr).max(),
-                         locator=ticker.FixedLocator(contour_levels),
-                         colors=contour_color, alpha=0.8,
-                         linewidths=contour_linewidths, zorder=3.0)
+                             vmax=abs(pot_arr).max(),
+                             vmin=-abs(pot_arr).max(),
+                             locator=ticker.FixedLocator(contour_levels),
+                             colors=contour_color, alpha=0.8,
+                             linewidths=contour_linewidths, zorder=3.0)
             if contour_label:
                 plt.clabel(cs, cs.levels, inline=True, fmt='%d', fontsize=5)
-
 
         # Get max value of potential
         ind_max = np.where(pot_arr == pot_arr.max())
