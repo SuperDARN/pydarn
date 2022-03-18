@@ -2,6 +2,7 @@
 # Author: Marina Schmidt
 # Copyright (C) 2012  VT SuperDARN Lab
 # Modifications:
+# 2022-03-08: MTS - added partial records exception
 # 2021-03-18: CJM - Included contour plotting and HMB
 #
 # Disclaimer:
@@ -31,9 +32,9 @@ from typing import List
 # Third party libraries
 import aacgmv2
 
-from pydarn import (PyDARNColormaps, plot_exceptions, citing_warning,
+from pydarn import (PyDARNColormaps, plot_exceptions,
                     standard_warning_format, Re, Hemisphere,
-                    time2datetime, find_record, Fan, MapParams, Projections)
+                    time2datetime, find_record, Fan, MapParams)
 
 warnings.formatwarning = standard_warning_format
 
@@ -160,12 +161,19 @@ class Maps():
             for stid in dmap_data[record]['stid']:
                 _, aacgm_lons, ax, _ =\
                         Fan.plot_fov(stid, date, ax=ax, **kwargs)
+
         if parameter == MapParams.MODEL_VELOCITY:
-            data_lons = dmap_data[record]['model.mlon']
-            data_lats = dmap_data[record]['model.mlat']
+            try:
+                data_lons = dmap_data[record]['model.mlon']
+                data_lats = dmap_data[record]['model.mlat']
+            except KeyError:
+                raise plot_exceptions.PartialRecordsError('model.mlon')
         else:
-            data_lons = dmap_data[record]['vector.mlon']
-            data_lats = dmap_data[record]['vector.mlat']
+            try:
+                data_lons = dmap_data[record]['vector.mlon']
+                data_lats = dmap_data[record]['vector.mlat']
+            except KeyError:
+                raise plot_exceptions.PartialRecordsError('model.mlat')
 
             # Hold the beam positions
             shifted_mlts = aacgm_lons[0, 0] - \
