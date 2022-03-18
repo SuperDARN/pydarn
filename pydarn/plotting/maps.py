@@ -230,7 +230,7 @@ class Maps():
             for i in range(len(v_mag)):
                 plt.plot([mlons[i], end_mlons[i]],
                          [mlats[i], end_mlats[i]], c=cmap(norm(v_mag[i])),
-                         linewidth=0.5)
+                         linewidth=0.5, zorder=5.0)
         plt.scatter(mlons, mlats, c=v_mag, s=2.0,
                     vmin=zmin, vmax=zmax,  cmap=cmap, zorder=5.0)
 
@@ -523,7 +523,7 @@ class Maps():
                 Default: black
 
         """
-        plt.plot(mlons, mlats, c=line_color, **kwargs)
+        plt.plot(mlons, mlats, c=line_color, zorder=4.0, **kwargs)
 
 
     @classmethod
@@ -723,14 +723,14 @@ class Maps():
                          vmin=-abs(pot_arr).max(),
                          locator=ticker.FixedLocator(contour_levels),
                          cmap=contour_fill_cmap, alpha=0.6,
-                         extend='both')
+                         extend='both', zorder=3.0)
         else:
             cs = plt.contour(np.radians(mlon), mlat, pot_arr, 2,
                          vmax=abs(pot_arr).max(),
                          vmin=-abs(pot_arr).max(),
                          locator=ticker.FixedLocator(contour_levels),
                          colors=contour_color, alpha=0.8,
-                         linewidths=contour_linewidths)
+                         linewidths=contour_linewidths, zorder=3.0)
             if contour_label:
                 plt.clabel(cs, cs.levels, inline=True, fmt='%d', fontsize=5)
 
@@ -743,6 +743,6 @@ class Maps():
         min_mlat = mlat[ind_min]
 
         plt.scatter(np.radians(max_mlon), max_mlat, marker='+', s=70,
-                    color=pot_minmax_color)
+                    color=pot_minmax_color, zorder=5.0)
         plt.scatter(np.radians(min_mlon), min_mlat, marker='_', s=70,
-                    color=pot_minmax_color)
+                    color=pot_minmax_color, zorder=5.0)
