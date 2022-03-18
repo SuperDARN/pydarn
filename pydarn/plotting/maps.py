@@ -2,6 +2,7 @@
 # Author: Marina Schmidt
 # Copyright (C) 2012  VT SuperDARN Lab
 # Modifications:
+# 2021-03-18: CJM - Included contour plotting and HMB
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
