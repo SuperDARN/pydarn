@@ -13,6 +13,7 @@
 # 2021-02-02: CJM - Included rsep and frang options in plot_fov
 #                 - Re-arranged logic for ranges option
 #                 - Indexing fixed for give lower ranges that are non-zero
+# 2021-03-22: CJM - Set cmap bad values to transparent
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
