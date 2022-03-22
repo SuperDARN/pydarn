@@ -34,7 +34,7 @@ except Exception:
 
 
 def axis_polar(lowlat: int = 30, hemisphere: Hemisphere = Hemisphere.North,
-               **kwargs):
+               grid_lines: bool = True, **kwargs):
     """
     Plots a radar's Field Of View (FOV) fan plot for the given data and
     scan number
@@ -76,7 +76,7 @@ def axis_polar(lowlat: int = 30, hemisphere: Hemisphere = Hemisphere.North,
 
 def axis_geological(date, ax: object = None,
                     hemisphere: Hemisphere = Hemisphere.North,
-                    lowlat: int = 30, **kwargs):
+                    lowlat: int = 30, grid_lines: bool = True, **kwargs):
     """
     """
     if cartopyInstalled is False:
@@ -90,16 +90,16 @@ def axis_geological(date, ax: object = None,
     if hemisphere == Hemisphere.North:
         pole_lat = 90
         noon = -deg_from_midnight
-        # ylocations = -5
+        ylocations = -5
     else:
         pole_lat = -90
         noon = 360 - deg_from_midnight
-        # ylocations = 5
+        ylocations = 5
     # handle none types or wrongly built axes
     proj = ccrs.Orthographic(noon, pole_lat)
     ax = plt.subplot(111, projection=proj, aspect='auto')
-    ax.coastlines()
-    # ax.gridlines(ylocs=np.arange(pole_lat, 0, ylocations))
+    if grid_lines:
+        ax.gridlines(draw_labels=True)
 
     extent = min(45e5,
                  (abs(proj.transform_point(noon, lowlat,
