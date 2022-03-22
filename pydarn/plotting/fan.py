@@ -208,12 +208,21 @@ class Fan():
             rsep = dmap_data[0]['rsep']
         except KeyError:
             rsep = 45
+
+        if coords != Coords.GEOGRAPHIC and projs == Projs.GEO:
+            raise plot_exceptions.NotImplemented("AACGM coordinates currently"\
+                                                 " is not implemented right"\
+                                                 " now, if you would like to"\
+                                                 " see it sooner please help"\
+                                                 " out on "\
+                                                 "https://github.com"\
+                                                 "/SuperDARN/pyDARN")
+
         beam_corners_lats, beam_corners_lons =\
                 coords(stid=dmap_data[0]['stid'],
                        rsep=rsep, frang=frang,
                        gates=ranges, date=date,
                        **kwargs)
-
 
         fan_shape = beam_corners_lons.shape
         if ranges[0] < ranges[1] - fan_shape[0]:

@@ -56,6 +56,14 @@ class CartopyVersionError(Exception):
         super().__init__(self.message)
         pydarn_log.error(self.message)
 
+class NotImplemented(Exception):
+    """
+    Error given when settings are not implemented right now.
+    """
+    def __init__(self, msg):
+        self.message = msg
+        super().__init__(self.message)
+        pydarn_log.error(self.message)
 
 class IncorrectPlotMethodError(Exception):
     """
