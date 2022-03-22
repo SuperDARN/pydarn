@@ -230,7 +230,7 @@ class Fan():
 
                     'elv': PyDARNColormaps.PYDARN}
             cmap = plt.cm.get_cmap(cmap[parameter])
-        
+
         # Set background to transparent - avoids carry over
         # does not interfere with the fov color if chosen
         cmap.set_bad(alpha=0.0)
