@@ -4,6 +4,8 @@
 # Modifications:
 # 20210909: CJM - Added NoChannelError
 # 20220308 MTS - Added PartialRecordsError()
+# 2022-03-23 MTS - Added NotImplementedError() indicates when something is not implement in pyDARN
+#
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
 # Everyone is permitted to copy and distribute verbatim copies of this license
