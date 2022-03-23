@@ -335,7 +335,7 @@ class Fan():
             end_time = time2datetime(dmap_data[plot_beams[-1][-1]])
             title = cls.__add_title__(start_time, end_time)
             plt.title(title)
-        return beam_corners_lats, beam_corners_lons, scan, grndsct
+        return ax, beam_corners_lats, beam_corners_lons, scan, grndsct
 
     @classmethod
     def plot_fov(cls, stid: str, date: dt.datetime,
