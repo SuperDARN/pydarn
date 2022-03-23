@@ -37,7 +37,7 @@ class TestRTP_defaults:
         with warnings.catch_warnings(record=True):
             pydarn.RTP.plot_time_series(data)
 
-    def test_normal_time_series(self):
+    def test_normal_summary_plot(self):
         """ """
         with warnings.catch_warnings(record=True):
             pydarn.RTP.plot_summary(data)
@@ -49,8 +49,9 @@ class TestRTP_defaults:
 @pytest.mark.parametrize('groundscatter_params', [True, 'grey'])
 @pytest.mark.parametrize('colorbar_label', ['test'])
 @pytest.mark.parametrize('yspacing', [150, 250])
-@pytest.mark.parametrize('coords', [pydarn.Coords.RANGE_GATE,
-                                    pydarn.Coords.GROUND_SCATTER_MAPPED_RANGE])
+@pytest.mark.parametrize('range_estimation',
+                         [pydarn.RangeEstimation.RANGE_GATE,
+                          pydarn.RangeEstimation.GSMR])
 @pytest.mark.parametrize('ymin', [10])
 @pytest.mark.parametrize('ymax', [70])
 @pytest.mark.parametrize('parameters', ['v', 'p_l', 'w_l'])
@@ -64,7 +65,7 @@ class TestRangTime:
                                    parameters, background, zmin, zmax,
                                    start_time, end_time, ymin, ymax,
                                    colorbar_label, yspacing,
-                                   coords, cmap, date_fmt):
+                                   range_estimation, cmap, date_fmt):
         """ this test will give bare minimum input needed for """
         with warnings.catch_warnings(record=True):
             pydarn.RTP.plot_range_time(data, beam_num=15,
@@ -74,7 +75,8 @@ class TestRangTime:
                                        zmax=zmax, start_time=start_time,
                                        end_time=end_time, ymin=ymin, ymax=ymax,
                                        colorbar_label=colorbar_label,
-                                       yspacing=yspacing, coords=coords,
+                                       yspacing=yspacing,
+                                       range_estimation=range_estimation,
                                        cmap=cmap, date_fmt=date_fmt)
         plt.close('all')
 
@@ -82,7 +84,9 @@ class TestRangTime:
                                              parameters, background, zmin,
                                              zmax, start_time, end_time,
                                              ymin, ymax, colorbar_label,
-                                             yspacing, coords, cmap, date_fmt):
+                                             yspacing,
+                                             range_estimation,
+                                             cmap, date_fmt):
         """ this test will give bare minimum input needed for """
         with warnings.catch_warnings(record=True):
             pydarn.RTP.plot_range_time(data, beam_num=9,
@@ -92,7 +96,8 @@ class TestRangTime:
                                        zmax=zmax, start_time=start_time,
                                        end_time=end_time, ymin=ymin, ymax=ymax,
                                        colorbar_label=colorbar_label,
-                                       yspacing=yspacing, coords=coords,
+                                       yspacing=yspacing,
+                                       range_estimation=range_estimation,
                                        cmap=cmap, date_fmt=date_fmt)
         plt.close('all')
 
@@ -159,30 +164,34 @@ class TestTimeSeries:
 @pytest.mark.parametrize('title', ['test test'])
 @pytest.mark.parametrize('background', ['grey'])
 @pytest.mark.parametrize('groundscatter', [False, 'grey'])
-@pytest.mark.parametrize('coords', [pydarn.Coords.RANGE_GATE,
-                                    pydarn.Coords.GROUND_SCATTER_MAPPED_RANGE])
+@pytest.mark.parametrize('range_estimation',
+                         [pydarn.RangeEstimation.RANGE_GATE,
+                          pydarn.RangeEstimation.GSMR])
 class TestSummaryPlots:
 
     def test_params_summary_plots(self, fig_size, watermark, boundary, cmaps,
                                   lines, plot_elv, title, background,
-                                  groundscatter, coords):
+                                  groundscatter, range_estimation):
         with warnings.catch_warnings(record=True):
             pydarn.RTP.plot_summary(data, beam_num=15, channel=1,
                                     figsize=fig_size, watermark=watermark,
                                     boundary=boundary, cmaps=cmaps,
                                     lines=lines, plot_elv=plot_elv,
                                     title=title, background=background,
-                                    groundscatter=groundscatter, coords=coords)
+                                    groundscatter=groundscatter,
+                                    range_estimation=range_estimation)
         plt.close('all')
 
     def test_beam9_channel2_summary_plots(self, fig_size, watermark, boundary,
                                           cmaps, lines, plot_elv, title,
-                                          background, groundscatter, coords):
+                                          background, groundscatter,
+                                          range_estimation):
         with warnings.catch_warnings(record=True):
             pydarn.RTP.plot_summary(data, beam_num=9, channel=2,
                                     figsize=fig_size, watermark=watermark,
                                     boundary=boundary, cmaps=cmaps,
                                     lines=lines, plot_elv=plot_elv,
                                     title=title, background=background,
-                                    groundscatter=groundscatter, coords=coords)
+                                    groundscatter=groundscatter,
+                                    range_estimation=range_estimation)
         plt.close('all')
