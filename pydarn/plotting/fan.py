@@ -16,8 +16,8 @@
 # 2022-03-10: MTS - switched coords involving range estimations to RangeEstimation
 #                 - Removed GEO_COASTALINE, replaced with GEO on projections
 #                 - reduced some parameters inputs to kwargs
-# 2021-03-22: CJM - Set cmap bad values to transparent
-#
+# 2022-03-22: CJM - Set cmap bad values to transparent
+# 2022-03-23: MTS - added the NotImplementedError for AACGM and GEO projection as this has yet to be figured out
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
 # Everyone is permitted to copy and distribute verbatim copies of this license
@@ -210,12 +210,22 @@ class Fan():
             rsep = dmap_data[0]['rsep']
         except KeyError:
             rsep = 45
+
+        if coords != Coords.GEOGRAPHIC and projs == Projs.GEO:
+            raise plot_exceptions.NotImplemented("AACGM coordinates are"\
+                                                 " not implemented for "\
+                                                 " geographic projections right"\
+                                                 " now, if you would like to"\
+                                                 " see it sooner please help"\
+                                                 " out at "\
+                                                 "https://github.com"\
+                                                 "/SuperDARN/pyDARN")
+
         beam_corners_lats, beam_corners_lons =\
                 coords(stid=dmap_data[0]['stid'],
                        rsep=rsep, frang=frang,
                        gates=ranges, date=date,
                        **kwargs)
-
 
         fan_shape = beam_corners_lons.shape
         if ranges[0] < ranges[1] - fan_shape[0]:
