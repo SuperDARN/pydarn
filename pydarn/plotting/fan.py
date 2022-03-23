@@ -13,6 +13,9 @@
 # 2021-02-02: CJM - Included rsep and frang options in plot_fov
 #                 - Re-arranged logic for ranges option
 #                 - Indexing fixed for give lower ranges that are non-zero
+# 2022-03-10: MTS - switched coords involving range estimations to RangeEstimation
+#                 - Removed GEO_COASTALINE, replaced with GEO on projections
+#                 - reduced some parameters inputs to kwargs
 # 2021-03-22: CJM - Set cmap bad values to transparent
 #
 # Disclaimer:
@@ -39,9 +42,9 @@ from typing import List, Union
 # Third party libraries
 import aacgmv2
 
-from pydarn import (PyDARNColormaps, build_scan, radar_fov,
-                    partial_record_warning, time2datetime, plot_exceptions,
-                    SuperDARNRadars, Projs, Coords, Hemisphere, Projections)
+from pydarn import (PyDARNColormaps, build_scan, partial_record_warning,
+                    time2datetime, plot_exceptions, SuperDARNRadars,
+                    Projs, Coords, Hemisphere, RangeEstimation)
 
 
 class Fan():
@@ -208,19 +211,24 @@ class Fan():
         except KeyError:
             rsep = 45
         beam_corners_lats, beam_corners_lons =\
-            radar_fov(stid=dmap_data[0]['stid'],
-                      rsep=rsep, frang=frang,
-                      ranges=ranges, date=date, coords=coords,
-                      **kwargs)
+                coords(stid=dmap_data[0]['stid'],
+                       rsep=rsep, frang=frang,
+                       gates=ranges, date=date,
+                       **kwargs)
+
 
         fan_shape = beam_corners_lons.shape
-
+        if ranges[0] < ranges[1] - fan_shape[0]:
+            ranges[0] = ranges[1] - fan_shape[0] + 1
         rs = beam_corners_lats
-        thetas = np.radians(beam_corners_lons)
+        if projs != Projs.GEO:
+            thetas = np.radians(beam_corners_lons)
+        else:
+            thetas = beam_corners_lons
 
         # Get range-gate data and groundscatter array for given scan
         # fan_shape has no -1 as when given ranges we want to include the
-        # both ends fo the ranges given
+        # both ends for the ranges given
         scan = np.zeros((fan_shape[0], fan_shape[1]-1))
         grndsct = np.zeros((fan_shape[0], fan_shape[1]-1))
         # Colour table and max value selection depending on parameter plotted
@@ -271,45 +279,39 @@ class Fan():
                 continue
 
         # Begin plotting by iterating over ranges and beams
+
         thetas = thetas[0:ranges[1]-ranges[0]+1]
         rs = rs[0:ranges[1]-ranges[0]+1]
+
         scan = scan[0:ranges[1]-ranges[0]]
         grndsct = grndsct[0:ranges[1]-ranges[0]]
-
         # Set up axes in correct hemisphere
-        stid=dmap_data[0]['stid']
+        stid = dmap_data[0]['stid']
         kwargs['hemisphere'] = SuperDARNRadars.radars[stid].hemisphere
 
-        if projs == Projs.POLAR:
-            ax = Projections.axis_polar(**kwargs)
-            ccrs = None
-            ax.pcolormesh(thetas, rs,
-                          np.ma.masked_array(scan, ~scan.astype(bool)),
-                          norm=norm, cmap=cmap, zorder=2)
+        ax, ccrs = projs(date=date, **kwargs)
 
-            # plot the groundscatter as grey fill
-            if groundscatter:
-                ax.pcolormesh(thetas, rs,
-                              np.ma.masked_array(grndsct,
-                                                 ~grndsct.astype(bool)),
-                              norm=norm, cmap='Greys')
+        if ccrs is None:
+            transform = ax.transData
+
+        else:
+            transform = ccrs.PlateCarree()
+        ax.pcolormesh(thetas, rs,
+                      np.ma.masked_array(scan, ~scan.astype(bool)),
+                      norm=norm, cmap=cmap, transform=transform,
+                      zorder=2)
+
+        # plot the groundscatter as grey fill
+        if groundscatter:
+            ax.pcolormesh(thetas, rs,
+                          np.ma.masked_array(grndsct,
+                                             ~grndsct.astype(bool)),
+                          norm=norm, cmap='Greys', transform=transform)
+        if ccrs is None:
             azm = np.linspace(0, 2 * np.pi, 100)
             r, th = np.meshgrid(rs, azm)
             plt.plot(azm, r, color='k', ls='none')
             plt.grid()
-
-        else:
-            ax, ccrs = Projections.axis_geological(date, **kwargs)
-            ax.pcolormesh(np.degrees(thetas), rs,
-                          np.ma.masked_array(scan, ~scan.astype(bool)),
-                          norm=norm, cmap=cmap,
-                          transform=ccrs.PlateCarree(), zorder=2)
-            if groundscatter:
-                ax.pcolormesh(np.degrees(thetas), rs,
-                              np.ma.masked_array(grndsct,
-                                                 ~grndsct.astype(bool)),
-                              norm=norm, cmap='Greys',
-                              transform=ccrs.PlateCarree(), zorder=2)
 
         if boundary:
             cls.plot_fov(stid=dmap_data[0]['stid'], date=date, ax=ax,
@@ -413,10 +415,10 @@ class Fan():
 
         # Get radar beam/gate locations
         beam_corners_lats, beam_corners_lons = \
-            radar_fov(stid, ranges=ranges, rsep=rsep, frang=frang,
-                      date=date, coords=coords, **kwargs)
+            coords(stid=stid, gates=ranges, rsep=rsep, frang=frang,
+                   date=date, **kwargs)
 
-        if projs is Projs.POLAR:
+        if projs == Projs.POLAR:
             beam_corners_lons = np.radians(beam_corners_lons)
 
         # Setup plot
@@ -425,11 +427,7 @@ class Fan():
         if ax is None:
             # Get the hemisphere to pass to plotting projection
             kwargs['hemisphere'] = hemisphere
-            if projs is Projs.POLAR:
-                # Get a polar projection using any kwarg input
-                ax = Projections.axis_polar(date=date, **kwargs)
-            else:
-                ax, ccrs = Projections.axis_geological(date=date, **kwargs)
+            ax, ccrs = projs(date=date, **kwargs)
         if ccrs is None:
             transform = ax.transData
         else:
@@ -438,28 +436,28 @@ class Fan():
         if boundary:
             # left boundary line
             plt.plot(beam_corners_lons[0:ranges[1]-ranges[0]+1, 0],
-                  beam_corners_lats[0:ranges[1]-ranges[0]+1, 0],
-                  color=line_color, linewidth=0.5,
-                  alpha=line_alpha, transform=transform, zorder=3)
+                     beam_corners_lats[0:ranges[1]-ranges[0]+1, 0],
+                     color=line_color, linewidth=0.5,
+                     alpha=line_alpha, transform=transform, zorder=3)
             # top radar arc
             plt.plot(beam_corners_lons[ranges[1]-ranges[0],
-                                   0:beam_corners_lons.shape[1]],
-                  beam_corners_lats[ranges[1]-ranges[0],
-                                   0:beam_corners_lons.shape[1]],
-                  color=line_color, linewidth=0.5,
-                  alpha=line_alpha, transform=transform, zorder=3)
+                                       0:beam_corners_lons.shape[1]],
+                     beam_corners_lats[ranges[1]-ranges[0],
+                                       0:beam_corners_lons.shape[1]],
+                     color=line_color, linewidth=0.5,
+                     alpha=line_alpha, transform=transform, zorder=3)
             # right boundary line
             plt.plot(beam_corners_lons[0:ranges[1]-ranges[0]+1,
-                                   beam_corners_lons.shape[1] - 1],
-                  beam_corners_lats[0:ranges[1]-ranges[0]+1,
-                                   beam_corners_lons.shape[1] - 1],
-                  color=line_color, linewidth=0.5,
-                  alpha=line_alpha, transform=transform, zorder=3)
+                                       beam_corners_lons.shape[1] - 1],
+                     beam_corners_lats[0:ranges[1]-ranges[0]+1,
+                                       beam_corners_lons.shape[1] - 1],
+                     color=line_color, linewidth=0.5,
+                     alpha=line_alpha, transform=transform, zorder=3)
             # bottom arc
             plt.plot(beam_corners_lons[0, 0:beam_corners_lons.shape[1]],
-                  beam_corners_lats[0, 0:beam_corners_lons.shape[1]],
-                  color=line_color, linewidth=0.5, alpha=line_alpha,
-                  transform=transform, zorder=3)
+                     beam_corners_lats[0, 0:beam_corners_lons.shape[1]],
+                     color=line_color, linewidth=0.5, alpha=line_alpha,
+                     transform=transform, zorder=3)
 
         fan_shape = beam_corners_lons.shape
 
