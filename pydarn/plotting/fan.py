@@ -212,11 +212,12 @@ class Fan():
             rsep = 45
 
         if coords != Coords.GEOGRAPHIC and projs == Projs.GEO:
-            raise plot_exceptions.NotImplemented("AACGM coordinates currently"\
-                                                 " is not implemented right"\
+            raise plot_exceptions.NotImplemented("AACGM coordinates are"\
+                                                 " not implemented for "\
+                                                 " geographic projections right"\
                                                  " now, if you would like to"\
                                                  " see it sooner please help"\
-                                                 " out on "\
+                                                 " out at "\
                                                  "https://github.com"\
                                                  "/SuperDARN/pyDARN")
 
