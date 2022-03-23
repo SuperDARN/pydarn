@@ -2,7 +2,8 @@
 # Author: Daniel Billett
 #
 # Modifications:
-#
+# 2022-03-11 MTS added enums for projection function calls
+# 2022-03-22 MTS removed coastline call and added grid lines to cartopy plotting
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
 # Everyone is permitted to copy and distribute verbatim copies of this license
