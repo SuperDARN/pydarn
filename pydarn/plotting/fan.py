@@ -16,8 +16,8 @@
 # 2022-03-10: MTS - switched coords involving range estimations to RangeEstimation
 #                 - Removed GEO_COASTALINE, replaced with GEO on projections
 #                 - reduced some parameters inputs to kwargs
-# 2021-03-22: CJM - Set cmap bad values to transparent
-#
+# 2022-03-22: CJM - Set cmap bad values to transparent
+# 2022-03-23: MTS - added the NotImplementedError for AACGM and GEO projection as this has yet to be figured out
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
 # Everyone is permitted to copy and distribute verbatim copies of this license
