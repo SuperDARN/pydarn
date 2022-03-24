@@ -272,6 +272,15 @@ class Maps():
 
             if colorbar_label != '':
                 cb.set_label(colorbar_label)
+            else:
+                if parameter in [MapParams.FITTED_VELOCITY,
+                                 MapParams.MODEL_VELOCITY,
+                                 MapParams.RAW_VELOCITY]:
+                    cb.set_label('Velocity (m s$^{-1}$)')
+                elif parameter is MapParams.SPECTRAL_WIDTH:
+                    cb.set_label('Spectral Width (m s$^{-1}$)')
+                elif parameter is MapParams.POWER:
+                    cb.set_label('Power')
 
         if title == '':
             title = "{year}-{month}-{day} {start_hour}:{start_minute} -"\
