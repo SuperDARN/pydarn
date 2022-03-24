@@ -1,13 +1,22 @@
+#Copyright 2018 SuperDARN Canada, University of Saskatchewan
+# Author(s): Marina Schmidt
+#
+# Disclaimer:
+# pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
+# Everyone is permitted to copy and distribute verbatim copies of this license
+# document, but changing it is not allowed.
+#
+# This version of the GNU Lesser General Public License incorporates the terms
+# and conditions of version 3 of the GNU General Public License,
+# supplemented by the additional permissions listed below.
+#
+# Modifications
+# 2022-03-10 MTS - removed radar_fov files
+#setup.py
+#2018-11-05
 """
-Copyright 2018 SuperDARN Canada, University of Saskatchewan
-
-setup.py
-2018-11-05
 To setup pyDARN as a third party library. Include installing need libraries for
 running the files.
-
-author:
-Marina Schmidt
 """
 import sys
 import warnings
@@ -74,7 +83,6 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7'],
     python_requires='>=3.6',
-    data_files=[('pydarn/radar_fov_files',glob('radar_fov_files/**'))],
     packages=find_packages(exclude=['docs', 'test']),
     author="SuperDARN Data Visualization Working Group",
     # used to import the logging config file into pydarn.

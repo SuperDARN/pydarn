@@ -187,11 +187,16 @@ class Maps():
         # If the parameter is velocity then plot the LOS vectors
         if parameter == MapParams.FITTED_VELOCITY:
             v_mag, azm_v =\
-                    cls.calculated_fitted_velocities(mlats=mlats, mlons=np.radians(data_lons),
+                    cls.calculated_fitted_velocities(mlats=mlats,
+                                                     mlons=np.radians(
+                                                         data_lons),
                                                      hemisphere=hemisphere,
-                                                     fit_coefficient=dmap_data[record]['N+2'],
-                                                     fit_order=dmap_data[record]['fit.order'],
-                                                     lat_min=dmap_data[record]['latmin'],
+                                                     fit_coefficient=dmap_data[
+                                                         record]['N+2'],
+                                                     fit_order=dmap_data[
+                                                         record]['fit.order'],
+                                                     lat_min=dmap_data[
+                                                         record]['latmin'],
                                                      len_factor=len_factor)
         elif parameter == MapParams.MODEL_VELOCITY:
             v_mag = dmap_data[record]['model.vel.median']
@@ -509,16 +514,15 @@ class Maps():
         else:
             if hemisphere == Hemisphere.South:
                 azm_v[velocity_chk_zero_inds] =\
-                    np.arctan2(velocity_fit_vectors[1,
-                                                    velocity_chk_zero_inds],
-                               velocity_fit_vectors[0,
-                                                    velocity_chk_zero_inds])
+                        np.arctan2(
+                            velocity_fit_vectors[1, velocity_chk_zero_inds],
+                            velocity_fit_vectors[0, velocity_chk_zero_inds])
             else:
                 azm_v[velocity_chk_zero_inds] =\
-                    np.arctan2(velocity_fit_vectors[1,
-                                                    velocity_chk_zero_inds],
-                               -velocity_fit_vectors[0,
-                                                     velocity_chk_zero_inds])
+                        np.arctan2(
+                            velocity_fit_vectors[1, velocity_chk_zero_inds],
+                            -velocity_fit_vectors[0, velocity_chk_zero_inds])
+
         return velocity, azm_v
 
 
