@@ -63,7 +63,8 @@ class Maps():
                      len_factor: float = 150, cmap: str = None,
                      colorbar: bool = True, colorbar_label: str = '',
                      title: str = '', zmin: float = None, zmax: float = None,
-                     hmb: bool = True, **kwargs):
+                     hmb: bool = True, boundary: bool = False,
+                     radar_location: bool = False, **kwargs):
         """
         Plots convection maps data points and vectors
 
@@ -160,7 +161,8 @@ class Maps():
             # TODO: Make FOV outlines optional or invisible
             for stid in dmap_data[record]['stid']:
                 _, aacgm_lons, ax, _ =\
-                        Fan.plot_fov(stid, date, ax=ax, **kwargs)
+                        Fan.plot_fov(stid, date, ax=ax, boundary=boundary,
+                                     radar_location=radar_location, **kwargs)
 
         if parameter == MapParams.MODEL_VELOCITY:
             try:
@@ -650,7 +652,6 @@ class Maps():
                                 fit_order: int = 6,
                                 contour_levels: list = [],
                                 contour_color: str = 'dimgrey',
-                                contour_label: bool = True,
                                 contour_linewidths: float = 0.8,
                                 contour_fill: bool = False,
                                 contour_colorbar: bool = True,
@@ -691,7 +692,7 @@ class Maps():
             contour_color: str
                 Colour of the contour lines plotted
                 Default: dimgrey
-            contour_label: bool
+            contour_label: bool - NOT CURRENTLY IMPLEMENTED
                 If contour_fill is True, contour labels will
                 be plotted on the contour lines
                 Default: True
@@ -763,8 +764,9 @@ class Maps():
                              locator=ticker.FixedLocator(contour_levels),
                              colors=contour_color, alpha=0.8,
                              linewidths=contour_linewidths, zorder=3.0)
-            if contour_label:
-                plt.clabel(cs, cs.levels, inline=True, fmt='%d', fontsize=5)
+            # TODO: Add in contour labels
+            # if contour_label:
+            #    plt.clabel(cs, cs.levels, inline=True, fmt='%d', fontsize=5)
 
         # Get max value of potential
         ind_max = np.where(pot_arr == pot_arr.max())
