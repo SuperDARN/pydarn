@@ -2,7 +2,8 @@
 # Author: Marina Schmidt
 # Copyright (C) 2012  VT SuperDARN Lab
 # Modifications:
-#   20220308 MTS added partial records exception
+# 2022-03-08: MTS - added partial records exception
+# 2021-03-18: CJM - Included contour plotting and HMB
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
@@ -53,6 +54,7 @@ class Maps():
                 " the following methods: \n"\
                 "   - plot_maps()\n"
 
+
     @classmethod
     def plot_mapdata(cls, dmap_data: List[dict], ax=None,
                      parameter: Enum = MapParams.FITTED_VELOCITY,
@@ -61,7 +63,8 @@ class Maps():
                      len_factor: float = 150, cmap: str = None,
                      colorbar: bool = True, colorbar_label: str = '',
                      title: str = '', zmin: float = None, zmax: float = None,
-                     **kwargs):
+                     hmb: bool = True, boundary: bool = False,
+                     radar_location: bool = False, **kwargs):
         """
         Plots convection maps data points and vectors
 
@@ -155,9 +158,11 @@ class Maps():
 
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
+            # TODO: Make FOV outlines optional or invisible
             for stid in dmap_data[record]['stid']:
                 _, aacgm_lons, ax, _ =\
-                        Fan.plot_fov(stid, date, ax=ax, **kwargs)
+                        Fan.plot_fov(stid, date, ax=ax, boundary=boundary,
+                                     radar_location=radar_location, **kwargs)
 
         if parameter == MapParams.MODEL_VELOCITY:
             try:
@@ -241,21 +246,46 @@ class Maps():
             for i in range(len(v_mag)):
                 plt.plot([mlons[i], end_mlons[i]],
                          [mlats[i], end_mlats[i]], c=cmap(norm(v_mag[i])),
-                         linewidth=0.5)
+                         linewidth=0.5, zorder=5.0)
         plt.scatter(mlons, mlats, c=v_mag, s=2.0,
                     vmin=zmin, vmax=zmax,  cmap=cmap, zorder=5.0)
+
+        # Plot potential contours
+        fit_coefficient = dmap_data[record]['N+2']
+        fit_order = dmap_data[record]['fit.order']
+        lat_shift = dmap_data[record]['lat.shft']
+        lon_shift = dmap_data[record]['lon.shft']
+        lat_min = dmap_data[record]['latmin']
+
+        cls.plot_potential_contours(fit_coefficient, lat_min,
+                                    lat_shift=lat_shift, lon_shift=lon_shift,
+                                    fit_order=fit_order, **kwargs)
+
+        if hmb is True:
+            # Plot the HMB
+            mlats_hmb = dmap_data[record]['boundary.mlat']
+            mlons_hmb = dmap_data[record]['boundary.mlon']
+            cls.plot_heppner_maynard_boundary(mlats_hmb, np.radians(mlons_hmb))
 
         if colorbar is True:
             mappable = cm.ScalarMappable(norm=norm, cmap=cmap)
             locator = ticker.MaxNLocator(symmetric=True, min_n_ticks=3,
                                          integer=True, nbins='auto')
             ticks = locator.tick_values(vmin=zmin, vmax=zmax)
-
             cb = ax.figure.colorbar(mappable, ax=ax,
                                     extend='both', ticks=ticks)
 
             if colorbar_label != '':
                 cb.set_label(colorbar_label)
+            else:
+                if parameter in [MapParams.FITTED_VELOCITY,
+                                 MapParams.MODEL_VELOCITY,
+                                 MapParams.RAW_VELOCITY]:
+                    cb.set_label('Velocity (m s$^{-1}$)')
+                elif parameter is MapParams.SPECTRAL_WIDTH:
+                    cb.set_label('Spectral Width (m s$^{-1}$)')
+                elif parameter is MapParams.POWER:
+                    cb.set_label('Power')
 
         if title == '':
             title = "{year}-{month}-{day} {start_hour}:{start_minute} -"\
@@ -271,6 +301,27 @@ class Maps():
                               zfill(2))
         plt.title(title)
         return mlats, mlons, v_mag
+
+
+    @classmethod
+    def index_legendre(cls, l: int, m: int):
+        """
+        not a 100% how this works some black magic
+
+        parameter
+        ---------
+            l : int
+                doping level
+            m : int
+                fit order
+
+        return
+        ------
+            legendre index?
+        """
+        return (m == 0 and l**2) or ((l != 0)
+                                     and (m != 0) and l**2 + 2 * m - 1) or 0
+
 
     @classmethod
     def calculated_fitted_velocities(cls, mlats: list, mlons: list,
@@ -334,26 +385,9 @@ class Maps():
         # so we do spherical harmonics for a real valued function using
         # sin(phi) and cos(phi) rather than exp(i*phi).
         # we place an inner function to copying code
-        def index_legendre(l: int, m: int):
-            """
-            not a 100% how this works some black magic
-
-            parameter
-            ---------
-                l : int
-                    doping level
-                m : int
-                    fit order
-
-            return
-            ------
-                legendre index?
-            """
-            return (m == 0 and l**2) or \
-                ((l != 0) and (m != 0) and l**2 + 2 * m - 1) or 0
 
         # max index value
-        k_max = index_legendre(fit_order, fit_order)
+        k_max = cls.index_legendre(fit_order, fit_order)
 
         # set up arrays and small stuff for the E field
         # coefficients calculation
@@ -370,8 +404,8 @@ class Maps():
         fit_coefficient_flat = fit_coefficient.flatten()
         for m in range(fit_order + 1):
             for l in range(m, fit_order + 1):
-                k3 = index_legendre(l, m)
-                k4 = index_legendre(l, m)
+                k3 = cls.index_legendre(l, m)
+                k4 = cls.index_legendre(l, m)
 
                 if k3 >= 0:
                     thetas_ecoeffs[k4, q_prime] =\
@@ -387,11 +421,11 @@ class Maps():
                         np.sin(thetas[q]) / Re_meters
 
                 if l < fit_order:
-                    k1 = index_legendre(l+1, m)
+                    k1 = cls.index_legendre(l+1, m)
                 else:
                     k1 = -1
 
-                k2 = index_legendre(l, m)
+                k2 = cls.index_legendre(l, m)
 
                 if k1 >= 0:
                     thetas_ecoeffs[k2, q_prime] =\
@@ -428,7 +462,7 @@ class Maps():
 
         for m in range(fit_order + 1):
             for l in range(m, fit_order + 1):
-                k = index_legendre(l, m)
+                k = cls.index_legendre(l, m)
                 # Now in the IDL code we use
                 # legendre_poly[:,l,m] instead of
                 # legendre_poly[:,m,l] like here, this is
@@ -488,4 +522,274 @@ class Maps():
                         np.arctan2(
                             velocity_fit_vectors[1, velocity_chk_zero_inds],
                             -velocity_fit_vectors[0, velocity_chk_zero_inds])
+
         return velocity, azm_v
+
+
+    @classmethod
+    def plot_heppner_maynard_boundary(cls, mlats: list, mlons: list,
+                                      line_color: str = 'black', **kwargs):
+        # TODO: No evaluation of coordinate system made! May need if in
+        # plotting to plot in radians/geo ect.
+        """
+        Plots the position of the Heppner-Maynard Boundary
+
+        Parameters
+        ----------
+            ax: object
+                matplotlib axis object
+            mlats: List[float]
+                Magnetic Latitude in degrees
+            mlons: List[float]
+                Magnetic Longitude in radians
+            line_color: str
+                Color of the Heppner-Maynard boundary
+                Default: black
+
+        """
+        plt.plot(mlons, mlats, c=line_color, zorder=4.0, **kwargs)
+
+
+    @classmethod
+    def calculate_potentials(cls, fit_coefficient: list, lat_min: list,
+                             lat_shift: int = 0, lon_shift: int = 0,
+                             fit_order: int = 6, lowlat: int = 60,
+                             hemisphere: Hemisphere = Hemisphere.North,
+                             **kwargs):
+        # TODO: No evaluation of coordinate system made! May need if in
+        # plotting to plot in radians/geo ect.
+        '''
+        Calculates potential across a magnetic lat/lon grid for
+        plotting later
+
+        Parameters
+        ----------
+            fit_coefficient: List[float]
+                Value of the coefficient
+            lat_min: List[float]
+                Minimum latitude that will be evaluated
+                Not to be confused with 'lowlat'
+            lat_shift: int
+                Generic shift in latitude from map file
+                default: 0
+            lon_shift: int
+                Generic shift in longitude from map file
+                default: 0
+            fit_order: int
+                order of the fit
+                default: 6
+            lowlat: int
+                Lowest latitude on plot
+                default: 60
+            hemisphere: Enum
+                Describes the hemisphere, North or South
+                default: Hemisphere.North
+
+        '''
+        # Lowest latitude to calculate potential to
+        theta_max = np.radians(90-np.abs(lat_min))
+
+        # Make a grid of the space the potential is evaluated on
+        # in magnetic coordinates
+        lat_step = 1
+        lon_step = 2
+        num_lats = int((90.0 - lowlat) / lat_step) + 1
+        num_lons = int(360.0 / lon_step) + 1
+        lat_arr = np.array(range(num_lats)) * lat_step + lowlat
+        lat_arr = lat_arr * hemisphere.value
+        lon_arr = np.array(range(num_lons)) * lon_step
+
+        # Set up Grid
+        grid_arr = np.zeros((2, num_lats * num_lons))
+        count1 = 0
+        for lons in lon_arr:
+            for lats in lat_arr:
+                grid_arr[0, count1] = lats
+                grid_arr[1, count1] = lons
+                count1 += 1
+
+        # Convert grid vals to spherical coords
+        theta = np.radians(90.0 - np.abs(grid_arr[0, :]))
+        phi = np.radians(grid_arr[1, :])
+
+        # Adjusted/Normalised values (runs 0 - pi)
+        alpha = np.pi / theta_max
+        x = np.cos(alpha*theta)
+
+        # Legendre Polys
+        for j, xj in enumerate(x):
+            plm_tmp = special.lpmn(fit_order, fit_order, xj)
+            if j == 0:
+                plm_fit = np.append([plm_tmp[0]], [plm_tmp[0]], axis=0)
+            else:
+                plm_fit = np.append(plm_fit, [plm_tmp[0]], axis=0)
+        # Remove first element as it is duplicated to start off the array
+        plm_fit = np.delete(plm_fit, 0, 0)
+
+        # Eval the potential
+        lmax = plm_fit.shape
+        lmax = lmax[1]
+        v = np.zeros(phi.shape)
+
+        coeff_fit_flat = fit_coefficient.flatten()
+        for m in range(lmax):
+            for l in range(m, lmax):
+                k = cls.index_legendre(l, m)
+                if m == 0:
+                    v = v + coeff_fit_flat[k] * plm_fit[:, 0, l]
+                else:
+                    v = v + coeff_fit_flat[k] * np.cos(m * phi) \
+                          * plm_fit[:, m, l] + coeff_fit_flat[k+1] \
+                          * np.sin(m * phi) * plm_fit[:, m, l]
+
+        pot_arr = np.zeros((num_lons, num_lats))
+        pot_arr = np.reshape(v, pot_arr.shape) / 1000.0
+
+        # TODO: Account for lon_shift
+        # TODO: Code for lat shift! (both rarely non-0 though)
+        # grid_arr[1,:] = (grid_arr[1,:] + lon_shift)
+
+        mlat_center = grid_arr[0, :].reshape((num_lons, num_lats))
+        # Set everything below the latmin as 0
+        ind = np.where(mlat_center < lat_min)
+        pot_arr[ind] = 0
+
+        mlon_center = grid_arr[1, :].reshape((num_lons, num_lats))
+
+        return mlat_center, mlon_center, pot_arr
+
+
+    @classmethod
+    def plot_potential_contours(cls, fit_coefficient: list, lat_min: list,
+                                lat_shift: int = 0, lon_shift: int = 0,
+                                fit_order: int = 6,
+                                contour_levels: list = [],
+                                contour_color: str = 'dimgrey',
+                                contour_linewidths: float = 0.8,
+                                contour_fill: bool = False,
+                                contour_colorbar: bool = True,
+                                contour_fill_cmap: str = 'RdBu',
+                                contour_colorbar_label: str = 'Potential (kV)',
+                                pot_minmax_color: str = 'k', **kwargs):
+        # TODO: No evaluation of coordinate system made! May need if in
+        # plotting to plot in radians/geo ect.
+        '''
+        Takes the grid of potentials, plots a contour plot and min and max
+        potential positions
+
+        Parameters
+        ----------
+            fit_coefficient: List[float]
+                Value of the coefficient
+            lat_min: List[float]
+                Minimum latitude that will be evaluated
+                Not to be confused with 'lowlat'
+            lat_shift: int
+                Generic shift in latitude from map file
+                default: 0
+            lon_shift: int
+                Generic shift in longitude from map file
+                default: 0
+            fit_order: int
+                order of the fit
+                default: 6
+            contour_levels: np.arr
+                Array of values at which the contours
+                are plotted
+                Default: []
+                Default list is defined in function due
+                to length of the list, values higher or
+                lower than the minimum and maximum values
+                given are colored in as min and max color
+                values if contour_fill=True
+            contour_color: str
+                Colour of the contour lines plotted
+                Default: dimgrey
+            contour_label: bool - NOT CURRENTLY IMPLEMENTED
+                If contour_fill is True, contour labels will
+                be plotted on the contour lines
+                Default: True
+            contour_linewidths: float
+                Thickness of contour lines
+                Default: 0.8
+            contour_fill: bool
+                Option to use filled contours rather than
+                an outline. If True, contour_color and
+                contour_linewidths are ignored
+                If False
+                Default: False
+            contour_colorbar: bool
+                Option to show the colorbar for the contours
+                if contour_fill = True
+                Default: True
+            contour_fill_cmap: matplotlib.cm
+                Colormap used to fill the contours if
+                contour_fill is True
+                Default: 'RdBu'
+            contour_colorbar_label: str
+                Label for the colorbar describing the
+                contours if contour_fill is True
+                Default: empty string ''
+            pot_minmax_color: str
+                Colour of the cross and plus symbols for
+                minimum and maximum potentials
+                Default: 'k' - black
+            **kwargs
+                including lowlat and hemisphere for calculating
+                potentials
+        '''
+        mlat, mlon, pot_arr = cls.calculate_potentials(
+                             fit_coefficient, lat_min,
+                             lat_shift=lat_shift, lon_shift=lon_shift,
+                             fit_order=fit_order, **kwargs)
+
+        # Contained in function as too long to go into the function call
+        if contour_levels == []:
+            contour_levels = [-100, -95, -90, -85, -80, -75, -70, -65, -60,
+                              -55, -50, -45, -40, -35, -30, -25, -20, -15,
+                              -10, -5, -1, 1, 5, 10, 15, 20, 25, 30, 35, 40,
+                              45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]
+
+        if contour_fill:
+            # Filled contours
+            plt.contourf(np.radians(mlon), mlat, pot_arr, 2,
+                         vmax=abs(pot_arr).max(),
+                         vmin=-abs(pot_arr).max(),
+                         locator=ticker.FixedLocator(contour_levels),
+                         cmap=contour_fill_cmap, alpha=0.6,
+                         extend='both', zorder=3.0)
+            if contour_colorbar is True:
+                norm = colors.Normalize
+                norm = norm(-abs(pot_arr).max(), abs(pot_arr).max())
+                mappable = cm.ScalarMappable(norm=norm, cmap=contour_fill_cmap)
+                locator = ticker.MaxNLocator(symmetric=True, min_n_ticks=3,
+                                             integer=True, nbins='auto')
+                ticks = locator.tick_values(vmin=-abs(pot_arr).max(),
+                                            vmax=abs(pot_arr).max())
+                cb = plt.colorbar(mappable, extend='both', ticks=ticks)
+                if contour_colorbar_label != '':
+                    cb.set_label(contour_colorbar_label)
+        else:
+            # Contour lines only
+            cs = plt.contour(np.radians(mlon), mlat, pot_arr, 2,
+                             vmax=abs(pot_arr).max(),
+                             vmin=-abs(pot_arr).max(),
+                             locator=ticker.FixedLocator(contour_levels),
+                             colors=contour_color, alpha=0.8,
+                             linewidths=contour_linewidths, zorder=3.0)
+            # TODO: Add in contour labels
+            # if contour_label:
+            #    plt.clabel(cs, cs.levels, inline=True, fmt='%d', fontsize=5)
+
+        # Get max value of potential
+        ind_max = np.where(pot_arr == pot_arr.max())
+        ind_min = np.where(pot_arr == pot_arr.min())
+        max_mlon = mlon[ind_max]
+        max_mlat = mlat[ind_max]
+        min_mlon = mlon[ind_min]
+        min_mlat = mlat[ind_min]
+
+        plt.scatter(np.radians(max_mlon), max_mlat, marker='+', s=70,
+                    color=pot_minmax_color, zorder=5.0)
+        plt.scatter(np.radians(min_mlon), min_mlat, marker='_', s=70,
+                    color=pot_minmax_color, zorder=5.0)
