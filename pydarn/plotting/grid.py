@@ -2,6 +2,7 @@
 # Author: Daniel Billett, Marina Schmidt
 #
 # Modifications:
+#   20220308 MTS added partial record exception
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
@@ -167,11 +168,14 @@ class Grid():
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             for stid in dmap_data[record]['stid']:
-                _, aacgm_lons, _, _, ax =\
+                _, aacgm_lons, ax, _ =\
                         Fan.plot_fov(stid, date,
                                      ax=ax, **kwargs)
-                data_lons = dmap_data[record]['vector.mlon']
-                data_lats = dmap_data[record]['vector.mlat']
+                try:
+                    data_lons = dmap_data[record]['vector.mlon']
+                    data_lats = dmap_data[record]['vector.mlat']
+                except KeyError:
+                    raise plot_exceptions.PartialRecordsError('vector.mlon')
 
                 # Hold the beam positions
                 shifted_mlts = aacgm_lons[0, 0] - \
