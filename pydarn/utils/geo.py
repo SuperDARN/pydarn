@@ -32,6 +32,8 @@ This module focuses on geographic calculations used for converting gate
 information to geographic location
 """
 import numpy as np
+from pydarn import VHModels, EARTH_EQUATORIAL_RADIUS
+
 
 # fldpnth line 90
 def geocentric_coordinates(target_range: float, psi: float, boresight: float,
