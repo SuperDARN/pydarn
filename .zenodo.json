@@ -33,18 +33,9 @@
             "orcid": "0000-0003-1730-2753"
         },
         {
-            "affiliation": "University of Saskatchewan",
-            "name": "Detwiller, M.H."
-        },
-        {
             "affiliation": "University of Scranton",
             "name":  "Frissell, N.",
             "orcid": "0000-0002-8398-4222" 
-        },
-        {
-            "affiliation": "The University Centre in Svalbard",
-            "name": "Herlingshaw, K.",
-            "orcid": "0000-0001-6861-1914"
         },
         {
             "affiliation": "University of Saskatchewan",
@@ -52,12 +43,13 @@
             "orcid": "0000-0002-4257-4235"
         },
         {
+            "affiliation": "University of Alabama",
+            "name": "Khanal, K.",
+            "orcid": "" 
+        },
+        {
             "affiliation": "University of Bergen",
             "name": "Reistad, J.P.",
             "orcid": "0000-0003-3509-5479" 
-        },
-        {
-            "affiliation": "University of Saskatchewan",
-            "name": "Roberston, C.R."
         }]
 }
