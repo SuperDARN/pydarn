@@ -4,6 +4,7 @@
 # Modifications:
 # 2022-03-08: MTS - added partial records exception
 # 2021-03-18: CJM - Included contour plotting and HMB
+# 2021-03-31: CJM - IMF clock angle dial added
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
