@@ -4,6 +4,7 @@
 # Modifications:
 # 2022-03-08: MTS - added partial records exception
 # 2021-03-18: CJM - Included contour plotting and HMB
+# 2021-03-31: CJM - Map info included
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
@@ -64,7 +65,8 @@ class Maps():
                      colorbar: bool = True, colorbar_label: str = '',
                      title: str = '', zmin: float = None, zmax: float = None,
                      hmb: bool = True, boundary: bool = False,
-                     radar_location: bool = False, **kwargs):
+                     radar_location: bool = False, map_info: bool = True,
+                     **kwargs):
         """
         Plots convection maps data points and vectors
 
@@ -300,6 +302,13 @@ class Maps():
                               end_minute=str(dmap_data[record]['end.minute']).
                               zfill(2))
         plt.title(title)
+
+        if map_info is True:
+            model = dmap_data[record]['model.name']
+            num_points = len(dmap_data[record]['vector.mlat'])
+            pol_cap_pot = dmap_data[record]['pot.drop']
+            cls.add_map_info(fit_order, pol_cap_pot, num_points, model)
+
         return mlats, mlons, v_mag
 
 
@@ -524,6 +533,33 @@ class Maps():
                             -velocity_fit_vectors[0, velocity_chk_zero_inds])
 
         return velocity, azm_v
+
+
+    @classmethod
+    def add_map_info(cls, fit_order: float, pol_cap_pot: float,
+                     num_points: float, model: str):
+        """
+        Annotates the plot with information about the map plotting
+
+        Parameters
+        ----------
+            ax: object
+                matplotlib axis object
+            fit_order: int
+                order of the fit
+            pol_cap_pot: float
+                value of the polar cap potential in kV
+            num_points: int
+                number of vectors plotted
+            model: str
+                model used to fit data
+        """
+        text_string = r'$\phi_{PC}$' + ' = ' + str(round(pol_cap_pot/1000))\
+                      + ' kV\n' \
+                      + 'N = ' + str(num_points) + '\n' \
+                      + 'Order: ' + str(fit_order) + '\n' \
+                      + 'Model: ' + model + '\n'
+        plt.figtext(0.1, 0.1, text_string)
 
 
     @classmethod
