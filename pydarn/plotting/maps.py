@@ -5,6 +5,7 @@
 # 2022-03-08: MTS - added partial records exception
 # 2021-03-18: CJM - Included contour plotting and HMB
 # 2021-03-31: CJM - Map info included
+# 2021-03-31: CJM - IMF clock angle dial added
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
@@ -27,6 +28,7 @@ import warnings
 
 from enum import Enum
 from matplotlib import ticker, cm, colors
+from mpl_toolkits.axes_grid.inset_locator import InsetPosition
 from scipy import special
 from typing import List
 
@@ -66,7 +68,7 @@ class Maps():
                      title: str = '', zmin: float = None, zmax: float = None,
                      hmb: bool = True, boundary: bool = False,
                      radar_location: bool = False, map_info: bool = True,
-                     **kwargs):
+                     imf_dial: bool = True, **kwargs):
         """
         Plots convection maps data points and vectors
 
@@ -128,6 +130,9 @@ class Maps():
                 Normalisation factor for the vectors, to control size on plot
                 Larger number means smaller vectors on plot
                 Default: 150.0
+            imf_dial: bool
+                If True, draw an IMF dial of the magnetic field clock angle.
+                Default: True
             kwargs: key=value
                 uses the parameters for plot_fov and projections.axis
 
@@ -308,6 +313,15 @@ class Maps():
             num_points = len(dmap_data[record]['vector.mlat'])
             pol_cap_pot = dmap_data[record]['pot.drop']
             cls.add_map_info(fit_order, pol_cap_pot, num_points, model)
+
+        if imf_dial is True:
+            # Plot the IMF dial
+            bx = dmap_data[record]['IMF.Bx']
+            by = dmap_data[record]['IMF.By']
+            bz = dmap_data[record]['IMF.Bz']
+            delay = dmap_data[record]['IMF.delay']
+            bt = np.sqrt(bx**2 + by**2 + bz**2)
+            cls.plot_imf_dial(ax, by, bz, bt, delay)
 
         return mlats, mlons, v_mag
 
@@ -584,6 +598,62 @@ class Maps():
 
         """
         plt.plot(mlons, mlats, c=line_color, zorder=4.0, **kwargs)
+
+
+    @classmethod
+    def plot_imf_dial(cls, ax: object, by: float = 0, bz: float = 0,
+                      bt: float = 0, delay: float = 0):
+        """
+        Plots an IMF clock angle dial on the existing plot
+        Defaults all to 0 if no IMF data available to plot
+
+        Parameters
+        ----------
+            ax: object
+                matplotlib axis object
+            by: Float
+                Value of the magnetic field in the y-direction (nT)
+                Default = 0 nT
+            bz: Float
+                Value of the magnetic field in the z-direction (nT)
+                Default = 0 nT
+            bt: Float
+                Magnitude of the magnetic field (nT)
+                Default = 0 nT
+            delay: Float
+                Time delay of magnetic field between the
+                measuring satellite and the ionosphere (minutes)
+                Default = 0 minutes
+        """
+        # Create new axes inside existing axes
+        ax_imf = plt.axes([0, 0, 1, 1])
+        ip = InsetPosition(ax, [-0.2, 0.7, 0.4, 0.4])
+        ax_imf.set_axes_locator(ip)
+        ax_imf.axis('off')
+
+        ax_imf.set_xlim([-20.2, 20.2])
+        ax_imf.set_ylim([-20.2, 20.2])
+
+        # Plot a Circle
+        limit_circle = plt.Circle((0, 0), 10, facecolor='w',
+                                  edgecolor='k')
+        ax_imf.add_patch(limit_circle)
+        # Plot axis lines
+        plt.plot([-10, 10], [0, 0], color='k', linewidth=0.5)
+        plt.plot([0, 0], [-10, 10], color='k', linewidth=0.5)
+
+        # Plot line for magnetic field
+        plt.plot([0, by], [0, bz], color='r')
+
+        # Add axis labels
+        ax_imf.annotate('+Z', xy=(-2.5, 11))
+        ax_imf.annotate('+Y', xy=(11, -1))
+
+        # Add annotations for delay and Btot
+        ax_imf.annotate('|B| = ' + str(round(bt)) + ' nT', xy=(-16, -13),
+                        fontsize=7)
+        ax_imf.annotate('Delay = -' + str(delay) + ' min', xy=(-16, -17),
+                        fontsize=7)
 
 
     @classmethod
