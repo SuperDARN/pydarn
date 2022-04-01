@@ -107,11 +107,9 @@ import pydarn
 import datetime as dt
 
 # AACGMv2 coordinates for Dome C (STID: 96), valid for November 26th, 2005
-aacgm_lats, aacgm_lons=pydarn.radar_fov(96, coords='aacgm', date=dt.datetime(2005,11,26))
+aacgm_lats, aacgm_lons=pydarn.Coords.AACGM(96, date=dt.datetime(2005, 11, 26))
 ```
-If the `coords` keyword is not given, `radar_fov` defaults to geographic coordinates.
-
-The outputs for `radar_fov` are two numpy arrays of latitude and longitude coordinates with dimensions (number_of_beams+1 x number_of_gates+1). They correspond to the corners of each range gate.
+The `Coords` keyword points to the function to convert the radar's Field-of-View to the designed coordinate system. The outputs are two numpy arrays of latitude and longitude coordinates with dimensions (number_of_beams+1 x number_of_gates+1). They correspond to the corners of each range gate.
 
 # Updating Radar and Hardware Information
 
