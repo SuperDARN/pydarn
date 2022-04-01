@@ -18,10 +18,13 @@ the additional permissions listed below.
 
 Fan plots are a way to visualise data from the entire scan of a SuperDARN radar. 
 
-All beams and ranges for a given parameter (such as line-of-sight velocity, backscatter power, etc) and a particular scan are projected onto a polar format plot in [AACGMv2](http://superdarn.thayer.dartmouth.edu/aacgm.html) coordinates.
+All beams and ranges for a given parameter (such as line-of-sight velocity, backscatter power, etc) and a particular scan can be projected onto a polar format plot in [AACGMv2](http://superdarn.thayer.dartmouth.edu/aacgm.html), geographic or projected on geographical format using geographic coordinates.
 
-Currently, fan plots in pyDARN get the geographic positions of a radar's range gates by reading in pre-generated files (found in the `/pydarn/radar_fov_files` folder), and then [converts](https://pypi.org/project/aacgmv2/) them to AACGMv2 coordinates. In the future, pyDARN will generate the geographical position, which will bring support for not standard range/beam layouts.
-The mapping of the range gate corners was based on [rbpos in RST](https://github.com/SuperDARN/rst/blob/0aa1fffed4cc48c1eb6372dfc9effa688af95624/codebase/superdarn/src.idl/lib/legacy.1.6/rbposlib.pro).
+!!! Warning 
+    AACGM and geographic projection currently not implemented.
+
+
+The mapping of the range gate corners was based on [rbpos in RST](https://github.com/SuperDARN/rst/blob/0aa1fffed4cc48c1eb6372dfc9effa688af95624/codebase/superdarn/src.idl/lib/legacy.1.6/rbposlib.pro) that is coded in `/pydarn/geo.py`. To get the coordinates read [hardware docs](hardware.md).
 
 ### Basic usage
 pyDARN and pyplot need to be imported, as well as any FITACF file needs to be [read in](https://pydarn.readthedocs.io/en/latest/user/SDarnRead/):
@@ -56,9 +59,12 @@ pydarn.Fan.plot_fan(cly_data, scan_index=datetime(2015, 3, 8, 15, 26),
 !!! Warning
     Do not include seconds, typically scans are 1 minute long so seconds may end in a error with no data. 
 
-Default plots also do not show groundscatter as grey. Set it to true to colour groundscatter this way:
+Default plots also do not show groundscatter as grey. Set it to true to colour groundscatter:
+
 ```python
-fanplot = pydarn.Fan.plot_fan(fitacf_data, scan_index=27, groundscatter=1)
+fanplot = pydarn.Fan.plot_fan(fitacf_data,
+                              scan_index=27,
+                              groundscatter=True)
 plt.show()
 
 ```
@@ -66,7 +72,8 @@ plt.show()
 
 You might have noticed that the variable `fanplot` in the examples above actually holds some information. This contains the AACGM latitude and longitude of the fan just plotted, as well as the data, ground scatter information, and datetime object. If you instead change `fanplot` to 5 separate variables, it will return the latitude, longitude, data, groundscatter and datetime info into seperate variables:
 ```python
-lats,lons,data,grndsct,datetime=pydarn.Fan.plot_fan(fitacf_data, scan_index=27)
+ax, lats, lons, data, grndsct, datetime = pydarn.Fan.plot_fan(fitacf_data,
+                                                              scan_index=27)
 
 lats.shape
 
@@ -90,21 +97,21 @@ Here is a list of all the current options than can be used with `plot_fan`
 
 | Option                        | Action                                                                                                  |
 | ----------------------------- | ------------------------------------------------------------------------------------------------------- |
+| ax=(Axes Object)              | Matplotlib axes object than can be used for cartopy additions                                           |
 | scan_index=(int or  datetime) | Scan number or datetime, from start of records in file corresponding to channel if given                |
 | channel=(int or 'all')        | Specify channel number or choose 'all' (default = 'all')                                                |
+| parameter=(string)            | See above table for options                                                                             |
 | groundscatter=(bool)          | True or false to showing ground scatter as grey                                                         |
 | ranges=(list)                 | Two element list giving the lower and upper ranges to plot, grabs ranges from hardware file (default [] |
-| cmap=matplotlib.cm            | A matplotlib color map object. Will override the pyDARN defaults for chosen parameter                   |
+| cmap=string                   | A matplotlib color map string                                                                           |
 | zmin=(int)                    | Minimum data value for colouring                                                                        |
 | zmax=(int)                    | Maximum data value for colouring                                                                        |
 | colorbar=(bool)               | Set true to plot a colorbar (default: True)                                                             |
 | colorbar_label=(string)       | Label for the colour bar (requires colorbar to be true)                                                 |
+| title=(string)                | Title for the fan plot, default auto generated one based on input information                           |
 | boundary=(bool)               | Set false to not show the outline of the radar FOV (default: True)                                      |
-| fov_color=(string)            | Sets the fill in color for the fov plot (default: transparency)                                         |
-| line_color=(string)           | Sets the boundary line and radar location dot color (default: black)                                    |
-| alpha=(int)                   | Sets the transparency of the fill color (default: 0.5)                                                  |
-| radar_location=(bool)         | Places a dot in the plot representing the radar location (default: True)                                |
-| radar_label=(bool)            | Places the radar 3-letter abbreviation next to the radar location                                       |
+| coords=(Coords)               | [Coordinates](coordinates.md) for the data to be plotted in                                             |
+| projs=(Projs)                 | Projections to plot the data on top of                                                                  |
 | kwargs **                     | Axis Polar settings. See [polar axis](axis.md)                                                          |
 
 
@@ -139,3 +146,13 @@ plt.show()
 ```
 
 ![](../imgs/fan_3.png)
+
+Using *cartopy* to plot geographically:
+
+```python
+ax, _, _, _, _ = pydarn.Fan.plot_fan(data, scan_index=5, radar_label=True, groundscatter=True, coords=pydarn.Coords.GEOGRAPHIC, projs=pydarn.     Projs.GEO, colorbar_label="Velocity m/s")
+ax.coastlines()
+plt.show()
+``` 
+
+![](../imgs/fan_4.png)
