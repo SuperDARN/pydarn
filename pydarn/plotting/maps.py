@@ -4,6 +4,7 @@
 # Modifications:
 # 2022-03-08: MTS - added partial records exception
 # 2021-03-18: CJM - Included contour plotting and HMB
+# 2021-04-01: CJM - Bug fix for lon shifting to MLT
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
@@ -257,7 +258,7 @@ class Maps():
         lon_shift = dmap_data[record]['lon.shft']
         lat_min = dmap_data[record]['latmin']
 
-        cls.plot_potential_contours(fit_coefficient, lat_min,
+        cls.plot_potential_contours(fit_coefficient, lat_min, date,
                                     lat_shift=lat_shift, lon_shift=lon_shift,
                                     fit_order=fit_order, **kwargs)
 
@@ -265,7 +266,7 @@ class Maps():
             # Plot the HMB
             mlats_hmb = dmap_data[record]['boundary.mlat']
             mlons_hmb = dmap_data[record]['boundary.mlon']
-            cls.plot_heppner_maynard_boundary(mlats_hmb, np.radians(mlons_hmb))
+            cls.plot_heppner_maynard_boundary(mlats_hmb, mlons_hmb, date)
 
         if colorbar is True:
             mappable = cm.ScalarMappable(norm=norm, cmap=cmap)
@@ -527,8 +528,9 @@ class Maps():
 
 
     @classmethod
-    def plot_heppner_maynard_boundary(cls, mlats: list, mlons: list,
-                                      line_color: str = 'black', **kwargs):
+    def plot_heppner_maynard_boundary(cls, mlats: list, mlons: list, 
+                                      date: object, line_color: str = 'black',
+                                      **kwargs):
         # TODO: No evaluation of coordinate system made! May need if in
         # plotting to plot in radians/geo ect.
         """
@@ -542,12 +544,20 @@ class Maps():
                 Magnetic Latitude in degrees
             mlons: List[float]
                 Magnetic Longitude in radians
+            date: datetime object
+                Date from record
             line_color: str
                 Color of the Heppner-Maynard boundary
                 Default: black
 
         """
-        plt.plot(mlons, mlats, c=line_color, zorder=4.0, **kwargs)
+        # Shift mlon to MLT
+        shifted_mlts = mlons[0] - \
+            (aacgmv2.convert_mlt(mlons[0], date) * 15)
+        shifted_lons = mlons - shifted_mlts
+        mlon = np.radians(shifted_lons)
+
+        plt.plot(mlon, mlats, c=line_color, zorder=4.0, **kwargs)
 
 
     @classmethod
@@ -661,8 +671,8 @@ class Maps():
 
     @classmethod
     def plot_potential_contours(cls, fit_coefficient: list, lat_min: list,
-                                lat_shift: int = 0, lon_shift: int = 0,
-                                fit_order: int = 6,
+                                date: object, lat_shift: int = 0,
+                                lon_shift: int = 0, fit_order: int = 6,
                                 contour_levels: list = [],
                                 contour_color: str = 'dimgrey',
                                 contour_linewidths: float = 0.8,
@@ -684,6 +694,8 @@ class Maps():
             lat_min: List[float]
                 Minimum latitude that will be evaluated
                 Not to be confused with 'lowlat'
+            date: datetime object
+                Date from record
             lat_shift: int
                 Generic shift in latitude from map file
                 default: 0
@@ -738,10 +750,16 @@ class Maps():
                 including lowlat and hemisphere for calculating
                 potentials
         '''
-        mlat, mlon, pot_arr = cls.calculate_potentials(
+        mlat, mlon_u, pot_arr = cls.calculate_potentials(
                              fit_coefficient, lat_min,
                              lat_shift=lat_shift, lon_shift=lon_shift,
                              fit_order=fit_order, **kwargs)
+
+        # Shift mlon to MLT
+        shifted_mlts = mlon_u[0, 0] - \
+            (aacgmv2.convert_mlt(mlon_u[0, 0], date) * 15)
+        shifted_lons = mlon_u - shifted_mlts
+        mlon = shifted_lons
 
         # Contained in function as too long to go into the function call
         if contour_levels == []:
