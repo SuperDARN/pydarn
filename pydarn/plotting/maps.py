@@ -267,7 +267,8 @@ class Maps():
 
         cls.plot_potential_contours(fit_coefficient, lat_min, date,
                                     lat_shift=lat_shift, lon_shift=lon_shift,
-                                    fit_order=fit_order, **kwargs)
+                                    fit_order=fit_order, hemisphere=hemisphere,
+                                    **kwargs)
 
         if hmb is True:
             # Plot the HMB
@@ -670,7 +671,7 @@ class Maps():
     def calculate_potentials(cls, fit_coefficient: list, lat_min: list,
                              lat_shift: int = 0, lon_shift: int = 0,
                              fit_order: int = 6, lowlat: int = 60,
-                             hemisphere: Hemisphere = Hemisphere.North,
+                             hemisphere: Enum = Hemisphere.North,
                              **kwargs):
         # TODO: No evaluation of coordinate system made! May need if in
         # plotting to plot in radians/geo ect.
@@ -703,7 +704,7 @@ class Maps():
 
         '''
         # Lowest latitude to calculate potential to
-        theta_max = np.radians(90-np.abs(lat_min))
+        theta_max = np.radians(90-np.abs(lat_min)) * hemisphere.value
 
         # Make a grid of the space the potential is evaluated on
         # in magnetic coordinates
@@ -712,7 +713,6 @@ class Maps():
         num_lats = int((90.0 - lowlat) / lat_step) + 1
         num_lons = int(360.0 / lon_step) + 1
         lat_arr = np.array(range(num_lats)) * lat_step + lowlat
-        lat_arr = lat_arr * hemisphere.value
         lon_arr = np.array(range(num_lons)) * lon_step
 
         # Set up Grid
@@ -767,10 +767,12 @@ class Maps():
 
         mlat_center = grid_arr[0, :].reshape((num_lons, num_lats))
         # Set everything below the latmin as 0
-        ind = np.where(mlat_center < lat_min)
+        ind = np.where(abs(mlat_center) < abs(lat_min))
         pot_arr[ind] = 0
 
         mlon_center = grid_arr[1, :].reshape((num_lons, num_lats))
+        # Invert for Southern maps
+        mlat_center = mlat_center * hemisphere.value
 
         return mlat_center, mlon_center, pot_arr
 
@@ -779,6 +781,7 @@ class Maps():
     def plot_potential_contours(cls, fit_coefficient: list, lat_min: list,
                                 date: object, lat_shift: int = 0,
                                 lon_shift: int = 0, fit_order: int = 6,
+                                hemisphere: Enum = Hemisphere.North,
                                 contour_levels: list = [],
                                 contour_color: str = 'dimgrey',
                                 contour_linewidths: float = 0.8,
@@ -859,7 +862,8 @@ class Maps():
         mlat, mlon_u, pot_arr = cls.calculate_potentials(
                              fit_coefficient, lat_min,
                              lat_shift=lat_shift, lon_shift=lon_shift,
-                             fit_order=fit_order, **kwargs)
+                             fit_order=fit_order, hemisphere=hemisphere,
+                             **kwargs)
 
         # Shift mlon to MLT
         shifted_mlts = mlon_u[0, 0] - \
