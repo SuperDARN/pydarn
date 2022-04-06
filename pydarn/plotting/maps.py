@@ -189,10 +189,12 @@ class Maps():
             shifted_mlts = aacgm_lons[0, 0] - \
                 (aacgmv2.convert_mlt(aacgm_lons[0, 0], date) * 15)
             shifted_lons = data_lons - shifted_mlts
-            mlons = np.radians(shifted_lons)
+            # Note that this "mlons" is adjusted for MLT
+            mlons = np.radians(shifted_lons) 
             mlats = data_lats
 
         # If the parameter is velocity then plot the LOS vectors
+        # Actual mlons used here, not adjusted mlons (np.radians(data_lons))
         if parameter == MapParams.FITTED_VELOCITY:
             v_mag, azm_v =\
                     cls.calculated_fitted_velocities(mlats=mlats,
@@ -227,14 +229,14 @@ class Maps():
             alpha = mlons
 
             # Convert initial positions to Cartesian
-            start_pos_x = (90 - mlats) * np.cos(mlons)
-            start_pos_y = (90 - mlats) * np.sin(mlons)
+            start_pos_x = (90 - abs(mlats)) * np.cos(mlons)
+            start_pos_y = (90 - abs(mlats)) * np.sin(mlons)
 
             # Resolve LOS vector in x and y directions,
             # with respect to mag pole
             # Gives zonal and meridional components of LOS vector
-            x = -v_mag * np.cos(-azm_v)
-            y = -v_mag * np.sin(-azm_v)
+            x = -v_mag * np.cos(-azm_v * hemisphere.value)
+            y = -v_mag * np.sin(-azm_v * hemisphere.value)
 
             # Rotate each vector into same reference frame
             # following vector rotation matrix
@@ -243,12 +245,14 @@ class Maps():
             vec_y = (x * np.sin(alpha)) + (y * np.cos(alpha))
 
             # New vector end points, in Cartesian
-            end_pos_x = start_pos_x + (vec_x / len_factor)
-            end_pos_y = start_pos_y + (vec_y / len_factor)
+            end_pos_x = start_pos_x + (vec_x  * hemisphere.value / len_factor)
+            end_pos_y = start_pos_y + (vec_y  * hemisphere.value / len_factor)
 
             # Convert back to polar for plotting
             end_mlats = 90.0 - (np.sqrt(end_pos_x**2 + end_pos_y**2))
             end_mlons = np.arctan2(end_pos_y, end_pos_x)
+            
+            end_mlats=end_mlats * hemisphere.value
 
             # Plot the vectomlats
             for i in range(len(v_mag)):
