@@ -4,6 +4,9 @@
 # Modifications:
 # 2022-03-08: MTS - added partial records exception
 # 2021-03-18: CJM - Included contour plotting and HMB
+# 2021-03-31: CJM - Map info included
+# 2021-03-31: CJM - IMF clock angle dial added
+# 2021-04-01: CJM - Bug fix for lon shifting to MLT
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
@@ -26,6 +29,7 @@ import warnings
 
 from enum import Enum
 from matplotlib import ticker, cm, colors
+from mpl_toolkits.axes_grid.inset_locator import InsetPosition
 from scipy import special
 from typing import List
 
@@ -64,7 +68,8 @@ class Maps():
                      colorbar: bool = True, colorbar_label: str = '',
                      title: str = '', zmin: float = None, zmax: float = None,
                      hmb: bool = True, boundary: bool = False,
-                     radar_location: bool = False, **kwargs):
+                     radar_location: bool = False, map_info: bool = True,
+                     imf_dial: bool = True, **kwargs):
         """
         Plots convection maps data points and vectors
 
@@ -126,6 +131,9 @@ class Maps():
                 Normalisation factor for the vectors, to control size on plot
                 Larger number means smaller vectors on plot
                 Default: 150.0
+            imf_dial: bool
+                If True, draw an IMF dial of the magnetic field clock angle.
+                Default: True
             kwargs: key=value
                 uses the parameters for plot_fov and projections.axis
 
@@ -181,10 +189,12 @@ class Maps():
             shifted_mlts = aacgm_lons[0, 0] - \
                 (aacgmv2.convert_mlt(aacgm_lons[0, 0], date) * 15)
             shifted_lons = data_lons - shifted_mlts
-            mlons = np.radians(shifted_lons)
+            # Note that this "mlons" is adjusted for MLT
+            mlons = np.radians(shifted_lons) 
             mlats = data_lats
 
         # If the parameter is velocity then plot the LOS vectors
+        # Actual mlons used here, not adjusted mlons (np.radians(data_lons))
         if parameter == MapParams.FITTED_VELOCITY:
             v_mag, azm_v =\
                     cls.calculated_fitted_velocities(mlats=mlats,
@@ -219,14 +229,14 @@ class Maps():
             alpha = mlons
 
             # Convert initial positions to Cartesian
-            start_pos_x = (90 - mlats) * np.cos(mlons)
-            start_pos_y = (90 - mlats) * np.sin(mlons)
+            start_pos_x = (90 - abs(mlats)) * np.cos(mlons)
+            start_pos_y = (90 - abs(mlats)) * np.sin(mlons)
 
             # Resolve LOS vector in x and y directions,
             # with respect to mag pole
             # Gives zonal and meridional components of LOS vector
-            x = -v_mag * np.cos(-azm_v)
-            y = -v_mag * np.sin(-azm_v)
+            x = -v_mag * np.cos(-azm_v * hemisphere.value)
+            y = -v_mag * np.sin(-azm_v * hemisphere.value)
 
             # Rotate each vector into same reference frame
             # following vector rotation matrix
@@ -235,12 +245,14 @@ class Maps():
             vec_y = (x * np.sin(alpha)) + (y * np.cos(alpha))
 
             # New vector end points, in Cartesian
-            end_pos_x = start_pos_x + (vec_x / len_factor)
-            end_pos_y = start_pos_y + (vec_y / len_factor)
+            end_pos_x = start_pos_x + (vec_x  * hemisphere.value / len_factor)
+            end_pos_y = start_pos_y + (vec_y  * hemisphere.value / len_factor)
 
             # Convert back to polar for plotting
             end_mlats = 90.0 - (np.sqrt(end_pos_x**2 + end_pos_y**2))
             end_mlons = np.arctan2(end_pos_y, end_pos_x)
+            
+            end_mlats=end_mlats * hemisphere.value
 
             # Plot the vectomlats
             for i in range(len(v_mag)):
@@ -257,15 +269,16 @@ class Maps():
         lon_shift = dmap_data[record]['lon.shft']
         lat_min = dmap_data[record]['latmin']
 
-        cls.plot_potential_contours(fit_coefficient, lat_min,
+        cls.plot_potential_contours(fit_coefficient, lat_min, date,
                                     lat_shift=lat_shift, lon_shift=lon_shift,
-                                    fit_order=fit_order, **kwargs)
+                                    fit_order=fit_order, hemisphere=hemisphere,
+                                    **kwargs)
 
         if hmb is True:
             # Plot the HMB
             mlats_hmb = dmap_data[record]['boundary.mlat']
             mlons_hmb = dmap_data[record]['boundary.mlon']
-            cls.plot_heppner_maynard_boundary(mlats_hmb, np.radians(mlons_hmb))
+            cls.plot_heppner_maynard_boundary(mlats_hmb, mlons_hmb, date)
 
         if colorbar is True:
             mappable = cm.ScalarMappable(norm=norm, cmap=cmap)
@@ -300,6 +313,22 @@ class Maps():
                               end_minute=str(dmap_data[record]['end.minute']).
                               zfill(2))
         plt.title(title)
+
+        if map_info is True:
+            model = dmap_data[record]['model.name']
+            num_points = len(dmap_data[record]['vector.mlat'])
+            pol_cap_pot = dmap_data[record]['pot.drop']
+            cls.add_map_info(fit_order, pol_cap_pot, num_points, model)
+
+        if imf_dial is True:
+            # Plot the IMF dial
+            bx = dmap_data[record]['IMF.Bx']
+            by = dmap_data[record]['IMF.By']
+            bz = dmap_data[record]['IMF.Bz']
+            delay = dmap_data[record]['IMF.delay']
+            bt = np.sqrt(bx**2 + by**2 + bz**2)
+            cls.plot_imf_dial(ax, by, bz, bt, delay)
+
         return mlats, mlons, v_mag
 
 
@@ -527,8 +556,36 @@ class Maps():
 
 
     @classmethod
-    def plot_heppner_maynard_boundary(cls, mlats: list, mlons: list,
-                                      line_color: str = 'black', **kwargs):
+    def add_map_info(cls, fit_order: float, pol_cap_pot: float,
+                     num_points: float, model: str):
+        """
+        Annotates the plot with information about the map plotting
+
+        Parameters
+        ----------
+            ax: object
+                matplotlib axis object
+            fit_order: int
+                order of the fit
+            pol_cap_pot: float
+                value of the polar cap potential in kV
+            num_points: int
+                number of vectors plotted
+            model: str
+                model used to fit data
+        """
+        text_string = r'$\phi_{PC}$' + ' = ' + str(round(pol_cap_pot/1000))\
+                      + ' kV\n' \
+                      + 'N = ' + str(num_points) + '\n' \
+                      + 'Order: ' + str(fit_order) + '\n' \
+                      + 'Model: ' + model + '\n'
+        plt.figtext(0.1, 0.1, text_string)
+
+
+    @classmethod
+    def plot_heppner_maynard_boundary(cls, mlats: list, mlons: list, 
+                                      date: object, line_color: str = 'black',
+                                      **kwargs):
         # TODO: No evaluation of coordinate system made! May need if in
         # plotting to plot in radians/geo ect.
         """
@@ -542,19 +599,83 @@ class Maps():
                 Magnetic Latitude in degrees
             mlons: List[float]
                 Magnetic Longitude in radians
+            date: datetime object
+                Date from record
             line_color: str
                 Color of the Heppner-Maynard boundary
                 Default: black
 
         """
-        plt.plot(mlons, mlats, c=line_color, zorder=4.0, **kwargs)
+        # Shift mlon to MLT
+        shifted_mlts = mlons[0] - \
+            (aacgmv2.convert_mlt(mlons[0], date) * 15)
+        shifted_lons = mlons - shifted_mlts
+        mlon = np.radians(shifted_lons)
+
+        plt.plot(mlon, mlats, c=line_color, zorder=4.0, **kwargs)
+
+
+    @classmethod
+    def plot_imf_dial(cls, ax: object, by: float = 0, bz: float = 0,
+                      bt: float = 0, delay: float = 0):
+        """
+        Plots an IMF clock angle dial on the existing plot
+        Defaults all to 0 if no IMF data available to plot
+
+        Parameters
+        ----------
+            ax: object
+                matplotlib axis object
+            by: Float
+                Value of the magnetic field in the y-direction (nT)
+                Default = 0 nT
+            bz: Float
+                Value of the magnetic field in the z-direction (nT)
+                Default = 0 nT
+            bt: Float
+                Magnitude of the magnetic field (nT)
+                Default = 0 nT
+            delay: Float
+                Time delay of magnetic field between the
+                measuring satellite and the ionosphere (minutes)
+                Default = 0 minutes
+        """
+        # Create new axes inside existing axes
+        ax_imf = plt.axes([0, 0, 1, 1])
+        ip = InsetPosition(ax, [-0.2, 0.7, 0.4, 0.4])
+        ax_imf.set_axes_locator(ip)
+        ax_imf.axis('off')
+
+        ax_imf.set_xlim([-20.2, 20.2])
+        ax_imf.set_ylim([-20.2, 20.2])
+
+        # Plot a Circle
+        limit_circle = plt.Circle((0, 0), 10, facecolor='w',
+                                  edgecolor='k')
+        ax_imf.add_patch(limit_circle)
+        # Plot axis lines
+        plt.plot([-10, 10], [0, 0], color='k', linewidth=0.5)
+        plt.plot([0, 0], [-10, 10], color='k', linewidth=0.5)
+
+        # Plot line for magnetic field
+        plt.plot([0, by], [0, bz], color='r')
+
+        # Add axis labels
+        ax_imf.annotate('+Z', xy=(-2.5, 11))
+        ax_imf.annotate('+Y', xy=(11, -1))
+
+        # Add annotations for delay and Btot
+        ax_imf.annotate('|B| = ' + str(round(bt)) + ' nT', xy=(-16, -13),
+                        fontsize=7)
+        ax_imf.annotate('Delay = -' + str(delay) + ' min', xy=(-16, -17),
+                        fontsize=7)
 
 
     @classmethod
     def calculate_potentials(cls, fit_coefficient: list, lat_min: list,
                              lat_shift: int = 0, lon_shift: int = 0,
                              fit_order: int = 6, lowlat: int = 60,
-                             hemisphere: Hemisphere = Hemisphere.North,
+                             hemisphere: Enum = Hemisphere.North,
                              **kwargs):
         # TODO: No evaluation of coordinate system made! May need if in
         # plotting to plot in radians/geo ect.
@@ -587,7 +708,7 @@ class Maps():
 
         '''
         # Lowest latitude to calculate potential to
-        theta_max = np.radians(90-np.abs(lat_min))
+        theta_max = np.radians(90-np.abs(lat_min)) * hemisphere.value
 
         # Make a grid of the space the potential is evaluated on
         # in magnetic coordinates
@@ -596,7 +717,6 @@ class Maps():
         num_lats = int((90.0 - lowlat) / lat_step) + 1
         num_lons = int(360.0 / lon_step) + 1
         lat_arr = np.array(range(num_lats)) * lat_step + lowlat
-        lat_arr = lat_arr * hemisphere.value
         lon_arr = np.array(range(num_lons)) * lon_step
 
         # Set up Grid
@@ -651,18 +771,21 @@ class Maps():
 
         mlat_center = grid_arr[0, :].reshape((num_lons, num_lats))
         # Set everything below the latmin as 0
-        ind = np.where(mlat_center < lat_min)
+        ind = np.where(abs(mlat_center) < abs(lat_min))
         pot_arr[ind] = 0
 
         mlon_center = grid_arr[1, :].reshape((num_lons, num_lats))
+        # Invert for Southern maps
+        mlat_center = mlat_center * hemisphere.value
 
         return mlat_center, mlon_center, pot_arr
 
 
     @classmethod
     def plot_potential_contours(cls, fit_coefficient: list, lat_min: list,
-                                lat_shift: int = 0, lon_shift: int = 0,
-                                fit_order: int = 6,
+                                date: object, lat_shift: int = 0,
+                                lon_shift: int = 0, fit_order: int = 6,
+                                hemisphere: Enum = Hemisphere.North,
                                 contour_levels: list = [],
                                 contour_color: str = 'dimgrey',
                                 contour_linewidths: float = 0.8,
@@ -684,6 +807,8 @@ class Maps():
             lat_min: List[float]
                 Minimum latitude that will be evaluated
                 Not to be confused with 'lowlat'
+            date: datetime object
+                Date from record
             lat_shift: int
                 Generic shift in latitude from map file
                 default: 0
@@ -738,10 +863,17 @@ class Maps():
                 including lowlat and hemisphere for calculating
                 potentials
         '''
-        mlat, mlon, pot_arr = cls.calculate_potentials(
+        mlat, mlon_u, pot_arr = cls.calculate_potentials(
                              fit_coefficient, lat_min,
                              lat_shift=lat_shift, lon_shift=lon_shift,
-                             fit_order=fit_order, **kwargs)
+                             fit_order=fit_order, hemisphere=hemisphere,
+                             **kwargs)
+
+        # Shift mlon to MLT
+        shifted_mlts = mlon_u[0, 0] - \
+            (aacgmv2.convert_mlt(mlon_u[0, 0], date) * 15)
+        shifted_lons = mlon_u - shifted_mlts
+        mlon = shifted_lons
 
         # Contained in function as too long to go into the function call
         if contour_levels == []:
