@@ -125,6 +125,15 @@ class Fan():
                 if true then will create a title, else user
                 can define it with plt.title
                 default: true
+            boundary: bool
+                if true then plots the FOV boundaries
+                default: true
+            projs: Enum
+                choice of projection for plot
+                default: Projs.POLAR (polar projection)
+            coords: Enum
+                choice of plotting coordinates
+                default: Coords.AACGM_MLT (Magnetic Lat and MLT)
             channel : int or str
                 integer indicating which channel to plot or 'all' to
                 plot all channels
@@ -136,9 +145,11 @@ class Fan():
         Returns
         -----------
         beam_corners_aacgm_lats
-            n_beams x n_gates numpy array of AACGMv2 latitudes
+            n_beams x n_gates numpy array of latitudes
+            return values dependent on given coords enum
         beam_corners_aacgm_lons
-            n_beams x n_gates numpy array of AACGMv2 longitudes
+            n_beams x n_gates numpy array of longitudes or MLT 
+            return values dependent on given coords enum
         scan
             n_beams x n_gates numpy array of the scan data
             (for the selected parameter)

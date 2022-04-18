@@ -18,10 +18,10 @@ the additional permissions listed below.
 
 Fan plots are a way to visualise data from the entire scan of a SuperDARN radar. 
 
-All beams and ranges for a given parameter (such as line-of-sight velocity, backscatter power, etc) and a particular scan can be projected onto a polar format plot in [AACGMv2](http://superdarn.thayer.dartmouth.edu/aacgm.html), geographic or projected on geographical format using geographic coordinates.
+All beams and ranges for a given parameter (such as line-of-sight velocity, backscatter power, etc) and a particular scan can be projected onto a polar format plot in [AACGMv2](http://superdarn.thayer.dartmouth.edu/aacgm.html) coordinates, or projected onto a geographic plot in geographic coordinates.
 
 !!! Warning 
-    AACGM and geographic projection currently not implemented.
+    At present, AACGM coordinates cannot be plotted on a geographic projection.
 
 
 The mapping of the range gate corners was based on [rbpos in RST](https://github.com/SuperDARN/rst/blob/0aa1fffed4cc48c1eb6372dfc9effa688af95624/codebase/superdarn/src.idl/lib/legacy.1.6/rbposlib.pro) that is coded in `/pydarn/geo.py`. To get the coordinates read [hardware docs](hardware.md).
@@ -147,7 +147,10 @@ plt.show()
 
 ![](../imgs/fan_3.png)
 
-Using *cartopy* to plot geographically:
+Using *cartopy* to plot underlaid coastline map:
+
+!!! Warning
+The *cartopy* coastlines mapping feature is currently only available for geographic projections in geographic coordinates. Expansion of this feature is coming soon!
 
 ```python
 ax, _, _, _, _ = pydarn.Fan.plot_fan(data, scan_index=5, radar_label=True, groundscatter=True, coords=pydarn.Coords.GEOGRAPHIC, projs=pydarn.     Projs.GEO, colorbar_label="Velocity m/s")

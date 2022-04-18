@@ -185,13 +185,13 @@ class Maps():
             except KeyError:
                 raise plot_exceptions.PartialRecordsError('model.mlat')
 
-            # Hold the beam positions
-            shifted_mlts = aacgm_lons[0, 0] - \
-                (aacgmv2.convert_mlt(aacgm_lons[0, 0], date) * 15)
-            shifted_lons = data_lons - shifted_mlts
-            # Note that this "mlons" is adjusted for MLT
-            mlons = np.radians(shifted_lons) 
-            mlats = data_lats
+        # Hold the beam positions
+        shifted_mlts = aacgm_lons[0, 0] - \
+            (aacgmv2.convert_mlt(aacgm_lons[0, 0], date) * 15)
+        shifted_lons = data_lons - shifted_mlts
+        # Note that this "mlons" is adjusted for MLT
+        mlons = np.radians(shifted_lons) 
+        mlats = data_lats
 
         # If the parameter is velocity then plot the LOS vectors
         # Actual mlons used here, not adjusted mlons (np.radians(data_lons))
