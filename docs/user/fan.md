@@ -150,7 +150,7 @@ plt.show()
 Using *cartopy* to plot underlaid coastline map:
 
 !!! Warning
-The *cartopy* coastlines mapping feature is currently only available for geographic projections in geographic coordinates. Expansion of this feature is coming soon!
+    The *cartopy* coastlines mapping feature is currently only available for geographic projections in geographic coordinates. Expansion of this feature is coming soon!
 
 ```python
 ax, _, _, _, _ = pydarn.Fan.plot_fan(data, scan_index=5, radar_label=True, groundscatter=True, coords=pydarn.Coords.GEOGRAPHIC, projs=pydarn.     Projs.GEO, colorbar_label="Velocity m/s")
