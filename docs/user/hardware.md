@@ -69,6 +69,10 @@ Other information a user can access from the `_HdwInfo` object is:
 !!! Note
     For more detailed information on all the fields in a hardware file, please read the [hardware repo README.md](https://github.com/SuperDARN/hdw).
 
+!!! Warning
+    Prior to version 3.0, pyDARN was built to use the old format of hardware files. However, versions 2.2.1 or lower of pyDARN will try to pull hardware files from the `master` branch of the hardware repository and this may cause some errors in use.
+    Version 3.0 uses the new format of hardware files, and pulls hardware files from the `main` hardware branch. Updating to pyDARN version 3.0 or higher will fix any hardware errors. 
+
 # Accessing Radar and Hardware Information
 
 Another way to access the hardware information, the radar's full name, the institution's name and the  hemisphere that the radar is located in is by using the `SuperDARNRadars` class with the station id number (`stid` field in most files). 
