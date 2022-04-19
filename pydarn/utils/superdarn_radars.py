@@ -56,19 +56,19 @@ def get_hdw_files(force: bool = True, version: str = None):
     if len(os.listdir(hdw_path)) == 0 or force:
         # pycurl doesn't download a zip folder easily so
         # use the command line command
-        check_call(['curl', '-L', '-o', hdw_path+'/master.zip',
-                    'https://github.com/SuperDARN/hdw/archive/master.zip'])
+        check_call(['curl', '-L', '-o', hdw_path+'/main.zip',
+                    'https://github.com/SuperDARN/hdw/archive/main.zip'])
         # use unzip command because zipfile on works with files and not folders
         # though this is possible with zipfile but this was easier for me to
         # get it working
-        check_call(['unzip', '-d', hdw_path, hdw_path+'/master.zip'])
-        dat_files = glob.glob(hdw_path+'/hdw-master/*')
+        check_call(['unzip', '-d', hdw_path, hdw_path+'/main.zip'])
+        dat_files = glob.glob(hdw_path+'/hdw-main/*')
         # shutil only moves specific files so we need to move
         # everything one at a time
         for hdw_file in dat_files:
             shutil.move(hdw_file, hdw_path+os.path.basename(hdw_file))
         # delete the empty folder
-        os.removedirs(hdw_path+'/hdw-master/')
+        os.removedirs(hdw_path+'/hdw-main/')
 
 
 def read_hdw_file(abbrv, date: datetime = None, update: bool = False):
