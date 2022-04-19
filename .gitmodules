@@ -1,3 +1,4 @@
 [submodule "hdw"]
 	path = pydarn/utils/hdw
 	url = https://github.com/superdarn/hdw
+	branch = main
