@@ -102,7 +102,7 @@ Example code:
 import pydarn
 
 # Geographic coordinates for Clyde River (STID: 66) FOV
-geo_lats, geo_lons=pydarn.radar_fov(66, coords='geo')
+geo_lats, geo_lons=pydarn.Coords.GEOGRAPHIC(66)
 ```
 
 You also have the option to set the `coords` keyword to `aacgm`. In this case, [Altitude adjusted corrected geomagnetic](http://superdarn.thayer.dartmouth.edu/aacgm.html) latitude and longitude are returned instead of geographic. Because AACGM requires a date to convert coordinates accurately, a python datetime object is also required to be passed in to `radar_fov` under this circumstance:
