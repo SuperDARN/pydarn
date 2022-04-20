@@ -52,12 +52,13 @@ Other information a user can access from the `_HdwInfo` object is:
 | :---:                   | :---                                                                                                                                                                            |
 | `stid`                  | Station Id of the radar                                                                                                                                                         |
 | `abbrev`                | 3 letter radar abbreviation                                                                                                                                                     |
+| `date`                  | Date the hardware specifications were changed                                                                                                                                   | 
 | `geographic`            | Geographic coordinates of the radar and altitude in meters (lat, long, alt)                                                                                                     |
-| `boresight`             | Boresight of the centre beam                                                                                                                                                    |
+| `boresight`             | Boresight of the centre beam (physical, electronic)                                                                                                                             |
 | `beam_separation`       | Angular separation between radar beams in degrees                                                                                                                               |
 | `velocity_sign`         | To help identify backscatter velocities which the signs can be reversed based on receiver design                                                                                |
 | `rx_attenuator`         | Analog Rx attenuator step in dB                                                                                                                                                 |
-| `tdiff`                 | propagation time from interferometer array antenna to phasing matrix input minus propagation time from main array antenna through transmitter in phasing matrix in microseconds |
+| `tdiff`                 | propagation time from interferometer array antenna to phasing matrix input minus propagation time from main array antenna through transmitter in phasing matrix in microseconds (channel_a, channel_b)|
 | `phase_sign`            | Account for cable error in analyzing data                                                                                                                                       |
 | `interferometer_offset` | Cartesian coordinates (x,y,z) from midpoint interferometer array to midpoint main array in meters                                                                               |
 | `rx_rise_time`          | Analog Rx rise time measured in microseconds                                                                                                                                    |
@@ -67,6 +68,10 @@ Other information a user can access from the `_HdwInfo` object is:
 
 !!! Note
     For more detailed information on all the fields in a hardware file, please read the [hardware repo README.md](https://github.com/SuperDARN/hdw).
+
+!!! Warning
+    Prior to version 3.0, pyDARN was built to use the old format of hardware files. However, versions 2.2.1 or lower of pyDARN will try to pull hardware files from the `master` branch of the hardware repository and this may cause some errors in use.
+    Version 3.0 uses the new format of hardware files, and pulls hardware files from the `main` hardware branch. Updating to pyDARN version 3.0 or higher will fix any hardware errors. 
 
 # Accessing Radar and Hardware Information
 
@@ -82,7 +87,7 @@ print(radar_info)
 
 Expected output:
 ```python
-_Radar(name='Prince George', institution='University of Saskatchewan', hemisphere=<Hemisphere.North: 1>, hardware_info=_HdwInfo(stid=6, abbrev='pgr', geographic=_Coord(lat=53.98, lon=-122.59, alt=670.0), boresight=-5.0, beam_separation=3.24, velocity_sign=1.0, rx_attenuator=10.0, tdiff=0.0, phase_sign=1.0, interferometer_offset=_InterferometerOffset(x=0.0, y=-100.0, z=0.0), rx_rise_time=0.0, attenuation_stages=0.0, gates=225, beams=16))
+_Radar(name='Prince George', institution='University of Saskatchewan', hemisphere=<Hemisphere.North: 1>, hardware_info=_HdwInfo(stid=6, status=<Status.online: 1>, abbrev='pgr', date=datetime.datetime(2000, 3, 3, 0, 0), geographic=_Coord(lat=53.98, lon=-122.59, alt=670.0), boresight=_Boresight(physical=-5.0, electronic=0.0), beam_separation=3.24, velocity_sign=1.0, rx_attenuator=10.0, tdiff=_Tdiff(channel_a=0.0, channel_b=0.0), phase_sign=1.0, interferometer_offset=_InterferometerOffset(x=0.0, y=-100.0, z=0.0), rx_rise_time=0.0, attenuation_stages=0, gates=225, beams=16))
 ```
 
 !!! Warning
@@ -97,7 +102,7 @@ Example code:
 import pydarn
 
 # Geographic coordinates for Clyde River (STID: 66) FOV
-geo_lats, geo_lons=pydarn.radar_fov(66, coords='geo')
+geo_lats, geo_lons=pydarn.Coords.GEOGRAPHIC(66)
 ```
 
 You also have the option to set the `coords` keyword to `aacgm`. In this case, [Altitude adjusted corrected geomagnetic](http://superdarn.thayer.dartmouth.edu/aacgm.html) latitude and longitude are returned instead of geographic. Because AACGM requires a date to convert coordinates accurately, a python datetime object is also required to be passed in to `radar_fov` under this circumstance:
@@ -106,11 +111,9 @@ import pydarn
 import datetime as dt
 
 # AACGMv2 coordinates for Dome C (STID: 96), valid for November 26th, 2005
-aacgm_lats, aacgm_lons=pydarn.radar_fov(96, coords='aacgm', date=dt.datetime(2005,11,26))
+aacgm_lats, aacgm_lons=pydarn.Coords.AACGM(96, date=dt.datetime(2005, 11, 26))
 ```
-If the `coords` keyword is not given, `radar_fov` defaults to geographic coordinates.
-
-The outputs for `radar_fov` are two numpy arrays of latitude and longitude coordinates with dimensions (number_of_beams+1 x number_of_gates+1). They correspond to the corners of each range gate.
+The `Coords` keyword points to the function to convert the radar's Field-of-View to the designed coordinate system. The outputs are two numpy arrays of latitude and longitude coordinates with dimensions (number_of_beams+1 x number_of_gates+1). They correspond to the corners of each range gate.
 
 # Updating Radar and Hardware Information
 

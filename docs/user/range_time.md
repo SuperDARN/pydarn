@@ -56,7 +56,7 @@ To specify which beam to look at, add the option:
 
 As an example, taking a look at some `v` data from the first record of Clyde River radar FITACF file:
 ```python
-pydarn.RTP.plot_range_time(fitacf_data, beam_num=fitacf_data[0]['bmnum'], coords=pydarn.Coords.RANGE_GATE)
+pydarn.RTP.plot_range_time(fitacf_data, beam_num=fitacf_data[0]['bmnum'], range_estimation=pydarn.RangeEstimation.RANGE_GATE)
 plt.title("Radar {:d}, Beam {:d}".format(fitacf_data[0]['stid'], fitacf_data[0]['bmnum']))  
 
 plt.show()
@@ -69,12 +69,12 @@ which produces:
 
 Notice that the velocity scale on the right is a bit larger than we need, and also ground scatter isn't coloured grey by default. Showing the dates on the x axis is also a bit redundant, because it's data from a single day. Below, there are some additional parameters you can set to address these and more.
 
-In addition, we use `coords=pydarn.Coords.RANGE_GATE` to set the y-axis to plot in range gates. 
+In addition, we use `range_estimation=pydarn.RangeEstimation.RANGE_GATE` to set the y-axis to plot in range gates. 
 Ground-Scatter Mapped Range is another type of axis you can use with range-time plots:
 
 ```python
 pydarn.RTP.plot_range_time(fitacf_data, beam_num=3, parameter='p_l',
-                           coords=pydarn.Coords.GROUND_SCATTER_MAPPED_RANGE,
+                           range_estimation=pydarn.RangeEstimation.GSMR,
                            colorbar_label='SNR')
 plt.title("Clyde 20150308 14:00 UTC Fitacf 2.5")
 plt.ylabel('Ground Scatter Mapped (km)')
@@ -97,14 +97,14 @@ To see all the customisation options, check out all the parameters listed in 'rt
 | date_fmt=(string)            | How the x-tick labels look. Default is ('%y/%m/%d\n %H:%M') |
 | zmin=(int)                   | Minimum data value to be plotted                            |
 | zmax=(int)                   | Maximum data value to be plotted                            |
-| coords=(Coords)              | Coordinates to use for the y-axis (See [Coordinates](coordinates.md)) | 
+| range_estimation=(RangeEstimation)              | Coordinates to use for the y-axis (See [Coordinates](coordinates.md)) | 
 
 For instance, code for a velocity RTP showing the same beam of Clyde river radar as above, but with ground scatter plotted in grey, date format as `hh:mm`, custom min and max values and a colour bar label could look something like:
 ```python
 pydarn.RTP.plot_range_time(fitacf_data, beam_num=fitacf_data[0]['bmnum'], groundscatter=True,
                            zmax=500, zmin=-500, date_fmt='%H:%M',
                            colorbar_label='Line-of-Sight Velocity (m s$^{-1}$)',
-                           coords=pydarn.Coords.RANGE_GATE)
+                           range_estimation=pydarn.RangeEstimation.RANGE_GATE)
 ```
 which outputs:
 
@@ -117,7 +117,7 @@ Because the default parameter plotted is line-of-sight velocity, there is also a
 
 To change the colormap, use the 'cmap' parameter with the string name of a matplotlib color map ([found here](https://matplotlib.org/tutorials/colors/colormaps.html)). For example, plotting the power along the beam above using the colormap 'viridis':
 ```python
-pydarn.RTP.plot_range_time(fitacf_data, beam_num=7, parameter='p_l', zmax=50, zmin=0, date_fmt='%H%M', colorbar_label='Power (dB)', coords=pydarn.Coords.RANGE_GATE, cmap='viridis')
+pydarn.RTP.plot_range_time(fitacf_data, beam_num=7, parameter='p_l', zmax=50, zmin=0, date_fmt='%H%M', colorbar_label='Power (dB)', range_estimation=pydarn.RangeEstimation.RANGE_GATE, cmap='viridis')
 ```
 produces:
 

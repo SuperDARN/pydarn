@@ -1,18 +1,18 @@
 # Copyright (C) 2020 SuperDARN Canada, University of Saskatchewan
 # Authors: Marina Schmidt and Danno Peters
 #
-# This file is part of the pyDARN Library.
-#
+# Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
 # Everyone is permitted to copy and distribute verbatim copies of this license
 # document, but changing it is not allowed.
 #
 # This version of the GNU Lesser General Public License incorporates the terms
-# and conditions of version 3 of the GNU Lesser General Public License,
+# and conditions of version 3 of the GNU General Public License,
 # supplemented by the additional permissions listed below.
 #
 # Modifications:
-#
+# 2022-02-11 MTS USASK updated the _HDW_info class to take in
+#            the hardware format
 """
 This module contains SuperDARN radar information
 """
@@ -23,7 +23,7 @@ import shutil
 
 from typing import NamedTuple
 from enum import Enum
-from datetime import datetime, timedelta
+from datetime import datetime
 from subprocess import check_call
 
 
@@ -56,19 +56,19 @@ def get_hdw_files(force: bool = True, version: str = None):
     if len(os.listdir(hdw_path)) == 0 or force:
         # pycurl doesn't download a zip folder easily so
         # use the command line command
-        check_call(['curl', '-L', '-o', hdw_path+'/master.zip',
-                    'https://github.com/SuperDARN/hdw/archive/master.zip'])
+        check_call(['curl', '-L', '-o', hdw_path+'/main.zip',
+                    'https://github.com/SuperDARN/hdw/archive/main.zip'])
         # use unzip command because zipfile on works with files and not folders
         # though this is possible with zipfile but this was easier for me to
         # get it working
-        check_call(['unzip', '-d', hdw_path, hdw_path+'/master.zip'])
-        dat_files = glob.glob(hdw_path+'/hdw-master/*')
+        check_call(['unzip', '-d', hdw_path, hdw_path+'/main.zip'])
+        dat_files = glob.glob(hdw_path+'/hdw-main/*')
         # shutil only moves specific files so we need to move
         # everything one at a time
         for hdw_file in dat_files:
             shutil.move(hdw_file, hdw_path+os.path.basename(hdw_file))
         # delete the empty folder
-        os.removedirs(hdw_path+'/hdw-master/')
+        os.removedirs(hdw_path+'/hdw-main/')
 
 
 def read_hdw_file(abbrv, date: datetime = None, update: bool = False):
@@ -101,91 +101,147 @@ def read_hdw_file(abbrv, date: datetime = None, update: bool = False):
 
     hdw_path = os.path.dirname(__file__)+'/hdw/'
     hdw_file = "{path}/hdw.dat.{radar}".format(path=hdw_path, radar=abbrv)
+    hdw_data = []
+    hdw_lines_date = []
     # if the file does not exist then try
     # and download it
     if os.path.exists(hdw_file) is False:
         get_hdw_files()
     try:
         with open(hdw_file, 'r') as reader:
-            for line in reader.readlines():
-                if '#' not in line and len(line.split()) > 1:
-                    hdw_data = line.split()
+            lines = reader.readlines()
+            for i in range(len(lines)):
+                if '#' not in lines[i] and len(lines[i].split()) > 1:
+                    hdw_data.append(lines[i].split())
                     """
                     Hardware files give the year and seconds from the beginning
                     of that year. Thus to check the date if it corresponds we
                     need to convert to a datetime object and then compare.
                     """
-                    hdw_line_date = datetime(year=int(hdw_data[1]), month=1,
-                                             day=1) +\
-                        timedelta(seconds=int(hdw_data[2]))
-                    if hdw_line_date > date:
-                        """
-                        Hardware data array positions definitions:
-                            0: station id - stid
-                            1: last year that the parameter string is valid.
-                            Note: currently updated line will
-                            have a year of 2999
-                            meaning it is currently still up to date.
-                            2: last second of year that parameter
-                            string is valid.
-                            3: Geographic latitude of radar site
-                            4: Geographic longitude of radar site
-                            Note: southern lat and long are negative
-                            5: Altitude of the radar site (meters)
-                            6: Scanning boresight - direction of
-                            the centre beam,
-                            measured in degrees relative to geographic north.
-                            Counter clockwise rotations are negative.
-                            7: Beam separation (Angular separation in degrees)
-                            8: velocity sign - at radar level,
-                            backscattered signal with
-                            frequencies above the transmitted frequency
-                            are assigned positive
-                            Doppler velocities while backscattered signals
-                            with frequencies
-                            below the transmitted frequency are assigned
-                            negative Doppler
-                            velocity. Can be changed in receiver design.
-                            9: Analog Rx attenuator step (dB)
-                            10: Tdiff - propagation time from
-                            interferometer array antenna
-                            to phasing matrix input miunus propagation
-                            time from main array
-                            antenna through transmitter to phasing
-                            matrix input.
-                            (microseconds)
-                            11: phase sign - to account for any cable errors
-                            Interferometer offset - displacement of midpoint
-                            interferometer array from midpoint main
-                            array (meters).
-                            12: x direction - along the line of antennas
-                            with +X toward
-                            higher antenna number
-                            13: y direction - along the array normal
-                            with +Y in the
-                            direction of the array normal
-                            14: z direction - is the altitude difference, +Z up
-                            15: Analog Rx rise time (microseconds)
-                            16: Analog Attenuation stages - gain control of
-                            an analog
-                            receiver or front-end
-                            17: maximum range gates
-                            18: maximum number of beams
-                        """
-                        return _HdwInfo(int(hdw_data[0]), abbrv,
-                                        _Coord(float(hdw_data[3]),
-                                               float(hdw_data[4]),
-                                               float(hdw_data[5])),
-                                        float(hdw_data[6]), float(hdw_data[7]),
-                                        float(hdw_data[8]), float(hdw_data[9]),
-                                        float(hdw_data[10]),
-                                        float(hdw_data[11]),
-                                        _InterferometerOffset(float(hdw_data[12]),
-                                                              float(hdw_data[13]),
-                                                              float(hdw_data[14])),
-                                        float(hdw_data[15]),
-                                        float(hdw_data[16]),
-                                        int(hdw_data[17]), int(hdw_data[18]))
+                    j = len(hdw_data)-1
+                    hdw_lines_date.append(
+                        datetime(year=int(hdw_data[j][2][0:4]),
+                                 month=int(hdw_data[j][2][4:6]),
+                                 day=int(hdw_data[j][2][6:8]),
+                                 hour=int(hdw_data[j][3][0:2]),
+                                 minute=int(hdw_data[j][3][3:5]),
+                                 second=int(hdw_data[j][3][6:8])))
+                    if hdw_lines_date[j] > date:
+                        j = j-1
+                        break
+            """
+            Hardware data array positions definitions:
+                0: Station ID (unique numerical value).
+                1: Status code (1 operational, -1 offline).
+                2: First date that parameter string is valid
+                   (YYYYMMDD).
+                3: First time that parameter string is valid
+                   (HH:MM:SS).
+                4: Geographic latitude of radar site
+                   (Given in decimal degrees to 3
+                   decimal places. Southern hemisphere
+                   values are negative)
+                5: Geographic longitude of radar site
+                   (Given in decimal degrees to
+                   3 decimal places.
+                   West longitude values are negative)
+                6: Altitude of the radar site (meters)
+                7: Physical scanning boresight
+                   (Direction of the center beam, measured in
+                   degrees relative to geographic north.
+                   CCW rotations are negative.)
+                8: Electronic shift to radar scanning
+                   boresight (Degrees relative to
+                   physical antenna boresight.
+                   Normally 0.0 degrees)
+                9: Beam separation (Angular
+                   separation in degrees between adjacent
+                   beams. Normally 3.24 degrees)
+                10: Velocity sign (At the radar level,
+                    backscattered signals with
+                    frequencies above the transmitted
+                    frequency are assigned positive
+                    Doppler velocities while backscattered
+                    signals with frequencies below
+                    the transmitted frequency are assigned
+                    negative Doppler velocity. This
+                    convention can be reversed by changes
+                    in receiver design or in the
+                    data sampling rate. This parameter
+                    is set to +1 or -1 to maintain the
+                    convention.)
+                11: Phase sign (Cabling errors can
+                    lead to a 180 degree shift of the
+                    interferometry phase measurement.
+                    +1 indicates that the sign is
+                    correct, -1 indicates that it must be flipped.)
+                12: Tdiff [Channel A]
+                    (Propagation time from interferometer
+                    array antenna to phasing matrix input
+                    minus propagation time from main array antenna
+                    through transmitter to phasing matrix input.
+                    Units are decimal
+                    microseconds)
+                13: Tdiff [Channel B]
+                    (Propagation time from interferometer
+                    array antenna to phasing matrix input minus
+                    propagation time from main array antenna
+                    through transmitter to phasing matrix input.
+                    Units are decimal microseconds)
+                14: Interferometer X offset
+                    (Displacement of midpoint of interferometer
+                    array from midpoint of main array,
+                    along the line of antennas
+                    with +X toward higher antenna numbers.
+                    Units are meters)
+                15: Interferometer Y offset
+                    (Displacement of midpoint of
+                    interferometer array from midpoint of
+                    main array, along the array
+                    normal direction with +Y in the direction of
+                    the array normal. Units are meters)
+                16: Interferometer Z offset
+                    (Displacement of midpoint of
+                    interferometer array from midpoint of
+                    main array, in terms of altitude
+                    difference with +Z up. Units are meters)
+                17: Analog Rx rise time
+                    (Time given in microseconds. Time delays of
+                    less than ~10 microseconds can be ignored.
+                    If narrow-band filters are
+                    used in analog receivers or front-ends,
+                    the time delays should be
+                    specified.)
+                18: Analog Rx attenuator step (dB)
+                19: Analog attenuation stages (Number of stages.
+                    This is used for gain control of an analog
+                    receiver or front-end.)
+                20: Maximum of range gates used
+                21: Maximum number of beams
+            """
+            return _HdwInfo(stid=int(hdw_data[j][0]),
+                            status=Status(int(hdw_data[j][1])),
+                            abbrev=abbrv,
+                            date=hdw_lines_date[j],
+                            geographic=_Coord(float(hdw_data[j][4]),
+                                              float(hdw_data[j][5]),
+                                              float(hdw_data[j][6])),
+                            boresight=_Boresight(float(hdw_data[j][7]),
+                                                 float(hdw_data[j][8])),
+                            beam_separation=float(hdw_data[j][9]),
+                            velocity_sign=float(hdw_data[j][10]),
+                            phase_sign=float(hdw_data[j][11]),
+                            tdiff=_Tdiff(float(hdw_data[j][12]),
+                                         float(hdw_data[j][13])),
+                            interferometer_offset=_InterferometerOffset(
+                                float(hdw_data[j][14]),
+                                float(hdw_data[j][15]),
+                                float(hdw_data[j][16])),
+                            rx_rise_time=float(hdw_data[j][17]),
+                            rx_attenuator=float(hdw_data[j][18]),
+                            attenuation_stages=int(hdw_data[j][19]),
+                            gates=int(hdw_data[j][20]),
+                            beams=int(hdw_data[j][21]))
     except FileNotFoundError:
         raise pydarn.radar_exceptions.HardwareFileNotFoundError(abbrv)
 
@@ -206,6 +262,19 @@ class Hemisphere(Enum):
     """
     North = 1
     South = -1
+
+
+class Status(Enum):
+    """
+    this class is to give names to status of radars
+
+    Attributes
+    ----------
+    online : 1
+    offline : -1
+    """
+    online = 1
+    offline = -1
 
 
 class _InterferometerOffset(NamedTuple):
@@ -248,20 +317,55 @@ class _Coord(NamedTuple):
     alt: float
 
 
+class _Tdiff(NamedTuple):
+    """
+    Class use to store tdiff values for various channels and
+    maybe for common frequencies.
+
+    Attributes
+    ----------
+    channel_a : float
+        for channel a
+    channel_b : float
+        for channel b
+    """
+    channel_a: float
+    channel_b: float
+
+
+class _Boresight(NamedTuple):
+    """
+    This class used to store the various boresights
+
+    Attributes
+    ----------
+    physical : float
+       Physical scanning boresight
+    electronic : float
+       Electronic shift to the radar scanning boresight
+    """
+    physical: float
+    electronic: float
+
+
 class _HdwInfo(NamedTuple):
     """
     Class used to store relevant information about the SuperDARN Radars
 
     Attributes
-    ----------
+    --- -------
     stid : int
         station number
+    status : Status
+        status of radars operation
     abbrev : str
         three letter station abbreviation
+    date : datetime
+        date of the hdw file data is being used
     geographic : _Coord object
         Named Tuple containing geographic latitude longitude and altitude
-    boresight : float
-        boresight center beam in degrees
+    boresight : _Boresight
+        boresight physical and electronic in degrees
     beam_separation : float
         angular separation between radar beams
     velocity_sign : float
@@ -270,19 +374,20 @@ class _HdwInfo(NamedTuple):
         Doppler velocities while backscattered signals with frequencies
         below the transmitted frequency are assigned negative Doppler
         velocity. Can be changed in receiver design.
-    rx_attenuator : float
-        Analog Rx attenuator step (dB)
-    tdiff : float
+    phase_sign : float
+        To account for flipped cable errors
+    tdiff : _Tdiff
+        channel a and b:
         propagation time from interferometer array antenna
         to phasing matrix input minus propagation time from main array
         antenna through transmitter to phasing matrix input.
         (microseconds)
-    phase_sign : float
-        To account for flipped cable errors
     interferometer_offset : _InterferometerOffset
         displacement of midpoint
         interferometer array from midpoint main array in
         Cartesian coordinates(meters).
+    rx_attenuator : float
+        Analog Rx attenuator step (dB)
     rx_rise : float
         Analog Rx rise time (microseconds)
     attenuation_stages : float
@@ -296,16 +401,22 @@ class _HdwInfo(NamedTuple):
     See Also
     --------
     read_hdw_file : function for reading hardware files
+    Status
     _Coord : object contain coordinate information
+    _Boresight
+    _Tdiff
+    _Interferometer
     """
     stid: int
+    status: int
     abbrev: str
+    date: datetime
     geographic: _Coord
-    boresight: float
+    boresight: _Boresight
     beam_separation: float
     velocity_sign: float
     rx_attenuator: float
-    tdiff: float
+    tdiff: _Tdiff
     phase_sign: float
     interferometer_offset: _InterferometerOffset
     rx_rise_time: float

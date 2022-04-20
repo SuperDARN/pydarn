@@ -9,18 +9,13 @@ Python data visualization library for the Super Dual Auroral Radar Network (Supe
 
 ## Changelog
 
-## Version 2.2.1 - Release!
+## Version 3.0 - Release!
 
-**New Requirement**: pyDARN 2.2.1 requires minimum matplotlib version of 3.3.4
+**New Requirement**: pyDARN 3.0 requires minimum matplotlib version of 3.3.4
 
-pyDARN release v2.2.1 includes the following features:
-* Bug fix: fixed but in Summary plot not rendering 
-* Bug fix: fixed axes object not being properly handled in plot_fan
-* Enhancement: Added `__version__` ability in pydarn 
-* Updated: citing warning printing on `import` instead of plotting 
-* Updated: pyDARNio 1.1.0 is requirement 
-
-**Deprecation**: `slant` option in `plot_range-time` and `plot_summary` is deprecated now uses `coords` 
+pyDARN release v3.0 includes the following features:
+- **New** optional cartopy dependency 
+- **New** convection map plotting
 
 ## Documentation
 

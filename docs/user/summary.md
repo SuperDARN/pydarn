@@ -44,7 +44,7 @@ darn_read = pydarn.SuperDARNRead(fitacf_file)
 fitacf_data = darn_read.read_fitacf()
 
 pydarn.RTP.plot_summary(fitacf_data, beam_num=2,
-                        coords=pydarn.Coords.RANGE_GATE)
+                        range_estimation=pydarn.RangeEstimation.RANGE_GATE)
 plt.show()
 ```
 which gives:
@@ -53,12 +53,12 @@ which gives:
 
 Note that ground scatter is displayed as default in the velocity panel. To disable it, you can use the option `groundscatter=false`.
 
-In addition, we use `coords=pydarn.Coords.RANGE_GATE` to set the y-axis to plot in range gates. 
+In addition, we use `range_estimation=pydarn.RangeEstimation.RANGE_GATE` to set the y-axis to plot in range gates. 
 Ground-Scatter Mapped Range is another type of axis you can use with range-time plots:
 
 ```python
 pydarn.RTP.plot_summary(fitacf_data, beam_num=3,
-                        coords=pydarn.Coords.GROUND_SCATTER_MAPPED_RANGE)
+                        range_estimation=pydarn.RangeEstimation.GSMR)
 ```
 
 ![](../imgs/summary_1.png)
@@ -86,5 +86,5 @@ Other common options include:
 | channel=(int)    | Specify channel number (default=all)                                     |
 | watermark=(bool) | True adds a 'not for publication' watermark                              |
 | cmaps=(dict/str) | Specifies the colour maps used in plotting                               | 
-| coords=(Coords)              | Coordinates to use for the y-axis (See [Coordinates](coordinates.md)) |
+| range_estimation=(RangeEstimation)              | Coordinates to use for the y-axis (See [Coordinates](coordinates.md)) |
 For more options on how to modify plot_summary, take a look at the method in `rtp.py`.

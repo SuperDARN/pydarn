@@ -1,20 +1,25 @@
 {
     "creators":[
         {
-            "name": "SuperDARN Data Analysis Working Group"
+            "name": "SuperDARN Data Visualization Working Group"
         },
         {
             "affiliation": "University of Saskatchewan",
             "name": "Schmidt, M.T.",
             "orcid": "0000-0002-3265-977X"
         },
-        {   "affiliation": "University of Scranton",
-            "name":  "Tholley, F."
-        },
         {
             "affiliation": "University of Saskatchewan",
             "name": "Martin, C.J.",
             "orcid": "0000-0002-8278-9783"
+        },
+        {
+            "affiliation": "Virginia Tech",
+            "name": "Shi, X.",
+            "orcid": "0000-0001-8425-8241"
+        },
+        {   "affiliation": "University of Scranton",
+            "name":  "Tholley, F."
         },
         {
             "affiliation": "University of Saskatchewan",
@@ -32,18 +37,9 @@
             "orcid": "0000-0003-1730-2753"
         },
         {
-            "affiliation": "University of Saskatchewan",
-            "name": "Detwiller, M.H."
-        },
-        {
             "affiliation": "University of Scranton",
             "name":  "Frissell, N.",
             "orcid": "0000-0002-8398-4222" 
-        },
-        {
-            "affiliation": "The University Centre in Svalbard",
-            "name": "Herlingshaw, K.",
-            "orcid": "0000-0001-6861-1914"
         },
         {
             "affiliation": "University of Saskatchewan",
@@ -51,12 +47,13 @@
             "orcid": "0000-0002-4257-4235"
         },
         {
+            "affiliation": "University of Alabama",
+            "name": "Khanal, K.",
+            "orcid": "" 
+        },
+        {
             "affiliation": "University of Bergen",
             "name": "Reistad, J.P.",
             "orcid": "0000-0003-3509-5479" 
-        },
-        {
-            "affiliation": "University of Saskatchewan",
-            "name": "Roberston, C.R."
         }]
 }
