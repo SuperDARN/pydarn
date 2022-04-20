@@ -48,6 +48,7 @@ Possible services:
 - Release 2.1 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4958007.svg)](https://doi.org/10.5281/zenodo.4958007)
 - Release 2.2 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5605069.svg)](https://doi.org/10.5281/zenodo.5605069)
 - Release 2.2.1 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5762322.svg)](https://doi.org/10.5281/zenodo.5762322)
+- Release 3.0 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6473574.svg)](https://doi.org/10.5281/zenodo.6473574)
 
 ## Acknowledgements
 
