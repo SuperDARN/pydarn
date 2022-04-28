@@ -3,10 +3,13 @@
 # Copyright (C) 2012  VT SuperDARN Lab
 # Modifications:
 # 2022-03-08: MTS - added partial records exception
-# 2021-03-18: CJM - Included contour plotting and HMB
-# 2021-03-31: CJM - Map info included
-# 2021-03-31: CJM - IMF clock angle dial added
-# 2021-04-01: CJM - Bug fix for lon shifting to MLT
+# 2022-03-18: CJM - Included contour plotting and HMB
+# 2022-03-31: CJM - Map info included
+# 2022-03-31: CJM - IMF clock angle dial added
+# 2022-04-01: CJM - Bug fix for lon shifting to MLT
+# 2022-04-27: CJM - Included option for coastlines
+# 2022-04-28: CJM - Added option to have single color vectors with reference
+#                   vector
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
@@ -32,9 +35,22 @@ from matplotlib import ticker, cm, colors
 from mpl_toolkits.axes_grid.inset_locator import InsetPosition
 from scipy import special
 from typing import List
+from packaging import version
 
 # Third party libraries
 import aacgmv2
+
+try:
+    import cartopy
+    import cartopy.crs as ccrs
+    import cartopy.feature as cfeature
+    cartopyInstalled = True
+    if version.parse(cartopy.__version__) < version.parse("0.19"):
+        cartopyVersion = False
+    else:
+        cartopyVersion = True
+except Exception:
+    cartopyInstalled = False
 
 from pydarn import (PyDARNColormaps, plot_exceptions,
                     standard_warning_format, Re, Hemisphere,
@@ -64,12 +80,14 @@ class Maps():
                      parameter: Enum = MapParams.FITTED_VELOCITY,
                      record: int = 0, start_time: dt.datetime = None,
                      time_delta: float = 1,  alpha: float = 1.0,
-                     len_factor: float = 150, cmap: str = None,
-                     colorbar: bool = True, colorbar_label: str = '',
-                     title: str = '', zmin: float = None, zmax: float = None,
+                     len_factor: float = 150, color_vectors: bool = True, 
+                     cmap: str = None, colorbar: bool = True,
+                     colorbar_label: str = '', title: str = '',
+                     zmin: float = None, zmax: float = None,
                      hmb: bool = True, boundary: bool = False,
                      radar_location: bool = False, map_info: bool = True,
-                     imf_dial: bool = True, **kwargs):
+                     imf_dial: bool = True, coastline: bool = False,
+                     **kwargs):
         """
         Plots convection maps data points and vectors
 
@@ -93,6 +111,10 @@ class Maps():
                 How close the start_time has to be start_time of the record
                 in minutes
                 default: 1
+            color_vectors: bool
+                If True, color the vectors by color map chosen
+                If False, color dark grey and include vector reference
+                Default: True
             cmap: matplotlib.cm
                 matplotlib colour map
                 https://matplotlib.org/tutorials/colors/colormaps.html
@@ -134,6 +156,9 @@ class Maps():
             imf_dial: bool
                 If True, draw an IMF dial of the magnetic field clock angle.
                 Default: True
+            coastline: bool
+                If True, draw coastlines on map
+                Default: False
             kwargs: key=value
                 uses the parameters for plot_fov and projections.axis
 
@@ -166,7 +191,6 @@ class Maps():
 
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            # TODO: Make FOV outlines optional or invisible
             for stid in dmap_data[record]['stid']:
                 _, aacgm_lons, ax, _ =\
                         Fan.plot_fov(stid, date, ax=ax, boundary=boundary,
@@ -222,15 +246,27 @@ class Maps():
             v_mag = dmap_data[record]['vector.wdt.median']
             azm_v = np.radians(dmap_data[record]['vector.kvect'])
 
+        
+
         if parameter in [MapParams.FITTED_VELOCITY, MapParams.MODEL_VELOCITY,
                          MapParams.RAW_VELOCITY]:
+            # Make reference vector and add it to the array to
+            # be calculated too
+            reflat = plt.gca().get_ylim()[1] - 5
+            reflon = np.radians(45)
+            v_mag = np.append(v_mag, 500)
+            azm_v = np.append(azm_v, np.radians(135))
+            
             # Angle to "rotate" each vector by to get into same
             # reference frame Controlled by longitude, or "mltitude"
-            alpha = mlons
+            alpha = np.append(mlons, reflon)
+            mlons = np.append(mlons, reflon)
+            mlats = np.append(mlats, reflat)
 
             # Convert initial positions to Cartesian
             start_pos_x = (90 - abs(mlats)) * np.cos(mlons)
             start_pos_y = (90 - abs(mlats)) * np.sin(mlons)
+
 
             # Resolve LOS vector in x and y directions,
             # with respect to mag pole
@@ -254,31 +290,39 @@ class Maps():
             
             end_mlats=end_mlats * hemisphere.value
 
-            # Plot the vectomlats
-            for i in range(len(v_mag)):
-                plt.plot([mlons[i], end_mlons[i]],
-                         [mlats[i], end_mlats[i]], c=cmap(norm(v_mag[i])),
-                         linewidth=0.5, zorder=5.0)
-        plt.scatter(mlons, mlats, c=v_mag, s=2.0,
-                    vmin=zmin, vmax=zmax,  cmap=cmap, zorder=5.0)
-
-        # Plot potential contours
-        fit_coefficient = dmap_data[record]['N+2']
-        fit_order = dmap_data[record]['fit.order']
-        lat_shift = dmap_data[record]['lat.shft']
-        lon_shift = dmap_data[record]['lon.shft']
-        lat_min = dmap_data[record]['latmin']
-
-        cls.plot_potential_contours(fit_coefficient, lat_min, date,
-                                    lat_shift=lat_shift, lon_shift=lon_shift,
-                                    fit_order=fit_order, hemisphere=hemisphere,
-                                    **kwargs)
-
-        if hmb is True:
-            # Plot the HMB
-            mlats_hmb = dmap_data[record]['boundary.mlat']
-            mlons_hmb = dmap_data[record]['boundary.mlon']
-            cls.plot_heppner_maynard_boundary(mlats_hmb, mlons_hmb, date)
+            # Plot the vector socks (final vector is the reference
+            # vector to be plotted later if required)
+            if color_vectors is True:
+                for i in range(len(v_mag) - 1):
+                    plt.plot([mlons[i], end_mlons[i]],
+                            [mlats[i], end_mlats[i]], c=cmap(norm(v_mag[i])),
+                            linewidth=0.5, zorder=5.0)
+            else:
+                for i in range(len(v_mag) - 1):
+                    plt.plot([mlons[i], end_mlons[i]],
+                             [mlats[i], end_mlats[i]], c='#292929',
+                             linewidth=0.5, zorder=5.0)
+                    
+        
+        # Plot the sock start dots
+        if color_vectors is True:
+            plt.scatter(mlons[:-1], mlats[:-1], c=v_mag, s=2.0,
+                        vmin=zmin, vmax=zmax,  cmap=cmap, zorder=5.0)
+        else:
+            plt.scatter(mlons[:-1], mlats[:-1], c='#292929', s=2.0,
+                        zorder=5.0)
+            
+            # If someone has chosen no color map then
+            # turn off the colorbar plotting and plot
+            # a reference vector instead
+            colorbar = False
+            # Ref vector:
+            plt.scatter(mlons[-1], mlats[-1], c='#292929', s=2.0,
+                        zorder=5.0, clip_on=False)
+            plt.plot([mlons[-1], end_mlons[-1]],
+                             [mlats[-1], end_mlats[-1]], c='#292929',
+                             linewidth=0.5, zorder=5.0, clip_on=False)
+            plt.figtext(0.675, 0.15, '500 m/s', fontsize=8)
 
         if colorbar is True:
             mappable = cm.ScalarMappable(norm=norm, cmap=cmap)
@@ -299,6 +343,42 @@ class Maps():
                     cb.set_label('Spectral Width (m s$^{-1}$)')
                 elif parameter is MapParams.POWER:
                     cb.set_label('Power')
+
+        # Plot potential contours
+        fit_coefficient = dmap_data[record]['N+2']
+        fit_order = dmap_data[record]['fit.order']
+        lat_shift = dmap_data[record]['lat.shft']
+        lon_shift = dmap_data[record]['lon.shft']
+        lat_min = dmap_data[record]['latmin']
+
+        cls.plot_potential_contours(fit_coefficient, lat_min, date,
+                                    lat_shift=lat_shift, lon_shift=lon_shift,
+                                    fit_order=fit_order, hemisphere=hemisphere,
+                                    **kwargs)
+
+        if hmb is True:
+            # Plot the HMB
+            mlats_hmb = dmap_data[record]['boundary.mlat']
+            mlons_hmb = dmap_data[record]['boundary.mlon']
+            cls.plot_heppner_maynard_boundary(mlats_hmb, mlons_hmb, date)
+
+        if coastline is True:
+            if cartopyInstalled is False:
+                raise plot_exceptions.CartopyMissingError()
+            if cartopyVersion is False:
+                raise plot_exceptions.CartopyVersionError(cartopy.__version__)
+            # Read in the geometry object of the coastlines
+            cc = cfeature.NaturalEarthFeature('physical', 'coastline', '110m',
+                                              color='k', zorder=2.0)
+            # Convert geometry object coordinates to MLT
+            geom_mag = []
+            for geom in cc.geometries():
+                geom_mag.append(cls.convert_geo_coastline_to_mag(geom, date))
+            cc_mag = cfeature.ShapelyFeature(geom_mag, ccrs.PlateCarree(),
+                                             color='k', zorder=2.0)
+            # Plot each geometry object
+            for geom in cc_mag.geometries():
+                plt.plot(*geom.coords.xy, color='k', linewidth=0.5, zorder=2.0)
 
         if title == '':
             title = "{year}-{month}-{day} {start_hour}:{start_minute} -"\
@@ -888,7 +968,7 @@ class Maps():
                          vmax=abs(pot_arr).max(),
                          vmin=-abs(pot_arr).max(),
                          locator=ticker.FixedLocator(contour_levels),
-                         cmap=contour_fill_cmap, alpha=0.6,
+                         cmap=contour_fill_cmap, alpha=0.5,
                          extend='both', zorder=3.0)
             if contour_colorbar is True:
                 norm = colors.Normalize
@@ -925,3 +1005,40 @@ class Maps():
                     color=pot_minmax_color, zorder=5.0)
         plt.scatter(np.radians(min_mlon), min_mlat, marker='_', s=70,
                     color=pot_minmax_color, zorder=5.0)
+
+
+    @classmethod
+    def convert_geo_coastline_to_mag(cls, geom, date, alt: float = 0.0):
+        '''
+        Takes the geometry object of coastlines and converts
+        the coordinates into AACGM_MLT for convection maps only
+        Only required usage is for cartopys NaturalEarthFeature
+        at 110m resolution only
+        
+        Parameters
+        ----------
+        geom: Shapely Geometry object
+            A list/collection of geometry objects
+        date: datetime object
+            Date of required plot
+        alt: float
+            Altitude in km 
+            Default 0 (sea level) for coastlines
+        '''
+        # Iterate over the coordinates and convert to MLT
+        def convert_to_mag(coords, date, alt):
+            for glon, glat in geom.coords:
+                [mlat, lon_mag, _] = \
+                    aacgmv2.convert_latlon_arr(glat, glon, alt,
+                                               date, method_code='G2A')
+                # Shift to MLT
+                shifted_mlts = lon_mag[0] - \
+                               (aacgmv2.convert_mlt(lon_mag[0], date) * 15)
+                shifted_lons = lon_mag - shifted_mlts
+                mlon = np.radians(shifted_lons)
+                yield (mlon.item(), mlat.item())
+        # Return geometry object
+        return type(geom)(list(convert_to_mag(geom.coords, date, alt)))
+
+                    
+                    
