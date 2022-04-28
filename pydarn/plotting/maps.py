@@ -80,7 +80,7 @@ class Maps():
                      parameter: Enum = MapParams.FITTED_VELOCITY,
                      record: int = 0, start_time: dt.datetime = None,
                      time_delta: float = 1,  alpha: float = 1.0,
-                     len_factor: float = 150, color_vectors: bool = True, 
+                     len_factor: float = 150, color_vectors: bool = True,
                      cmap: str = None, colorbar: bool = True,
                      colorbar_label: str = '', title: str = '',
                      zmin: float = None, zmax: float = None,
@@ -214,7 +214,7 @@ class Maps():
             (aacgmv2.convert_mlt(aacgm_lons[0, 0], date) * 15)
         shifted_lons = data_lons - shifted_mlts
         # Note that this "mlons" is adjusted for MLT
-        mlons = np.radians(shifted_lons) 
+        mlons = np.radians(shifted_lons)
         mlats = data_lats
 
         # If the parameter is velocity then plot the LOS vectors
@@ -246,17 +246,18 @@ class Maps():
             v_mag = dmap_data[record]['vector.wdt.median']
             azm_v = np.radians(dmap_data[record]['vector.kvect'])
 
-        
-
         if parameter in [MapParams.FITTED_VELOCITY, MapParams.MODEL_VELOCITY,
                          MapParams.RAW_VELOCITY]:
             # Make reference vector and add it to the array to
             # be calculated too
-            reflat = plt.gca().get_ylim()[1] - 5
+            reflat = (np.abs(plt.gca().get_ylim()[1]) - 5) * hemisphere.value
             reflon = np.radians(45)
             v_mag = np.append(v_mag, 500)
-            azm_v = np.append(azm_v, np.radians(135))
-            
+            if hemisphere == Hemisphere.North:
+                azm_v = np.append(azm_v, np.radians(135))
+            else:
+                azm_v = np.append(azm_v, np.radians(45))
+
             # Angle to "rotate" each vector by to get into same
             # reference frame Controlled by longitude, or "mltitude"
             alpha = np.append(mlons, reflon)
@@ -266,7 +267,6 @@ class Maps():
             # Convert initial positions to Cartesian
             start_pos_x = (90 - abs(mlats)) * np.cos(mlons)
             start_pos_y = (90 - abs(mlats)) * np.sin(mlons)
-
 
             # Resolve LOS vector in x and y directions,
             # with respect to mag pole
@@ -281,29 +281,28 @@ class Maps():
             vec_y = (x * np.sin(alpha)) + (y * np.cos(alpha))
 
             # New vector end points, in Cartesian
-            end_pos_x = start_pos_x + (vec_x  * hemisphere.value / len_factor)
-            end_pos_y = start_pos_y + (vec_y  * hemisphere.value / len_factor)
+            end_pos_x = start_pos_x + (vec_x * hemisphere.value / len_factor)
+            end_pos_y = start_pos_y + (vec_y * hemisphere.value / len_factor)
 
             # Convert back to polar for plotting
             end_mlats = 90.0 - (np.sqrt(end_pos_x**2 + end_pos_y**2))
             end_mlons = np.arctan2(end_pos_y, end_pos_x)
-            
-            end_mlats=end_mlats * hemisphere.value
+
+            end_mlats = end_mlats * hemisphere.value
 
             # Plot the vector socks (final vector is the reference
             # vector to be plotted later if required)
             if color_vectors is True:
                 for i in range(len(v_mag) - 1):
                     plt.plot([mlons[i], end_mlons[i]],
-                            [mlats[i], end_mlats[i]], c=cmap(norm(v_mag[i])),
-                            linewidth=0.5, zorder=5.0)
+                             [mlats[i], end_mlats[i]], c=cmap(norm(v_mag[i])),
+                             linewidth=0.5, zorder=5.0)
             else:
                 for i in range(len(v_mag) - 1):
                     plt.plot([mlons[i], end_mlons[i]],
                              [mlats[i], end_mlats[i]], c='#292929',
                              linewidth=0.5, zorder=5.0)
-                    
-        
+
         # Plot the sock start dots
         if color_vectors is True:
             plt.scatter(mlons[:-1], mlats[:-1], c=v_mag, s=2.0,
@@ -311,7 +310,6 @@ class Maps():
         else:
             plt.scatter(mlons[:-1], mlats[:-1], c='#292929', s=2.0,
                         zorder=5.0)
-            
             # If someone has chosen no color map then
             # turn off the colorbar plotting and plot
             # a reference vector instead
@@ -320,8 +318,8 @@ class Maps():
             plt.scatter(mlons[-1], mlats[-1], c='#292929', s=2.0,
                         zorder=5.0, clip_on=False)
             plt.plot([mlons[-1], end_mlons[-1]],
-                             [mlats[-1], end_mlats[-1]], c='#292929',
-                             linewidth=0.5, zorder=5.0, clip_on=False)
+                     [mlats[-1], end_mlats[-1]], c='#292929',
+                     linewidth=0.5, zorder=5.0, clip_on=False)
             plt.figtext(0.675, 0.15, '500 m/s', fontsize=8)
 
         if colorbar is True:
@@ -663,7 +661,7 @@ class Maps():
 
 
     @classmethod
-    def plot_heppner_maynard_boundary(cls, mlats: list, mlons: list, 
+    def plot_heppner_maynard_boundary(cls, mlats: list, mlons: list,
                                       date: object, line_color: str = 'black',
                                       **kwargs):
         # TODO: No evaluation of coordinate system made! May need if in
@@ -1014,7 +1012,7 @@ class Maps():
         the coordinates into AACGM_MLT for convection maps only
         Only required usage is for cartopys NaturalEarthFeature
         at 110m resolution only
-        
+
         Parameters
         ----------
         geom: Shapely Geometry object
@@ -1022,7 +1020,7 @@ class Maps():
         date: datetime object
             Date of required plot
         alt: float
-            Altitude in km 
+            Altitude in km
             Default 0 (sea level) for coastlines
         '''
         # Iterate over the coordinates and convert to MLT
@@ -1033,12 +1031,9 @@ class Maps():
                                                date, method_code='G2A')
                 # Shift to MLT
                 shifted_mlts = lon_mag[0] - \
-                               (aacgmv2.convert_mlt(lon_mag[0], date) * 15)
+                    (aacgmv2.convert_mlt(lon_mag[0], date) * 15)
                 shifted_lons = lon_mag - shifted_mlts
                 mlon = np.radians(shifted_lons)
                 yield (mlon.item(), mlat.item())
         # Return geometry object
         return type(geom)(list(convert_to_mag(geom.coords, date, alt)))
-
-                    
-                    
