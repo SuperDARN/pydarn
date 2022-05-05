@@ -220,48 +220,52 @@ class ACF():
                 raise plot_exceptions.OutOfRangeGateError(parameter, gate_num,
                                                           record['nrang'])
 
-        if normalized:
-            blank_re /= record['pwr0'][gate_num]
-            blank_im /= record['pwr0'][gate_num]
-
-            re /= record['pwr0'][gate_num]
-            im /= record['pwr0'][gate_num]
-
         # generates gaps where there are nan's
         masked_re = np.ma.array(re)
         masked_re = np.ma.masked_where(np.isnan(masked_re), masked_re)
 
         masked_im = np.ma.array(im)
         masked_im = np.ma.masked_where(np.isnan(masked_im), masked_im)
-        
-        if pwr_and_phs is True:
-            pwr = np.sqrt(np.square(masked_re) + np.square(masked_im))
-            phs = np.arctan2(masked_im, masked_re)
-            
-            masked_pwr = np.ma.array(pwr)
-            masked_pwr = np.ma.masked_where(np.isnan(masked_pwr), masked_pwr)
-            masked_phs = np.ma.array(phs)
-            masked_phs = np.ma.masked_where(np.isnan(masked_phs), masked_phs)
+
+        # Calculate pwr and phs regardless of choice as
+        # in return statement
+        pwr = np.sqrt(np.square(masked_re) + np.square(masked_im))
+        phs = np.arctan2(masked_im, masked_re)
+
+        masked_pwr = np.ma.array(pwr)
+        masked_pwr = np.ma.masked_where(np.isnan(masked_pwr), masked_pwr)
+        masked_phs = np.ma.array(phs)
+        masked_phs = np.ma.masked_where(np.isnan(masked_phs), masked_phs)
+
+        if normalized is True:
+            masked_re /= record['pwr0'][gate_num]
+            masked_im /= record['pwr0'][gate_num]
+
+            blank_re_n = blank_re / record['pwr0'][gate_num]
+            blank_im_n = blank_im / record['pwr0'][gate_num]
 
         # plot real and imaginary with power
         if pwr_and_phs is True:
             fig = plt.gcf()
-            gs = fig.add_gridspec(2,2)
-            ax = fig.add_subplot(gs[0,:])
-            ax_pwr = fig.add_subplot(gs[1,0])
-            ax_phs = fig.add_subplot(gs[1,1])
+            gs = fig.add_gridspec(2, 2)
+            ax = fig.add_subplot(gs[0, :])
+            ax_pwr = fig.add_subplot(gs[1, 0])
+            ax_phs = fig.add_subplot(gs[1, 1])
 
             ax_pwr.scatter(lags, masked_pwr, marker='o', color='tab:orange',
-                    label= '|Power|', **kwargs)
-            ax_pwr.set_ylabel(parameter)
+                           label='Power', **kwargs)
+            ax_pwr.set_ylabel('Power')
             ax_pwr.set_xlabel('Lag Number')
-            ax_pwr.set_ylim([0,abs(max(masked_pwr)) + 0.1*abs(max(masked_pwr))])
-        
+            ax_pwr.set_ylim([0, abs(max(masked_pwr))
+                             + 0.1*abs(max(masked_pwr))])
+            ax_pwr.set_title('Power')
+
             ax_phs.scatter(lags, np.degrees(masked_phs), marker='o',
-                     color='tab:purple', label='Phase', **kwargs)
+                           color='tab:purple', label='Phase', **kwargs)
             ax_phs.set_ylabel('Phase (degrees)')
             ax_phs.set_xlabel('Lag Number')
-            ax_phs.set_ylim([-180,180])
+            ax_phs.set_ylim([-180, 180])
+            ax_phs.set_title('Phase')
         else:
             ax = plt.gca()
 
@@ -270,8 +274,7 @@ class ACF():
         ax.plot(lags, masked_re, marker='o', color=real_color,
                 label='Real', **kwargs)
 
-
-        # plot blanked lags
+        # Plot blanked lags
         if plot_blank:
             print("Blanked lags:", blanked_lags)
             for blank in blanked_lags:
@@ -281,19 +284,36 @@ class ACF():
                     blank_pwr = np.sqrt(np.square(blank_re)
                                         + np.square(blank_im))
                     blank_phs = np.arctan2(blank_im, blank_re)
-                    line_pwr = ax_pwr.scatter(blank, blank_pwr[lags.index(blank)],
-                                     edgecolors='tab:orange', facecolors=(1,1,1,0),
-                                     marker='o')
-                    line_phs = ax_phs.scatter(blank, np.degrees(blank_phs[lags.index(blank)]),
-                                     edgecolor='tab:purple', marker='o', facecolor=(1,1,1,0))
-                
-                line_re = ax.scatter(blank, blank_re[lags.index(blank)],
-                                     edgecolors=real_color, facecolors=(1,1,1,0),
-                                     marker=blank_marker)
-                line_im = ax.scatter(blank, blank_im[lags.index(blank)],
-                                     edgecolors=imaginary_color,
-                                     facecolors=(1,1,1,0), marker=blank_marker)
-                
+                    line_pwr = ax_pwr.scatter(blank,
+                                              blank_pwr[lags.index(blank)],
+                                              edgecolors='tab:orange',
+                                              facecolors=(1, 1, 1, 0),
+                                              marker='o')
+                    line_phs = ax_phs.scatter(blank,
+                                              np.degrees(
+                                                blank_phs[lags.index(blank)]),
+                                              edgecolor='tab:purple',
+                                              marker='o',
+                                              facecolor=(1, 1, 1, 0))
+
+                if normalized is True:
+                    line_im = ax.scatter(blank, blank_im_n[lags.index(blank)],
+                                         edgecolors=imaginary_color,
+                                         facecolors=(1, 1, 1, 0),
+                                         marker=blank_marker)
+                    line_re = ax.scatter(blank, blank_re_n[lags.index(blank)],
+                                         edgecolors=real_color,
+                                         facecolors=(1, 1, 1, 0),
+                                         marker=blank_marker)
+                else:
+                    line_im = ax.scatter(blank, blank_im[lags.index(blank)],
+                                         edgecolors=imaginary_color,
+                                         facecolors=(1, 1, 1, 0),
+                                         marker=blank_marker)
+                    line_re = ax.scatter(blank, blank_re[lags.index(blank)],
+                                         edgecolors=real_color,
+                                         facecolors=(1, 1, 1, 0),
+                                         marker=blank_marker)
 
             # generate generic legend
             if legend and blanked_lags != []:
@@ -313,10 +333,10 @@ class ACF():
         ax.set_xlabel('Lag Number')
         # Calc and set limit of main plot
         lim_val = abs(max(masked_re + masked_im))\
-                  + 0.1 * abs(max(masked_re + masked_im))
+            + 0.1 * abs(max(masked_re + masked_im))
         ax.set_ylim([-lim_val, lim_val])
         ax.xaxis.set_major_locator(ticker.MaxNLocator(integer=True))
-        
+
         # Set title of Plot
         radar_name = SuperDARNRadars.radars[cls.dmap_data[0]['stid']].name
         title = "{date} UT {radar} Beam {beam}, Gate {gate}, Control "\
@@ -325,6 +345,8 @@ class ACF():
                           date=time.strftime("%Y %b %d %H:%M"),
                           cpid=record['cp'])
         ax.set_title(title)
+
+        return masked_re, masked_im, masked_pwr, masked_phs, blanked_lags
 
     @classmethod
     def __found_scan(cls, scan_num: int, count_num: int,
@@ -362,6 +384,7 @@ class ACF():
     def __blanked_lags(cls, record: dict, lags: list, gate: int):
         """
         Determines the blanked lags in the data record
+        Lags contaminated by transmit pulse overlap
 
         Parameters
         ----------
