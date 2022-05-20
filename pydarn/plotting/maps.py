@@ -7,7 +7,6 @@
 # 2022-03-31: CJM - Map info included
 # 2022-03-31: CJM - IMF clock angle dial added
 # 2022-04-01: CJM - Bug fix for lon shifting to MLT
-# 2022-04-27: CJM - Included option for coastlines
 # 2022-04-28: CJM - Added option to have single color vectors with reference
 #                   vector
 #
@@ -35,22 +34,9 @@ from matplotlib import ticker, cm, colors
 from mpl_toolkits.axes_grid.inset_locator import InsetPosition
 from scipy import special
 from typing import List
-from packaging import version
 
 # Third party libraries
 import aacgmv2
-
-try:
-    import cartopy
-    import cartopy.crs as ccrs
-    import cartopy.feature as cfeature
-    cartopyInstalled = True
-    if version.parse(cartopy.__version__) < version.parse("0.19"):
-        cartopyVersion = False
-    else:
-        cartopyVersion = True
-except Exception:
-    cartopyInstalled = False
 
 from pydarn import (PyDARNColormaps, plot_exceptions,
                     standard_warning_format, Re, Hemisphere,
@@ -86,7 +72,7 @@ class Maps():
                      zmin: float = None, zmax: float = None,
                      hmb: bool = True, boundary: bool = False,
                      radar_location: bool = False, map_info: bool = True,
-                     imf_dial: bool = True, coastline: bool = False,
+                     imf_dial: bool = True, reference_vector: bool = False,
                      **kwargs):
         """
         Plots convection maps data points and vectors
@@ -156,8 +142,9 @@ class Maps():
             imf_dial: bool
                 If True, draw an IMF dial of the magnetic field clock angle.
                 Default: True
-            coastline: bool
-                If True, draw coastlines on map
+            reference_vector: bool
+                If True include reference vector and label in
+                lower right corner
                 Default: False
             kwargs: key=value
                 uses the parameters for plot_fov and projections.axis
@@ -303,24 +290,33 @@ class Maps():
                              [mlats[i], end_mlats[i]], c='#292929',
                              linewidth=0.5, zorder=5.0)
 
-        # Plot the sock start dots
+        # Plot the sock start dots and reference vector if known
         if color_vectors is True:
-            plt.scatter(mlons[:-1], mlats[:-1], c=v_mag, s=2.0,
-                        vmin=zmin, vmax=zmax,  cmap=cmap, zorder=5.0)
+            if reference_vector is True:
+                plt.scatter(mlons[:], mlats[:], c=v_mag[:], s=2.0,
+                            vmin=zmin, vmax=zmax,  cmap=cmap, zorder=5.0,
+                            clip_on=False)
+                plt.plot([mlons[-1], end_mlons[-1]],
+                         [mlats[-1], end_mlats[-1]], c=cmap(norm(v_mag[-1])),
+                         linewidth=0.5, zorder=5.0, clip_on=False)
+                plt.figtext(0.675, 0.15, '500 m/s', fontsize=8)
+            else:
+                plt.scatter(mlons[:-1], mlats[:-1], c=v_mag[:-1], s=2.0,
+                            vmin=zmin, vmax=zmax,  cmap=cmap, zorder=5.0)
+
         else:
-            plt.scatter(mlons[:-1], mlats[:-1], c='#292929', s=2.0,
-                        zorder=5.0)
-            # If someone has chosen no color map then
-            # turn off the colorbar plotting and plot
-            # a reference vector instead
+            # no color so make sure colorbar is turned off
             colorbar = False
-            # Ref vector:
-            plt.scatter(mlons[-1], mlats[-1], c='#292929', s=2.0,
-                        zorder=5.0, clip_on=False)
-            plt.plot([mlons[-1], end_mlons[-1]],
-                     [mlats[-1], end_mlats[-1]], c='#292929',
-                     linewidth=0.5, zorder=5.0, clip_on=False)
-            plt.figtext(0.675, 0.15, '500 m/s', fontsize=8)
+            if reference_vector is True:
+                plt.scatter(mlons[:], mlats[:], c='#292929', s=2.0,
+                            zorder=5.0, clip_on=False)
+                plt.plot([mlons[-1], end_mlons[-1]],
+                         [mlats[-1], end_mlats[-1]], c='#292929',
+                         linewidth=0.5, zorder=5.0, clip_on=False)
+                plt.figtext(0.675, 0.15, '500 m/s', fontsize=8)
+            else:
+                plt.scatter(mlons[:-1], mlats[:-1], c='#292929', s=2.0,
+                            zorder=5.0)
 
         if colorbar is True:
             mappable = cm.ScalarMappable(norm=norm, cmap=cmap)
@@ -349,7 +345,7 @@ class Maps():
         lon_shift = dmap_data[record]['lon.shft']
         lat_min = dmap_data[record]['latmin']
 
-        cls.plot_potential_contours(fit_coefficient, lat_min, date,
+        cls.plot_potential_contours(fit_coefficient, lat_min, date, ax,
                                     lat_shift=lat_shift, lon_shift=lon_shift,
                                     fit_order=fit_order, hemisphere=hemisphere,
                                     **kwargs)
@@ -359,24 +355,6 @@ class Maps():
             mlats_hmb = dmap_data[record]['boundary.mlat']
             mlons_hmb = dmap_data[record]['boundary.mlon']
             cls.plot_heppner_maynard_boundary(mlats_hmb, mlons_hmb, date)
-
-        if coastline is True:
-            if cartopyInstalled is False:
-                raise plot_exceptions.CartopyMissingError()
-            if cartopyVersion is False:
-                raise plot_exceptions.CartopyVersionError(cartopy.__version__)
-            # Read in the geometry object of the coastlines
-            cc = cfeature.NaturalEarthFeature('physical', 'coastline', '110m',
-                                              color='k', zorder=2.0)
-            # Convert geometry object coordinates to MLT
-            geom_mag = []
-            for geom in cc.geometries():
-                geom_mag.append(cls.convert_geo_coastline_to_mag(geom, date))
-            cc_mag = cfeature.ShapelyFeature(geom_mag, ccrs.PlateCarree(),
-                                             color='k', zorder=2.0)
-            # Plot each geometry object
-            for geom in cc_mag.geometries():
-                plt.plot(*geom.coords.xy, color='k', linewidth=0.5, zorder=2.0)
 
         if title == '':
             title = "{year}-{month}-{day} {start_hour}:{start_minute} -"\
@@ -861,7 +839,7 @@ class Maps():
 
     @classmethod
     def plot_potential_contours(cls, fit_coefficient: list, lat_min: list,
-                                date: object, lat_shift: int = 0,
+                                date: object, ax: object, lat_shift: int = 0,
                                 lon_shift: int = 0, fit_order: int = 6,
                                 hemisphere: Enum = Hemisphere.North,
                                 contour_levels: list = [],
@@ -887,6 +865,8 @@ class Maps():
                 Not to be confused with 'lowlat'
             date: datetime object
                 Date from record
+            ax: object
+                matplotlib axis object
             lat_shift: int
                 Generic shift in latitude from map file
                 default: 0
@@ -976,7 +956,7 @@ class Maps():
                                              integer=True, nbins='auto')
                 ticks = locator.tick_values(vmin=-abs(pot_arr).max(),
                                             vmax=abs(pot_arr).max())
-                cb = plt.colorbar(mappable, extend='both', ticks=ticks)
+                cb = plt.colorbar(mappable, ax=ax, extend='both', ticks=ticks)
                 if contour_colorbar_label != '':
                     cb.set_label(contour_colorbar_label)
         else:
@@ -1003,37 +983,3 @@ class Maps():
                     color=pot_minmax_color, zorder=5.0)
         plt.scatter(np.radians(min_mlon), min_mlat, marker='_', s=70,
                     color=pot_minmax_color, zorder=5.0)
-
-
-    @classmethod
-    def convert_geo_coastline_to_mag(cls, geom, date, alt: float = 0.0):
-        '''
-        Takes the geometry object of coastlines and converts
-        the coordinates into AACGM_MLT for convection maps only
-        Only required usage is for cartopys NaturalEarthFeature
-        at 110m resolution only
-
-        Parameters
-        ----------
-        geom: Shapely Geometry object
-            A list/collection of geometry objects
-        date: datetime object
-            Date of required plot
-        alt: float
-            Altitude in km
-            Default 0 (sea level) for coastlines
-        '''
-        # Iterate over the coordinates and convert to MLT
-        def convert_to_mag(coords, date, alt):
-            for glon, glat in geom.coords:
-                [mlat, lon_mag, _] = \
-                    aacgmv2.convert_latlon_arr(glat, glon, alt,
-                                               date, method_code='G2A')
-                # Shift to MLT
-                shifted_mlts = lon_mag[0] - \
-                    (aacgmv2.convert_mlt(lon_mag[0], date) * 15)
-                shifted_lons = lon_mag - shifted_mlts
-                mlon = np.radians(shifted_lons)
-                yield (mlon.item(), mlat.item())
-        # Return geometry object
-        return type(geom)(list(convert_to_mag(geom.coords, date, alt)))
