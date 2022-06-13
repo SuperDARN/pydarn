@@ -34,7 +34,8 @@ except Exception:
     cartopyInstalled = False
 
 
-def axis_polar(lowlat: int = 30, hemisphere: Hemisphere = Hemisphere.North,
+def axis_polar(ax: object = None, lowlat: int = 30, 
+               hemisphere: Hemisphere = Hemisphere.North,
                grid_lines: bool = True, **kwargs):
     """
     Plots a radar's Field Of View (FOV) fan plot for the given data and
@@ -52,27 +53,30 @@ def axis_polar(lowlat: int = 30, hemisphere: Hemisphere = Hemisphere.North,
             Default: Hemisphere.North
     """
 
-    ax = plt.axes(polar=True)
+    if ax is None:
+        ax = plt.axes(polar=True)
+    
+        # Set upper and lower latitude limits (pole and lowlat)
+        if hemisphere == Hemisphere.North:
+            ax.set_ylim(90, lowlat)
+            ax.set_yticks(np.arange(lowlat, 90, 10))
+        else:
+            # If hemisphere is South, lowlat must be negative
+            ax.set_ylim(-90, -abs(lowlat))
+            ax.set_yticks(np.arange(-abs(lowlat), -90, -10))
+    
+        # Locations of tick marks. Will be customisable in future
+        ax.set_xticks([0, np.radians(45), np.radians(90), np.radians(135),
+                       np.radians(180), np.radians(225), np.radians(270),
+                       np.radians(315)])
+    
+        # Tick labels will depend on coordinate system
+        ax.set_xticklabels(['00', '', '06', '', '12', '', '18', ''])
+        ax.set_theta_zero_location("S")
 
-    # Set upper and lower latitude limits (pole and lowlat)
-    if hemisphere == Hemisphere.North:
-        ax.set_ylim(90, lowlat)
-        ax.set_yticks(np.arange(lowlat, 90, 10))
+        return ax, None
     else:
-        # If hemisphere is South, lowlat must be negative
-        ax.set_ylim(-90, -abs(lowlat))
-        ax.set_yticks(np.arange(-abs(lowlat), -90, -10))
-
-    # Locations of tick marks. Will be customisable in future
-    ax.set_xticks([0, np.radians(45), np.radians(90), np.radians(135),
-                   np.radians(180), np.radians(225), np.radians(270),
-                   np.radians(315)])
-
-    # Tick labels will depend on coordinate system
-    ax.set_xticklabels(['00', '', '06', '', '12', '', '18', ''])
-    ax.set_theta_zero_location("S")
-
-    return ax, None
+        return None, None
 
 
 def axis_geological(date, ax: object = None,
@@ -98,17 +102,21 @@ def axis_geological(date, ax: object = None,
         ylocations = 5
     # handle none types or wrongly built axes
     proj = ccrs.Orthographic(noon, pole_lat)
-    ax = plt.subplot(111, projection=proj, aspect='auto')
-    if grid_lines:
-        ax.gridlines(draw_labels=True)
-
-    extent = min(45e5,
-                 (abs(proj.transform_point(noon, lowlat,
-                                           ccrs.PlateCarree())
-                      [1])))
-    ax.set_extent(extents=(-extent, extent, -extent, extent),
-                  crs=proj)
-    return ax, ccrs
+    
+    if ax is None:
+        ax = plt.subplot(111, projection=proj, aspect='auto')
+        if grid_lines:
+            ax.gridlines(draw_labels=True)
+    
+        extent = min(45e5,
+                     (abs(proj.transform_point(noon, lowlat,
+                                               ccrs.PlateCarree())
+                          [1])))
+        ax.set_extent(extents=(-extent, extent, -extent, extent),
+                      crs=proj)
+        return ax, ccrs
+    else:
+        return None, ccrs
 
 
 class Projs(enum.Enum):
