@@ -4,7 +4,7 @@
 # Modifications:
 # 2022-03-11 MTS added enums for projection function calls
 # 2022-03-22 MTS removed coastline call and added grid lines to cartopy plotting
-# 2022-06-13 Elliott Day don't create new ax if ax passed in to Projs 
+# 2022-06-13 Elliott Day don't create new ax if ax passed in to Projs
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
 # Everyone is permitted to copy and distribute verbatim copies of this license
@@ -35,7 +35,7 @@ except Exception:
     cartopyInstalled = False
 
 
-def axis_polar(ax: object = None, lowlat: int = 30, 
+def axis_polar(ax: object = None, lowlat: int = 30,
                hemisphere: Hemisphere = Hemisphere.North,
                grid_lines: bool = True, **kwargs):
     """
@@ -63,7 +63,7 @@ def axis_polar(ax: object = None, lowlat: int = 30,
 
     if ax is None:
         ax = plt.axes(polar=True)
-    
+
         # Set upper and lower latitude limits (pole and lowlat)
         if hemisphere == Hemisphere.North:
             ax.set_ylim(90, lowlat)
@@ -72,12 +72,12 @@ def axis_polar(ax: object = None, lowlat: int = 30,
             # If hemisphere is South, lowlat must be negative
             ax.set_ylim(-90, -abs(lowlat))
             ax.set_yticks(np.arange(-abs(lowlat), -90, -10))
-    
+
         # Locations of tick marks. Will be customisable in future
         ax.set_xticks([0, np.radians(45), np.radians(90), np.radians(135),
                        np.radians(180), np.radians(225), np.radians(270),
                        np.radians(315)])
-    
+
         # Tick labels will depend on coordinate system
         ax.set_xticklabels(['00', '', '06', '', '12', '', '18', ''])
         ax.set_theta_zero_location("S")
@@ -109,7 +109,7 @@ def axis_geological(date, ax: object = None,
             Default: Hemisphere.North
         grid_lines: bool
             add latitude/longtidue lines with labels to the plot
-            Default: True  
+            Default: True
     """
     if cartopyInstalled is False:
         raise plot_exceptions.CartopyMissingError()
@@ -129,12 +129,12 @@ def axis_geological(date, ax: object = None,
         ylocations = 5
     # handle none types or wrongly built axes
     proj = ccrs.Orthographic(noon, pole_lat)
-    
+
     if ax is None:
         ax = plt.subplot(111, projection=proj, aspect='auto')
         if grid_lines:
             ax.gridlines(draw_labels=True)
-    
+
         extent = min(45e5,
                      (abs(proj.transform_point(noon, lowlat,
                                                ccrs.PlateCarree())
