@@ -43,6 +43,11 @@ def axis_polar(ax: object = None, lowlat: int = 30,
 
     Parameters
     -----------
+        ax: matplotlib.pyplot axis
+            Pre-defined axis object to pass in, must be
+            polar projection
+            Default: Generates a polar projection for the user
+            with MLT/latitude labels
         lowlat: int
             Lower AACGM latitude boundary for the polar plot
             Default: 30
@@ -51,6 +56,8 @@ def axis_polar(ax: object = None, lowlat: int = 30,
             Hemisphere.South for northern and southern hemispheres,
             respectively
             Default: Hemisphere.North
+        grid_lines: bool
+            required for axis_geological
     """
 
     if ax is None:
@@ -81,6 +88,27 @@ def axis_geological(date, ax: object = None,
                     hemisphere: Hemisphere = Hemisphere.North,
                     lowlat: int = 30, grid_lines: bool = True, **kwargs):
     """
+    Plots a radar's Field Of View (FOV) fan plot for the given data and
+    scan number
+
+    Parameters
+    -----------
+        ax: matplotlib.pyplot axis
+            Pre-defined axis object to pass in, must be
+            geological projection
+            Default: Generates a geographical projection for the user
+            with geographic latitude/longitude labels
+        lowlat: int
+            Lower geographic latitude boundary for the geographic plot
+            Default: 30
+        hemiphere: enum
+            Hemisphere of geographic projection. Can be Hemisphere.North or
+            Hemisphere.South for northern and southern hemispheres,
+            respectively
+            Default: Hemisphere.North
+        grid_lines: bool
+            add latitude/longtidue lines with labels to the plot
+            Default: True  
     """
     if cartopyInstalled is False:
         raise plot_exceptions.CartopyMissingError()
