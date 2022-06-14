@@ -74,9 +74,7 @@ def axis_polar(ax: object = None, lowlat: int = 30,
         ax.set_xticklabels(['00', '', '06', '', '12', '', '18', ''])
         ax.set_theta_zero_location("S")
 
-        return ax, None
-    else:
-        return None, None
+    return ax, None
 
 
 def axis_geological(date, ax: object = None,
@@ -114,9 +112,7 @@ def axis_geological(date, ax: object = None,
                           [1])))
         ax.set_extent(extents=(-extent, extent, -extent, extent),
                       crs=proj)
-        return ax, ccrs
-    else:
-        return None, ccrs
+    return ax, ccrs
 
 
 class Projs(enum.Enum):
