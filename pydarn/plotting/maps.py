@@ -72,7 +72,7 @@ class Maps():
                      zmin: float = None, zmax: float = None,
                      hmb: bool = True, boundary: bool = False,
                      radar_location: bool = False, map_info: bool = True,
-                     imf_dial: bool = True, reference_vector: bool = False,
+                     imf_dial: bool = True, reference_vector: int = 500,
                      **kwargs):
         """
         Plots convection maps data points and vectors
@@ -142,10 +142,11 @@ class Maps():
             imf_dial: bool
                 If True, draw an IMF dial of the magnetic field clock angle.
                 Default: True
-            reference_vector: bool
-                If True include reference vector and label in
-                lower right corner
-                Default: False
+            reference_vector: int
+                If a value is given, a reference velocity vector with
+                magnitude of given value, drawn in lower right corner.
+                Vector can be turned off by setting this value to False or 0.
+                Default: 500 (vector plotted)
             kwargs: key=value
                 uses the parameters for plot_fov and projections.axis
 
@@ -239,7 +240,7 @@ class Maps():
             # be calculated too
             reflat = (np.abs(plt.gca().get_ylim()[1]) - 5) * hemisphere.value
             reflon = np.radians(45)
-            v_mag = np.append(v_mag, 500)
+            v_mag = np.append(v_mag, reference_vector)
             if hemisphere == Hemisphere.North:
                 azm_v = np.append(azm_v, np.radians(135))
             else:
@@ -292,14 +293,15 @@ class Maps():
 
         # Plot the sock start dots and reference vector if known
         if color_vectors is True:
-            if reference_vector is True:
+            if reference_vector > 0:
                 plt.scatter(mlons[:], mlats[:], c=v_mag[:], s=2.0,
                             vmin=zmin, vmax=zmax,  cmap=cmap, zorder=5.0,
                             clip_on=False)
                 plt.plot([mlons[-1], end_mlons[-1]],
                          [mlats[-1], end_mlats[-1]], c=cmap(norm(v_mag[-1])),
                          linewidth=0.5, zorder=5.0, clip_on=False)
-                plt.figtext(0.675, 0.15, '500 m/s', fontsize=8)
+                plt.figtext(0.675, 0.15, str(reference_vector) + ' m/s',
+                            fontsize=8)
             else:
                 plt.scatter(mlons[:-1], mlats[:-1], c=v_mag[:-1], s=2.0,
                             vmin=zmin, vmax=zmax,  cmap=cmap, zorder=5.0)
@@ -307,13 +309,14 @@ class Maps():
         else:
             # no color so make sure colorbar is turned off
             colorbar = False
-            if reference_vector is True:
+            if reference_vector > 0:
                 plt.scatter(mlons[:], mlats[:], c='#292929', s=2.0,
                             zorder=5.0, clip_on=False)
                 plt.plot([mlons[-1], end_mlons[-1]],
                          [mlats[-1], end_mlats[-1]], c='#292929',
                          linewidth=0.5, zorder=5.0, clip_on=False)
-                plt.figtext(0.675, 0.15, '500 m/s', fontsize=8)
+                plt.figtext(0.675, 0.15, str(reference_vector) + ' m/s',
+                            fontsize=8)
             else:
                 plt.scatter(mlons[:-1], mlats[:-1], c='#292929', s=2.0,
                             zorder=5.0)
