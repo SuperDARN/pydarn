@@ -28,6 +28,7 @@ from pydarn import (geocentric_coordinates, SuperDARNRadars, RangeEstimation,
                     radar_exceptions, Re)
 
 
+
 def geo_coordinates(stid: int, beams: int = None,
                     gates: tuple = None, **kwargs):
     """
@@ -55,8 +56,9 @@ def geo_coordinates(stid: int, beams: int = None,
                                                 **kwargs)
             beam_corners_lats[gate-gates[0], beam] = lat
             beam_corners_lons[gate-gates[0], beam] = lon
-    y0inx = np.min(np.where(np.isfinite(beam_corners_lats[:,0]))[0])
-    return beam_corners_lats[y0inx:], beam_corners_lons[y0inx:]
+    # import ipdb;ipdb.set_trace()
+    # y0inx = np.min(np.where(np.isfinite(beam_corners_lats[:,0]))[0])
+    return beam_corners_lats, beam_corners_lons
 
 
 def aacgm_coordinates(stid: int, beams: int = None, gates: tuple = None,
@@ -214,6 +216,7 @@ class Coords(enum.Enum):
     GEOGRAPHIC = (geo_coordinates, )
     AACGM = (aacgm_coordinates, )
     AACGM_MLT = (aacgm_MLT_coordinates, )
+    SLANT_RANGE =(gate2geographic_location, )
 
     # Need this to make the functions callable
     def __call__(self, *args, **kwargs):

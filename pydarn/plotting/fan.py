@@ -220,12 +220,13 @@ class Fan():
                                                  " out at "\
                                                  "https://github.com"\
                                                  "/SuperDARN/pyDARN")
-
+      
         beam_corners_lats, beam_corners_lons =\
                 coords(stid=dmap_data[0]['stid'],
                        rsep=rsep, frang=frang,
                        gates=ranges, date=date,
                        **kwargs)
+
 
         fan_shape = beam_corners_lons.shape
         if ranges[0] < ranges[1] - fan_shape[0]:
@@ -241,6 +242,7 @@ class Fan():
         # both ends for the ranges given
         scan = np.zeros((fan_shape[0], fan_shape[1]-1))
         grndsct = np.zeros((fan_shape[0], fan_shape[1]-1))
+
         # Colour table and max value selection depending on parameter plotted
         # Load defaults if none given
         if cmap is None:
@@ -280,14 +282,14 @@ class Fan():
                 slist = slist[good_data]
                 temp_data = dmap_data[i.astype(int)][parameter][good_data]
                 temp_ground = dmap_data[i.astype(int)]['gflg'][good_data]
-
                 scan[slist-ranges[0], beam] = temp_data
                 grndsct[slist-ranges[0], beam] = temp_ground
+                # import pdb; pdb.set_trace()
             # if there is no slist field this means partial record
             except KeyError:
                 partial_record_warning()
                 continue
-
+        import pdb; pdb.set_trace()
         # Begin plotting by iterating over ranges and beams
 
         thetas = thetas[0:ranges[1]-ranges[0]+1]
