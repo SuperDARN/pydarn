@@ -310,7 +310,7 @@ class Fan():
         stid = dmap_data[0]['stid']
         kwargs['hemisphere'] = SuperDARNRadars.radars[stid].hemisphere
 
-        ax, ccrs = projs(date=date, **kwargs)
+        ax, ccrs = projs(date=date, ax=ax, **kwargs)
 
         if ccrs is None:
             transform = ax.transData
