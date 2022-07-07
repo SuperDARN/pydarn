@@ -5,6 +5,7 @@
 # 2022-03-11 MTS added enums for projection function calls
 # 2022-03-22 MTS removed coastline call and added grid lines to cartopy plotting
 # 2022-05-20 CJM added options to plot coastlines
+# 2022-06-13 Elliott Day don't create new ax if ax passed in to Projs
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
@@ -70,16 +71,21 @@ def convert_geo_coastline_to_mag(geom, date, alt: float = 0.0):
     return type(geom)(list(convert_to_mag(geom.coords, date, alt)))
 
 
-def axis_polar(date, lowlat: int = 30,
+def axis_polar(ax: object = None, lowlat: int = 30,
                hemisphere: Hemisphere = Hemisphere.North,
-               grid_lines: bool = True, coastline: bool = False,
-               **kwargs):
+               grid_lines: bool = True, **kwargs):
+
     """
     Plots a radar's Field Of View (FOV) fan plot for the given data and
     scan number
 
     Parameters
     -----------
+        ax: matplotlib.pyplot axis
+            Pre-defined axis object to pass in, must be
+            polar projection
+            Default: Generates a polar projection for the user
+            with MLT/latitude labels
         lowlat: int
             Lower AACGM latitude boundary for the polar plot
             Default: 30
@@ -88,27 +94,30 @@ def axis_polar(date, lowlat: int = 30,
             Hemisphere.South for northern and southern hemispheres,
             respectively
             Default: Hemisphere.North
+        grid_lines: bool
+            required for axis_geological
     """
 
-    ax = plt.axes(polar=True)
+    if ax is None:
+        ax = plt.axes(polar=True)
 
-    # Set upper and lower latitude limits (pole and lowlat)
-    if hemisphere == Hemisphere.North:
-        ax.set_ylim(90, lowlat)
-        ax.set_yticks(np.arange(lowlat, 90, 10))
-    else:
-        # If hemisphere is South, lowlat must be negative
-        ax.set_ylim(-90, -abs(lowlat))
-        ax.set_yticks(np.arange(-abs(lowlat), -90, -10))
+        # Set upper and lower latitude limits (pole and lowlat)
+        if hemisphere == Hemisphere.North:
+            ax.set_ylim(90, lowlat)
+            ax.set_yticks(np.arange(lowlat, 90, 10))
+        else:
+            # If hemisphere is South, lowlat must be negative
+            ax.set_ylim(-90, -abs(lowlat))
+            ax.set_yticks(np.arange(-abs(lowlat), -90, -10))
 
-    # Locations of tick marks. Will be customisable in future
-    ax.set_xticks([0, np.radians(45), np.radians(90), np.radians(135),
-                   np.radians(180), np.radians(225), np.radians(270),
-                   np.radians(315)])
+        # Locations of tick marks. Will be customisable in future
+        ax.set_xticks([0, np.radians(45), np.radians(90), np.radians(135),
+                       np.radians(180), np.radians(225), np.radians(270),
+                       np.radians(315)])
 
-    # Tick labels will depend on coordinate system
-    ax.set_xticklabels(['00', '', '06', '', '12', '', '18', ''])
-    ax.set_theta_zero_location("S")
+        # Tick labels will depend on coordinate system
+        ax.set_xticklabels(['00', '', '06', '', '12', '', '18', ''])
+        ax.set_theta_zero_location("S")
 
     if coastline is True:
         if cartopyInstalled is False:
@@ -135,6 +144,27 @@ def axis_geological(date, ax: object = None,
                     lowlat: int = 30, grid_lines: bool = True,
                     coastline: bool = False, **kwargs):
     """
+    Plots a radar's Field Of View (FOV) fan plot for the given data and
+    scan number
+
+    Parameters
+    -----------
+        ax: matplotlib.pyplot axis
+            Pre-defined axis object to pass in, must be
+            geological projection
+            Default: Generates a geographical projection for the user
+            with geographic latitude/longitude labels
+        lowlat: int
+            Lower geographic latitude boundary for the geographic plot
+            Default: 30
+        hemiphere: enum
+            Hemisphere of geographic projection. Can be Hemisphere.North or
+            Hemisphere.South for northern and southern hemispheres,
+            respectively
+            Default: Hemisphere.North
+        grid_lines: bool
+            add latitude/longtidue lines with labels to the plot
+            Default: True
     """
     if cartopyInstalled is False:
         raise plot_exceptions.CartopyMissingError()
@@ -154,20 +184,21 @@ def axis_geological(date, ax: object = None,
         ylocations = 5
     # handle none types or wrongly built axes
     proj = ccrs.Orthographic(noon, pole_lat)
-    ax = plt.subplot(111, projection=proj, aspect='auto')
-    if grid_lines:
-        ax.gridlines(draw_labels=True)
 
-    extent = min(45e5,
-                 (abs(proj.transform_point(noon, lowlat,
-                                           ccrs.PlateCarree())
-                      [1])))
-    ax.set_extent(extents=(-extent, extent, -extent, extent),
-                  crs=proj)
+    if ax is None:
+        ax = plt.subplot(111, projection=proj, aspect='auto')
+        if grid_lines:
+            ax.gridlines(draw_labels=True)
+
+        extent = min(45e5,
+                     (abs(proj.transform_point(noon, lowlat,
+                                               ccrs.PlateCarree())
+                          [1])))
+        ax.set_extent(extents=(-extent, extent, -extent, extent),
+                      crs=proj)
 
     if coastline is True:
         ax.coastlines()
-
     return ax, ccrs
 
 
