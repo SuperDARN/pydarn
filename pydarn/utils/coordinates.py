@@ -29,7 +29,7 @@ from pydarn import (geocentric_coordinates, SuperDARNRadars, RangeEstimation,
 
 
 def geo_coordinates(stid: int, beams: int = None,
-                    gates: tuple = None, **kwargs):
+                    gates: tuple = None, full_array: bool = False,**kwargs):
     """
     geographic_coordinates calculates the geographic coordinate for a given
     set of gates and beams
@@ -56,6 +56,9 @@ def geo_coordinates(stid: int, beams: int = None,
             beam_corners_lats[gate-gates[0], beam] = lat
             beam_corners_lons[gate-gates[0], beam] = lon
     y0inx = np.min(np.where(np.isfinite(beam_corners_lats[:,0]))[0])
+    # if full array is true returns the whole array of beam_corners_lats, beam_corners_lons
+    if full_array:
+        return beam_corners_lats, beam_corners_lons
     return beam_corners_lats[y0inx:], beam_corners_lons[y0inx:]
 
 

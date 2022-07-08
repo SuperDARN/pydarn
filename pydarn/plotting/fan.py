@@ -74,7 +74,7 @@ class Fan():
                  colorbar_label: str = '', title: bool = True,
                  boundary: bool = True, projs: Projs = Projs.POLAR,
                  coords: Coords = Coords.AACGM_MLT,
-                 channel: int = 'all', **kwargs):
+                 channel: int = 'all',full_array:bool = False, **kwargs):
         """
         Plots a radar's Field Of View (FOV) fan plot for the given data and
         scan number
@@ -138,6 +138,9 @@ class Fan():
                 integer indicating which channel to plot or 'all' to
                 plot all channels
                 Default: 'all'
+            full_array: bool 
+                boolen indicating to return the full array of both lons and lats coordinates
+                Default: false
             kwargs: key = value
                 Additional keyword arguments to be used in projection plotting
                 and plot_fov for possible keywords, see: projections.axis_polar
@@ -235,7 +238,7 @@ class Fan():
         beam_corners_lats, beam_corners_lons =\
                 coords(stid=dmap_data[0]['stid'],
                        rsep=rsep, frang=frang,
-                       gates=ranges, date=date,
+                       gates=ranges, date=date,full_array=full_array,
                        **kwargs)
 
         fan_shape = beam_corners_lons.shape
