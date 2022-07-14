@@ -71,9 +71,10 @@ def convert_geo_coastline_to_mag(geom, date, alt: float = 0.0):
     return type(geom)(list(convert_to_mag(geom.coords, date, alt)))
 
 
-def axis_polar(ax: object = None, lowlat: int = 30,
+def axis_polar(date, ax: object = None, lowlat: int = 30,
                hemisphere: Hemisphere = Hemisphere.North,
-               grid_lines: bool = True, **kwargs):
+               grid_lines: bool = True, coastline: bool = False,
+               **kwargs):
 
     """
     Plots a radar's Field Of View (FOV) fan plot for the given data and
