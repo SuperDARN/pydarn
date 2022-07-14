@@ -256,6 +256,7 @@ class ACF():
                            label='Power', **kwargs)
             ax_pwr.set_ylabel('Power')
             ax_pwr.set_xlabel('Lag Number')
+            ax_pwr.xaxis.set_major_locator(ticker.MaxNLocator(integer=True))
             ax_pwr.set_ylim([0, abs(max(masked_pwr))
                              + 0.1*abs(max(masked_pwr))])
             ax_pwr.set_title('Power')
@@ -264,6 +265,7 @@ class ACF():
                            color='tab:purple', label='Phase', **kwargs)
             ax_phs.set_ylabel('Phase (degrees)')
             ax_phs.set_xlabel('Lag Number')
+            ax_phs.xaxis.set_major_locator(ticker.MaxNLocator(integer=True))
             ax_phs.set_ylim([-180, 180])
             ax_phs.set_title('Phase')
         else:
@@ -332,8 +334,8 @@ class ACF():
         ax.set_ylabel(parameter)
         ax.set_xlabel('Lag Number')
         # Calc and set limit of main plot
-        lim_val = abs(max(masked_re + masked_im))\
-            + 0.1 * abs(max(masked_re + masked_im))
+        lim_val = max(abs(masked_re + masked_im))\
+            + 0.1 * max(abs(masked_re + masked_im))
         ax.set_ylim([-lim_val, lim_val])
         ax.xaxis.set_major_locator(ticker.MaxNLocator(integer=True))
 
