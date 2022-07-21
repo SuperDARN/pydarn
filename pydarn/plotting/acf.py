@@ -1,7 +1,20 @@
 # Copyright (C) 2020 SuperDARN Canada, University of Saskatchewan
 # Author: Marina Schmidt
-# This code is improvement based on acf.py in the DaVitpy library
+# This code is based on acf.py in the DaVitpy library
 # https://github.com/vtsuperdarn/davitpy/blob/master/davitpy
+# Modifications:
+# 2022-05-03: CJM - Added options to plot power and phase of acf
+#                 - change defaults to fit needs
+#
+# Disclaimer:
+# pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
+# Everyone is permitted to copy and distribute verbatim copies of this license
+# document, but changing it is not allowed.
+#
+# This version of the GNU Lesser General Public License incorporates the terms
+# and conditions of version 3 of the GNU General Public License,
+# supplemented by the additional permissions listed below.
+
 
 import copy
 import matplotlib.pyplot as plt
@@ -46,11 +59,11 @@ class ACF():
     @classmethod
     def plot_acfs(cls, dmap_data: List[dict], beam_num: int = 0,
                   gate_num: int = 15, parameter: str = 'acfd',
-                  scan_num: int = 0, start_time: datetime = None, ax=None,
-                  normalized: bool = True, real_color: str = 'red',
+                  scan_num: int = 0, start_time: datetime = None,
+                  normalized: bool = False, real_color: str = 'red',
                   plot_blank: bool = True, blank_marker: str = 'o',
                   imaginary_color: str = 'blue', legend: bool = True,
-                  **kwargs):
+                  pwr_and_phs: bool = True, **kwargs):
         """
         plots the parameter ACF/XCF field from SuperDARN file,
         typically RAWACF format for a given beam and gate number
@@ -76,7 +89,7 @@ class ACF():
         normalized: bool
             normalizes the parameter data with the associated
             power 0 value for the given gate number
-            default: True
+            default: False
         real_color: str
             line color of the real part of the paramter
             default: red
@@ -91,6 +104,9 @@ class ACF():
             default: blue
         legend: bool
             produces a standard legend
+            default: True
+        pwr_and_phs: bool
+            plots the power and phase of the ACF
             default: True
         kwargs: dict
             are applied to the real and imaginary plots
@@ -110,11 +126,6 @@ class ACF():
         -------
 
         """
-        # If an axes object is not passed in then store
-        # the equivalent object in matplotlib. This allows
-        # for variant matplotlib plotting styles.
-        if not ax:
-            ax = plt.gca()
         # Determine if a DmapRecord was passed in, instead of a list
         try:
             # because of partial records we need to find the first
@@ -209,13 +220,6 @@ class ACF():
                 raise plot_exceptions.OutOfRangeGateError(parameter, gate_num,
                                                           record['nrang'])
 
-        if normalized:
-            blank_re /= record['pwr0'][gate_num]
-            blank_im /= record['pwr0'][gate_num]
-
-            re /= record['pwr0'][gate_num]
-            im /= record['pwr0'][gate_num]
-
         # generates gaps where there are nan's
         masked_re = np.ma.array(re)
         masked_re = np.ma.masked_where(np.isnan(masked_re), masked_re)
@@ -223,34 +227,119 @@ class ACF():
         masked_im = np.ma.array(im)
         masked_im = np.ma.masked_where(np.isnan(masked_im), masked_im)
 
-        # plot real and imaginary
+        # Calculate pwr and phs regardless of choice as
+        # in return statement
+        pwr = np.sqrt(np.square(masked_re) + np.square(masked_im))
+        phs = np.arctan2(masked_im, masked_re)
+
+        masked_pwr = np.ma.array(pwr)
+        masked_pwr = np.ma.masked_where(np.isnan(masked_pwr), masked_pwr)
+        masked_phs = np.ma.array(phs)
+        masked_phs = np.ma.masked_where(np.isnan(masked_phs), masked_phs)
+
+        if normalized is True:
+            masked_re /= record['pwr0'][gate_num]
+            masked_im /= record['pwr0'][gate_num]
+
+            blank_re_n = blank_re / record['pwr0'][gate_num]
+            blank_im_n = blank_im / record['pwr0'][gate_num]
+
+        # plot real and imaginary with power
+        if pwr_and_phs is True:
+            fig = plt.gcf()
+            gs = fig.add_gridspec(2, 2)
+            ax = fig.add_subplot(gs[0, :])
+            ax_pwr = fig.add_subplot(gs[1, 0])
+            ax_phs = fig.add_subplot(gs[1, 1])
+
+            ax_pwr.scatter(lags, masked_pwr, marker='o', color='tab:orange',
+                           label='Power', **kwargs)
+            ax_pwr.set_ylabel('Power')
+            ax_pwr.set_xlabel('Lag Number')
+            ax_pwr.xaxis.set_major_locator(ticker.MaxNLocator(integer=True))
+            ax_pwr.set_ylim([0, abs(max(masked_pwr))
+                             + 0.1*abs(max(masked_pwr))])
+            ax_pwr.set_title('Power')
+
+            ax_phs.scatter(lags, np.degrees(masked_phs), marker='o',
+                           color='tab:purple', label='Phase', **kwargs)
+            ax_phs.set_ylabel('Phase (degrees)')
+            ax_phs.set_xlabel('Lag Number')
+            ax_phs.xaxis.set_major_locator(ticker.MaxNLocator(integer=True))
+            ax_phs.set_ylim([-180, 180])
+            ax_phs.set_title('Phase')
+        else:
+            ax = plt.gca()
+
         ax.plot(lags, masked_im, marker='o', color=imaginary_color,
                 label='Imaginary', **kwargs)
         ax.plot(lags, masked_re, marker='o', color=real_color,
                 label='Real', **kwargs)
 
-        # plot blanked lags
+        # Plot blanked lags
         if plot_blank:
-            print("plotting")
-            print(blanked_lags)
+            print("Blanked lags:", blanked_lags)
             for blank in blanked_lags:
                 # I use scatter here to make points not lines
                 # also shows up in the legend nicer
-                line_re = ax.scatter(blank, blank_re[lags.index(blank)],
-                                     edgecolors=real_color, facecolors='white',
-                                     marker=blank_marker)
-                line_im = ax.scatter(blank, blank_im[lags.index(blank)],
-                                     edgecolors=imaginary_color,
-                                     facecolors='white', marker=blank_marker)
+                if pwr_and_phs is True:
+                    blank_pwr = np.sqrt(np.square(blank_re)
+                                        + np.square(blank_im))
+                    blank_phs = np.arctan2(blank_im, blank_re)
+                    line_pwr = ax_pwr.scatter(blank,
+                                              blank_pwr[lags.index(blank)],
+                                              edgecolors='tab:orange',
+                                              facecolors=(1, 1, 1, 0),
+                                              marker='o')
+                    line_phs = ax_phs.scatter(blank,
+                                              np.degrees(
+                                                blank_phs[lags.index(blank)]),
+                                              edgecolor='tab:purple',
+                                              marker='o',
+                                              facecolor=(1, 1, 1, 0))
+
+                if normalized is True:
+                    line_im = ax.scatter(blank, blank_im_n[lags.index(blank)],
+                                         edgecolors=imaginary_color,
+                                         facecolors=(1, 1, 1, 0),
+                                         marker=blank_marker)
+                    line_re = ax.scatter(blank, blank_re_n[lags.index(blank)],
+                                         edgecolors=real_color,
+                                         facecolors=(1, 1, 1, 0),
+                                         marker=blank_marker)
+                else:
+                    line_im = ax.scatter(blank, blank_im[lags.index(blank)],
+                                         edgecolors=imaginary_color,
+                                         facecolors=(1, 1, 1, 0),
+                                         marker=blank_marker)
+                    line_re = ax.scatter(blank, blank_re[lags.index(blank)],
+                                         edgecolors=real_color,
+                                         facecolors=(1, 1, 1, 0),
+                                         marker=blank_marker)
 
             # generate generic legend
             if legend and blanked_lags != []:
                 line_re.set_label('Real Blanked')
                 line_im.set_label('Imaginary Blanked')
-        ax.legend()
+                if pwr_and_phs is True:
+                    line_pwr.set_label('Power Blanked')
+                    line_phs.set_label('Phase Blanked')
+
+        # Make legend on right side of figure
+        if legend is True:
+            fig = plt.gcf()
+            fig.legend(loc=5)
+            plt.subplots_adjust(right=0.8)
+        # Set labels of main plot
         ax.set_ylabel(parameter)
         ax.set_xlabel('Lag Number')
+        # Calc and set limit of main plot
+        lim_val = max(abs(masked_re + masked_im))\
+            + 0.1 * max(abs(masked_re + masked_im))
+        ax.set_ylim([-lim_val, lim_val])
         ax.xaxis.set_major_locator(ticker.MaxNLocator(integer=True))
+
+        # Set title of Plot
         radar_name = SuperDARNRadars.radars[cls.dmap_data[0]['stid']].name
         title = "{date} UT {radar} Beam {beam}, Gate {gate}, Control "\
                 "Program: {cpid}"\
@@ -258,6 +347,8 @@ class ACF():
                           date=time.strftime("%Y %b %d %H:%M"),
                           cpid=record['cp'])
         ax.set_title(title)
+
+        return masked_re, masked_im, masked_pwr, masked_phs, blanked_lags
 
     @classmethod
     def __found_scan(cls, scan_num: int, count_num: int,
@@ -295,6 +386,7 @@ class ACF():
     def __blanked_lags(cls, record: dict, lags: list, gate: int):
         """
         Determines the blanked lags in the data record
+        Lags contaminated by transmit pulse overlap
 
         Parameters
         ----------
