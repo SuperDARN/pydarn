@@ -8,6 +8,7 @@
 # 2021-06-18 Marina Schmidt (SuperDARN Canada) fixed ground scatter colour bug
 # 2021-07-06 Carley Martin added keyword to aid in rounding start times
 # 2022-03-04 Marina Schmidt added RangeEstimations in
+# 2022-08-04 Carley Martin added elifs for HALF_SLANT options
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md

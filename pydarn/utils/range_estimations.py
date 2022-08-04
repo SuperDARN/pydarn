@@ -11,6 +11,7 @@
 # supplemented by the additional permissions listed below.
 #
 # Modifications:
+# 2022-08-04 CJM added HALF_SLANT option and gate2halfslant method
 #
 
 import enum
