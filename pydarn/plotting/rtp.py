@@ -1115,7 +1115,8 @@ class RTP():
                 # on the velocity plot. This may change in the future.
                 if range_estimation == RangeEstimation.SLANT_RANGE:
                     ymax = 3517.5
-                elif range_estimation == RangeEstimation.GSMR:
+                elif range_estimation == RangeEstimation.GSMR or \
+                        range_estimation == RangeEstimation.HALF_SLANT:
                     ymax = 3517.5/2
                 else:
                     ymax = 75
@@ -1164,6 +1165,8 @@ class RTP():
                     axes[i].set_ylabel('Slant Range (km)')
                 elif range_estimation == RangeEstimation.GSMR:
                     axes[i].set_ylabel('Ground Scatter\nMapped Range\n(km)')
+                elif range_estimation == RangeEstimation.HALF_SLANT:
+                    axes[i].set_ylabel('Slant Range/2\n(km)')
                 else:
                     axes[i].set_ylabel('Range Gates')
             if i < num_plots-1:

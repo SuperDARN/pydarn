@@ -15,9 +15,26 @@
 
 import enum
 import numpy as np
-import math
 
 from pydarn import Re, C
+
+
+def gate2halfslant(**kwargs):
+    """
+    Calculate the slant range divided by 2 for each range gate
+
+    Parameters
+    ----------
+        None
+
+    Returns
+    -------
+        half_slant : np.array
+            returns an array of slant ranges divided by two for the radar
+    """
+    slant_range = gate2slant(**kwargs)
+    half_slant = slant_range / 2
+    return half_slant
 
 
 def gate2groundscatter(reflection_height: float = 250, **kwargs):
@@ -119,6 +136,7 @@ class RangeEstimation(enum.Enum):
 
     RANGE_GATE = enum.auto()
     SLANT_RANGE = (gate2slant,)
+    HALF_SLANT = (gate2halfslant,)
     GSMR = (gate2groundscatter,)
 
     # Need this to make the functions callable
