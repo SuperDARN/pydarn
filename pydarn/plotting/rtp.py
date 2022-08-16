@@ -8,6 +8,7 @@
 # 2021-06-18 Marina Schmidt (SuperDARN Canada) fixed ground scatter colour bug
 # 2021-07-06 Carley Martin added keyword to aid in rounding start times
 # 2022-03-04 Marina Schmidt added RangeEstimations in
+# 2022-08-04 Carley Martin added elifs for HALF_SLANT options
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
@@ -1115,7 +1116,8 @@ class RTP():
                 # on the velocity plot. This may change in the future.
                 if range_estimation == RangeEstimation.SLANT_RANGE:
                     ymax = 3517.5
-                elif range_estimation == RangeEstimation.GSMR:
+                elif range_estimation == RangeEstimation.GSMR or \
+                        range_estimation == RangeEstimation.HALF_SLANT:
                     ymax = 3517.5/2
                 else:
                     ymax = 75
@@ -1164,6 +1166,8 @@ class RTP():
                     axes[i].set_ylabel('Slant Range (km)')
                 elif range_estimation == RangeEstimation.GSMR:
                     axes[i].set_ylabel('Ground Scatter\nMapped Range\n(km)')
+                elif range_estimation == RangeEstimation.HALF_SLANT:
+                    axes[i].set_ylabel('Slant Range/2\n(km)')
                 else:
                     axes[i].set_ylabel('Range Gates')
             if i < num_plots-1:
