@@ -183,6 +183,7 @@ def axis_geological(date, ax: object = None,
         pole_lat = -90
         noon = 360 - deg_from_midnight
         ylocations = 5
+        lowlat = -abs(lowlat)
     # handle none types or wrongly built axes
     proj = ccrs.Orthographic(noon, pole_lat)
 
@@ -191,12 +192,8 @@ def axis_geological(date, ax: object = None,
         if grid_lines:
             ax.gridlines(draw_labels=True)
 
-        extent = min(45e5,
-                     (abs(proj.transform_point(noon, lowlat,
-                                               ccrs.PlateCarree())
-                          [1])))
-        ax.set_extent(extents=(-extent, extent, -extent, extent),
-                      crs=proj)
+        extent = abs(proj.transform_point(noon, lowlat, ccrs.PlateCarree())[1])
+        ax.set_extent(extents=(-extent, extent, -extent, extent), crs=proj)
 
     if coastline is True:
         ax.coastlines()
