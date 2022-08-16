@@ -9,6 +9,7 @@
 # 2022-04-01: CJM - Bug fix for lon shifting to MLT
 # 2022-04-28: CJM - Added option to have single color vectors with reference
 #                   vector
+# 2022-08-15: CJM - Removed plot_FOV call for default uses
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
