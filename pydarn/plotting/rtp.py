@@ -364,9 +364,11 @@ class RTP():
                                     .hardware_info.rx_rise_time
             frang = int(cls.dmap_data[0]['frang'])
             rsep = int(cls.dmap_data[0]['rsep'])
+            stid = cls.dmap_data[0]['stid']
 
             y = range_estimation(frang=frang, rxrise=rxrise,
-                                 rsep=rsep, nrang=y_max, **kwargs)
+                                 rsep=rsep, nrang=y_max, beam=beam_num,
+                                 stid=stid, date=start_time, **kwargs)
 
             y0inx = np.min(np.where(np.isfinite(y))[0])
             y = y[y0inx:]

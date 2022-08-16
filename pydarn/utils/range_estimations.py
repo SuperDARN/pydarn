@@ -13,11 +13,13 @@
 # Modifications:
 #
 
+import aacgmv2
 import enum
 import numpy as np
 import math
+import datetime as dt
 
-from pydarn import Re, C
+from pydarn import (Re, C, geocentric_coordinates, SuperDARNRadars)
 
 
 def gate2groundscatter(reflection_height: float = 250, **kwargs):
@@ -106,6 +108,51 @@ def gate2slant(rxrise: int = 0, range_gate: int = 0, frang: int = 180,
     return slant_ranges
 
 
+def gate2geopsn(stid: str, beam: int, km_est: str='slant', **kwargs):
+    if km_est == 'slant':
+        km_range = gate2slant(**kwargs)
+    elif km_est == 'gsmr':
+        km_range = gate2groundscatter(**kwargs)
+    elif km_est == 'half':
+        # UPDATE THIS WHEN MERGED
+        km_range == gate2slant(**kwargs)
+
+    # Convert km_range to geographic positions
+    radar_lat = np.radians(SuperDARNRadars.
+                           radars[stid].hardware_info.geographic.lat)
+    radar_lon = np.radians(SuperDARNRadars.
+                           radars[stid].hardware_info.geographic.lon)
+    boresight = np.radians(SuperDARNRadars.
+                           radars[stid].hardware_info.boresight.physical)
+    beam_sep = np.radians(abs(SuperDARNRadars.
+                          radars[stid].hardware_info.beam_separation))
+    offset = SuperDARNRadars.radars[stid].hardware_info.beams / 2.0 - 0.5
+    beam_edge = -beam_sep * 0.5
+    # psi [rad] in the angle from the boresight
+    psi = beam_sep * (beam - offset) + beam_edge
+
+    lats = []
+    lons = []
+    for km in km_range:
+        lat, lon = geocentric_coordinates(lat=radar_lat, lon=radar_lon,
+                                          target_range=km, psi=psi,
+                                          boresight=boresight, **kwargs)
+        lats.append(lat)
+        lons.append(lon)
+
+    return [lats, lons]
+
+
+def gate2magpsn(date: dt.datetime, **kwargs):
+    lats, lons = gate2geopsn(**kwargs)
+    # convert geo to mag
+    magpsn = aacgmv2.get_aacgm_coord_arr(glat=lats, glon=lons, 
+                                         height=250, dtime=date)
+    maglats = magpsn[0]
+    maglons = magpsn[1]
+    return [maglats, maglons]
+
+
 class RangeEstimation(enum.Enum):
     """
     Range_Estimation class is to list the current range gate estimations
@@ -120,6 +167,8 @@ class RangeEstimation(enum.Enum):
     RANGE_GATE = enum.auto()
     SLANT_RANGE = (gate2slant,)
     GSMR = (gate2groundscatter,)
+    GEOGRAPHIC = (gate2geopsn,)
+    AACGM = (gate2magpsn,)
 
     # Need this to make the functions callable
     def __call__(self, *args, **kwargs):

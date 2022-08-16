@@ -41,20 +41,20 @@ from .exceptions.warning_formatting import cartopy_print_warning
 from .utils.constants import Re
 from .utils.constants import EARTH_EQUATORIAL_RADIUS
 from .utils.constants import C
-from .utils.range_estimations import RangeEstimation
 from .utils.virtual_heights import VHModels
+from .utils.geo import geocentric_coordinates
+from .utils.superdarn_radars import SuperDARNRadars
+from .utils.range_estimations import RangeEstimation
 from .utils.conversions import dmap2dict
 from .utils.plotting import MapParams
 from .utils.plotting import check_data_type
 from .utils.plotting import time2datetime
 from .utils.plotting import find_record
-from .utils.superdarn_radars import SuperDARNRadars
 from .utils.superdarn_cpid import SuperDARNCpids
 from .utils.superdarn_radars import Hemisphere
 from .utils.superdarn_radars import read_hdw_file
 from .utils.superdarn_radars import get_hdw_files
 from .utils.scan import build_scan
-from .utils.geo import geocentric_coordinates
 from .utils.coordinates import Coords
 
 # import plotting
