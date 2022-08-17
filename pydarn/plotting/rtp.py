@@ -8,6 +8,7 @@
 # 2021-06-18 Marina Schmidt (SuperDARN Canada) fixed ground scatter colour bug
 # 2021-07-06 Carley Martin added keyword to aid in rounding start times
 # 2022-03-04 Marina Schmidt added RangeEstimations in
+# 2022-08-04 Carley Martin added elifs for HALF_SLANT options
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
@@ -442,7 +443,8 @@ class RTP():
             ax.yaxis.set_ticks(np.arange(np.ceil(ymin/100.0)*100,
                                          ymax+1, yspacing))
         elif range_estimation == RangeEstimation.GEOGRAPHIC_GSMR or \
-              range_estimation == RangeEstimation.GEOGRAPHIC_SLANT:
+              range_estimation == RangeEstimation.GEOGRAPHIC_SLANT or \
+              range_estimation == RangeEstimation.GEOGRAPHIC_HALF:
             # For geographic axes, plot in km then change the labels
             tick_vals = np.arange(np.ceil(ymin/100.0)*100,
                                          ymax+1, yspacing)
@@ -456,7 +458,8 @@ class RTP():
             coordinate = [str(round(x,1)) for x in coordinate]
             ax.set_yticklabels(coordinate)
         elif range_estimation == RangeEstimation.AACGM_GSMR or \
-              range_estimation == RangeEstimation.AACGM_SLANT:
+              range_estimation == RangeEstimation.AACGM_SLANT or \
+              range_estimation == RangeEstimation.AACGM_HALF:
             # For magnetic axes, plot in km then change the labels
             tick_vals = np.arange(np.ceil(ymin/100.0)*100,
                                          ymax+1, yspacing)
@@ -1153,7 +1156,10 @@ class RTP():
                     ymax = 3517.5
                 elif range_estimation == RangeEstimation.GSMR or \
                       range_estimation == RangeEstimation.GEOGRAPHIC_GSMR or \
-                      range_estimation == RangeEstimation.AACGM_GSMR:
+                      range_estimation == RangeEstimation.AACGM_GSMR or \
+                      range_estimation == RangeEstimation.HALF_SLANT or \
+                      range_estimation == RangeEstimation.GEOGRAPHIC_HALF or \
+                      range_estimation == RangeEstimation.AACGM_HALF:
                     ymax = 3517.5/2
                 else:
                     ymax = 75
@@ -1203,12 +1209,28 @@ class RTP():
                     axes[i].set_ylabel('Slant Range (km)')
                 elif range_estimation == RangeEstimation.GSMR:
                     axes[i].set_ylabel('Ground Scatter\nMapped Range\n(km)')
-                elif range_estimation == RangeEstimation.GEOGRAPHIC_SLANT or \
-                      range_estimation == RangeEstimation.GEOGRAPHIC_GSMR:
+                elif range_estimation == RangeEstimation.HALF_SLANT:
+                    axes[i].set_ylabel('Slant Range/2\n(km)')
+                elif (range_estimation == RangeEstimation.GEOGRAPHIC_SLANT or \
+                      range_estimation == RangeEstimation.GEOGRAPHIC_GSMR or \
+                      range_estimation == RangeEstimation.GEOGRAPHIC_HALF) and \
+                      lat_or_lon == 'lat':
                     axes[i].set_ylabel('Geographic\nLatitude (°)')
-                elif range_estimation == RangeEstimation.AACGM_SLANT or \
-                      range_estimation == RangeEstimation.AACGM_GSMR:
+                elif (range_estimation == RangeEstimation.AACGM_SLANT or \
+                      range_estimation == RangeEstimation.AACGM_GSMR or \
+                      range_estimation == RangeEstimation.AACGM_HALF) and \
+                      lat_or_lon == 'lat':
                     axes[i].set_ylabel('AACGM\nLatitude (°)')
+                elif (range_estimation == RangeEstimation.GEOGRAPHIC_SLANT or \
+                      range_estimation == RangeEstimation.GEOGRAPHIC_GSMR or \
+                      range_estimation == RangeEstimation.GEOGRAPHIC_HALF) and \
+                      lat_or_lon == 'lon':
+                    axes[i].set_ylabel('Geographic\nLongitude (°)')
+                elif (range_estimation == RangeEstimation.AACGM_SLANT or \
+                      range_estimation == RangeEstimation.AACGM_GSMR or \
+                      range_estimation == RangeEstimation.AACGM_HALF) and \
+                      lat_or_lon == 'lon':
+                    axes[i].set_ylabel('AACGM\nLongitude (°)')
                 else:
                     axes[i].set_ylabel('Range Gates')
             if i < num_plots-1:

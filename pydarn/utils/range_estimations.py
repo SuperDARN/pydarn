@@ -11,6 +11,7 @@
 # supplemented by the additional permissions listed below.
 #
 # Modifications:
+# 2022-08-04 CJM added HALF_SLANT option and gate2halfslant method
 #
 
 import aacgmv2
@@ -19,7 +20,26 @@ import numpy as np
 import math
 import datetime as dt
 
+
 from pydarn import (Re, C, geocentric_coordinates, SuperDARNRadars)
+
+
+def gate2halfslant(**kwargs):
+    """
+    Calculate the slant range divided by 2 for each range gate
+
+    Parameters
+    ----------
+        None
+
+    Returns
+    -------
+        half_slant : np.array
+            returns an array of slant ranges divided by two for the radar
+    """
+    slant_range = gate2slant(**kwargs)
+    half_slant = slant_range / 2
+    return half_slant
 
 
 def gate2groundscatter(reflection_height: float = 250, **kwargs):
@@ -144,6 +164,24 @@ def gate2maggsmr(**kwargs):
     return gate2groundscatter(**kwargs)
 
 
+def gate2geohalf(**kwargs):
+    """
+    Plotting in geo and mag is done in the given km ranges, then
+    the labels are converted to lat or lon in rtp.py.
+    Different methods required or RangeEstimation defaults to slant range
+    """
+    return gate2halfslant(**kwargs)
+
+
+def gate2maghalf(**kwargs):
+    """
+    Plotting in geo and mag is done in the given km ranges, then
+    the labels are converted to lat or lon in rtp.py.
+    Different methods required or RangeEstimation defaults to slant range
+    """
+    return gate2halfslant(**kwargs)
+
+
 def km2geo(ranges, stid: str, beam: int, **kwargs):
     """
     Convert a value in km from the radar into a geographic
@@ -226,11 +264,15 @@ class RangeEstimation(enum.Enum):
 
     RANGE_GATE = enum.auto()
     SLANT_RANGE = (gate2slant,)
+    HALF_SLANT = (gate2halfslant,)
     GSMR = (gate2groundscatter,)
+
     GEOGRAPHIC_SLANT = (gate2geoslant,)
     AACGM_SLANT = (gate2magslant,)
     GEOGRAPHIC_GSMR = (gate2geogsmr,)
     AACGM_GSMR = (gate2maggsmr,)
+    GEOGRAPHIC_HALF = (gate2geohalf,)
+    AACGM_HALF = (gate2maghalf,)
 
     # Need this to make the functions callable
     def __call__(self, *args, **kwargs):
