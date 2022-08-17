@@ -44,7 +44,7 @@ from .utils.constants import C
 from .utils.virtual_heights import VHModels
 from .utils.geo import geocentric_coordinates
 from .utils.superdarn_radars import SuperDARNRadars
-from .utils.range_estimations import RangeEstimation
+from .utils.range_estimations import RangeEstimation, km2geo, km2mag
 from .utils.conversions import dmap2dict
 from .utils.plotting import MapParams
 from .utils.plotting import check_data_type

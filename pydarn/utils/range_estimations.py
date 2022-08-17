@@ -108,16 +108,61 @@ def gate2slant(rxrise: int = 0, range_gate: int = 0, frang: int = 180,
     return slant_ranges
 
 
-def gate2geopsn(stid: str, beam: int, km_est: str='slant', **kwargs):
-    if km_est == 'slant':
-        km_range = gate2slant(**kwargs)
-    elif km_est == 'gsmr':
-        km_range = gate2groundscatter(**kwargs)
-    elif km_est == 'half':
-        # UPDATE THIS WHEN MERGED
-        km_range == gate2slant(**kwargs)
+def gate2geoslant(**kwargs):
+    """
+    Plotting in geo and mag is done in the given km ranges, then
+    the labels are converted to lat or lon in rtp.py.
+    Different methods required or RangeEstimation defaults to slant range
+    """
+    return gate2slant(**kwargs)
 
-    # Convert km_range to geographic positions
+
+def gate2magslant(**kwargs):
+    """
+    Plotting in geo and mag is done in the given km ranges, then
+    the labels are converted to lat or lon in rtp.py.
+    Different methods required or RangeEstimation defaults to slant range
+    """
+    return gate2slant(**kwargs)
+
+
+def gate2geogsmr(**kwargs):
+    """
+    Plotting in geo and mag is done in the given km ranges, then
+    the labels are converted to lat or lon in rtp.py.
+    Different methods required or RangeEstimation defaults to slant range
+    """
+    return gate2groundscatter(**kwargs)
+
+
+def gate2maggsmr(**kwargs):
+    """
+    Plotting in geo and mag is done in the given km ranges, then
+    the labels are converted to lat or lon in rtp.py.
+    Different methods required or RangeEstimation defaults to slant range
+    """
+    return gate2groundscatter(**kwargs)
+
+
+def km2geo(ranges, stid: str, beam: int, **kwargs):
+    """
+    Convert a value in km from the radar into a geographic
+    latitude and longitude
+    
+    Parameters
+    ----------
+        ranges: list
+            list of distances from the radar (km)
+        stid: str
+            the stid of required radar
+
+    Returns
+    -------
+        latitude: list of floats
+            (degrees)
+        longitude: list of floats
+            (degrees)
+    """
     radar_lat = np.radians(SuperDARNRadars.
                            radars[stid].hardware_info.geographic.lat)
     radar_lon = np.radians(SuperDARNRadars.
@@ -133,24 +178,39 @@ def gate2geopsn(stid: str, beam: int, km_est: str='slant', **kwargs):
 
     lats = []
     lons = []
-    for km in km_range:
+    for km in ranges:
         lat, lon = geocentric_coordinates(lat=radar_lat, lon=radar_lon,
                                           target_range=km, psi=psi,
                                           boresight=boresight, **kwargs)
-        lats.append(lat)
-        lons.append(lon)
+        lats.append(np.degrees(lat))
+        lons.append(np.degrees(lon))
+    return lats, lons
 
-    return [lats, lons]
 
+def km2mag(ranges, date: dt.datetime, **kwargs):
+    """
+    Convert a value in km from the radar into a magnetic 
+    latitude and longitude
+    
+    Parameters
+    ----------
+        ranges: list
+            list of distances from the radar (km)
+        date: datetime object
+            date from first data
 
-def gate2magpsn(date: dt.datetime, **kwargs):
-    lats, lons = gate2geopsn(**kwargs)
+    Returns
+    -------
+        magnetic latitude: list of floats
+            (degrees)
+        magnetic longitude: list of floats
+            (degrees)
+    """
+    lats, lons = km2geo(ranges, **kwargs)
     # convert geo to mag
-    magpsn = aacgmv2.get_aacgm_coord_arr(glat=lats, glon=lons, 
+    magpsn = aacgmv2.get_aacgm_coord_arr(glat=lats, glon=lons,
                                          height=250, dtime=date)
-    maglats = magpsn[0]
-    maglons = magpsn[1]
-    return [maglats, maglons]
+    return magpsn[0], magpsn[1]
 
 
 class RangeEstimation(enum.Enum):
@@ -167,8 +227,10 @@ class RangeEstimation(enum.Enum):
     RANGE_GATE = enum.auto()
     SLANT_RANGE = (gate2slant,)
     GSMR = (gate2groundscatter,)
-    GEOGRAPHIC = (gate2geopsn,)
-    AACGM = (gate2magpsn,)
+    GEOGRAPHIC_SLANT = (gate2geoslant,)
+    AACGM_SLANT = (gate2magslant,)
+    GEOGRAPHIC_GSMR = (gate2geogsmr,)
+    AACGM_GSMR = (gate2maggsmr,)
 
     # Need this to make the functions callable
     def __call__(self, *args, **kwargs):
