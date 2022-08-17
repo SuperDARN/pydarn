@@ -146,42 +146,6 @@ def gate2magslant(**kwargs):
     return gate2slant(**kwargs)
 
 
-def gate2geogsmr(**kwargs):
-    """
-    Plotting in geo and mag is done in the given km ranges, then
-    the labels are converted to lat or lon in rtp.py.
-    Different methods required or RangeEstimation defaults to slant range
-    """
-    return gate2groundscatter(**kwargs)
-
-
-def gate2maggsmr(**kwargs):
-    """
-    Plotting in geo and mag is done in the given km ranges, then
-    the labels are converted to lat or lon in rtp.py.
-    Different methods required or RangeEstimation defaults to slant range
-    """
-    return gate2groundscatter(**kwargs)
-
-
-def gate2geohalf(**kwargs):
-    """
-    Plotting in geo and mag is done in the given km ranges, then
-    the labels are converted to lat or lon in rtp.py.
-    Different methods required or RangeEstimation defaults to slant range
-    """
-    return gate2halfslant(**kwargs)
-
-
-def gate2maghalf(**kwargs):
-    """
-    Plotting in geo and mag is done in the given km ranges, then
-    the labels are converted to lat or lon in rtp.py.
-    Different methods required or RangeEstimation defaults to slant range
-    """
-    return gate2halfslant(**kwargs)
-
-
 def km2geo(ranges, stid: str, beam: int, **kwargs):
     """
     Convert a value in km from the radar into a geographic
@@ -251,6 +215,25 @@ def km2mag(ranges, date: dt.datetime, **kwargs):
     return magpsn[0], magpsn[1]
 
 
+def km2mlt(ranges, date: dt.datetime, stid:str, beam: int, *kwargs):
+    """
+    Convert a value in km from the radar into a magnetic local time
+    
+    Parameters
+    ----------
+        ranges: list
+            list of distances from the radar (km)
+
+    Returns
+    -------
+        mlts: list of floats
+            magnetic local time
+    """
+    _, mlons = km2mag(ranges, date=date, stid=stid, beam=beam)
+    mlts = aacgmv2.convert_mlt(mlons, date)
+    return mlts
+
+
 class RangeEstimation(enum.Enum):
     """
     Range_Estimation class is to list the current range gate estimations
@@ -266,13 +249,6 @@ class RangeEstimation(enum.Enum):
     SLANT_RANGE = (gate2slant,)
     HALF_SLANT = (gate2halfslant,)
     GSMR = (gate2groundscatter,)
-
-    GEOGRAPHIC_SLANT = (gate2geoslant,)
-    AACGM_SLANT = (gate2magslant,)
-    GEOGRAPHIC_GSMR = (gate2geogsmr,)
-    AACGM_GSMR = (gate2maggsmr,)
-    GEOGRAPHIC_HALF = (gate2geohalf,)
-    AACGM_HALF = (gate2maghalf,)
 
     # Need this to make the functions callable
     def __call__(self, *args, **kwargs):
