@@ -78,7 +78,7 @@ class RTP():
                         range_estimation: RangeEstimation =
                         RangeEstimation.SLANT_RANGE,
                         coords: object = None, lat_or_lon: str = 'lat',
-                        secondary_yaxis: dict={} ,colorbar_label: str = '',
+                        colorbar_label: str = '',
                         norm=colors.Normalize, cmap: str = None,
                         filter_settings: dict = {},
                         date_fmt: str = '%y/%m/%d\n %H:%M',
@@ -138,14 +138,6 @@ class RTP():
             choose the latitude or longitude of a coordinate range estimation
             if chosen
             Default: lat
-        secondary_yaxis: dict
-            pass information to the plotting to make a secondary y axis for the
-            range-time plots,
-            example:
-            secondary_axis=
-                    {'range_estimation': pyDARN.RangeEstimation.AACGM_GSMR,
-                     'lat_or_lon': 'lon'}
-            Default: dict = {} (no secondary axis)
         norm: matplotlib.colors.Normalization object
             This object use dependency injection to use any normalization
             method with the zmin and zmax.
@@ -449,43 +441,47 @@ class RTP():
 
         if range_estimation == RangeEstimation.RANGE_GATE:
             ax.yaxis.set_ticks(np.arange(ymin, ymax+1, (ymax)/5))
-        elif coords == None:
+        elif coords is None:
             ax.yaxis.set_ticks(np.arange(np.ceil(ymin/100.0)*100,
                                          ymax+1, yspacing))
         elif coords == Coords.GEOGRAPHIC:
             # For geographic axes, plot in km then change the labels
             tick_vals = np.arange(np.ceil(ymin/100.0)*100,
-                                         ymax+1, yspacing)
+                                  ymax+1, yspacing)
             ax.yaxis.set_ticks(tick_vals)
             if lat_or_lon == 'lat':
-                coordinate, _ = km2geo(tick_vals, stid=cls.dmap_data[0]['stid'],
+                coordinate, _ = km2geo(tick_vals,
+                                       stid=cls.dmap_data[0]['stid'],
                                        beam=beam_num)
             else:
-                _, coordinate = km2geo(tick_vals, stid=cls.dmap_data[0]['stid'],
+                _, coordinate = km2geo(tick_vals,
+                                       stid=cls.dmap_data[0]['stid'],
                                        beam=beam_num)
-            coordinate = [str(round(x,1)) for x in coordinate]
+            coordinate = [str(round(x, 1)) for x in coordinate]
             ax.set_yticklabels(coordinate)
         elif coords == Coords.AACGM:
             # For magnetic axes, plot in km then change the labels
             tick_vals = np.arange(np.ceil(ymin/100.0)*100,
-                                         ymax+1, yspacing)
+                                  ymax+1, yspacing)
             ax.yaxis.set_ticks(tick_vals)
             if lat_or_lon == 'lat':
-                coordinate, _ = km2mag(tick_vals, stid=cls.dmap_data[0]['stid'],
+                coordinate, _ = km2mag(tick_vals,
+                                       stid=cls.dmap_data[0]['stid'],
                                        beam=beam_num, date=start_time)
             else:
-                _, coordinate = km2mag(tick_vals, stid=cls.dmap_data[0]['stid'],
+                _, coordinate = km2mag(tick_vals,
+                                       stid=cls.dmap_data[0]['stid'],
                                        beam=beam_num, date=start_time)
-            coordinate = [str(round(x,1)) for x in coordinate]
+            coordinate = [str(round(x, 1)) for x in coordinate]
             ax.set_yticklabels(coordinate)
         elif coords == Coords.AACGM_MLT:
             # For magnetic axes, plot in km then change the labels
             tick_vals = np.arange(np.ceil(ymin/100.0)*100,
-                                         ymax+1, yspacing)
+                                  ymax+1, yspacing)
             ax.yaxis.set_ticks(tick_vals)
             coordinate = km2mlt(tick_vals, stid=cls.dmap_data[0]['stid'],
                                 beam=beam_num, date=start_time,)
-            coordinate = [str(round(x,1)) for x in coordinate]
+            coordinate = [str(round(x, 1)) for x in coordinate]
             ax.set_yticklabels(coordinate)
 
         # SuperDARN file typically are in 2hr or 24 hr files
@@ -1167,7 +1163,7 @@ class RTP():
                 if range_estimation == RangeEstimation.SLANT_RANGE:
                     ymax = 3517.5
                 elif range_estimation == RangeEstimation.GSMR or \
-                      range_estimation == RangeEstimation.HALF_SLANT:
+                        range_estimation == RangeEstimation.HALF_SLANT:
                     ymax = 3517.5/2
                 else:
                     ymax = 75
@@ -1195,7 +1191,7 @@ class RTP():
                                             background=background,
                                             range_estimation=range_estimation,
                                             coords=coords,
-                                            lat_or_lon = lat_or_lon,
+                                            lat_or_lon=lat_or_lon,
                                             **kwargs)
                 # Overwriting velocity ticks to get a better pleasing
                 # look on the colorbar
@@ -1215,13 +1211,13 @@ class RTP():
                         ticks[-1] = boundary_ranges[axes_parameters[i]][1]
                     cbar.set_ticks(ticks)
                 if range_estimation == RangeEstimation.SLANT_RANGE and \
-                        coords == None:
+                        coords is None:
                     axes[i].set_ylabel('Slant Range (km)')
                 elif range_estimation == RangeEstimation.GSMR and \
-                        coords == None:
+                        coords is None:
                     axes[i].set_ylabel('Ground Scatter\nMapped Range\n(km)')
                 elif range_estimation == RangeEstimation.HALF_SLANT and \
-                        coords == None:
+                        coords is None:
                     axes[i].set_ylabel('Slant Range/2\n(km)')
                 elif coords == Coords.GEOGRAPHIC and lat_or_lon == 'lat':
                     axes[i].set_ylabel('Geographic\nLatitude (°)')
@@ -1229,7 +1225,7 @@ class RTP():
                     axes[i].set_ylabel('AACGM\nLatitude (°)')
                 elif coords == Coords.GEOGRAPHIC and lat_or_lon == 'lon':
                     axes[i].set_ylabel('Geographic\nLongitude (°)')
-                elif coords == Coords.AACGM and  lat_or_lon == 'lon':
+                elif coords == Coords.AACGM and lat_or_lon == 'lon':
                     axes[i].set_ylabel('AACGM\nLongitude (°)')
                 elif coords == Coords.AACGM_MLT:
                     axes[i].set_ylabel('Magnetic\nLocal Time')

@@ -17,7 +17,6 @@
 import aacgmv2
 import enum
 import numpy as np
-import math
 import datetime as dt
 
 
@@ -128,29 +127,11 @@ def gate2slant(rxrise: int = 0, range_gate: int = 0, frang: int = 180,
     return slant_ranges
 
 
-def gate2geoslant(**kwargs):
-    """
-    Plotting in geo and mag is done in the given km ranges, then
-    the labels are converted to lat or lon in rtp.py.
-    Different methods required or RangeEstimation defaults to slant range
-    """
-    return gate2slant(**kwargs)
-
-
-def gate2magslant(**kwargs):
-    """
-    Plotting in geo and mag is done in the given km ranges, then
-    the labels are converted to lat or lon in rtp.py.
-    Different methods required or RangeEstimation defaults to slant range
-    """
-    return gate2slant(**kwargs)
-
-
 def km2geo(ranges, stid: str, beam: int, **kwargs):
     """
     Convert a value in km from the radar into a geographic
     latitude and longitude
-    
+
     Parameters
     ----------
         ranges: list
@@ -191,9 +172,9 @@ def km2geo(ranges, stid: str, beam: int, **kwargs):
 
 def km2mag(ranges, date: dt.datetime, **kwargs):
     """
-    Convert a value in km from the radar into a magnetic 
+    Convert a value in km from the radar into a magnetic
     latitude and longitude
-    
+
     Parameters
     ----------
         ranges: list
@@ -215,10 +196,10 @@ def km2mag(ranges, date: dt.datetime, **kwargs):
     return magpsn[0], magpsn[1]
 
 
-def km2mlt(ranges, date: dt.datetime, stid:str, beam: int, *kwargs):
+def km2mlt(ranges, date: dt.datetime, stid: str, beam: int, *kwargs):
     """
     Convert a value in km from the radar into a magnetic local time
-    
+
     Parameters
     ----------
         ranges: list
