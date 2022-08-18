@@ -326,8 +326,13 @@ class Maps():
             locator = ticker.MaxNLocator(symmetric=True, min_n_ticks=3,
                                          integer=True, nbins='auto')
             ticks = locator.tick_values(vmin=zmin, vmax=zmax)
-            cb = ax.figure.colorbar(mappable, ax=ax,
-                                    extend='both', ticks=ticks)
+
+            if zmin == 0:
+                cb = ax.figure.colorbar(mappable, ax=ax, extend='max',
+                                        ticks=ticks)
+            else:
+                cb = ax.figure.colorbar(mappable, ax=ax, extend='both',
+                                        ticks=ticks)
 
             if colorbar_label != '':
                 cb.set_label(colorbar_label)
