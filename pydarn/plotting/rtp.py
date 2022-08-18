@@ -9,6 +9,7 @@
 # 2021-07-06 Carley Martin added keyword to aid in rounding start times
 # 2022-03-04 Marina Schmidt added RangeEstimations in
 # 2022-08-04 Carley Martin added elifs for HALF_SLANT options
+# 2022-08-18 Carley Martin added options to plot y-axis in geo and mag coords
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md

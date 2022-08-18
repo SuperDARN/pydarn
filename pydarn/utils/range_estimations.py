@@ -12,6 +12,7 @@
 #
 # Modifications:
 # 2022-08-04 CJM added HALF_SLANT option and gate2halfslant method
+# 2022-08-18 CJM added functions to convert range to geo, mag or mlt
 #
 
 import aacgmv2
