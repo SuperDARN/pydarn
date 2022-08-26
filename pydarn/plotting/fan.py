@@ -327,7 +327,8 @@ class Fan():
             ax.pcolormesh(thetas, rs,
                           np.ma.masked_array(grndsct,
                                              ~grndsct.astype(bool)),
-                          norm=norm, cmap='Greys', transform=transform)
+                          norm=norm, cmap='Greys',
+                          transform=transform, zorder=3)
         if ccrs is None:
             azm = np.linspace(0, 2 * np.pi, 100)
             r, th = np.meshgrid(rs, azm)
