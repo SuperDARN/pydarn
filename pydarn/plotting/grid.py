@@ -15,7 +15,7 @@
 
 
 """
-Grid plots, mapped to AACGM coordinates in a polar format
+Grid plots
 """
 
 import datetime as dt
@@ -30,14 +30,7 @@ from typing import List
 import aacgmv2
 
 from pydarn import (PyDARNColormaps, Fan, plot_exceptions,
-    standard_warning_format)
-
-try:
-    from cartopy.mpl import geoaxes
-    import cartopy.crs as ccrs
-    cartopyInstalled = True
-except Exception:
-    cartopyInstalled = False
+                    standard_warning_format, Projs, Coords)
 
 warnings.formatwarning = standard_warning_format
 
@@ -63,6 +56,8 @@ class Grid():
                   zmax: int = None, colorbar: bool = True,
                   colorbar_label: str = '', title: str = '',
                   len_factor: float = 150.0, ref_vector: int = 300,
+                  projs: Projs = Projs.POLAR,
+                  coords: Coords = Coords.AACGM_MLT,
                   **kwargs):
         """
         Plots a radar's gridded vectors from a GRID file
@@ -118,6 +113,12 @@ class Grid():
             ref_vector: int
                 Velocity value to be used for the reference vector, in m/s
                 Default: 300
+            projs: Enum
+                choice of projection for plot
+                default: Projs.POLAR (polar projection)
+            coords: Enum
+                choice of plotting coordinates
+                default: Coords.AACGM_MLT (Magnetic Lat and MLT)
             kwargs: key=value
                 uses the parameters for plot_fov and projections.axis
         See Also
@@ -130,13 +131,13 @@ class Grid():
         thetas - List of gridded data point magnetic local times (degrees)
         end_thetas - List of magnetic local time end points used for vector
                      plotting (degrees)
-        rs - List of gridded data point radius' (AACGM latitude)
-        end_rs - List of radius end points for vector plotting (AACGM latitude)
+        rs - List of gridded data point radius' (latitude)
+        end_rs - List of radius end points for vector plotting (latitude)
         data - List of magnitudes of line-of-sight velocity
         azm_v -  List of azimuths of line-of-sight velocity
         else:
         thetas - List of gridded data point magnetic local times (degrees)
-        rs - List of gridded data point radius' (AACGM latitude)
+        rs - List of gridded data point radius' (latitude)
         data - List of data magnitudes plotted, for parameter chosen
         """
         # Short hand for the parameters in GRID files
@@ -147,10 +148,10 @@ class Grid():
         if start_time is not None:
             for record in range(len(dmap_data)):
                 date = dt.datetime(dmap_data[record]['start.year'],
-                                    dmap_data[record]['start.month'],
-                                    dmap_data[record]['start.day'],
-                                    dmap_data[record]['start.hour'],
-                                    dmap_data[record]['start.minute'])
+                                   dmap_data[record]['start.month'],
+                                   dmap_data[record]['start.day'],
+                                   dmap_data[record]['start.hour'],
+                                   dmap_data[record]['start.minute'])
                 time_diff = date - start_time
                 if time_diff.seconds/60 <= time_delta:
                     break
@@ -160,36 +161,68 @@ class Grid():
         else:
             record = 0
             date = dt.datetime(dmap_data[record]['start.year'],
-                                dmap_data[record]['start.month'],
-                                dmap_data[record]['start.day'],
-                                dmap_data[record]['start.hour'],
-                                dmap_data[record]['start.minute'])
+                               dmap_data[record]['start.month'],
+                               dmap_data[record]['start.day'],
+                               dmap_data[record]['start.hour'],
+                               dmap_data[record]['start.minute'])
 
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
+            ax, ccrs = projs(date=date, ax=ax, **kwargs)
+            if ccrs is None:
+                transform = ax.transData
+            else:
+                transform = ccrs.PlateCarree()
+
             for stid in dmap_data[record]['stid']:
-                _, aacgm_lons, ax, _ =\
-                        Fan.plot_fov(stid, date,
-                                     ax=ax, **kwargs)
+                _, coord_lons, ax, ccrs =\
+                        Fan.plot_fov(stid, date, ax=ax, ccrs=ccrs,
+                                     coords=coords, projs=projs, **kwargs)
                 try:
                     data_lons = dmap_data[record]['vector.mlon']
                     data_lats = dmap_data[record]['vector.mlat']
                 except KeyError:
                     raise plot_exceptions.PartialRecordsError('vector.mlon')
 
-                # Hold the beam positions
-                shifted_mlts = aacgm_lons[0, 0] - \
-                    (aacgmv2.convert_mlt(aacgm_lons[0, 0], date) * 15)
+                if coords != Coords.GEOGRAPHIC and projs == Projs.GEO:
+                    raise plot_exceptions.NotImplemented(
+                                            "AACGM coordinates are"
+                                            " not implemented for "
+                                            " geographic projections right"
+                                            " now, if you would like to"
+                                            " see it sooner please help"
+                                            " out at "
+                                            "https://github.com"
+                                            "/SuperDARN/pyDARN")
+                # Thetas in aacgm required for calculating the
+                # vectors later, called them theta_calc and rs_calc
+                # for later use
+                shifted_mlts = coord_lons[0, 0] - \
+                    (aacgmv2.convert_mlt(coord_lons[0, 0], date) * 15)
                 shifted_lons = data_lons - shifted_mlts
-                thetas = np.radians(shifted_lons)
-                rs = data_lats
+                rs_calc = data_lats
+
+                if projs != Projs.GEO:
+                    # Convert to radians for polar plots
+                    thetas_calc = np.radians(shifted_lons)
+                    thetas = np.radians(shifted_lons)
+                    rs = data_lats
+                else:
+                    # Convert to geographic coordinates
+                    glats, glons, _ = aacgmv2.convert_latlon_arr(
+                                        data_lats, data_lons, 300,
+                                        date, method_code="A2G")
+                    thetas_calc = np.radians(data_lons)
+                    thetas = glons
+                    rs = glats
 
                 # Colour table and max value selection depending on
                 # parameter plotted Load defaults if none given
                 if cmap is None:
                     cmap = {'vector.pwr.median': 'plasma',
                             'vector.vel.median': 'plasma_r',
-                            'vector.wdt.median': PyDARNColormaps.PYDARN_VIRIDIS}
+                            'vector.wdt.median':
+                            PyDARNColormaps.PYDARN_VIRIDIS}
                     cmap = plt.cm.get_cmap(cmap[parameter])
 
                 # Setting zmin and zmax
@@ -213,8 +246,8 @@ class Grid():
                     raise plot_exceptions.UnknownParameterError(parameter,
                                                                 grid=True)
                 # Plot the magnitude of the parameter
-                ax.scatter(thetas, rs, c=data,
-                           s=2.0, vmin=zmin, vmax=zmax, zorder=5, cmap=cmap)
+                ax.scatter(thetas, rs, c=data, s=2.0, vmin=zmin, vmax=zmax,
+                           zorder=5, cmap=cmap, transform=transform)
 
                 # If the parameter is velocity then plot the LOS vectors
                 if parameter == "vector.vel.median":
@@ -227,11 +260,11 @@ class Grid():
 
                     # Angle to "rotate" each vector by to get into same
                     # reference frame Controlled by longitude, or "mltitude"
-                    alpha = thetas
+                    alpha = thetas_calc
 
                     # Convert initial positions to Cartesian
-                    start_pos_x = (90 - rs) * np.cos(thetas)
-                    start_pos_y = (90 - rs) * np.sin(thetas)
+                    start_pos_x = (90 - rs_calc) * np.cos(thetas_calc)
+                    start_pos_y = (90 - rs_calc) * np.sin(thetas_calc)
 
                     # Resolve LOS vector in x and y directions,
                     # with respect to mag pole
@@ -254,10 +287,24 @@ class Grid():
                     end_thetas = np.arctan2(end_pos_y, end_pos_x)
 
                     # Plot the vectors
-                    for i in num_pts:
-                        plt.plot([thetas[i], end_thetas[i]],
-                                 [rs[i], end_rs[i]], c=cmap(norm(data[i])),
-                                 linewidth=0.5)
+                    if projs != Projs.GEO:
+                        for i in num_pts:
+                            plt.plot([thetas[i], end_thetas[i]],
+                                     [rs[i], end_rs[i]], c=cmap(norm(data[i])),
+                                     linewidth=0.5, transform=transform)
+                    else:
+                        # If proj is geographic, convert the end points into
+                        # geographic positions to plot
+                        end_g_rs, end_g_thetas, _ = \
+                            aacgmv2.convert_latlon_arr(end_rs,
+                                                       np.degrees(end_thetas),
+                                                       300, date,
+                                                       method_code="A2G")
+                        for i in num_pts:
+                            plt.plot([thetas[i], end_g_thetas[i]],
+                                     [rs[i], end_g_rs[i]],
+                                     c=cmap(norm(data[i])),
+                                     linewidth=0.5, transform=transform)
 
                 # TODO: Add a velocity reference vector
 
@@ -268,7 +315,7 @@ class Grid():
             ticks = locator.tick_values(vmin=zmin, vmax=zmax)
 
             cb = ax.figure.colorbar(mappable, ax=ax,
-                                    extend='both', ticks=ticks)
+                                    extend='both', ticks=ticks, pad=0.1)
 
             if colorbar_label != '':
                 cb.set_label(colorbar_label)
