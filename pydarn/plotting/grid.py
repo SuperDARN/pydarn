@@ -29,7 +29,7 @@ from typing import List
 # Third party libraries
 import aacgmv2
 
-from pydarn import (PyDARNColormaps, Fan, plot_exceptions,
+from pydarn import (PyDARNColormaps, Fan, plot_exceptions, Hemisphere,
                     standard_warning_format, Projs, Coords)
 
 warnings.formatwarning = standard_warning_format
@@ -168,7 +168,10 @@ class Grid():
 
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            ax, ccrs = projs(date=date, ax=ax, **kwargs)
+            # Hemisphere is not found in grid files so take from latitudes
+            hemisphere = Hemisphere(np.sign(
+                                    dmap_data[record]['vector.mlat'][0]))
+            ax, ccrs = projs(date=date, ax=ax, hemisphere=hemisphere, **kwargs)
             if ccrs is None:
                 transform = ax.transData
             else:
@@ -263,14 +266,16 @@ class Grid():
                     alpha = thetas_calc
 
                     # Convert initial positions to Cartesian
-                    start_pos_x = (90 - rs_calc) * np.cos(thetas_calc)
-                    start_pos_y = (90 - rs_calc) * np.sin(thetas_calc)
+                    start_pos_x = (90 - abs(rs_calc)) * np.cos(thetas_calc)
+                    start_pos_y = (90 - abs(rs_calc)) * np.sin(thetas_calc)
 
                     # Resolve LOS vector in x and y directions,
                     # with respect to mag pole
                     # Gives zonal and meridional components of LOS vector
-                    los_x = -data * np.cos(np.radians(-azm_v))
-                    los_y = -data * np.sin(np.radians(-azm_v))
+                    los_x = -data * np.cos(np.radians(
+                                           -azm_v * hemisphere.value))
+                    los_y = -data * np.sin(np.radians(
+                                           -azm_v * hemisphere.value))
 
                     # Rotate each vector into same reference frame
                     # following vector rotation matrix
@@ -279,12 +284,16 @@ class Grid():
                     vec_y = (los_x * np.sin(alpha)) + (los_y * np.cos(alpha))
 
                     # New vector end points, in Cartesian
-                    end_pos_x = start_pos_x + (vec_x / len_factor)
-                    end_pos_y = start_pos_y + (vec_y / len_factor)
+                    end_pos_x = start_pos_x + (vec_x * hemisphere.value /
+                                               len_factor)
+                    end_pos_y = start_pos_y + (vec_y * hemisphere.value /
+                                               len_factor)
 
                     # Convert back to polar for plotting
                     end_rs = 90 - (np.sqrt(end_pos_x**2 + end_pos_y**2))
                     end_thetas = np.arctan2(end_pos_y, end_pos_x)
+
+                    end_rs = end_rs * hemisphere.value
 
                     # Plot the vectors
                     if projs != Projs.GEO:
