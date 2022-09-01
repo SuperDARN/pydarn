@@ -203,7 +203,7 @@ class Maps():
                                          radar_location=radar_location,
                                          **kwargs)
             else:
-                ax, _ = projs(date, ax=ax, **kwargs)
+                ax, _ = projs(date, ax=ax, hemisphere=hemisphere, **kwargs)
 
         if parameter == MapParams.MODEL_VELOCITY:
             try:
