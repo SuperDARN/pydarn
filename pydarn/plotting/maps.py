@@ -9,6 +9,7 @@
 # 2022-04-01: CJM - Bug fix for lon shifting to MLT
 # 2022-04-28: CJM - Added option to have single color vectors with reference
 #                   vector
+# 2022-08-15: CJM - Removed plot_FOV call for default uses
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
@@ -40,7 +41,7 @@ import aacgmv2
 
 from pydarn import (PyDARNColormaps, plot_exceptions,
                     standard_warning_format, Re, Hemisphere,
-                    time2datetime, find_record, Fan, MapParams)
+                    time2datetime, find_record, Fan, Projs, MapParams)
 
 warnings.formatwarning = standard_warning_format
 
@@ -73,7 +74,7 @@ class Maps():
                      hmb: bool = True, boundary: bool = False,
                      radar_location: bool = False, map_info: bool = True,
                      imf_dial: bool = True, reference_vector: int = 500,
-                     **kwargs):
+                     projs: Projs = Projs.POLAR, **kwargs):
         """
         Plots convection maps data points and vectors
 
@@ -147,6 +148,10 @@ class Maps():
                 magnitude of given value, drawn in lower right corner.
                 Vector can be turned off by setting this value to False or 0.
                 Default: 500 (vector plotted)
+            projs: Enum
+                choice of projection for plot
+                default: Projs.POLAR (polar projection)
+                There is no support for other projections currently
             kwargs: key=value
                 uses the parameters for plot_fov and projections.axis
 
@@ -155,6 +160,7 @@ class Maps():
         if start_time is not None:
             record = find_record(dmap_data, start_time, time_delta)
         date = time2datetime(dmap_data[record])
+
         if cmap is None:
             cmap = {MapParams.FITTED_VELOCITY: 'plasma_r',
                     MapParams.MODEL_VELOCITY: 'plasma_r',
@@ -177,12 +183,27 @@ class Maps():
         norm = colors.Normalize
         norm = norm(zmin, zmax)
 
+        if projs != Projs.POLAR:
+            raise plot_exceptions.NotImplemented(" Only polar projections"
+                                                 " are implemented for"
+                                                 " convection maps."
+                                                 " Please set"
+                                                 " projs=Projs.POLAR"
+                                                 " to plot a convection map.")
+
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            for stid in dmap_data[record]['stid']:
-                _, aacgm_lons, ax, _ =\
-                        Fan.plot_fov(stid, date, ax=ax, boundary=boundary,
-                                     radar_location=radar_location, **kwargs)
+            # If the user wants to plot a FOV boundary or radar location
+            # Needs to find the positions for each
+            # Else just call the axis maker: proj
+            if boundary or radar_location:
+                for stid in dmap_data[record]['stid']:
+                    _, _, ax, _ =\
+                            Fan.plot_fov(stid, date, ax=ax, boundary=boundary,
+                                         radar_location=radar_location,
+                                         **kwargs)
+            else:
+                ax, _ = projs(date, ax=ax, hemisphere=hemisphere, **kwargs)
 
         if parameter == MapParams.MODEL_VELOCITY:
             try:
@@ -197,9 +218,8 @@ class Maps():
             except KeyError:
                 raise plot_exceptions.PartialRecordsError('model.mlat')
 
-        # Hold the beam positions
-        shifted_mlts = aacgm_lons[0, 0] - \
-            (aacgmv2.convert_mlt(aacgm_lons[0, 0], date) * 15)
+        # Arbitrary lon used to calculate the shift required
+        shifted_mlts = 0 - (aacgmv2.convert_mlt(0, date) * 15)
         shifted_lons = data_lons - shifted_mlts
         # Note that this "mlons" is adjusted for MLT
         mlons = np.radians(shifted_lons)
@@ -220,6 +240,7 @@ class Maps():
                                                      lat_min=dmap_data[
                                                          record]['latmin'],
                                                      len_factor=len_factor)
+
         elif parameter == MapParams.MODEL_VELOCITY:
             v_mag = dmap_data[record]['model.vel.median']
             azm_v = np.radians(dmap_data[record]['model.kvect'])
@@ -794,7 +815,6 @@ class Maps():
         # Adjusted/Normalised values (runs 0 - pi)
         alpha = np.pi / theta_max
         x = np.cos(alpha*theta)
-
         # Legendre Polys
         for j, xj in enumerate(x):
             plm_tmp = special.lpmn(fit_order, fit_order, xj)
