@@ -91,6 +91,7 @@ Here is a list of all the current options than can be used with `plot_grid`
 | radar_label=(str)        | To include a dot at radar location and label of 3 letter code |
 | fov_color=(str)           | Fill color of fov                                                         |
 | line_color=(str)      | Fill color of fov lines                                                                          |
+| coastline=(bool)               | Plots outlines of coastlines below grid data      |
 
 
 As an example, the following code plots multiple radar Grid plot:

@@ -2,6 +2,7 @@
 Author(s): Marina Schmidt 
 Modifications:
 2022-03-31 MTS updating documentation with the new coordinate/cartopy system 
+2022-09-12 CJM - Updated for new changes
 
 Disclaimer:
 pyDARN is under the LGPL v3 license found in the root directory LICENSE.md 
@@ -40,6 +41,7 @@ Here is a list of all the current options than can be used with `plot_fov`
 | stid=(int)              | Station id of the radar. Can be found using [SuperDARNRadars](hardware.md)                              |
 | date=(datetime)         | `datetime` object to determine the position the radar fov AACGM or AACGM MLT coordinates                |
 | ranges=(list)           | Two element list giving the lower and upper ranges to plot, grabs ranges from hardware file (default [] |
+| ax=(Axes Object)        | Matplotlib axes object than can be used for cartopy additions                                           |
 | ccrs=(object)           | Cartopy axes object for plotting using Cartopy                                                          |
 | rsep=(int)              | Range Seperation (km) (default: 45 km)                                                                  |
 | frang=(int)             | Frequency Range (km) (default: 180 km)                                                                  |
@@ -56,6 +58,7 @@ Here is a list of all the current options than can be used with `plot_fov`
 | line_alpha=(int)        | Sets the transparency of the boundary and grid lines if shown (default: 0.5)                            |
 | radar_location=(bool)   | Places a dot in the plot representing the radar location (default: True)                                |
 | radar_label=(bool)      | Places the radar 3-letter abbreviation next to the radar location                                       |
+| coastline=(bool)        | Plots outlines of coastlines below FOV (Uses Cartopy)                                                   |
 | kwargs **               | Axis Polar settings. See [polar axis](axis.md)                                                          |
 
 To plot based on hemisphere or selection of radars, here is an example plotting North hemisphere radars with selected SuperDARN Canada radars colored as green:
@@ -93,22 +96,53 @@ plt.show()
 ![](../imgs/fov_3.png)
 
 
-This example shows the use of *cartopy* and plotting in geographic coordinates. 
+This example shows the use of *cartopy*, plotting in geographic coordinates with the coastline outlines. 
 
 ```python
 _ , _, ax, ccrs = pydarn.Fan.plot_fov(stid=65,
                                       date=dt.datetime(2022, 1, 8, 14, 5),
                                       fov_color='red',
                                       coords=pydarn.Coords.GEOGRAPHIC,
-                                      projs=pydarn.Projs.GEO)
-ax.coastlines()
+                                      projs=pydarn.Projs.GEO,
+                                      coastline=True)
 plt.show()
 ```
 
 ![](../imgs/fov_7.png)
 
+!!! Note
+    If plotting multiple FOV on one plot for geographic coordinates, it is required that the `ax` and `ccrs` of the initial plot is read into the subsequent plots. Each subsequent plot also needs to be told that it is supposed to be in geographic coordinates and/or geographic projection using the  `coords` and `projs` keywords.
+
+This is an example of multiple FOV in geographic coordinates using the correct set of keywords.
+
+```python
+_, _, ax, ccrs=pydarn.Fan.plot_fov(66, dt.datetime(2021, 6, 21, 6, 0),
+                                   lowlat= 50, boundary=True, radar_label=True,
+                                   line_color='red', grid = True,
+                                   coords=pydarn.Coords.GEOGRAPHIC,
+                                   projs=pydarn.Projs.GEO, coastline=True)
+pydarn.Fan.plot_fov(5, dt.datetime(2021, 2, 5, 12, 5), radar_label=True,
+                    ax=ax, ccrs=ccrs, boundary=True, line_color='blue',
+                    grid = True, coords=pydarn.Coords.GEOGRAPHIC,
+                    projs=pydarn.Projs.GEO)
+pydarn.Fan.plot_fov(64, dt.datetime(2021, 2, 5, 12, 5), radar_label=True,
+                    ax=ax, ccrs=ccrs, boundary=True, line_color='green',
+                    grid = True, coords=pydarn.Coords.GEOGRAPHIC,
+                    projs=pydarn.Projs.GEO)
+pydarn.Fan.plot_fov(65, dt.datetime(2021, 2, 5, 12, 5), radar_label=True,
+                    ax=ax, ccrs=ccrs, boundary=True, line_color='orange',
+                    grid = True, coords=pydarn.Coords.GEOGRAPHIC,
+                    projs=pydarn.Projs.GEO)
+pydarn.Fan.plot_fov(6, dt.datetime(2021, 2, 5, 12, 5), radar_label=True,
+                    ax=ax, ccrs=ccrs, boundary=True, grid = True,
+                    coords=pydarn.Coords.GEOGRAPHIC, projs=pydarn.Projs.GEO)
+plt.show()
+```
+
+![](../imgs/fov_8.png_)
+
 !!! Warning
-    Currently you cannot plot AACGM coordinates on a geographic plot as its not correctly transformed. Currently in development. 
+    You cannot plot AACGM coordinates on a geographic plot as its not correctly transformed.
 
 
 `plot_fov` use two other plotting methods `plot_radar_position` and `plot_radar_label`, these methods have the following parameters: 
@@ -120,7 +154,7 @@ plt.show()
 | line_color=(string) | Sets the text and radar location dot color (default: black)                |
 
 !!! Note
-    These methods do not plot on a polar axis so it is strongly encouraged to use `plot_fov` to use them. 
+    These methods will not plot on a polar axis if called without `plot_fov`, so it is strongly encouraged to use `plot_fov` to use them. 
 
 To obtain only dots and labels:
 

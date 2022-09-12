@@ -97,7 +97,11 @@ To see all the customisation options, check out all the parameters listed in 'rt
 | date_fmt=(string)            | How the x-tick labels look. Default is ('%y/%m/%d\n %H:%M') |
 | zmin=(int)                   | Minimum data value to be plotted                            |
 | zmax=(int)                   | Maximum data value to be plotted                            |
-| range_estimation=(RangeEstimation)              | Coordinates to use for the y-axis (See [Coordinates](coordinates.md)) | 
+| range_estimation=(RangeEstimation)              | Estaimtion of the distance for the radar to use for the y-axis (See [Ranges, Coords and Projs](coordinates.md)) |
+| coords=(Coords)              | Used in conjunction with range_estimation, converts the y-axis to a coordinate |
+| lat_or_lon=(str)             | In conjunction with coords, choose if you would like the latitude ('lat') or longitude ('lon') |
+| colorbar=(plt.colorbar)      | If you would like a different colorbar than the default     |
+| colorbar_label=(str)         | Set the label fo the colorbar                               |
 
 For instance, code for a velocity RTP showing the same beam of Clyde river radar as above, but with ground scatter plotted in grey, date format as `hh:mm`, custom min and max values and a colour bar label could look something like:
 ```python
@@ -111,6 +115,16 @@ which outputs:
 ![](../imgs/rtp_cly2.png) 
 
 and looks much more useful!
+
+Plotting:
+```python
+pydarn.RTP.plot_range_time(fitacf_data, beam_num=fitacf_data[0]['bmnum'], groundscatter=True,
+                           zmax=500, zmin=-500, date_fmt='%H:%M',
+                           colorbar_label='Line-of-Sight Velocity (m s$^{-1}$)',
+                           range_estimation=pydarn.RangeEstimation.SLANT_RANGE,
+                           coords=pydarn.Coords.GEOGRAPHIC, lat_or_lon='lat')
+```
+will produce the above plot with geographic latitude along the y-axis instead. 
 
 #### Plotting with a custom color map
 Because the default parameter plotted is line-of-sight velocity, there is also a special red-blue colour map set as default (as seen above) which is only meant for velocity RTP's. 
