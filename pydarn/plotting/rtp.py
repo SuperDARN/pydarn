@@ -1220,6 +1220,8 @@ class RTP():
                 elif range_estimation == RangeEstimation.HALF_SLANT and \
                         coords is None:
                     axes[i].set_ylabel('Slant Range/2\n(km)')
+                elif range_estimation == RangeEstimation.RANGE_GATE:
+                    axes[i].set_ylabel('Range Gates')
                 elif coords == Coords.GEOGRAPHIC and lat_or_lon == 'lat':
                     axes[i].set_ylabel('Geographic\nLatitude (°)')
                 elif coords == Coords.AACGM and lat_or_lon == 'lat':
@@ -1230,8 +1232,6 @@ class RTP():
                     axes[i].set_ylabel('AACGM\nLongitude (°)')
                 elif coords == Coords.AACGM_MLT:
                     axes[i].set_ylabel('Magnetic\nLocal Time')
-                else:
-                    axes[i].set_ylabel('Range Gates')
             if i < num_plots-1:
                 axes[i].set_xticklabels([])
             # last plot needs the label on the x-axis
