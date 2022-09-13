@@ -475,15 +475,6 @@ class RTP():
                                        beam=beam_num, date=start_time)
             coordinate = [str(round(x, 1)) for x in coordinate]
             ax.set_yticklabels(coordinate)
-        elif coords == Coords.AACGM_MLT:
-            # For magnetic axes, plot in km then change the labels
-            tick_vals = np.arange(np.ceil(ymin/100.0)*100,
-                                  ymax+1, yspacing)
-            ax.yaxis.set_ticks(tick_vals)
-            coordinate = km2mlt(tick_vals, stid=cls.dmap_data[0]['stid'],
-                                beam=beam_num, date=start_time,)
-            coordinate = [str(round(x, 1)) for x in coordinate]
-            ax.set_yticklabels(coordinate)
 
         # SuperDARN file typically are in 2hr or 24 hr files
         # to make the minute ticks sensible, the time length is detected
@@ -1230,8 +1221,6 @@ class RTP():
                     axes[i].set_ylabel('Geographic\nLongitude (°)')
                 elif coords == Coords.AACGM and lat_or_lon == 'lon':
                     axes[i].set_ylabel('AACGM\nLongitude (°)')
-                elif coords == Coords.AACGM_MLT:
-                    axes[i].set_ylabel('Magnetic\nLocal Time')
             if i < num_plots-1:
                 axes[i].set_xticklabels([])
             # last plot needs the label on the x-axis
