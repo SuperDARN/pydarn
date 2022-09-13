@@ -493,15 +493,22 @@ class RTP():
                 warnings.filterwarnings('error')
                 try:
                     if isinstance(norm, colors.LogNorm):
-                        cb = ax.figure.colorbar(im, ax=ax, extend='both')
+                        if zmin == 0:
+                            cb = ax.figure.colorbar(im, ax=ax, extend='max')
+                        else:
+                            cb = ax.figure.colorbar(im, ax=ax, extend='both')
                     else:
                         locator = ticker.MaxNLocator(symmetric=True,
                                                      min_n_ticks=3,
                                                      integer=True,
                                                      nbins='auto')
                         ticks = locator.tick_values(vmin=zmin, vmax=zmax)
-                        cb = ax.figure.colorbar(im, ax=ax, extend='both',
-                                                ticks=ticks)
+                        if zmin == 0:
+                            cb = ax.figure.colorbar(im, ax=ax, extend='max',
+                                                    ticks=ticks)
+                        else:
+                            cb = ax.figure.colorbar(im, ax=ax, extend='both',
+                                                    ticks=ticks)
 
                 except (ZeroDivisionError, Warning):
                     raise rtp_exceptions.RTPZeroError(parameter, beam_num,
