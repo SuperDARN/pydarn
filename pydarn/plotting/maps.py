@@ -32,7 +32,7 @@ import warnings
 
 from enum import Enum
 from matplotlib import ticker, cm, colors
-from mpl_toolkits.axes_grid.inset_locator import InsetPosition
+from mpl_toolkits.axes_grid1.inset_locator import InsetPosition
 from scipy import special
 from typing import List
 
