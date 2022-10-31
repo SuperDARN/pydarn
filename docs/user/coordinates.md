@@ -26,9 +26,9 @@ pyDARN uses several different measurement and plotting systems to easily allow t
 
 **Slant Range**: `RangeEstimation.SLANT_RANGE` is a conversion from range gates to km units.  Slant range estimates the distance of ionospheric echos from the radar, using the time it takes for the radio wave to travel to the ionosphere and return, assuming the radio wave is travelling at the speed of light. Measured in km.
 
-**Half Slant**: `RangeEstimation.HALF_SLANT` is a converted from slant range by dividing by two. Used as a better estimate of range described in [Thomas, E. et al.](https://doi.org/10.1029/2022RS007429), measured in km.
+**Half Slant**: `RangeEstimation.HALF_SLANT` is slant range divided by two, measured in km.
 
-**Ground Scatter Mapped Range**: `RangeEstimation.GSMR` uses echos from ground scatter to adjust slant-range coordinates to be more accurate based on [Dr. Bill Bristow's paper](https://agupubs.onlinelibrary.wiley.com/doi/abs/10.1029/93JA01470). Implemented by Dr. Nathaniel Frissell and Francis Tholley from University of Scranton. Measured in km.
+**Ground Scatter Mapped Range**: `RangeEstimation.GSMR` uses echos from ground scatter to adjust slant range coordinates to be more accurate based on [Dr. Bill Bristow's paper](https://agupubs.onlinelibrary.wiley.com/doi/abs/10.1029/93JA01470). Implemented by Dr. Nathaniel Frissell and Francis Tholley from University of Scranton. Measured in km.
 
 !!! Note
     Slant range is calculated from the value of `frang`, the distance to the first range gate. In pyDARN, we assume 
