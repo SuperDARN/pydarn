@@ -31,6 +31,7 @@ pyDARN and pyplot need to be imported, as well as any FITACF file needs to be [r
 
 ```python
 import matplotlib.pyplot as plt
+from datetime import datetime
 import pydarn
 
 #Read in fitACF file using SuperDARDRead, then read_fitacf
@@ -50,8 +51,9 @@ In this example, the 27th scan was plotted with the defaulted parameter being li
 
 You can also provide a `datetime` object to obtain a scan at a specific time: 
 ```python
-pydarn.Fan.plot_fan(cly_data, scan_index=datetime(2015, 3, 8, 15, 26),
+pydarn.Fan.plot_fan(fitacf_data, scan_index=datetime(2015, 3, 8, 15, 26),
                      colorbar_label='Velocity [m/s]')
+plt.show()
 ```
 
 ![](../imgs/fan_1.b.png)
@@ -123,7 +125,7 @@ Here is a list of all the current options than can be used with `plot_fan`
     In other cases, the user may want to specify the channel and use an integer (N) for the `scan_index`. Be aware that this will show the
     data for the Nth scan of only the chosen channel, not that of the entire file. 
 
-`plot_fan` can concatenate with itself in both polar and geographic projectsion, here is an example of plotting two different radars with some of the above parameters:
+`plot_fan` can concatenate with itself in both polar and geographic projection, here is an example of plotting two different radars with some of the above parameters, remember to pass in the axes object (`ax`) to any subsequent plots, unlike the FOV plots, fan plots will automatically control the `ccrs` variable for you:
 
 ```python
 import pydarn
@@ -136,20 +138,20 @@ pyk_file = 'data/20150308.1401.00.pyk.fitacf'
 pyk_data = pydarn.SuperDARNRead().read_dmap(pyk_file)
 cly_data = pydarn.SuperDARNRead().read_dmap(cly_file)
 
-pydarn.Fan.plot_fan(cly_data, scan_index=datetime(2015, 3, 8, 14, 4),
+ax, _, _, _, _ = pydarn.Fan.plot_fan(cly_data, scan_index=datetime(2015, 3, 8, 14, 4),
                     colorbar=False, fov_color='grey', line_color='blue',
                     radar_label=True)
 
 pydarn.Fan.plot_fan(pyk_data, scan_index=datetime(2015, 3, 8, 14, 4), 
                     colorbar_label='Velocity [m/s]', fov_color='grey',
-                    line_color='red', radar_label=True)
+                    line_color='red', radar_label=True, ax=ax)
 
 plt.show()
 ```
 
 ![](../imgs/fan_3.png)
 
-Using *cartopy* to plot underlaid coastline map using the `coastline` keyword:
+Using *cartopy* to plot underlaid coastline map using the `coastline` keyword, this example also shows the use of plotting in geographic coordinates:
 
 ```python
 ax, _, _, _, _ = pydarn.Fan.plot_fan(data, scan_index=5, radar_label=True,

@@ -61,20 +61,25 @@ Here is a list of all the current options than can be used with `plot_fov`
 | coastline=(bool)        | Plots outlines of coastlines below FOV (Uses Cartopy)                                                   |
 | kwargs **               | Axis Polar settings. See [polar axis](axis.md)                                                          |
 
-To plot based on hemisphere or selection of radars, here is an example plotting North hemisphere radars with selected SuperDARN Canada radars colored as green:
+To plot based on hemisphere or selection of radars, here is an example plotting North hemisphere radars with selected SuperDARN Canada radars colored as green, note that the axes object (ax) needs to be updated inside to loop to plot multiple FOV:
 
 ```python
+import pydarn
+from datetime import datetime
+import matplotlib.pyplot as plt 
+
+ax = None
 for stid in pydarn.SuperDARNRadars.radars.keys():
     if pydarn.SuperDARNRadars.radars[stid].hemisphere == pydarn.Hemisphere.North:
         if stid != 2:
             if stid in [66, 65, 6, 65, 5]: 
-                pydarn.Fan.plot_fov(stid, datetime(2021, 2, 5, 12, 5), 
+                _ , _, ax, _ = pydarn.Fan.plot_fov(stid, datetime(2021, 2, 5, 12, 5), 
                                     radar_label=True, fov_color='green',
-                                    line_color='green', alpha=0.8)
+                                    line_color='green', alpha=0.8, ax=ax)
 
-            pydarn.Fan.plot_fov(stid, datetime(2021, 2, 5, 12, 5), 
+            _ , _, ax, _ = pydarn.Fan.plot_fov(stid, datetime(2021, 2, 5, 12, 5), 
                                 radar_label=True, fov_color='blue',
-                                line_color='blue', alpha=0.2, lowlat=10)
+                                line_color='blue', alpha=0.2, lowlat=10, ax=ax)
 
 plt.show()
 ```
@@ -84,12 +89,17 @@ plt.show()
 This example will plot the South Hemisphere radars FOV in red:
 
 ```python
+import pydarn
+from datetime import datetime
+import matplotlib.pyplot as plt 
+
+ax = None
 for stid in pydarn.SuperDARNRadars.radars.keys():
     if pydarn.SuperDARNRadars.radars[stid].hemisphere == pydarn.Hemisphere.South:
         if stid != 2:
-            pydarn.Fan.plot_fov(stid, datetime(2021, 2, 5, 12, 5),
+            _, _, ax, _ = pydarn.Fan.plot_fov(stid, datetime(2021, 2, 5, 12, 5),
                                 radar_label=True, fov_color='red',
-                                line_color='red', alpha=0.2)
+                                line_color='red', alpha=0.2, ax=ax)
 plt.show()
 ```
 
@@ -99,8 +109,12 @@ plt.show()
 This example shows the use of *cartopy*, plotting in geographic coordinates with the coastline outlines. 
 
 ```python
+import pydarn
+from datetime import datetime
+import matplotlib.pyplot as plt 
+
 _ , _, ax, ccrs = pydarn.Fan.plot_fov(stid=65,
-                                      date=dt.datetime(2022, 1, 8, 14, 5),
+                                      date=datetime(2022, 1, 8, 14, 5),
                                       fov_color='red',
                                       coords=pydarn.Coords.GEOGRAPHIC,
                                       projs=pydarn.Projs.GEO,
@@ -116,24 +130,28 @@ plt.show()
 This is an example of multiple FOV in geographic coordinates using the correct set of keywords.
 
 ```python
-_, _, ax, ccrs=pydarn.Fan.plot_fov(66, dt.datetime(2021, 6, 21, 6, 0),
+import pydarn
+from datetime import datetime
+import matplotlib.pyplot as plt 
+
+_, _, ax, ccrs=pydarn.Fan.plot_fov(66, datetime(2021, 6, 21, 6, 0),
                                    lowlat= 50, boundary=True, radar_label=True,
                                    line_color='red', grid = True,
                                    coords=pydarn.Coords.GEOGRAPHIC,
                                    projs=pydarn.Projs.GEO, coastline=True)
-pydarn.Fan.plot_fov(5, dt.datetime(2021, 2, 5, 12, 5), radar_label=True,
+pydarn.Fan.plot_fov(5, datetime(2021, 2, 5, 12, 5), radar_label=True,
                     ax=ax, ccrs=ccrs, boundary=True, line_color='blue',
                     grid = True, coords=pydarn.Coords.GEOGRAPHIC,
                     projs=pydarn.Projs.GEO)
-pydarn.Fan.plot_fov(64, dt.datetime(2021, 2, 5, 12, 5), radar_label=True,
+pydarn.Fan.plot_fov(64, datetime(2021, 2, 5, 12, 5), radar_label=True,
                     ax=ax, ccrs=ccrs, boundary=True, line_color='green',
                     grid = True, coords=pydarn.Coords.GEOGRAPHIC,
                     projs=pydarn.Projs.GEO)
-pydarn.Fan.plot_fov(65, dt.datetime(2021, 2, 5, 12, 5), radar_label=True,
+pydarn.Fan.plot_fov(65, datetime(2021, 2, 5, 12, 5), radar_label=True,
                     ax=ax, ccrs=ccrs, boundary=True, line_color='orange',
                     grid = True, coords=pydarn.Coords.GEOGRAPHIC,
                     projs=pydarn.Projs.GEO)
-pydarn.Fan.plot_fov(6, dt.datetime(2021, 2, 5, 12, 5), radar_label=True,
+pydarn.Fan.plot_fov(6, datetime(2021, 2, 5, 12, 5), radar_label=True,
                     ax=ax, ccrs=ccrs, boundary=True, grid = True,
                     coords=pydarn.Coords.GEOGRAPHIC, projs=pydarn.Projs.GEO)
 plt.show()
@@ -159,8 +177,13 @@ plt.show()
 To obtain only dots and labels:
 
 ```python
+import pydarn
+from datetime import datetime
+import matplotlib.pyplot as plt 
+
 pydarn.Fan.plot_fov(66, datetime(2021, 2, 5, 12, 5), boundary=False,
                     radar_label=True)
+plt.show()
 ```
 
 ![](../imgs/fov_4.png)
