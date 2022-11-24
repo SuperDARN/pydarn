@@ -1120,14 +1120,7 @@ class RTP():
             # plot range-time
             else:
                 # Current standard is to only have groundscatter
-                # on the velocity plot. This may change in the future.
-                if range_estimation == RangeEstimation.SLANT_RANGE:
-                    ymax = 3517.5
-                elif range_estimation == RangeEstimation.GSMR or \
-                        range_estimation == RangeEstimation.HALF_SLANT:
-                    ymax = 3517.5/2
-                else:
-                    ymax = 75
+                # on the velocity plot. 
                 if groundscatter and axes_parameters[i] == 'v':
                     grndflg = True
                 else:
@@ -1148,7 +1141,7 @@ class RTP():
                                                 axes_parameters[i]][0],
                                             zmax=boundary_ranges[
                                                 axes_parameters[i]][1],
-                                            ymax=ymax, yspacing=500,
+                                            yspacing=500,
                                             background=background,
                                             range_estimation=range_estimation,
                                             **kwargs)
