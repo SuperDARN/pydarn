@@ -133,3 +133,7 @@ site/
 *.iqdat
 *.hdf5
 hdw.dat* 
+
+# mac
+**/.DS_Store
+
