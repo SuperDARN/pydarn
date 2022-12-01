@@ -1,5 +1,20 @@
 #!/usr/bin/env python
 
+# Author: Shibaji Chakraborty
+#
+# Disclaimer:
+# pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
+# Everyone is permitted to copy and distribute verbatim copies of this license
+# document, but changing it is not allowed.
+#
+# This version of the GNU Lesser General Public License incorporates the terms
+# and conditions of version 3 of the GNU General Public License,
+# supplemented by the additional permissions listed below.
+#
+# Modifications:
+#
+
+
 """boxcar_filter.py: Module is dedicated to run 3X3X3 boxcar filtering."""
 
 __author__ = "Chakraborty, S."
