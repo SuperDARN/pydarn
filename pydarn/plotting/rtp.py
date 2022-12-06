@@ -487,7 +487,7 @@ class RTP():
         # so the plots gets to the ends
         ax.margins(0)
 
-        # create color bar if True
+        # Create color bar if None supplied
         if not colorbar:
             with warnings.catch_warnings():
                 warnings.filterwarnings('error')
@@ -514,6 +514,8 @@ class RTP():
                     raise rtp_exceptions.RTPZeroError(parameter, beam_num,
                                                       zmin, zmax,
                                                       norm) from None
+        else:
+            cb = colorbar
         if colorbar_label != '':
             cb.set_label(colorbar_label)
         return im, cb, cmap, x, y, z_data
