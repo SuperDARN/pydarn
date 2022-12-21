@@ -40,7 +40,9 @@ class TestFan_defaults:
 
 @pytest.mark.parametrize('stid', [5, 97])
 @pytest.mark.parametrize('ranges', [(5,70)])
-@pytest.mark.parametrize('boundary', [False, True])
+@pytest.mark.parametrize('boundary', [False])
+@pytest.mark.parametrize('rsep', [15])
+@pytest.mark.parametrize('frang', [90])
 @pytest.mark.parametrize('fov_color', ['grey'])
 @pytest.mark.parametrize('alpha', [0.8, 1])
 @pytest.mark.parametrize('radar_location', [False])
@@ -53,12 +55,13 @@ class TestFov:
 
     def test_fov_plot(self, stid, ranges, boundary, fov_color,
                                    alpha, radar_location, radar_label,
-                                   line_color, date, grid, line_alpha):
+                                   line_color, date, grid, line_alpha, rsep,
+                                   frang):
         """ this test will give bare minimum input needed for """
         with warnings.catch_warnings(record=True):
             pydarn.Fan.plot_fov(stid=stid, ranges=ranges,
                                 boundary=boundary, fov_color=fov_color,
-                                alpha=alpha,
+                                alpha=alpha, rsep=rsep, frang=frang,
                                 radar_location=radar_location,
                                 radar_label=radar_label, grid=grid,
                                 line_color=line_color, date=date,
@@ -85,5 +88,5 @@ class TestFan:
         with warnings.catch_warnings(record=True):
             pydarn.Fan.plot_fan(data, parameter=parameter, cmap=cmap,
                                 groundscatter=groundscatter, colorbar=colorbar,
-                                colorbar_label=colorbar_label, zmin=zmin, zmax=zmax,
-                                title=title, channel=channel)
+                                colorbar_label=colorbar_label, zmin=zmin,
+                                zmax=zmax, title=title, channel=channel)

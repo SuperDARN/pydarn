@@ -51,7 +51,8 @@ class TestRTP_defaults:
 @pytest.mark.parametrize('yspacing', [150, 250])
 @pytest.mark.parametrize('range_estimation',
                          [pydarn.RangeEstimation.RANGE_GATE,
-                          pydarn.RangeEstimation.GSMR])
+                          pydarn.RangeEstimation.GSMR,
+                          pydarn.RangeEstimation.HALF_SLANT])
 @pytest.mark.parametrize('ymin', [10])
 @pytest.mark.parametrize('ymax', [70])
 @pytest.mark.parametrize('parameters', ['v', 'p_l', 'w_l'])
@@ -59,12 +60,13 @@ class TestRTP_defaults:
 @pytest.mark.parametrize('start_time', [dt.datetime(2018, 4, 4, 6, 2)])
 @pytest.mark.parametrize('end_time', [dt.datetime(2018, 4, 4, 6, 4)])
 @pytest.mark.parametrize('date_fmt', ['%H:%M'])
+@pytest.mark.parametrize('round_start', [False])
 class TestRangTime:
 
     def test_parameters_range_time(self, groundscatter_params,
                                    parameters, background, zmin, zmax,
                                    start_time, end_time, ymin, ymax,
-                                   colorbar_label, yspacing,
+                                   colorbar_label, yspacing, round_start,
                                    range_estimation, cmap, date_fmt):
         """ this test will give bare minimum input needed for """
         with warnings.catch_warnings(record=True):
@@ -76,6 +78,7 @@ class TestRangTime:
                                        end_time=end_time, ymin=ymin, ymax=ymax,
                                        colorbar_label=colorbar_label,
                                        yspacing=yspacing,
+                                       round_start=round_start,
                                        range_estimation=range_estimation,
                                        cmap=cmap, date_fmt=date_fmt)
         plt.close('all')
@@ -84,7 +87,7 @@ class TestRangTime:
                                              parameters, background, zmin,
                                              zmax, start_time, end_time,
                                              ymin, ymax, colorbar_label,
-                                             yspacing,
+                                             yspacing, round_start,
                                              range_estimation,
                                              cmap, date_fmt):
         """ this test will give bare minimum input needed for """
@@ -97,6 +100,7 @@ class TestRangTime:
                                        end_time=end_time, ymin=ymin, ymax=ymax,
                                        colorbar_label=colorbar_label,
                                        yspacing=yspacing,
+                                       round_start=round_start,
                                        range_estimation=range_estimation,
                                        cmap=cmap, date_fmt=date_fmt)
         plt.close('all')
@@ -113,12 +117,13 @@ class TestRangTime:
 @pytest.mark.parametrize('start_time', [dt.datetime(2018, 4, 4, 6, 2)])
 @pytest.mark.parametrize('end_time', [dt.datetime(2018, 4, 4, 6, 4)])
 @pytest.mark.parametrize('date_fmt', ['%H:%M'])
+@pytest.mark.parametrize('round_start', [False])
 class TestTimeSeries:
 
     def test_parameters_time_series_channel2(self, parameters_scalar, gate,
                                              scale, cp_name, color, linestyle,
                                              linewidth, date_fmt, end_time,
-                                             start_time):
+                                             start_time, round_start):
         """
 
         """
@@ -130,12 +135,13 @@ class TestTimeSeries:
                                         channel=2, scale=scale,
                                         cp_name=cp_name, color=color,
                                         linestyle=linestyle,
-                                        linewidth=linewidth)
+                                        linewidth=linewidth,
+                                        round_start=round_start,)
 
     def test_parameters_time_series_channel1(self, parameters_scalar, gate,
                                              scale, cp_name, color, linestyle,
                                              linewidth, date_fmt, end_time,
-                                             start_time):
+                                             start_time, round_start):
         """
 
         """
@@ -147,7 +153,8 @@ class TestTimeSeries:
                                         channel=1, scale=scale,
                                         cp_name=cp_name, color=color,
                                         linestyle=linestyle,
-                                        linewidth=linewidth)
+                                        linewidth=linewidth,
+                                        round_start=round_start,)
 
 
 @pytest.mark.parametrize('fig_size', [(11, 10), (10, 11)])
@@ -166,7 +173,8 @@ class TestTimeSeries:
 @pytest.mark.parametrize('groundscatter', [False, 'grey'])
 @pytest.mark.parametrize('range_estimation',
                          [pydarn.RangeEstimation.RANGE_GATE,
-                          pydarn.RangeEstimation.GSMR])
+                          pydarn.RangeEstimation.GSMR,
+                          pydarn.RangeEstimation.HALF_SLANT])
 class TestSummaryPlots:
 
     def test_params_summary_plots(self, fig_size, watermark, boundary, cmaps,

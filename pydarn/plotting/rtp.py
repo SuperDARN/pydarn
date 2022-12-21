@@ -8,6 +8,7 @@
 # 2021-06-18 Marina Schmidt (SuperDARN Canada) fixed ground scatter colour bug
 # 2021-07-06 Carley Martin added keyword to aid in rounding start times
 # 2022-03-04 Marina Schmidt added RangeEstimations in
+# 2022-08-04 Carley Martin added elifs for HALF_SLANT options
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
@@ -486,26 +487,35 @@ class RTP():
         # so the plots gets to the ends
         ax.margins(0)
 
-        # create color bar if True
+        # Create color bar if None supplied
         if not colorbar:
             with warnings.catch_warnings():
                 warnings.filterwarnings('error')
                 try:
                     if isinstance(norm, colors.LogNorm):
-                        cb = ax.figure.colorbar(im, ax=ax, extend='both')
+                        if zmin == 0:
+                            cb = ax.figure.colorbar(im, ax=ax, extend='max')
+                        else:
+                            cb = ax.figure.colorbar(im, ax=ax, extend='both')
                     else:
                         locator = ticker.MaxNLocator(symmetric=True,
                                                      min_n_ticks=3,
                                                      integer=True,
                                                      nbins='auto')
                         ticks = locator.tick_values(vmin=zmin, vmax=zmax)
-                        cb = ax.figure.colorbar(im, ax=ax, extend='both',
-                                                ticks=ticks)
+                        if zmin == 0:
+                            cb = ax.figure.colorbar(im, ax=ax, extend='max',
+                                                    ticks=ticks)
+                        else:
+                            cb = ax.figure.colorbar(im, ax=ax, extend='both',
+                                                    ticks=ticks)
 
                 except (ZeroDivisionError, Warning):
                     raise rtp_exceptions.RTPZeroError(parameter, beam_num,
                                                       zmin, zmax,
                                                       norm) from None
+        else:
+            cb = colorbar
         if colorbar_label != '':
             cb.set_label(colorbar_label)
         return im, cb, cmap, x, y, z_data
@@ -1112,13 +1122,7 @@ class RTP():
             # plot range-time
             else:
                 # Current standard is to only have groundscatter
-                # on the velocity plot. This may change in the future.
-                if range_estimation == RangeEstimation.SLANT_RANGE:
-                    ymax = 3517.5
-                elif range_estimation == RangeEstimation.GSMR:
-                    ymax = 3517.5/2
-                else:
-                    ymax = 75
+                # on the velocity plot. 
                 if groundscatter and axes_parameters[i] == 'v':
                     grndflg = True
                 else:
@@ -1139,7 +1143,7 @@ class RTP():
                                                 axes_parameters[i]][0],
                                             zmax=boundary_ranges[
                                                 axes_parameters[i]][1],
-                                            ymax=ymax, yspacing=500,
+                                            yspacing=500,
                                             background=background,
                                             range_estimation=range_estimation,
                                             **kwargs)
@@ -1164,6 +1168,8 @@ class RTP():
                     axes[i].set_ylabel('Slant Range (km)')
                 elif range_estimation == RangeEstimation.GSMR:
                     axes[i].set_ylabel('Ground Scatter\nMapped Range\n(km)')
+                elif range_estimation == RangeEstimation.HALF_SLANT:
+                    axes[i].set_ylabel('Slant Range/2\n(km)')
                 else:
                     axes[i].set_ylabel('Range Gates')
             if i < num_plots-1:

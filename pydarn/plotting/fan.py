@@ -310,7 +310,7 @@ class Fan():
         stid = dmap_data[0]['stid']
         kwargs['hemisphere'] = SuperDARNRadars.radars[stid].hemisphere
 
-        ax, ccrs = projs(date=date, **kwargs)
+        ax, ccrs = projs(date=date, ax=ax, **kwargs)
 
         if ccrs is None:
             transform = ax.transData
@@ -327,7 +327,8 @@ class Fan():
             ax.pcolormesh(thetas, rs,
                           np.ma.masked_array(grndsct,
                                              ~grndsct.astype(bool)),
-                          norm=norm, cmap='Greys', transform=transform)
+                          norm=norm, cmap='Greys',
+                          transform=transform, zorder=3)
         if ccrs is None:
             azm = np.linspace(0, 2 * np.pi, 100)
             r, th = np.meshgrid(rs, azm)
@@ -346,8 +347,12 @@ class Fan():
                                          integer=True, nbins='auto')
             ticks = locator.tick_values(vmin=zmin, vmax=zmax)
 
-            cb = ax.figure.colorbar(mappable, ax=ax,
-                                    extend='both', ticks=ticks)
+            if zmin == 0:
+                cb = ax.figure.colorbar(mappable, ax=ax, extend='max',
+                                        ticks=ticks)
+            else:
+                cb = ax.figure.colorbar(mappable, ax=ax, extend='both',
+                                        ticks=ticks)
 
             if colorbar_label != '':
                 cb.set_label(colorbar_label)

@@ -86,5 +86,6 @@ Other common options include:
 | channel=(int)    | Specify channel number (default=all)                                     |
 | watermark=(bool) | True adds a 'not for publication' watermark                              |
 | cmaps=(dict/str) | Specifies the colour maps used in plotting                               | 
-| range_estimation=(RangeEstimation)              | Coordinates to use for the y-axis (See [Coordinates](coordinates.md)) |
-For more options on how to modify plot_summary, take a look at the method in `rtp.py`.
+| range_estimation=(RangeEstimation)              | Range use for the y-axis (See [Ranges, Coords and Projs](coordinates.md)) |
+For more options on how to modify plot_summary, take a look at the method in `rtp.py`. 
+All options available in time-series and range-time plots can be used in summary plots. 

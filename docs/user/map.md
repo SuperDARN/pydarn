@@ -53,7 +53,7 @@ map_data = SDarn_read.read_map()
 ```
 With the map data loaded as a list of dictionaries (`map_data` variable in above example), you may now call the `plot_mapdata` method. Make sure you tell the method what time, in [`datetime` format], or record number (numbered from first recorded in file, counting from 0):
 ```python
-mapplot = pydarn.Map.plot_mapdata(map_data, record=150)
+mapplot = pydarn.Maps.plot_mapdata(map_data, record=150)
 plt.show()
 
 ```
@@ -62,7 +62,7 @@ In this example, the record at 150 was plotted with the defaulted parameter, `Ma
 
 You might have noticed that the variable `mapplot` in the examples above actually holds some information. This contains the AACGM latitude and longitude of the mapped vectors plotted. If you instead change `mapplot` to 3 separate variables, it will return the latitude, longitude, and data info into separate variables:
 ```python
-lats,lons,data=pydarn.Map.plot_mapdata(map_data, start_time=stime)
+lats,lons,data=pydarn.Maps.plot_mapdata(map_data, start_time=stime)
 ```
 
 ### Additional options
@@ -81,6 +81,7 @@ Here is a list of all the current options than can be used with `plot_mapdata`
 | cmap=matplotlib.cm             | A matplotlib color map object. Will override the pyDARN defaults for chosen parameter |
 | zmin=(int)                     | Minimum data value for colouring                                                      |
 | zmax=(int)                     | Maximum data value for colouring                                                      |
+| color_vectors=(bool)           | Choose if the vectors are plotted with corresponding color map (True), or in black    |
 | colorbar=(bool)                | Set true to plot a colorbar (default: True)                                           |
 | colorbar_label=(string)        | Label for the colour bar (requires colorbar to be true)                               |
 | title=(str)                    | To add a title to the plot                                                            |
@@ -95,6 +96,9 @@ Here is a list of all the current options than can be used with `plot_mapdata`
 | contour_fill_cmap=(str)        | If contour_fill=True, color map can be selected (default 'RdBu')                      |
 | contour_colorbar_label=(str)   | If contour_fill and contour_colorbar= True, set custom contour colorbar label         |
 | pot_minmax_color=(str)         | Choose color of minimum and maximum potential markers                                 |
+| radar_location=(bool)          | Show locations of radars used in the map file                                         |
+| reference_vector=(int)         | If value given, reference vector with given value is plotted, remove using False or 0 |
+| coastline=(bool)               | Show coastlines under convection data (uses Cartopy)                                  |
 
 More `**kwargs` can be used to customise the display of the radars field-of-view if `boundary=True`
 

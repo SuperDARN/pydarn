@@ -9,13 +9,20 @@ Python data visualization library for the Super Dual Auroral Radar Network (Supe
 
 ## Changelog
 
-## Version 3.0 - Release!
+## Version 3.1 - Release!
 
-**New Requirement**: pyDARN 3.0 requires minimum matplotlib version of 3.3.4
+pyDARN release v3.1 includes the following features:
+- Full Cartopy coastline plotting options for all spatial plots
+  - **NEW** `coastline` keyword in method calls
+- Full Cartopy integration for plotting in geographic coordinates for grid and fan plots
+- Completed polar coordinate convection maps including reference vector and many customization options
+- Improved ACF plotting
+- New `HALF_SLANT` range estimation for RTP
+- **Bug fix** Multiple fan plots now available on one axis
+- **Bug fix** `lowlat` keyword now available for geographic coordinate plots
+- **Bug fix** Colorbars now extend/don't extend as required
+along with many other minor improvements and bug fixes!
 
-pyDARN release v3.0 includes the following features:
-- **New** optional cartopy dependency 
-- **New** convection map plotting
 
 ## Documentation
 
