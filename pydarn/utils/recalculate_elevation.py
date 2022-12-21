@@ -1,6 +1,6 @@
 # (C) Copyright SuperDARN Canada, University of Saskatchewan 2022
 # Author: Carley Martin 20221101
-#
+# Edited by Bharat Kunduri,2022-12-21
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
 # Everyone is permitted to copy and distribute verbatim copies of this license
@@ -11,8 +11,9 @@
 # supplemented by the additional permissions listed below.
 #
 # About:
-# Modified from the DaVit IDL rad_fit_calculate_elevation.pro which is from
-# the make_fit C function in RST. THIS CODE IS DESIGNED TO AMEND ELEVATION
+# Modified from the RST elevation_v2.c code (Simon Shepherd's code).
+# Method: https://agupubs.onlinelibrary.wiley.com/doi/full/10.1002/2017RS006348
+# THIS CODE IS DESIGNED TO AMEND ELEVATION
 # AFTER FITACF FITTING (AT THE VISUALIZATION STEP TO QUICKLY CHECK THE EFFECTS
 # OF DIFFERENT TDIFF VALUES) NOT TO REPLACE THE FITTING ITSELF
 #
@@ -29,7 +30,6 @@ from pydarn import (SuperDARNRadars, C)
 
 
 def recalculate_elevation(dmap_data: List[dict], tdiff: float,
-                          scan_boresight_offset: float = 0.0,
                           overwrite: bool = False):
     """
     Recalculates elevation values for a given tdiff Value
@@ -41,9 +41,6 @@ def recalculate_elevation(dmap_data: List[dict], tdiff: float,
     tdiff: float
         propagation time from interferometer array to phasing matrix
         input minus propagation time from main array antenna, microseconds
-    scan_boresight_offset: float
-        offset between the physical boresight and scanning boresight
-        Generally do not differ (=0.0) except at Blackstone
     overwrite: bool
         If true then return a new dmap_data with new elevation to plot with
         if false then return dictionary of new elevations for further use
@@ -63,82 +60,69 @@ def recalculate_elevation(dmap_data: List[dict], tdiff: float,
     else:
         dmap_amended = deepcopy(dmap_data)
 
+    # Hardware config for radar
+    # Doesn't have to be in the loop, since we're accessing only the first rec
+    radar_hdw = SuperDARNRadars.radars[dmap_data[0]['stid']].hardware_info
+    phase_sign = radar_hdw.phase_sign
+    int_pos = radar_hdw.interferometer_offset
+    
+    # If inteferometer is infront (+1) or behind (-1) main array
+    if int_pos[1] < 0:
+        sgn = -1.0
+    else:
+        sgn = 1.0
+        
+    boff = (radar_hdw.beams / 2.0) - 0.5
+    
     # For each record in data, recalculate the elevation
     for ind in range(0, len(dmap_data)):
         # If there is no elevation data, append empty list and skip
         if 'phi0' not in dmap_data[ind]:
+            print("No elevation data. 'phi0' parameter missing from the record")
             if not overwrite:
                 elv_amended[ind] = []
             continue
-        # Fitacf Phi0 Data
-        phi0 = dmap_data[ind]['phi0']
-        size_phi0 = len(phi0)
-    
-        # Hardware config for radar
-        radar_hdw = SuperDARNRadars.radars[dmap_data[0]['stid']].hardware_info
-        phase_sign = radar_hdw.phase_sign
-        int_pos = radar_hdw.interferometer_offset
-
-        # Antenna separation in meters
-        antenna_sep = np.sqrt(int_pos[0]**2 + int_pos[1]**2 + int_pos[2]**2)
-
-        # Elevation angle correction
-        elv_corr = phase_sign * np.arcsin( int_pos[2] / antenna_sep)
-        # If inteferometer is infront (+1) or behind (-1) main array
-        if int_pos[1] > 0:
-            phi_sign = 1.0
-        else:
-            phi_sign = -1.0
-        elv_corr = elv_corr * -phi_sign
-
-        # Calculate offset in beam widths to edge of array
-        offset = radar_hdw.beams/2.0 - 0.5
-
+            
+        
         # Beam direction off boresight in RADIANS
-        phi = np.radians(radar_hdw.beam_separation * (dmap_data[ind]['bmnum'] - offset)
-                         + scan_boresight_offset)
+        phi0 = np.radians(radar_hdw.beam_separation * (dmap_data[ind]['bmnum'] - boff))
+        # Cos and Sin of phi in shape of phi0
+        cp0 = np.cos(phi0)
+        sp0 = np.sin(phi0)
+        
+        # Phase delay [radians] due to electrical path difference.
+        psi_ele = (-2.0 * np.pi * (dmap_data[ind]['tfreq']) * 1000.0 * tdiff * 1.0e-6)
+        # Elevation angle (a0) where psi (phase difference) is maximum
+        a0 = np.arcsin(sgn * int_pos[2] * cp0 / np.sqrt(int_pos[1]**2 + int_pos[2]**2))
+        if a0 < 0:
+            a0 = 0
+        ca0 = np.cos(a0);
+        sa0 = np.sin(a0);
+        
+        # maximum phase = psi_ele + psi_geo(a0)
+        psi_max = psi_ele + 2.0 * np.pi * (dmap_data[ind]['tfreq']) *\
+                (1e3 / C) * (int_pos[0] * sp0 + int_pos[1] * np.sqrt(ca0*ca0 - sp0*sp0) + int_pos[2] * sa0)
+        
+        
+        # compute the number of 2pi factors necessary to map to correct region
+        dpsi = (psi_max - dmap_data[ind]['phi0'])
+        if int_pos[1] > 0:
+            n2pi = np.floor(dpsi / (2.0 * np.pi))
+        else:
+            n2pi = np.ceil(dpsi / (2.0 * np.pi))
+        d2pi = n2pi * 2.0 * np.pi
+        # map observed phase to correct extended phase
+        psi_obs = dmap_data[ind]['phi0'] + d2pi
+        # solve for the elevation angle
+        E = (psi_obs / (2.0*np.pi*dmap_data[ind]['tfreq']*1.0e3) + tdiff*1e-6) * C - int_pos[0] * sp0
 
-        # Cos of phi in shape of phi0
-        c_phi = np.ones(size_phi0) * np.cos(phi)
-
-        # wave number : k = 2pi*f/C
-        k = np.ones(size_phi0) *\
-            (2.0 * np.pi * (dmap_data[ind]['tfreq'] * 1000.0) / C)
-
-        # phase shift caused by cables - rad
-        dchi_cable = np.ones(size_phi0) *\
-            (-2.0 * np.pi * (dmap_data[ind]['tfreq']) * 1000.0 * tdiff * 1.0e-6)
-
-        # max phase shift possible - rad
-        chi_max = np.ones(size_phi0) *\
-            (phi_sign * k * antenna_sep * c_phi + dchi_cable)
-
-        # Actual phase angle + cable
-        phi_temp = phi0 + 2.0 * np.pi * np.floor((chi_max - phi0) / (2.0 * np.pi))
-
-        if phi_sign < 0.0:
-            phi_temp = phi_temp + 2.0 * np.pi
-
-        # Remove cable effect
-        phi = phi_temp - dchi_cable
-
-        # Calculate angle of arrival for horizontal antennas
-        theta = phi / (k * antenna_sep)
-        theta = (c_phi * c_phi - theta * theta)
-
-        # Where theta is < 0 or > 1 is an invalid elevation so set data to NaN
-        theta[theta < 0.0] = np.nan
-        theta[theta > 1.0] = np.nan
-        phi_temp[theta < 0.0] = np.nan
-        phi_temp[theta > 1.0] = np.nan
-        phi[theta < 0.0] = np.nan
-        phi[theta > 1.0] = np.nan
-
+        alpha = np.arcsin((E*int_pos[2] + np.sqrt(E*E * int_pos[2]**2 - (int_pos[1]**2 + int_pos[2]**2)*(E*E - int_pos[1]*int_pos[1]*cp0*cp0))) / (int_pos[1]*int_pos[1] + int_pos[2]*int_pos[2]))
+              
         # Convert theta back to degrees
         if overwrite:
-            dmap_amended[ind].update({'elv': np.degrees(theta)})
+            dmap_amended[ind].update({'elv': np.degrees(alpha)})
         else:
-            elv_amended[ind] = np.degrees(theta)
+            elv_amended[ind] = np.degrees(alpha)
 
     if overwrite:
         return dmap_amended
