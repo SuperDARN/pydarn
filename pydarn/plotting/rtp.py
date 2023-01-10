@@ -487,7 +487,7 @@ class RTP():
         # so the plots gets to the ends
         ax.margins(0)
 
-        # create color bar if True
+        # Create color bar if None supplied
         if not colorbar:
             with warnings.catch_warnings():
                 warnings.filterwarnings('error')
@@ -514,6 +514,8 @@ class RTP():
                     raise rtp_exceptions.RTPZeroError(parameter, beam_num,
                                                       zmin, zmax,
                                                       norm) from None
+        else:
+            cb = colorbar
         if colorbar_label != '':
             cb.set_label(colorbar_label)
         return im, cb, cmap, x, y, z_data
@@ -1120,14 +1122,7 @@ class RTP():
             # plot range-time
             else:
                 # Current standard is to only have groundscatter
-                # on the velocity plot. This may change in the future.
-                if range_estimation == RangeEstimation.SLANT_RANGE:
-                    ymax = 3517.5
-                elif range_estimation == RangeEstimation.GSMR or \
-                        range_estimation == RangeEstimation.HALF_SLANT:
-                    ymax = 3517.5/2
-                else:
-                    ymax = 75
+                # on the velocity plot. 
                 if groundscatter and axes_parameters[i] == 'v':
                     grndflg = True
                 else:
@@ -1148,7 +1143,7 @@ class RTP():
                                                 axes_parameters[i]][0],
                                             zmax=boundary_ranges[
                                                 axes_parameters[i]][1],
-                                            ymax=ymax, yspacing=500,
+                                            yspacing=500,
                                             background=background,
                                             range_estimation=range_estimation,
                                             **kwargs)

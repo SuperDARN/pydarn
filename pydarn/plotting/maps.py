@@ -10,6 +10,7 @@
 # 2022-04-28: CJM - Added option to have single color vectors with reference
 #                   vector
 # 2022-08-15: CJM - Removed plot_FOV call for default uses
+# 2022-12-13: CJM - Limited reference vectors to only velocity use
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
@@ -147,6 +148,7 @@ class Maps():
                 If a value is given, a reference velocity vector with
                 magnitude of given value, drawn in lower right corner.
                 Vector can be turned off by setting this value to False or 0.
+                Will not plot for power or spectral width options.
                 Default: 500 (vector plotted)
             projs: Enum
                 choice of projection for plot
@@ -314,33 +316,45 @@ class Maps():
 
         # Plot the sock start dots and reference vector if known
         if color_vectors is True:
-            if reference_vector > 0:
-                plt.scatter(mlons[:], mlats[:], c=v_mag[:], s=2.0,
-                            vmin=zmin, vmax=zmax,  cmap=cmap, zorder=5.0,
-                            clip_on=False)
-                plt.plot([mlons[-1], end_mlons[-1]],
-                         [mlats[-1], end_mlats[-1]], c=cmap(norm(v_mag[-1])),
-                         linewidth=0.5, zorder=5.0, clip_on=False)
-                plt.figtext(0.675, 0.15, str(reference_vector) + ' m/s',
-                            fontsize=8)
+            if parameter in [MapParams.FITTED_VELOCITY,
+                             MapParams.MODEL_VELOCITY,
+                             MapParams.RAW_VELOCITY]:
+                if reference_vector > 0:
+                    plt.scatter(mlons[:], mlats[:], c=v_mag[:], s=2.0,
+                                vmin=zmin, vmax=zmax,  cmap=cmap, zorder=5.0,
+                                clip_on=False)
+                    plt.plot([mlons[-1], end_mlons[-1]],
+                             [mlats[-1], end_mlats[-1]], c=cmap(norm(v_mag[-1])),
+                             linewidth=0.5, zorder=5.0, clip_on=False)
+                    plt.figtext(0.675, 0.15, str(reference_vector) + ' m/s',
+                                fontsize=8)
+                else:
+                    plt.scatter(mlons[:-1], mlats[:-1], c=v_mag[:-1], s=2.0,
+                                vmin=zmin, vmax=zmax,  cmap=cmap, zorder=5.0)
             else:
-                plt.scatter(mlons[:-1], mlats[:-1], c=v_mag[:-1], s=2.0,
+                plt.scatter(mlons[:], mlats[:], c=v_mag[:], s=2.0,
                             vmin=zmin, vmax=zmax,  cmap=cmap, zorder=5.0)
 
         else:
             # no color so make sure colorbar is turned off
             colorbar = False
-            if reference_vector > 0:
-                plt.scatter(mlons[:], mlats[:], c='#292929', s=2.0,
-                            zorder=5.0, clip_on=False)
-                plt.plot([mlons[-1], end_mlons[-1]],
-                         [mlats[-1], end_mlats[-1]], c='#292929',
-                         linewidth=0.5, zorder=5.0, clip_on=False)
-                plt.figtext(0.675, 0.15, str(reference_vector) + ' m/s',
-                            fontsize=8)
+            if parameter in [MapParams.FITTED_VELOCITY,
+                             MapParams.MODEL_VELOCITY,
+                             MapParams.RAW_VELOCITY]:
+                if reference_vector > 0:
+                    plt.scatter(mlons[:], mlats[:], c='#292929', s=2.0,
+                                zorder=5.0, clip_on=False)
+                    plt.plot([mlons[-1], end_mlons[-1]],
+                             [mlats[-1], end_mlats[-1]], c='#292929',
+                             linewidth=0.5, zorder=5.0, clip_on=False)
+                    plt.figtext(0.675, 0.15, str(reference_vector) + ' m/s',
+                                fontsize=8)
+                else:
+                    plt.scatter(mlons[:-1], mlats[:-1], c='#292929', s=2.0,
+                                zorder=5.0)
             else:
-                plt.scatter(mlons[:-1], mlats[:-1], c='#292929', s=2.0,
-                            zorder=5.0)
+                plt.scatter(mlons[:], mlats[:], c='#292929', s=2.0,
+                                zorder=5.0)
 
         if colorbar is True:
             mappable = cm.ScalarMappable(norm=norm, cmap=cmap)

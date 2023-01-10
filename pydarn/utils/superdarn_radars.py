@@ -106,7 +106,7 @@ def read_hdw_file(abbrv, date: datetime = None, update: bool = False):
     # if the file does not exist then try
     # and download it
     if os.path.exists(hdw_file) is False:
-        get_hdw_files()
+        get_hdw_files(force=update)
     try:
         with open(hdw_file, 'r') as reader:
             lines = reader.readlines()

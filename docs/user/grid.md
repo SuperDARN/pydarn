@@ -81,7 +81,7 @@ Here is a list of all the current options than can be used with `plot_grid`
 | start_time=(datetime.datetime) | The start time of the record to plot                                                  |
 | time_delta=(int)               | How close to the start time to be to the start time of the record                     |
 | lowlat=(int)                   | Control the lower latitude boundary of the plot (default 30/-30 AACGM lat)            |
-| fov=(bool)                     | Boolean to show the Field-of-View of the radar(s)                                             |
+| boundary=(bool)                | Boolean to show the Field-of-View of the radar(s)                                             |
 | cmap=matplotlib.cm             | A matplotlib color map object. Will override the pyDARN defaults for chosen parameter |
 | zmin=(int)                     | Minimum data value for colouring                                                      |
 | zmax=(int)                     | Maximum data value for colouring                                                      |
@@ -91,7 +91,9 @@ Here is a list of all the current options than can be used with `plot_grid`
 | radar_label=(str)        | To include a dot at radar location and label of 3 letter code |
 | fov_color=(str)           | Fill color of fov                                                         |
 | line_color=(str)      | Fill color of fov lines                                                                          |
-
+| coastline=(bool)               | Plots outlines of coastlines below grid data      |
+| coords=(Coords)               | [Coordinates](coordinates.md) for the data to be plotted in                                             |
+| projs=(Projs)                 | Projections to plot the data on top of                                                                  |
 
 As an example, the following code plots multiple radar Grid plot:
 ```python
