@@ -83,7 +83,7 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7'],
     python_requires='>=3.6',
-    packages=find_packages(exclude=['docs', 'test']),
+    packages=find_packages(['pydarn/utils/hdw'],exclude=['docs', 'test']),
     author="SuperDARN Data Visualization Working Group",
     # used to import the logging config file into pydarn.
     include_package_data=True,
