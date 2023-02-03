@@ -28,6 +28,7 @@ If you have any questions or concerns please submit an **Issue** on the SuperDAR
     - [Convection Map Potential plots](user/map.md)
     - [Power plots](user/power.md)
     - [ACF plotting](user/acf.md)
+    - [Filtering data](user/filters.md)
     - [Logging](user/logging.md)
  - [pyDARN Team](dev/team.md)
     - [Communication Guidelines](dev/communication.md)
