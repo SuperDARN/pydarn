@@ -21,15 +21,17 @@ Code which generates axis objects for use in plotting functions
 import aacgmv2
 import enum
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 import numpy as np
 from packaging import version
 
-from pydarn import Hemisphere, plot_exceptions
+from pydarn import Hemisphere, plot_exceptions, terminator, Re
 try:
     import cartopy
     # from cartopy.mpl import geoaxes
     import cartopy.crs as ccrs
     import cartopy.feature as cfeature
+    from cartopy.feature.nightshade import Nightshade
     cartopyInstalled = True
     if version.parse(cartopy.__version__) < version.parse("0.19"):
         cartopyVersion = False
@@ -74,7 +76,7 @@ def convert_geo_coastline_to_mag(geom, date, alt: float = 0.0):
 def axis_polar(date, ax: object = None, lowlat: int = 30,
                hemisphere: Hemisphere = Hemisphere.North,
                grid_lines: bool = True, coastline: bool = False,
-               **kwargs):
+               nightshade: int = 0, **kwargs):
 
     """
     Plots a radar's Field Of View (FOV) fan plot for the given data and
@@ -137,13 +139,34 @@ def axis_polar(date, ax: object = None, lowlat: int = 30,
         # Plot each geometry object
         for geom in cc_mag.geometries():
             plt.plot(*geom.coords.xy, color='k', linewidth=0.5, zorder=2.0)
+
+    #if nightshade:
+        
+        # antisolarpsn, arc = terminator(date, nightshade)
+#         mlat, lon_mag, _ =  aacgmv2.convert_latlon_arr(antisolarpsn[1],
+#                                                          antisolarpsn[0],
+#                                                          nightshade,
+#                                                          date,
+#                                                          method_code='G2A')
+#         # Shift to MLT
+#         shifted_mlts = lon_mag - (aacgmv2.convert_mlt(lon_mag, date) * 15)
+#         shifted_lons = lon_mag - shifted_mlts
+#         mlon = np.radians(shifted_lons)
+#         x = -5 #mlat * np.cos(mlon)
+#         y = -80 #mlat * np.sin(mlon)
+#         print(mlat, mlon, x, y)
+#         circ = patches.Circle([x,y], arc, color='k', transform=ax.transData._b,alpha=0.2, zorder=2.0)
+#         ax.add_patch(circ)
+#         plt.scatter(mlon, mlat, color='red', zorder=6.0, s=20)
+
     return ax, None
 
 
 def axis_geological(date, ax: object = None,
                     hemisphere: Hemisphere = Hemisphere.North,
                     lowlat: int = 30, grid_lines: bool = True,
-                    coastline: bool = False, **kwargs):
+                    coastline: bool = False, nightshade: int = 0,
+                    **kwargs):
     """
     Plots a radar's Field Of View (FOV) fan plot for the given data and
     scan number
@@ -197,6 +220,11 @@ def axis_geological(date, ax: object = None,
 
     if coastline is True:
         ax.coastlines()
+    
+    if nightshade:
+        ns = Nightshade(date, refraction=-np.degrees(np.arccos(Re / (Re + nightshade))), alpha=0.2)
+        ax.add_feature(ns)
+
     return ax, ccrs
 
 
