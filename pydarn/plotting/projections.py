@@ -25,13 +25,14 @@ import matplotlib.patches as patches
 import numpy as np
 from packaging import version
 
-from pydarn import Hemisphere, plot_exceptions, terminator, Re
+from pydarn import Hemisphere, plot_exceptions, terminator, Re, new_coordinate
 try:
     import cartopy
     # from cartopy.mpl import geoaxes
     import cartopy.crs as ccrs
     import cartopy.feature as cfeature
     from cartopy.feature.nightshade import Nightshade
+    from shapely.geometry import mapping, Polygon
     cartopyInstalled = True
     if version.parse(cartopy.__version__) < version.parse("0.19"):
         cartopyVersion = False
@@ -140,24 +141,43 @@ def axis_polar(date, ax: object = None, lowlat: int = 30,
         for geom in cc_mag.geometries():
             plt.plot(*geom.coords.xy, color='k', linewidth=0.5, zorder=2.0)
 
-    #if nightshade:
-        
-        # antisolarpsn, arc = terminator(date, nightshade)
-#         mlat, lon_mag, _ =  aacgmv2.convert_latlon_arr(antisolarpsn[1],
-#                                                          antisolarpsn[0],
-#                                                          nightshade,
-#                                                          date,
-#                                                          method_code='G2A')
-#         # Shift to MLT
-#         shifted_mlts = lon_mag - (aacgmv2.convert_mlt(lon_mag, date) * 15)
-#         shifted_lons = lon_mag - shifted_mlts
-#         mlon = np.radians(shifted_lons)
-#         x = -5 #mlat * np.cos(mlon)
-#         y = -80 #mlat * np.sin(mlon)
-#         print(mlat, mlon, x, y)
-#         circ = patches.Circle([x,y], arc, color='k', transform=ax.transData._b,alpha=0.2, zorder=2.0)
-#         ax.add_patch(circ)
-#         plt.scatter(mlon, mlat, color='red', zorder=6.0, s=20)
+    if nightshade:
+        # Get antisolar point in geographic coords and radius of terminator
+        # at given height
+        antisolarpsn, arc = terminator(date, nightshade)
+        # Convert position to magnetic coordinates
+        mlat, lon_mag, _ =  aacgmv2.convert_latlon(antisolarpsn[1],
+                                                         antisolarpsn[0],
+                                                         nightshade,
+                                                         date,
+                                                         method_code='G2A')
+        # Shift to MLT
+        shifted_mlts = lon_mag - (aacgmv2.convert_mlt(lon_mag, date) * 15)
+        shifted_lons = lon_mag - shifted_mlts
+        mlon = np.radians(shifted_lons)
+        # Get positions at a distance from new position to plot terminator
+        lats = []
+        lons = []
+        if hemisphere == Hemisphere.North:
+            for b in range(-180,180,1):
+                (lat, lon) = new_coordinate(mlat, shifted_lons, arc, b, R=Re)
+                nlon =np.radians(lon)
+                lats.append(lat)
+                lons.append(nlon)
+            lats2 = np.zeros(len(lats))
+            plt.fill_between(np.squeeze(lons), np.squeeze(lats), lats2,
+                             color='k', alpha=0.1, zorder=2.0, linewidth=0.0)
+        else:
+            bearings = np.roll(range(-180,180,1), 180)
+            for b in bearings:
+                (lat, lon) = new_coordinate(mlat, shifted_lons, arc, b, R=Re)
+                nlon =np.radians(lon)
+                lats.append(lat)
+                lons.append(nlon)
+            lats2 = np.zeros(len(lats))
+            plt.fill_between(np.squeeze(lons), np.squeeze(lats), lats2,
+                             color='k', alpha=0.1, zorder=2.0, linewidth=0.0)
+
 
     return ax, None
 
@@ -222,7 +242,8 @@ def axis_geological(date, ax: object = None,
         ax.coastlines()
     
     if nightshade:
-        ns = Nightshade(date, refraction=-np.degrees(np.arccos(Re / (Re + nightshade))), alpha=0.2)
+        refraction_value = -np.degrees(np.arccos(Re / (Re + nightshade)))
+        ns = Nightshade(date, refraction=refraction_value, alpha=0.1)
         ax.add_feature(ns)
 
     return ax, ccrs
