@@ -144,7 +144,7 @@ def axis_polar(date, ax: object = None, lowlat: int = 30,
     if nightshade:
         # Get antisolar point in geographic coords and radius of terminator
         # at given height
-        antisolarpsn, arc = terminator(date, nightshade)
+        antisolarpsn, arc, ang = terminator(date, nightshade)
         # Convert position to magnetic coordinates
         mlat, lon_mag, _ =  aacgmv2.convert_latlon(antisolarpsn[1],
                                                          antisolarpsn[0],

@@ -300,7 +300,7 @@ def terminator(date, height):
     # Calculate arc in km
     arc_length = Re * np.radians(arc_angle)
     
-    return antisolar_point, arc_length
+    return antisolar_point, arc_length, arc_angle
 
 
 def new_coordinate(lat, lon, d, bearing, R=Re):
