@@ -44,7 +44,7 @@ import aacgmv2
 
 from pydarn import (PyDARNColormaps, build_scan, partial_record_warning,
                     time2datetime, plot_exceptions, SuperDARNRadars,
-                    Projs, Coords, Hemisphere, RangeEstimation)
+                    Projs, Coords, Hemisphere, RangeEstimation, Re)
 
 
 class Fan():
@@ -74,7 +74,8 @@ class Fan():
                  colorbar_label: str = '', title: bool = True,
                  boundary: bool = True, projs: Projs = Projs.POLAR,
                  coords: Coords = Coords.AACGM_MLT,
-                 channel: int = 'all', **kwargs):
+                 channel: int = 'all', ball_and_stick: bool = False,
+                 **kwargs):
         """
         Plots a radar's Field Of View (FOV) fan plot for the given data and
         scan number
@@ -138,6 +139,9 @@ class Fan():
                 integer indicating which channel to plot or 'all' to
                 plot all channels
                 Default: 'all'
+            ball_and_stick : bool
+                plot the data as a vector instead of filling a box
+                Default: False
             kwargs: key = value
                 Additional keyword arguments to be used in projection plotting
                 and plot_fov for possible keywords, see: projections.axis_polar
@@ -317,13 +321,47 @@ class Fan():
 
         else:
             transform = ccrs.PlateCarree()
-        ax.pcolormesh(thetas, rs,
-                      np.ma.masked_array(scan, ~scan.astype(bool)),
-                      norm=norm, cmap=cmap, transform=transform,
-                      zorder=2)
+
+        if not ball_and_stick:
+            ax.pcolormesh(thetas, rs,
+                          np.ma.masked_array(scan, ~scan.astype(bool)),
+                          norm=norm, cmap=cmap, transform=transform,
+                          zorder=2)
+        else:
+            # Get center of each gate instead of edges
+            fan_shape = thetas.shape
+            t_center = np.empty([fan_shape[0]-1, fan_shape[1]-1])
+            r_center = np.empty([fan_shape[0]-1, fan_shape[1]-1])
+            for i in range(0, fan_shape[0]-1):
+                for j in range(0, fan_shape[1]-1):
+                    t_center = (thetas[i,j] + thetas[i+1,j]
+                                     + thetas[i,j+1] + thetas[i+1, j+1]) /4
+                    r_center = (rs[i,j] + rs[i+1,j]
+                                     + rs[i,j+1] + rs[i+1, j+1]) /4
+                    if scan[i,j] != 0.0:
+                        col = cmap((scan[i,j] - zmin) / (zmax-zmin))
+                        ax.scatter(t_center, r_center, color=col, s=1.0,
+                                   transform=transform, zorder=3.0)
+                        # If velocity chosen, then add a stick for direction
+                        if parameter == 'v':
+                            start_psn = [t_center, r_center]
+                            azm = cls.get_gate_azm(t_center, r_center, stid)
+                            if projs != Projs.GEO:
+                                t_center = np.degrees(t_center)
+                        
+                            end_psn = cls.new_coordinate(r_center, t_center,
+                                                     scan[i,j]/1000, azm)
+                            plt.plot([t_center, np.radians(end_psn[1])],
+                                     [r_center, end_psn[0]], color= col,
+                                     zorder=3.0)
+
+                    if groundscatter and grndsct[i,j] != 0.0:
+                        ax.scatter(t_center, r_center, c='grey', s=1.0,
+                                   transform=transform, zorder=3.0)
+                    
 
         # plot the groundscatter as grey fill
-        if groundscatter:
+        if groundscatter and not ball_and_stick:
             ax.pcolormesh(thetas, rs,
                           np.ma.masked_array(grndsct,
                                              ~grndsct.astype(bool)),
@@ -333,7 +371,7 @@ class Fan():
             azm = np.linspace(0, 2 * np.pi, 100)
             r, th = np.meshgrid(rs, azm)
             plt.plot(azm, r, color='k', ls='none')
-            plt.grid()
+            plt.grid(visible=True)
 
         if boundary:
             cls.plot_fov(stid=dmap_data[0]['stid'], date=date, ax=ax,
@@ -362,6 +400,7 @@ class Fan():
             title = cls.__add_title__(start_time, end_time)
             plt.title(title)
         return ax, beam_corners_lats, beam_corners_lons, scan, grndsct
+
 
     @classmethod
     def plot_fov(cls, stid: str, date: dt.datetime,
@@ -555,6 +594,54 @@ class Fan():
                     transform=transform)
 
         return beam_corners_lats, beam_corners_lons, ax, ccrs
+
+
+    @classmethod
+    def get_gate_azm(cls, theta: float, r: float, stid: int):
+        # Extrapolate from radar to gate position to find bearing
+        # Use bearing to get azimuth of point to plot
+        radlat = SuperDARNRadars.radars[66].hardware_info.geographic.lat
+        radlon = SuperDARNRadars.radars[66].hardware_info.geographic.lon
+        b = np.arctan2(np.cos(r) * np.sin(np.radians(radlon-theta)),
+                       np.cos(np.radians(radlat)) * np.sin(r)
+                        - np.sin(np.radians(radlat)) * np.cos(r)
+                        * np.cos(np.radians(radlon-theta)))
+        return b
+        
+
+
+    @classmethod
+    def new_coordinate(cls, lat, lon, d, bearing, R=Re):
+        # Can be moved to other utils when general utils mod made?
+        # Also used in terminator.py but on different branch atm
+        """
+        new coordinate will calculate the new coordinate from a given
+        position, distance and bearing
+        Parameters
+        ----------
+        lat: float
+            initial latitude, in degrees
+        lon: float
+            initial longitude, in degrees
+        d: target distance from initial
+        bearing: (true) heading in degrees
+        R: optional radius of sphere, defaults to mean radius of earth
+        Returns
+        -------
+        lat: float
+            new latitude, in degrees
+        lon: float
+            new longitude, in degrees
+        """
+        lat1 = np.radians(lat)
+        lon1 = np.radians(lon)
+        a = np.radians(bearing)
+        lat2 = np.arcsin(np.sin(lat1) * np.cos(d/R) + np.cos(lat1)
+                         * np.sin(d/R) * np.cos(a))
+        lon2 = lon1 + np.arctan2(np.sin(a) * np.sin(d/R) * np.cos(lat1),
+                                 np.cos(d/R) - np.sin(lat1) * np.sin(lat2))
+        return (np.degrees(lat2), np.degrees(lon2))
+
 
     @classmethod
     def plot_radar_position(cls, stid: int, date: dt.datetime,
