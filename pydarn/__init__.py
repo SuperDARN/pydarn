@@ -36,6 +36,7 @@ from .exceptions.warning_formatting import citing_warning
 from .exceptions.warning_formatting import partial_record_warning
 from .exceptions.warning_formatting import cartopy_warning
 from .exceptions.warning_formatting import cartopy_print_warning
+from .exceptions.warning_formatting import nightshade_warning
 
 # importing utils
 from .utils.constants import Re

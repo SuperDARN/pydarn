@@ -25,7 +25,8 @@ import matplotlib.patches as patches
 import numpy as np
 from packaging import version
 
-from pydarn import Hemisphere, plot_exceptions, terminator, Re, new_coordinate
+from pydarn import (Hemisphere, plot_exceptions, terminator, Re,
+                    new_coordinate, nightshade_warning)
 try:
     import cartopy
     # from cartopy.mpl import geoaxes
@@ -142,42 +143,7 @@ def axis_polar(date, ax: object = None, lowlat: int = 30,
             plt.plot(*geom.coords.xy, color='k', linewidth=0.5, zorder=2.0)
 
     if nightshade:
-        # Get antisolar point in geographic coords and radius of terminator
-        # at given height
-        antisolarpsn, arc, ang = terminator(date, nightshade)
-        # Convert position to magnetic coordinates
-        mlat, lon_mag, _ =  aacgmv2.convert_latlon(antisolarpsn[1],
-                                                         antisolarpsn[0],
-                                                         nightshade,
-                                                         date,
-                                                         method_code='G2A')
-        # Shift to MLT
-        shifted_mlts = lon_mag - (aacgmv2.convert_mlt(lon_mag, date) * 15)
-        shifted_lons = lon_mag - shifted_mlts
-        mlon = np.radians(shifted_lons)
-        # Get positions at a distance from new position to plot terminator
-        lats = []
-        lons = []
-        if hemisphere == Hemisphere.North:
-            for b in range(-180,180,1):
-                (lat, lon) = new_coordinate(mlat, shifted_lons, arc, b, R=Re)
-                nlon =np.radians(lon)
-                lats.append(lat)
-                lons.append(nlon)
-            lats2 = np.zeros(len(lats))
-            plt.fill_between(np.squeeze(lons), np.squeeze(lats), lats2,
-                             color='k', alpha=0.1, zorder=2.0, linewidth=0.0)
-        else:
-            bearings = np.roll(range(-180,180,1), 180)
-            for b in bearings:
-                (lat, lon) = new_coordinate(mlat, shifted_lons, arc, b, R=Re)
-                nlon =np.radians(lon)
-                lats.append(lat)
-                lons.append(nlon)
-            lats2 = np.zeros(len(lats))
-            plt.fill_between(np.squeeze(lons), np.squeeze(lats), lats2,
-                             color='k', alpha=0.1, zorder=2.0, linewidth=0.0)
-
+        nightshade_warning()
 
     return ax, None
 
