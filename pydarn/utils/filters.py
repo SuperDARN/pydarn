@@ -16,10 +16,14 @@
 
 """filters.py: Module is dedicated to filters used on FITACF SuperDARN data."""
 
+import copy
 import datetime as dt
 import numpy as np
-import copy
+import warnings
 
+from pydarn import standard_warning_format
+
+warnings.formatwarning = standard_warning_format
 
 class Gate(object):
     """Class object to hold each range cell value
@@ -28,7 +32,7 @@ class Gate(object):
     -------
     NA
     """
-    def __init__(self, bm, i, params=["v", "w_l", "gflg", "p_l", "v_e"],
+    def __init__(self, bm, i, params=["v", "w_l", "gflg", "p_l", "v_e", "elv"],
                  gflg_type=-1):
         """
         Initialize the parameters which will be stored in Gate
@@ -68,7 +72,7 @@ class Beam(object):
 
     def set(self, time, d,
             s_params=["bmnum", "noise.sky", "tfreq", "scan", "nrang"],
-            v_params=["v", "w_l", "gflg", "p_l", "slist", "v_e"], k=None):
+            v_params=["v", "w_l", "gflg", "p_l", "slist", "v_e", "elv"], k=None):
         """
         Parameters
         ----------
@@ -289,6 +293,7 @@ class Boxcar(object):
                         self.copied_data[r].pop('v', None)
                         self.copied_data[r].pop('w_l', None)
                         self.copied_data[r].pop('p_l', None)
+                        self.copied_data[r].pop('elv', None)
                         self.copied_data[r].pop('gflg', None)
                     else:
                         # Replace the data with new filtered data if there is
@@ -297,6 +302,7 @@ class Boxcar(object):
                         self.copied_data[r]['v'] = np.array(frec['v'])
                         self.copied_data[r]['w_l'] = np.array(frec['w_l'])
                         self.copied_data[r]['p_l'] = np.array(frec['p_l'])
+                        self.copied_data[r]['elv'] = np.array(frec['elv'])
                         self.copied_data[r]['gflg'] = np.array(frec['gflg'])
             # If no match is found for the record, then
             # empty the fields, new data needs to be empty
@@ -304,6 +310,7 @@ class Boxcar(object):
                 self.copied_data[r].pop('slist', None)
                 self.copied_data[r].pop('v', None)
                 self.copied_data[r].pop('w_l', None)
+                self.copied_data[r].pop('elv', None)
                 self.copied_data[r].pop('gflg', None)
         return
 
@@ -325,6 +332,13 @@ class Boxcar(object):
             List of dictionaries that contain
             the new filtered data
         """
+        warnings.warn('The boxcar filter may take 5-10 minutes to filter a ' +
+                      'two hour FITACF file. For more information on this ' +
+                      'filter see the documentation at ' +
+                      'https://pydarn.readthedocs.io/en/main/') 
+        warnings.warn('The boxcar filter may not be applicable to all data, '+
+                      'for example, the boxcar filter should not be applied '+
+                      'to twofsound data.')
         fd = FetchData(beam_sounds)
         fd.parse_data()
         self.scan_stacks = [fd.scans[i - 1: i + 2]
@@ -391,7 +405,8 @@ class Boxcar(object):
         oscan.beams = sorted(oscan.beams, key=lambda bm: bm.bmnum)
         return oscan
 
-    def __do_filter__(self, scans, params_to_run_filter=["v", "w_l", "p_l"]):
+    def __do_filter__(self, scans, params_to_run_filter=["v", "w_l",
+                                                         "p_l", "elv"]):
         """
         Median filter based on the weight given by matrix (3X3X3) weight,
         and threshold based on thresh
@@ -457,7 +472,8 @@ class Boxcar(object):
                                     box[j][k + 1][n + 1] = 0
                     pts = 0.0
                     tot = 0.0
-                    v, w_l, p_l, gfx = list(), list(), list(), list()
+                    v, w_l, p_l, elv, gfx = \
+                        list(), list(), list(), list(), list()
 
                     # Iterate through time
                     for j in range(0, 3):
@@ -476,6 +492,7 @@ class Boxcar(object):
                                         v.append(bx.v)
                                         w_l.append(bx.w_l)
                                         p_l.append(bx.p_l)
+                                        elv.append(bx.elv)
                                         gfx = bx.gflg
                     # Check if we meet the threshold
                     if pts / tot >= self.thresh:
@@ -483,6 +500,7 @@ class Boxcar(object):
                         beam.v.append(np.median(v))
                         beam.w_l.append(np.median(w_l))
                         beam.p_l.append(np.median(p_l))
+                        beam.elv.append(np.median(elv))
                         beam.gflg.append(gfx)
                 oscan.beams.append(beam)
 
