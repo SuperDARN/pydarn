@@ -13,6 +13,7 @@
 # Modifications:
 # 2022-02-11 MTS USASK updated the _HDW_info class to take in
 #            the hardware format
+# 2023-01-21 CJM Added ICE and ICW defaults and hdw link
 """
 This module contains SuperDARN radar information
 """
@@ -490,6 +491,10 @@ class SuperDARNRadars():
                          Hemisphere.North, 110, read_hdw_file('hok')),
               41: _Radar('Hokkaido West', 'Nagoya University',
                          Hemisphere.North, 110, read_hdw_file('hkw')),
+              211: _Radar('Iceland East', 'Dartmouth College',
+                         Hemisphere.North, 100, read_hdw_file('ice')),
+              210: _Radar('Iceland West', 'Dartmouth College',
+                         Hemisphere.North, 100, read_hdw_file('icw')),
               64: _Radar('Inuvik', 'University of Saskatchewan',
                          Hemisphere.North, 75, read_hdw_file('inv')),
               50: _Radar('Jiamusi East radar',
