@@ -6,6 +6,7 @@
 # 2022-03-22 MTS removed coastline call and added grid lines to cartopy plotting
 # 2022-05-20 CJM added options to plot coastlines
 # 2022-06-13 Elliott Day don't create new ax if ax passed in to Projs
+# 2023-02-22 CJM added options for nightshade
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
