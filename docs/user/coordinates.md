@@ -79,19 +79,25 @@ Spatial plots have the option to include a terminator called `nightshade` at a g
 Nightshade is only available using the geographic projection and can be implemented by adding `nightshade=250` to the spacial plot call where 250 is the desired height in the
 ionosphere to be in the Earth's shadow. If you would like to plot your own terminator on any plot, the `terminator` function will return the anti-sub-solar position and the 
 great circle distance to the terminator in geographic coordinates:
-```
+```python
 antisolarpsn, arc_length, angle_of_terminator = terminator(date, nightshade)
 ```
 The `antisolarpsn` is given in degrees lon, lat. The `arc_length` is in kilometers and the `angle_of_terminator` is the angle from the subsolar point to the terminator (i.e. is 90 degrees at ground level).
 The terminator position can be calculated using `(lat, lon) = new_coordinate(lat, lon, arc_length, bearing, R=Re)` for any bearing from the antisolar position. This can be converted to magnetic coordinates using the
 AACGMv2 library. Unfortunately, matplotlib is unable to plot the terminator using `fill` consistently, hence we leave this option up to the user.
 An example of this is shown below:
-```
-# North Winter
-_,_,ax1,ccrs1=pydarn.Fan.plot_fov(66, dt.datetime(2023, 12, 21, 0, 0), lowlat= 5,
-    boundary=True, line_color='red', coastline=True, nightshade=250)
+```python
+import pydarn
+import aacgmv2
+import datetime as dt
+import matplotlib.pyplot as plt
+import numpy as np
 
-# test to plot terminator if ever required - plot not fill!
+# North Winter
+_,_,ax1,ccrs1=pydarn.Fan.plot_fov(66, dt.datetime(2023, 12, 21, 0, 0),
+    lowlat= 5, boundary=True, line_color='red', coastline=True, nightshade=250)
+
+# Test to plot terminator if ever required - plot line not fill!
 # Get antisolar point in geographic coords and radius of terminator
 # at given height
 date = dt.datetime(2023, 12, 21, 0, 0)
