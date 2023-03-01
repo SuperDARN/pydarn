@@ -29,7 +29,8 @@ from pydarn import (SuperDARNRadars, C)
 
 
 def recalculate_elevation(dmap_data: List[dict], tdiff: float,
-                          overwrite: bool = False):
+                          overwrite: bool = False,
+                          interferometer_offset: list = None):
     """
     Recalculates elevation values for a given tdiff Value
 
@@ -43,6 +44,9 @@ def recalculate_elevation(dmap_data: List[dict], tdiff: float,
     overwrite: bool
         If true then return a new dmap_data with new elevation to plot with
         if false then return dictionary of new elevations for further use
+    interferometer_offset: list
+        select position of interferometer array wrt the main array
+        needs to be list of [X, Y, Z] e.g. [0.0, 100.0, 1.0]
 
     Raises
     ------
@@ -61,7 +65,10 @@ def recalculate_elevation(dmap_data: List[dict], tdiff: float,
     # Hardware config for radar
     # Doesn't have to be in the loop, since we're accessing only the first rec
     radar_hdw = SuperDARNRadars.radars[dmap_data[0]['stid']].hardware_info
-    int_pos = radar_hdw.interferometer_offset
+    if interferometer_offset is not None:
+        int_pos = interferometer_offset
+    else:
+        int_pos = radar_hdw.interferometer_offset
 
     # If inteferometer is infront (+1) or behind (-1) main array
     if int_pos[1] < 0:
