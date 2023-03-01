@@ -13,11 +13,14 @@
 # 2021-02-02: CJM - Included rsep and frang options in plot_fov
 #                 - Re-arranged logic for ranges option
 #                 - Indexing fixed for give lower ranges that are non-zero
-# 2022-03-10: MTS - switched coords involving range estimations to RangeEstimation
+# 2022-03-10: MTS - switched coords involving range estimations to
+#                   RangeEstimation
 #                 - Removed GEO_COASTALINE, replaced with GEO on projections
 #                 - reduced some parameters inputs to kwargs
 # 2022-03-22: CJM - Set cmap bad values to transparent
-# 2022-03-23: MTS - added the NotImplementedError for AACGM and GEO projection as this has yet to be figured out
+# 2022-03-23: MTS - added the NotImplementedError for AACGM and GEO projection
+#                   as this has yet to be figured out
+# 2023-03-01: CJM - Added ball and stick plotting options
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
 # Everyone is permitted to copy and distribute verbatim copies of this license
@@ -44,7 +47,7 @@ import aacgmv2
 
 from pydarn import (PyDARNColormaps, build_scan, partial_record_warning,
                     time2datetime, plot_exceptions, SuperDARNRadars,
-                    Projs, Coords, Hemisphere, RangeEstimation, Re)
+                    calculate_azimuth, Projs, Coords, Hemisphere)
 
 
 class Fan():
@@ -75,7 +78,7 @@ class Fan():
                  boundary: bool = True, projs: Projs = Projs.POLAR,
                  coords: Coords = Coords.AACGM_MLT,
                  channel: int = 'all', ball_and_stick: bool = False,
-                 **kwargs):
+                 len_factor: float = 300, **kwargs):
         """
         Plots a radar's Field Of View (FOV) fan plot for the given data and
         scan number
@@ -142,6 +145,9 @@ class Fan():
             ball_and_stick : bool
                 plot the data as a vector instead of filling a box
                 Default: False
+            len_factor : float
+                control the length of the ball and stick plot stick length
+                Default : 300
             kwargs: key = value
                 Additional keyword arguments to be used in projection plotting
                 and plot_fov for possible keywords, see: projections.axis_polar
@@ -152,7 +158,7 @@ class Fan():
             n_beams x n_gates numpy array of latitudes
             return values dependent on given coords enum
         beam_corners_aacgm_lons
-            n_beams x n_gates numpy array of longitudes or MLT 
+            n_beams x n_gates numpy array of longitudes or MLT
             return values dependent on given coords enum
         scan
             n_beams x n_gates numpy array of the scan data
@@ -227,20 +233,18 @@ class Fan():
             rsep = 45
 
         if coords != Coords.GEOGRAPHIC and projs == Projs.GEO:
-            raise plot_exceptions.NotImplemented("AACGM coordinates are"\
-                                                 " not implemented for "\
-                                                 " geographic projections right"\
-                                                 " now, if you would like to"\
-                                                 " see it sooner please help"\
-                                                 " out at "\
-                                                 "https://github.com"\
+            raise plot_exceptions.NotImplemented("AACGM coordinates are"
+                                                 " not implemented for "
+                                                 " geographic projections"
+                                                 " right now, if you would"
+                                                 " like to see it sooner"
+                                                 " please help out at "
+                                                 "https://github.com"
                                                  "/SuperDARN/pyDARN")
 
         beam_corners_lats, beam_corners_lons =\
-                coords(stid=dmap_data[0]['stid'],
-                       rsep=rsep, frang=frang,
-                       gates=ranges, date=date,
-                       **kwargs)
+            coords(stid=dmap_data[0]['stid'], rsep=rsep, frang=frang,
+                   gates=ranges, date=date, **kwargs)
 
         fan_shape = beam_corners_lons.shape
         if ranges[0] < ranges[1] - fan_shape[0]:
@@ -334,31 +338,85 @@ class Fan():
             r_center = np.empty([fan_shape[0]-1, fan_shape[1]-1])
             for i in range(0, fan_shape[0]-1):
                 for j in range(0, fan_shape[1]-1):
-                    t_center = (thetas[i,j] + thetas[i+1,j]
-                                     + thetas[i,j+1] + thetas[i+1, j+1]) /4
-                    r_center = (rs[i,j] + rs[i+1,j]
-                                     + rs[i,j+1] + rs[i+1, j+1]) /4
-                    if scan[i,j] != 0.0:
-                        col = cmap((scan[i,j] - zmin) / (zmax-zmin))
+                    t_center = (thetas[i, j] + thetas[i+1, j]
+                                + thetas[i, j+1] + thetas[i+1, j+1]) / 4
+                    r_center = (rs[i, j] + rs[i+1, j]
+                                + rs[i, j+1] + rs[i+1, j+1]) / 4
+                    if scan[i, j] != 0.0:
+                        col = cmap((scan[i, j] - zmin) / (zmax-zmin))
+                        # Plot balls!
                         ax.scatter(t_center, r_center, color=col, s=1.0,
                                    transform=transform, zorder=3.0)
-                        # If velocity chosen, then add a stick for direction
+                        # Stick only needed for velocity data
                         if parameter == 'v':
-                            start_psn = [t_center, r_center]
-                            azm = cls.get_gate_azm(t_center, r_center, stid)
-                            if projs != Projs.GEO:
-                                t_center = np.degrees(t_center)
-                        
-                            end_psn = cls.new_coordinate(r_center, t_center,
-                                                     scan[i,j]/1000, azm)
-                            plt.plot([t_center, np.radians(end_psn[1])],
-                                     [r_center, end_psn[0]], color= col,
-                                     zorder=3.0)
+                            # Get azimuth in correct coord system
+                            if coords != Coords.GEOGRAPHIC:
+                                lat = r_center
+                                lon = np.degrees(t_center)
+                            else:
+                                lat = r_center
+                                lon = t_center
+                            azm = cls.get_gate_azm(lon, lat, stid,
+                                                   coords, date)
 
-                    if groundscatter and grndsct[i,j] != 0.0:
+                            # Make sure each coordinate is in correct
+                            # units again
+                            if projs != Projs.GEO:
+                                thetas_calc = np.radians(lon)
+                                rs_calc = lat
+                            else:
+                                thetas_calc = np.radians(lon)
+                                rs_calc = lat
+
+                            hemisphere = SuperDARNRadars.radars[stid]\
+                                                        .hemisphere
+
+                            # Find the end point of the stick to plot
+                            # Angle to rotate each vector
+                            alpha = thetas_calc
+
+                            # Convert to Cartesian
+                            start_pos_x = (90 - abs(rs_calc)) \
+                                * np.cos(thetas_calc)
+                            start_pos_y = (90 - abs(rs_calc)) \
+                                * np.sin(thetas_calc)
+
+                            # Results LOS vector in x and y
+                            los_x = -scan[i, j] * np.cos(
+                                    np.radians(-azm * hemisphere.value))
+                            los_y = -scan[i, j] * np.sin(
+                                    np.radians(-azm * hemisphere.value))
+
+                            # Rotate vector into same ref frame
+                            vec_x = (los_x * np.cos(alpha)) \
+                                - (los_y * np.sin(alpha))
+                            vec_y = (los_x * np.sin(alpha)) \
+                                + (los_y * np.cos(alpha))
+
+                            # New vector end points
+                            end_pos_x = start_pos_x\
+                                + (vec_x * hemisphere.value / len_factor)
+                            end_pos_y = start_pos_y\
+                                + (vec_y * hemisphere.value / len_factor)
+                            # Convert back to polar for plotting
+                            end_rs = 90 - (np.sqrt(end_pos_x**2
+                                                   + end_pos_y**2))
+                            end_thetas = np.arctan2(end_pos_y, end_pos_x)
+                            end_rs = end_rs * hemisphere.value
+
+                            # Convert to degrees for geo plots
+                            if projs == Projs.GEO:
+                                end_thetas = np.degrees(end_thetas)
+                            # Plot sticks!
+                            plt.plot([t_center, end_thetas],
+                                     [r_center, end_rs],
+                                     color=col, zorder=3.0, linewidth=0.5,
+                                     transform=transform)
+
+                    # Plot ground scatter balls (no sticks)
+                    if groundscatter and grndsct[i, j] != 0.0:
                         ax.scatter(t_center, r_center, c='grey', s=1.0,
                                    transform=transform, zorder=3.0)
-                    
 
         # plot the groundscatter as grey fill
         if groundscatter and not ball_and_stick:
@@ -400,7 +458,6 @@ class Fan():
             title = cls.__add_title__(start_time, end_time)
             plt.title(title)
         return ax, beam_corners_lats, beam_corners_lons, scan, grndsct
-
 
     @classmethod
     def plot_fov(cls, stid: str, date: dt.datetime,
@@ -595,53 +652,46 @@ class Fan():
 
         return beam_corners_lats, beam_corners_lons, ax, ccrs
 
-
     @classmethod
-    def get_gate_azm(cls, theta: float, r: float, stid: int):
-        # Extrapolate from radar to gate position to find bearing
-        # Use bearing to get azimuth of point to plot
-        radlat = SuperDARNRadars.radars[66].hardware_info.geographic.lat
-        radlon = SuperDARNRadars.radars[66].hardware_info.geographic.lon
-        b = np.arctan2(np.cos(r) * np.sin(np.radians(radlon-theta)),
-                       np.cos(np.radians(radlat)) * np.sin(r)
-                        - np.sin(np.radians(radlat)) * np.cos(r)
-                        * np.cos(np.radians(radlon-theta)))
-        return b
-        
-
-
-    @classmethod
-    def new_coordinate(cls, lat, lon, d, bearing, R=Re):
-        # Can be moved to other utils when general utils mod made?
-        # Also used in terminator.py but on different branch atm
+    def get_gate_azm(cls, theta: float, r: float, stid: int, coords, date):
         """
-        new coordinate will calculate the new coordinate from a given
-        position, distance and bearing
+        gets the azimuth of the gate, requires some changes depending on
+        coordinates before using calculate_azimuth
+
         Parameters
         ----------
-        lat: float
-            initial latitude, in degrees
-        lon: float
-            initial longitude, in degrees
-        d: target distance from initial
-        bearing: (true) heading in degrees
-        R: optional radius of sphere, defaults to mean radius of earth
+            theta: float
+                longitude
+            r: float
+                latitude
+            stid: int
+                station id of radar
+            coords: Enum
+                enumeration of coordinate system
+            date: datetime object
+                date of data
+
         Returns
         -------
-        lat: float
-            new latitude, in degrees
-        lon: float
-            new longitude, in degrees
+            azm: float
+                azimuth direction of radar from gate in coordinate system
+                given
         """
-        lat1 = np.radians(lat)
-        lon1 = np.radians(lon)
-        a = np.radians(bearing)
-        lat2 = np.arcsin(np.sin(lat1) * np.cos(d/R) + np.cos(lat1)
-                         * np.sin(d/R) * np.cos(a))
-        lon2 = lon1 + np.arctan2(np.sin(a) * np.sin(d/R) * np.cos(lat1),
-                                 np.cos(d/R) - np.sin(lat1) * np.sin(lat2))
-        return (np.degrees(lat2), np.degrees(lon2))
-
+        # Get position of radar in geographic from hdw files
+        radlat = SuperDARNRadars.radars[stid].hardware_info.geographic.lat
+        radlon = SuperDARNRadars.radars[stid].hardware_info.geographic.lon
+        # Convert radar position to correct coordinate system
+        if coords == Coords.AACGM_MLT or coords == Coords.AACGM:
+            geomag_radar = aacgmv2.get_aacgm_coord(radlat, radlon, 250, date)
+            radlat = geomag_radar[0]
+            radlon = geomag_radar[1]
+            if coords == Coords.AACGM_MLT:
+                mltshift = geomag_radar[1] -\
+                        (aacgmv2.convert_mlt(geomag_radar[1], date) * 15)
+                radlon = geomag_radar[1] - mltshift[0]
+        # Call calculate azimuth function from geo
+        azm = calculate_azimuth(r, theta, 300, radlat, radlon, 300)
+        return azm
 
     @classmethod
     def plot_radar_position(cls, stid: int, date: dt.datetime,
