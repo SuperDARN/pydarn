@@ -158,6 +158,19 @@ class Maps():
                 uses the parameters for plot_fov and projections.axis
 
         """
+        #####
+        # Adding return statements for different level processed data: 
+        #              1. potential, 2. velocity (model/vectored), 3. e-field
+        #####
+        ret_dict = dict(
+            velocity = dict(),
+            fit_pot = dict(),
+            fit_efield = dict(),
+            fit_hmb = dict(),
+            map_info = dict(),
+            imf_info = dict(),
+        )
+        
         # Find the record corresponding to the start time
         if start_time is not None:
             record = find_record(dmap_data, start_time, time_delta)
@@ -207,6 +220,7 @@ class Maps():
             else:
                 ax, _ = projs(date, ax=ax, hemisphere=hemisphere, **kwargs)
 
+        ret_dict['velocity']['param'] = parameter
         if parameter == MapParams.MODEL_VELOCITY:
             try:
                 data_lons = dmap_data[record]['model.mlon']
@@ -388,16 +402,21 @@ class Maps():
         lon_shift = dmap_data[record]['lon.shft']
         lat_min = dmap_data[record]['latmin']
 
-        cls.plot_potential_contours(fit_coefficient, lat_min, date, ax,
-                                    lat_shift=lat_shift, lon_shift=lon_shift,
-                                    fit_order=fit_order, hemisphere=hemisphere,
-                                    **kwargs)
+        mlat_p, mlon_p, pot_arr = cls.plot_potential_contours(fit_coefficient, lat_min, date, ax,
+                                                              lat_shift=lat_shift, lon_shift=lon_shift,
+                                                              fit_order=fit_order, hemisphere=hemisphere,
+                                                              **kwargs)
+        ret_dict['fit_pot']['mlats'] = mlat_p
+        ret_dict['fit_pot']['mlons'] = mlon_p
+        ret_dict['fit_pot']['pots'] = pot_arr
 
         if hmb is True:
             # Plot the HMB
             mlats_hmb = dmap_data[record]['boundary.mlat']
             mlons_hmb = dmap_data[record]['boundary.mlon']
             cls.plot_heppner_maynard_boundary(mlats_hmb, mlons_hmb, date)
+            ret_dict['fit_hmb']['mlats'] = mlats_hmb
+            ret_dict['fit_hmb']['mlons'] = mlons_hmb
 
         if title == '':
             title = "{year}-{month}-{day} {start_hour}:{start_minute} -"\
@@ -417,6 +436,9 @@ class Maps():
             model = dmap_data[record]['model.name']
             num_points = len(dmap_data[record]['vector.mlat'])
             pol_cap_pot = dmap_data[record]['pot.drop']
+            ret_dict['map_info']['model'] = model
+            ret_dict['map_info']['num_points'] = num_points
+            ret_dict['map_info']['pol_cap_pot'] = pol_cap_pot
             cls.add_map_info(fit_order, pol_cap_pot, num_points, model)
 
         if imf_dial is True:
@@ -427,6 +449,11 @@ class Maps():
             delay = dmap_data[record]['IMF.delay']
             bt = np.sqrt(bx**2 + by**2 + bz**2)
             cls.plot_imf_dial(ax, by, bz, bt, delay)
+            ret_dict['imf_info']['bx'] = bx
+            ret_dict['imf_info']['by'] = by
+            ret_dict['imf_info']['bz'] = bz
+            ret_dict['imf_info']['bt'] = bt
+            ret_dict['imf_info']['delay'] = delay
 
         return mlats, mlons, v_mag
 
@@ -1025,3 +1052,5 @@ class Maps():
                     color=pot_minmax_color, zorder=5.0)
         plt.scatter(np.radians(min_mlon), min_mlat, marker='_', s=70,
                     color=pot_minmax_color, zorder=5.0)
+        # return the estimated parameters
+        return mlat, mlon_u, pot_arr
