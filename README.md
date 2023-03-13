@@ -9,9 +9,13 @@ Python data visualization library for the Super Dual Auroral Radar Network (Supe
 
 ## Changelog
 
-## Version 3.1 - Release!
+## Version 3.1.1 - Patch Release!
 
-pyDARN release v3.1 includes the following features:
+This patch release includes:
+- **Bug fix** `hdw` repository installation issues resolved
+- Inclusion of ICE and ICW in `hdw` repository and superdarn_radars module
+
+Most recent minor release (3.1.0) changes listed below:
 - Full Cartopy coastline plotting options for all spatial plots
   - **NEW** `coastline` keyword in method calls
 - Full Cartopy integration for plotting in geographic coordinates for grid and fan plots
