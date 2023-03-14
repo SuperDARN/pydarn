@@ -11,6 +11,7 @@
 #                   vector
 # 2022-08-15: CJM - Removed plot_FOV call for default uses
 # 2022-12-13: CJM - Limited reference vectors to only velocity use
+# 2023-03-14: CJM - Added true vector option
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
