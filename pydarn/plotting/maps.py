@@ -110,6 +110,7 @@ class Maps():
                     MapParams.FITTED_VELOCITY: 'plasma',
                     MapParams.MODEL_VELOCITY: 'plasma',
                     MapParams.RAW_VELOCITY: 'plasma',
+                    MapParams.TRUE_VELOCITY: 'plasma',
                     MapParams.POWER: 'plasma_r',
                     MapParams.SPECTRAL_WIDTH: PyDARNColormaps.PYDARN_VIRIDIS
             zmin: int
@@ -117,6 +118,7 @@ class Maps():
                 Default: MapParams.FITTED_VELOCITY: [0],
                          MapParams.MODEL_VELOCITY: [0],
                          MapParams.RAW_VELOCITY: [0],
+                         MapParams.TRUE_VELOCITY: [0],
                          MapParams.POWER: [0],
                          MapParams.SPECTRAL_WIDTH: [0]
             zmax: int
@@ -124,6 +126,7 @@ class Maps():
                 Default: MapParams.FITTED_VELOCITY: [1000],
                          MapParams.MODEL_VELOCITY: [1000],
                          MapParams.RAW_VELOCITY: [1000],
+                         MapParams.TRUE_VELOCITY: [1000],
                          MapParams.POWER: [250],
                          MapParams.SPECTRAL_WIDTH: [250]
             colorbar: bool
@@ -167,6 +170,7 @@ class Maps():
             cmap = {MapParams.FITTED_VELOCITY: 'plasma_r',
                     MapParams.MODEL_VELOCITY: 'plasma_r',
                     MapParams.RAW_VELOCITY: 'plasma_r',
+                    MapParams.TRUE_VELOCITY: 'plasma_r',
                     MapParams.POWER: 'plasma',
                     MapParams.SPECTRAL_WIDTH: PyDARNColormaps.PYDARN_VIRIDIS}
             cmap = plt.cm.get_cmap(cmap[parameter])
@@ -174,6 +178,7 @@ class Maps():
         defaultzminmax = {MapParams.FITTED_VELOCITY: [0, 1000],
                           MapParams.MODEL_VELOCITY: [0, 1000],
                           MapParams.RAW_VELOCITY: [0, 1000],
+                          MapParams.TRUE_VELOCITY: [0, 1000],
                           MapParams.POWER: [0, 250],
                           MapParams.SPECTRAL_WIDTH: [0, 250]}
         if zmin is None:
@@ -249,16 +254,34 @@ class Maps():
         elif parameter == MapParams.RAW_VELOCITY:
             v_mag = dmap_data[record]['vector.vel.median']
             azm_v = np.radians(dmap_data[record]['vector.kvect'])
+        elif parameter == MapParams.TRUE_VELOCITY:
+            # Get LOS velocities
+            v_los = dmap_data[record]['vector.vel.median']
+            a_los = np.radians(dmap_data[record]['vector.kvect'])
+            # Get fitted velocities
+            v_fit, a_fit = \
+                    cls.calculated_fitted_velocities(mlats=mlats,
+                                                     mlons=np.radians(
+                                                         data_lons),
+                                                     hemisphere=hemisphere,
+                                                     fit_coefficient=dmap_data[
+                                                         record]['N+2'],
+                                                     fit_order=dmap_data[
+                                                         record]['fit.order'],
+                                                     lat_min=dmap_data[
+                                                         record]['latmin'],
+                                                     len_factor=len_factor)
+            v_mag, azm_v = cls.calculated_true_velocities(v_los, a_los,
+                                                          v_fit, a_fit)
         elif parameter == MapParams.POWER:
             v_mag = dmap_data[record]['vector.pwr.median']
             azm_v = np.radians(dmap_data[record]['vector.kvect'])
-
         elif parameter == MapParams.SPECTRAL_WIDTH:
             v_mag = dmap_data[record]['vector.wdt.median']
             azm_v = np.radians(dmap_data[record]['vector.kvect'])
 
         if parameter in [MapParams.FITTED_VELOCITY, MapParams.MODEL_VELOCITY,
-                         MapParams.RAW_VELOCITY]:
+                         MapParams.RAW_VELOCITY, MapParams.TRUE_VELOCITY]:
             # Make reference vector and add it to the array to
             # be calculated too
             reflat = (np.abs(plt.gca().get_ylim()[1]) - 5) * hemisphere.value
@@ -318,7 +341,8 @@ class Maps():
         if color_vectors is True:
             if parameter in [MapParams.FITTED_VELOCITY,
                              MapParams.MODEL_VELOCITY,
-                             MapParams.RAW_VELOCITY]:
+                             MapParams.RAW_VELOCITY,
+                             MapParams.TRUE_VELOCITY]:
                 if reference_vector > 0:
                     plt.scatter(mlons[:], mlats[:], c=v_mag[:], s=2.0,
                                 vmin=zmin, vmax=zmax,  cmap=cmap, zorder=5.0,
@@ -340,7 +364,8 @@ class Maps():
             colorbar = False
             if parameter in [MapParams.FITTED_VELOCITY,
                              MapParams.MODEL_VELOCITY,
-                             MapParams.RAW_VELOCITY]:
+                             MapParams.RAW_VELOCITY,
+                             MapParams.TRUE_VELOCITY]:
                 if reference_vector > 0:
                     plt.scatter(mlons[:], mlats[:], c='#292929', s=2.0,
                                 zorder=5.0, clip_on=False)
@@ -374,7 +399,8 @@ class Maps():
             else:
                 if parameter in [MapParams.FITTED_VELOCITY,
                                  MapParams.MODEL_VELOCITY,
-                                 MapParams.RAW_VELOCITY]:
+                                 MapParams.RAW_VELOCITY,
+                                 MapParams.TRUE_VELOCITY]:
                     cb.set_label('Velocity (m s$^{-1}$)')
                 elif parameter is MapParams.SPECTRAL_WIDTH:
                     cb.set_label('Spectral Width (m s$^{-1}$)')
@@ -449,6 +475,37 @@ class Maps():
         """
         return (m == 0 and l**2) or ((l != 0)
                                      and (m != 0) and l**2 + 2 * m - 1) or 0
+
+
+    @classmethod
+    def calculated_true_velocities(cls, v_los: list, a_los: list,
+                                   v_fit: list, a_fit: list):
+        """
+        Calculates the true velocities
+        The True velocity is calculated as the combined LOS vector and the
+        perpendicular-to-LOS component of the fitted velocity
+
+        Parameters
+        ----------
+            v_los: array
+                raw magnitude of LOS velocity
+            a_los: array
+                angle of direction of raw LOS velocity
+            v_fit: array
+                raw magnitude of LOS velocity
+            a_fit: array
+                angle of direction of raw LOS velocity
+        """
+        # Get vector component of fitted velocities
+        # perpendicular to LOS velocity
+        v_perp = np.sqrt( abs( v_fit**2 - v_los**2 ))
+        a_perp = (a_los - np.pi/2) + np.arctan2(v_los, v_perp)
+
+        # Calculate the true velocities as the resultatnt of the 
+        # perpendicular and LOS velocities
+        v_true = np.sqrt( v_perp**2 + v_los**2 )
+        a_true = a_perp + np.arctan2(v_los, v_perp)
+        return v_true, a_true
 
 
     @classmethod
