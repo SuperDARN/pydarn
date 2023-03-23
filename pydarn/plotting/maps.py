@@ -320,7 +320,10 @@ class Maps():
                              MapParams.MODEL_VELOCITY,
                              MapParams.RAW_VELOCITY]:
                 if reference_vector > 0:
-                    plt.scatter(mlons[:], mlats[:], c=v_mag[:], s=2.0,
+                    plt.scatter(mlons[:-1], mlats[:-1], c=v_mag[:-1], s=2.0,
+                                vmin=zmin, vmax=zmax,  cmap=cmap, zorder=5.0,
+                                clip_on=True)
+                    plt.scatter(mlons[-1], mlats[-1], c=v_mag[-1], s=2.0,
                                 vmin=zmin, vmax=zmax,  cmap=cmap, zorder=5.0,
                                 clip_on=False)
                     plt.plot([mlons[-1], end_mlons[-1]],
@@ -342,7 +345,9 @@ class Maps():
                              MapParams.MODEL_VELOCITY,
                              MapParams.RAW_VELOCITY]:
                 if reference_vector > 0:
-                    plt.scatter(mlons[:], mlats[:], c='#292929', s=2.0,
+                    plt.scatter(mlons[:-1], mlats[:-1], c='#292929', s=2.0,
+                                zorder=5.0, clip_on=True)
+                    plt.scatter(mlons[-1], mlats[-1], c='#292929', s=2.0,
                                 zorder=5.0, clip_on=False)
                     plt.plot([mlons[-1], end_mlons[-1]],
                              [mlats[-1], end_mlats[-1]], c='#292929',
