@@ -56,6 +56,7 @@ from .utils.superdarn_radars import get_hdw_files
 from .utils.scan import build_scan
 from .utils.geo import geocentric_coordinates
 from .utils.coordinates import Coords
+from .utils.recalculate_elevation import recalculate_elevation
 from .utils.filters import Boxcar
 
 # import plotting
