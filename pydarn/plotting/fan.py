@@ -13,11 +13,15 @@
 # 2021-02-02: CJM - Included rsep and frang options in plot_fov
 #                 - Re-arranged logic for ranges option
 #                 - Indexing fixed for give lower ranges that are non-zero
-# 2022-03-10: MTS - switched coords involving range estimations to RangeEstimation
+# 2022-03-10: MTS - switched coords involving range estimations to
+#                   RangeEstimation
 #                 - Removed GEO_COASTALINE, replaced with GEO on projections
 #                 - reduced some parameters inputs to kwargs
 # 2022-03-22: CJM - Set cmap bad values to transparent
-# 2022-03-23: MTS - added the NotImplementedError for AACGM and GEO projection as this has yet to be figured out
+# 2022-03-23: MTS - added the NotImplementedError for AACGM and GEO projection
+#                   as this has yet to be figured out
+# 2023-02-06: CJM - Added option to plot single beams in a scan or FOV diagram
+#
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
 # Everyone is permitted to copy and distribute verbatim copies of this license
@@ -44,7 +48,7 @@ import aacgmv2
 
 from pydarn import (PyDARNColormaps, build_scan, partial_record_warning,
                     time2datetime, plot_exceptions, SuperDARNRadars,
-                    Projs, Coords, Hemisphere, RangeEstimation)
+                    Projs, Coords, Hemisphere)
 
 
 class Fan():
@@ -73,7 +77,7 @@ class Fan():
                  zmax: int = None, colorbar: bool = True,
                  colorbar_label: str = '', title: bool = True,
                  boundary: bool = True, projs: Projs = Projs.POLAR,
-                 coords: Coords = Coords.AACGM_MLT,
+                 coords: Coords = Coords.AACGM_MLT, beam: int = None,
                  channel: int = 'all', **kwargs):
         """
         Plots a radar's Field Of View (FOV) fan plot for the given data and
@@ -134,6 +138,8 @@ class Fan():
             coords: Enum
                 choice of plotting coordinates
                 default: Coords.AACGM_MLT (Magnetic Lat and MLT)
+            beam : int or None
+                integer indicating if the user would like to plot a single beam
             channel : int or str
                 integer indicating which channel to plot or 'all' to
                 plot all channels
@@ -148,7 +154,7 @@ class Fan():
             n_beams x n_gates numpy array of latitudes
             return values dependent on given coords enum
         beam_corners_aacgm_lons
-            n_beams x n_gates numpy array of longitudes or MLT 
+            n_beams x n_gates numpy array of longitudes or MLT
             return values dependent on given coords enum
         scan
             n_beams x n_gates numpy array of the scan data
@@ -223,20 +229,18 @@ class Fan():
             rsep = 45
 
         if coords != Coords.GEOGRAPHIC and projs == Projs.GEO:
-            raise plot_exceptions.NotImplemented("AACGM coordinates are"\
-                                                 " not implemented for "\
-                                                 " geographic projections right"\
-                                                 " now, if you would like to"\
-                                                 " see it sooner please help"\
-                                                 " out at "\
-                                                 "https://github.com"\
+            raise plot_exceptions.NotImplemented("AACGM coordinates are"
+                                                 " not implemented for"
+                                                 " geographic projections"
+                                                 " right now, if you would "
+                                                 "like to see it sooner please"
+                                                 " help out at "
+                                                 "https://github.com"
                                                  "/SuperDARN/pyDARN")
 
         beam_corners_lats, beam_corners_lons =\
-                coords(stid=dmap_data[0]['stid'],
-                       rsep=rsep, frang=frang,
-                       gates=ranges, date=date,
-                       **kwargs)
+            coords(stid=dmap_data[0]['stid'], rsep=rsep, frang=frang,
+                   gates=ranges, date=date, **kwargs)
 
         fan_shape = beam_corners_lons.shape
         if ranges[0] < ranges[1] - fan_shape[0]:
@@ -280,7 +284,7 @@ class Fan():
                 # get a list of gates where there is data
                 slist = dmap_data[i.astype(int)]['slist']
                 # get the beam number for the record
-                beam = dmap_data[i.astype(int)]['bmnum']
+                beami = dmap_data[i.astype(int)]['bmnum']
 
                 # Exclude ranges larger than the expected maximum.
                 # This is a temporary fix to manage inconsistencies between the
@@ -292,20 +296,25 @@ class Fan():
                 temp_data = dmap_data[i.astype(int)][parameter][good_data]
                 temp_ground = dmap_data[i.astype(int)]['gflg'][good_data]
 
-                scan[slist-ranges[0], beam] = temp_data
-                grndsct[slist-ranges[0], beam] = temp_ground
+                scan[slist-ranges[0], beami] = temp_data
+                grndsct[slist-ranges[0], beami] = temp_ground
             # if there is no slist field this means partial record
             except KeyError:
                 partial_record_warning()
                 continue
 
         # Begin plotting by iterating over ranges and beams
+        if beam is not None:
+            thetas = thetas[0:ranges[1]-ranges[0]+1, beam:beam+2]
+            rs = rs[0:ranges[1]-ranges[0]+1, beam:beam+2]
+            scan = scan[0:ranges[1]-ranges[0], beam:beam+1]
+            grndsct = grndsct[0:ranges[1]-ranges[0], beam:beam+1]
+        else:
+            thetas = thetas[0:ranges[1]-ranges[0]+1]
+            rs = rs[0:ranges[1]-ranges[0]+1]
+            scan = scan[0:ranges[1]-ranges[0]]
+            grndsct = grndsct[0:ranges[1]-ranges[0]]
 
-        thetas = thetas[0:ranges[1]-ranges[0]+1]
-        rs = rs[0:ranges[1]-ranges[0]+1]
-
-        scan = scan[0:ranges[1]-ranges[0]]
-        grndsct = grndsct[0:ranges[1]-ranges[0]]
         # Set up axes in correct hemisphere
         stid = dmap_data[0]['stid']
         kwargs['hemisphere'] = SuperDARNRadars.radars[stid].hemisphere
@@ -338,7 +347,7 @@ class Fan():
         if boundary:
             cls.plot_fov(stid=dmap_data[0]['stid'], date=date, ax=ax,
                          ccrs=ccrs, coords=coords, projs=projs, rsep=rsep,
-                         frang=frang, ranges=ranges, **kwargs)
+                         frang=frang, ranges=ranges, beam=beam, **kwargs)
 
         # Create color bar if True
         if colorbar is True:
@@ -372,7 +381,7 @@ class Fan():
                  fov_color: str = None, alpha: int = 0.5,
                  radar_location: bool = True, radar_label: bool = False,
                  line_color: str = 'black',
-                 grid: bool = False,
+                 grid: bool = False, beam: int = None,
                  line_alpha: int = 0.5, **kwargs):
         """
         plots only the field of view (FOV) for a given radar station ID (stid)
@@ -416,6 +425,8 @@ class Fan():
                 line_alpha controls the transparency of
                 the boundary and grid lines of the fov
                 Default: 0.5
+            beam : int or None
+                integer indicating if the user would like to plot a single beam
             radar_location: bool
                 Add a dot where radar is located if True
                 Default: False
@@ -443,6 +454,11 @@ class Fan():
         beam_corners_lats, beam_corners_lons = \
             coords(stid=stid, gates=ranges, rsep=rsep, frang=frang,
                    date=date, **kwargs)
+
+        # If beam selected then reduce lats and lons array
+        if beam is not None:
+            beam_corners_lats = beam_corners_lats[:, beam:beam+2]
+            beam_corners_lons = beam_corners_lons[:, beam:beam+2]
 
         if projs == Projs.POLAR:
             beam_corners_lons = np.radians(beam_corners_lons)

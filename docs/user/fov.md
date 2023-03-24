@@ -59,6 +59,7 @@ Here is a list of all the current options than can be used with `plot_fov`
 | radar_location=(bool)   | Places a dot in the plot representing the radar location (default: True)                                |
 | radar_label=(bool)      | Places the radar 3-letter abbreviation next to the radar location                                       |
 | coastline=(bool)        | Plots outlines of coastlines below FOV (Uses Cartopy)                                                   |
+| beam=(int)              | Only plots outline/fill of specified beam (default: None)                                               |
 | kwargs **               | Axis Polar settings. See [polar axis](axis.md)                                                          |
 
 To plot based on hemisphere or selection of radars, here is an example plotting North hemisphere radars with selected SuperDARN Canada radars colored as green, note that the axes object (ax) needs to be updated inside to loop to plot multiple FOV:
