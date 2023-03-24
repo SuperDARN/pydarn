@@ -58,6 +58,7 @@ from .utils.scan import build_scan
 from .utils.geo import geocentric_coordinates
 from .utils.coordinates import Coords
 from .utils.terminator import terminator, new_coordinate
+from .utils.recalculate_elevation import recalculate_elevation
 from .utils.filters import Boxcar
 
 # import plotting
