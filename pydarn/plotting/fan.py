@@ -20,7 +20,9 @@
 # 2022-03-22: CJM - Set cmap bad values to transparent
 # 2022-03-23: MTS - added the NotImplementedError for AACGM and GEO projection
 #                   as this has yet to be figured out
+# 2023-02-06: CJM - Added option to plot single beams in a scan or FOV diagram
 # 2023-03-01: CJM - Added ball and stick plotting options
+#
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
 # Everyone is permitted to copy and distribute verbatim copies of this license
@@ -78,7 +80,7 @@ class Fan():
                  boundary: bool = True, projs: Projs = Projs.POLAR,
                  coords: Coords = Coords.AACGM_MLT,
                  channel: int = 'all', ball_and_stick: bool = False,
-                 len_factor: float = 300, **kwargs):
+                 len_factor: float = 300, beam: int = None, **kwargs):
         """
         Plots a radar's Field Of View (FOV) fan plot for the given data and
         scan number
@@ -138,6 +140,8 @@ class Fan():
             coords: Enum
                 choice of plotting coordinates
                 default: Coords.AACGM_MLT (Magnetic Lat and MLT)
+            beam : int or None
+                integer indicating if the user would like to plot a single beam
             channel : int or str
                 integer indicating which channel to plot or 'all' to
                 plot all channels
@@ -288,7 +292,7 @@ class Fan():
                 # get a list of gates where there is data
                 slist = dmap_data[i.astype(int)]['slist']
                 # get the beam number for the record
-                beam = dmap_data[i.astype(int)]['bmnum']
+                beami = dmap_data[i.astype(int)]['bmnum']
 
                 # Exclude ranges larger than the expected maximum.
                 # This is a temporary fix to manage inconsistencies between the
@@ -300,20 +304,25 @@ class Fan():
                 temp_data = dmap_data[i.astype(int)][parameter][good_data]
                 temp_ground = dmap_data[i.astype(int)]['gflg'][good_data]
 
-                scan[slist-ranges[0], beam] = temp_data
-                grndsct[slist-ranges[0], beam] = temp_ground
+                scan[slist-ranges[0], beami] = temp_data
+                grndsct[slist-ranges[0], beami] = temp_ground
             # if there is no slist field this means partial record
             except KeyError:
                 partial_record_warning()
                 continue
 
         # Begin plotting by iterating over ranges and beams
+        if beam is not None:
+            thetas = thetas[0:ranges[1]-ranges[0]+1, beam:beam+2]
+            rs = rs[0:ranges[1]-ranges[0]+1, beam:beam+2]
+            scan = scan[0:ranges[1]-ranges[0], beam:beam+1]
+            grndsct = grndsct[0:ranges[1]-ranges[0], beam:beam+1]
+        else:
+            thetas = thetas[0:ranges[1]-ranges[0]+1]
+            rs = rs[0:ranges[1]-ranges[0]+1]
+            scan = scan[0:ranges[1]-ranges[0]]
+            grndsct = grndsct[0:ranges[1]-ranges[0]]
 
-        thetas = thetas[0:ranges[1]-ranges[0]+1]
-        rs = rs[0:ranges[1]-ranges[0]+1]
-
-        scan = scan[0:ranges[1]-ranges[0]]
-        grndsct = grndsct[0:ranges[1]-ranges[0]]
         # Set up axes in correct hemisphere
         stid = dmap_data[0]['stid']
         kwargs['hemisphere'] = SuperDARNRadars.radars[stid].hemisphere
@@ -434,7 +443,7 @@ class Fan():
         if boundary:
             cls.plot_fov(stid=dmap_data[0]['stid'], date=date, ax=ax,
                          ccrs=ccrs, coords=coords, projs=projs, rsep=rsep,
-                         frang=frang, ranges=ranges, **kwargs)
+                         frang=frang, ranges=ranges, beam=beam, **kwargs)
 
         # Create color bar if True
         if colorbar is True:
@@ -468,7 +477,7 @@ class Fan():
                  fov_color: str = None, alpha: int = 0.5,
                  radar_location: bool = True, radar_label: bool = False,
                  line_color: str = 'black',
-                 grid: bool = False,
+                 grid: bool = False, beam: int = None,
                  line_alpha: int = 0.5, **kwargs):
         """
         plots only the field of view (FOV) for a given radar station ID (stid)
@@ -512,6 +521,8 @@ class Fan():
                 line_alpha controls the transparency of
                 the boundary and grid lines of the fov
                 Default: 0.5
+            beam : int or None
+                integer indicating if the user would like to plot a single beam
             radar_location: bool
                 Add a dot where radar is located if True
                 Default: False
@@ -539,6 +550,11 @@ class Fan():
         beam_corners_lats, beam_corners_lons = \
             coords(stid=stid, gates=ranges, rsep=rsep, frang=frang,
                    date=date, **kwargs)
+
+        # If beam selected then reduce lats and lons array
+        if beam is not None:
+            beam_corners_lats = beam_corners_lats[:, beam:beam+2]
+            beam_corners_lons = beam_corners_lons[:, beam:beam+2]
 
         if projs == Projs.POLAR:
             beam_corners_lons = np.radians(beam_corners_lons)
