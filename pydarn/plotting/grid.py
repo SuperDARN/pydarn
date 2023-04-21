@@ -168,12 +168,12 @@ class Grid():
 
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            # Check for partial record and/or read in positions
-            try:
-                data_lons = dmap_data[record]['vector.mlon']
-                data_lats = dmap_data[record]['vector.mlat']
-            except KeyError:
-                raise plot_exceptions.PartialRecordsError('vector.mlon')
+            # Check for partial records
+            if all(dmap_data[record]['nvec'] == 0) :
+                raise plot_exceptions.PartialRecordsError('~all vectors~')
+    
+            data_lons = dmap_data[record]['vector.mlon']
+            data_lats = dmap_data[record]['vector.mlat']
 
             # Hemisphere is not found in grid files so take from latitudes
             hemisphere = Hemisphere(np.sign(
