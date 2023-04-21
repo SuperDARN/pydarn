@@ -168,6 +168,13 @@ class Grid():
 
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
+            # Check for partial record and/or read in positions
+            try:
+                data_lons = dmap_data[record]['vector.mlon']
+                data_lats = dmap_data[record]['vector.mlat']
+            except KeyError:
+                raise plot_exceptions.PartialRecordsError('vector.mlon')
+
             # Hemisphere is not found in grid files so take from latitudes
             hemisphere = Hemisphere(np.sign(
                                     dmap_data[record]['vector.mlat'][0]))
@@ -181,11 +188,6 @@ class Grid():
                 _, coord_lons, ax, ccrs =\
                         Fan.plot_fov(stid, date, ax=ax, ccrs=ccrs,
                                      coords=coords, projs=projs, **kwargs)
-            try:
-                data_lons = dmap_data[record]['vector.mlon']
-                data_lats = dmap_data[record]['vector.mlat']
-            except KeyError:
-                raise plot_exceptions.PartialRecordsError('vector.mlon')
 
             if coords != Coords.GEOGRAPHIC and projs == Projs.GEO:
                 raise plot_exceptions.NotImplemented(
