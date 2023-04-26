@@ -482,9 +482,11 @@ class Maps():
     def calculated_true_velocities(cls, v_los: list, a_los: list,
                                    v_fit: list, a_fit: list):
         """
-        Calculates the true velocities
+        Calculates the true velocities (Lasse Clausen/Ade Grocott Version)
         The True velocity is calculated as the combined LOS vector and the
         perpendicular-to-LOS component of the fitted velocity
+        Be aware many of the vectors in this function are in multi-dimensional
+        arrays
 
         Parameters
         ----------
@@ -497,15 +499,31 @@ class Maps():
             a_fit: array
                 angle of direction of raw LOS velocity
         """
-        # Get vector component of fitted velocities
-        # perpendicular to LOS velocity
-        v_perp = np.sqrt( abs( v_fit**2 - v_los**2 ))
-        a_perp = (a_los - np.pi/2) + np.arctan2(v_los, v_perp)
+        # Reduce LOS vector to components normalized
+        tkvect = np.empty([2, len(a_los)])
+        for j in range(0, len(a_los)):
+            tkvect[:,j] = [-np.cos(a_los[j]), np.sin(a_los[j])]
 
-        # Calculate the true velocities as the resultatnt of the 
-        # perpendicular and LOS velocities
-        v_true = np.sqrt( v_perp**2 + v_los**2 )
-        a_true = a_perp + np.arctan2(v_los, v_perp)
+        # Get vector components
+        rvect = np.empty([2, len(v_fit)])
+        rvect[0,:] = v_fit * np.cos(a_fit)
+        rvect[1,:] = v_fit * np.sin(a_fit)
+
+        # Get perpendicular vector components
+        vv = np.empty([2, len(v_fit)])
+        vn = np.squeeze(np.sum(rvect * tkvect, axis=0))
+        for i in range(0,len(vn)):
+            vv[:,i] = vn[i] * tkvect[:,i]
+        tvect = rvect - vv
+
+        # Combine vectors
+        for k in range(0,len(v_los)):
+            tvect[:,k] = tvect[:,k] + v_los[k] * tkvect[:,k]
+
+        # Calculate the magnitude and azimuth
+        v_true = np.sqrt(tvect[0,:]**2 + tvect[1,:]**2)
+        a_true = np.arctan2(tvect[1,:], -tvect[0,:])
+
         return v_true, a_true
 
 
