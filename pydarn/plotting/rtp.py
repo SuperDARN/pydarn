@@ -288,8 +288,24 @@ class RTP():
                 break
             if x != []:
                 # 60.0 seconds in a minute
-                delta_diff_time = (rec_time - x[-1])
+                delta_diff_time = abs(rec_time - x[-1])
                 diff_time = delta_diff_time.seconds/60.0
+                # Abs added above as some files have data out of order
+                # abs stops the code from hanging and plotting over a day
+                # of white space, but user needs to be warned that the
+                # output may be incorrect
+                if (rec_time - x[-1]) < timedelta(0):
+                    # warnings are turned off for summary plots so
+                    # for now print to console
+                    # May be repeated, but will show what records are out
+                    # of time order by doing so to help user
+                    print("Please be aware that the data for timestamp {}"
+                          " contains a record that is not"
+                          " in time order. As such the plot of the"
+                          " data may not be correct, you can solve"
+                          " this by sorting the data stream by date"
+                          " before plotting.".format(rec_time))
+
 
             # separation roughly 2 minutes
             if diff_time > 2.0:
