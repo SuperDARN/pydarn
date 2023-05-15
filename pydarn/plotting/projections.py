@@ -147,7 +147,7 @@ def axis_geological(date, ax: object = None,
                     coastline: bool = False, **kwargs):
     """
     
-    Sets up the polar plot matplotlib axis object, for use in
+    Sets up the cartopy orthographic plot axis object, for use in
     various other functions. Geographic projection.
 
     Parameters
