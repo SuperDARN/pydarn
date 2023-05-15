@@ -83,6 +83,9 @@ def axis_polar(date, ax: object = None, lowlat: int = 30,
 
     Parameters
     -----------
+        date: datetime object
+            Date of required plot. Only required if using coastlines
+            (for AACGM conversion)
         ax: matplotlib.pyplot axis
             Pre-defined axis object to pass in, must be
             polar projection
@@ -93,11 +96,14 @@ def axis_polar(date, ax: object = None, lowlat: int = 30,
             Default: 30
         hemiphere: enum
             Hemisphere of polar projection. Can be Hemisphere.North or
-            Hemisphere.South for northern and southern hemispheres,
+            Hemisphere. South for northern and southern hemispheres,
             respectively
             Default: Hemisphere.North
         grid_lines: bool
             required for axis_geological
+        coastline: bool
+            Set to true to overlay coastlines with cartopy. Requires
+            date.
     """
 
     if ax is None:
@@ -152,6 +158,8 @@ def axis_geological(date, ax: object = None,
 
     Parameters
     -----------
+        date: datetime object
+            Date of required plot
         ax: matplotlib.pyplot axis
             Pre-defined axis object to pass in, must be
             geological projection
@@ -168,6 +176,8 @@ def axis_geological(date, ax: object = None,
         grid_lines: bool
             add latitude/longtidue lines with labels to the plot
             Default: True
+        coastline: bool
+            Set to true to overlay coastlines with cartopy
     """
     if cartopyInstalled is False:
         raise plot_exceptions.CartopyMissingError()
