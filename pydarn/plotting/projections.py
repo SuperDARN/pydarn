@@ -77,8 +77,9 @@ def axis_polar(date, ax: object = None, lowlat: int = 30,
                **kwargs):
 
     """
-    Plots a radar's Field Of View (FOV) fan plot for the given data and
-    scan number
+    Sets up the polar plot matplotlib axis object, for use in
+    various other functions. Magnetic latitude - magnetic local
+    time projection.
 
     Parameters
     -----------
@@ -145,8 +146,9 @@ def axis_geological(date, ax: object = None,
                     lowlat: int = 30, grid_lines: bool = True,
                     coastline: bool = False, **kwargs):
     """
-    Plots a radar's Field Of View (FOV) fan plot for the given data and
-    scan number
+    
+    Sets up the polar plot matplotlib axis object, for use in
+    various other functions. Geographic projection.
 
     Parameters
     -----------
