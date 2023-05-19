@@ -6,6 +6,7 @@
 # 2022-03-22 MTS removed coastline call and added grid lines to cartopy plotting
 # 2022-05-20 CJM added options to plot coastlines
 # 2022-06-13 Elliott Day don't create new ax if ax passed in to Projs
+# 2023-02-22 CJM added options for nightshade
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
@@ -21,15 +22,19 @@ Code which generates axis objects for use in plotting functions
 import aacgmv2
 import enum
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 import numpy as np
 from packaging import version
 
-from pydarn import Hemisphere, plot_exceptions
+from pydarn import (Hemisphere, plot_exceptions, terminator, Re,
+                    new_coordinate, nightshade_warning)
 try:
     import cartopy
     # from cartopy.mpl import geoaxes
     import cartopy.crs as ccrs
     import cartopy.feature as cfeature
+    from cartopy.feature.nightshade import Nightshade
+    from shapely.geometry import mapping, Polygon
     cartopyInstalled = True
     if version.parse(cartopy.__version__) < version.parse("0.19"):
         cartopyVersion = False
@@ -74,7 +79,7 @@ def convert_geo_coastline_to_mag(geom, date, alt: float = 0.0):
 def axis_polar(date, ax: object = None, lowlat: int = 30,
                hemisphere: Hemisphere = Hemisphere.North,
                grid_lines: bool = True, coastline: bool = False,
-               **kwargs):
+               nightshade: int = 0, **kwargs):
 
     """
     Sets up the polar plot matplotlib axis object, for use in
@@ -144,13 +149,18 @@ def axis_polar(date, ax: object = None, lowlat: int = 30,
         # Plot each geometry object
         for geom in cc_mag.geometries():
             plt.plot(*geom.coords.xy, color='k', linewidth=0.5, zorder=2.0)
+
+    if nightshade:
+        nightshade_warning()
+
     return ax, None
 
 
 def axis_geological(date, ax: object = None,
                     hemisphere: Hemisphere = Hemisphere.North,
                     lowlat: int = 30, grid_lines: bool = True,
-                    coastline: bool = False, **kwargs):
+                    coastline: bool = False, nightshade: int = 0,
+                    **kwargs):
     """
     
     Sets up the cartopy orthographic plot axis object, for use in
@@ -209,6 +219,12 @@ def axis_geological(date, ax: object = None,
 
     if coastline is True:
         ax.coastlines()
+    
+    if nightshade:
+        refraction_value = -np.degrees(np.arccos(Re / (Re + nightshade)))
+        ns = Nightshade(date, refraction=refraction_value, alpha=0.1)
+        ax.add_feature(ns)
+
     return ax, ccrs
 
 

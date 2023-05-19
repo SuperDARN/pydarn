@@ -43,6 +43,19 @@ def cartopy_warning():
                  "If you do not need to use cartopy for your plotting, ignore "
                  "this message.")
 
+def nightshade_warning():
+    """
+    This warning prints when a user tries to use something that is not
+    implemented yet, however the plot will still plot without the
+    feature
+    """
+    warnings.warn("Nightshade is not implemented for plots in AACGMv2 "
+                  "coordinates. You can plot nightshade in geographic "
+                  "coordinates, or you can call the terminator function "
+                  "to return the antisolarposition and radius to "
+                  "decide how you would like to plot."
+                  "https://pydarn.readthedocs.io/en/main/user/coordinates/")
+
 def partial_record_warning():
     """
     prints a warning that the data chosen to be plotted is missing some
