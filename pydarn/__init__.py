@@ -70,3 +70,5 @@ from .plotting.grid import Grid
 from .plotting.acf import ACF
 from .plotting.power import Power
 from .plotting.maps import Maps
+
+citing_warning()
