@@ -30,7 +30,7 @@ import numpy as np
 import warnings
 
 from datetime import datetime, timedelta
-from matplotlib import dates, colors, cm, ticker
+from matplotlib import dates, colors, colormaps, ticker
 from typing import List
 
 from pydarn import (RangeEstimation, check_data_type,
@@ -154,7 +154,7 @@ class RTP():
         colorbar_label: str
             the label that appears next to the color bar
             Default: ''
-        cmap: str or matplotlib.cm
+        cmap: str or matplotlib.colormaps
             matplotlib colour map
             https://matplotlib.org/tutorials/colors/colormaps.html
             Default: PyDARNColormaps.PYDARN_VELOCITY
@@ -201,7 +201,7 @@ class RTP():
             matplotlib object from pcolormesh
         cb: matplotlib.colorbar
             matplotlib color bar
-        cmap: matplotlib.cm
+        cmap: matplotlib.colormaps
             matplotlib color map object
         time_axis: list
             list representing the x-axis datetime objects
@@ -299,12 +299,12 @@ class RTP():
                     # for now print to console
                     # May be repeated, but will show what records are out
                     # of time order by doing so to help user
-                    print("Please be aware that the data for timestamp {}"
-                          " contains a record that is not"
-                          " in time order. As such the plot of the"
-                          " data may not be correct, you can solve"
-                          " this by sorting the data stream by date"
-                          " before plotting.".format(rec_time))
+                    warnings.warn("Please be aware that the data for"
+                                  " timestamp {} contains a record that is not"
+                                  " in time order. As such the plot of the"
+                                  " data may not be correct, you can solve"
+                                  " this by sorting the data stream by date"
+                                  " before plotting.".format(rec_time))
 
 
             # separation roughly 2 minutes
@@ -411,11 +411,11 @@ class RTP():
                           " options".format(zmax))
         norm = norm(zmin, zmax)
         if isinstance(cmap, str):
-            cmap = cm.get_cmap(cmap)
+            cmap = colormaps.get_cmap(cmap)
         else:
             # need to do this as matplotlib 3.5 will
             # not all direct mutations of the object
-            cmaps = {'p_l': copy.copy(cm.get_cmap('plasma')),
+            cmaps = {'p_l': copy.copy(colormaps.get_cmap('plasma')),
                      'v': PyDARNColormaps.PYDARN_VELOCITY,
                      'w_l': PyDARNColormaps.PYDARN_VIRIDIS,
                      'elv': PyDARNColormaps.PYDARN}
@@ -755,7 +755,7 @@ class RTP():
             my = np.ma.masked_where(np.isnan(my), my)
 
             lines = ax.plot_date(x, my, fmt='k', tz=None, xdate=True,
-                                 ydate=False, color=color, linestyle=linestyle,
+                                 ydate=False, linestyle=linestyle,
                                  linewidth=linewidth)
 
             if round_start:
@@ -943,11 +943,11 @@ class RTP():
             - elv : elevation (optional) (range-time)
         """
 
-        message = "WARNING: matplotlib Default dpi may cause distortion"\
-                  " in range gates and time period. The figure size can"\
-                  " be adjusted with the option figsize and dpi can be"\
-                  " adjusted when saving the file."
-        warnings.warn(message)
+        #message = "WARNING: matplotlib Default dpi may cause distortion"\
+        #          " in range gates and time period. The figure size can"\
+        #          " be adjusted with the option figsize and dpi can be"\
+        #          " adjusted when saving the file."
+        #warnings.warn(message)
 
         # Default boundary ranges for the various parameter
         boundary_ranges = {'noise.search': (1e0, 1e5),
@@ -1041,13 +1041,10 @@ class RTP():
 
                 # plot time-series parameters that share a plot
                 if i < 2:
-                    # with warning catch, catches all the warnings
-                    # that would be produced by time-series this would be
-                    # the citing warning.
                     with warnings.catch_warnings():
-                        # ignore the warnings because summary plots
-                        # has its own warning message
-                        warnings.simplefilter("ignore")
+                        # Only show the first warning of each type so we don't
+                        # get four of each warnings in summary plots
+                        warnings.simplefilter("once")
                         cls.plot_time_series(dmap_data, beam_num=beam_num,
                                              parameter=axes_parameters[i][0],
                                              scale=scale, channel=channel,
@@ -1079,13 +1076,8 @@ class RTP():
                     if i == 1:
                         # plot the shared parameter
                         second_ax = axes[i].twinx()
-
-                        # with warning catch, catches all the warnings
-                        # that would be produced by time-series this would be
-                        # the citing warning.
-                        # warnings are not caught with try/except
                         with warnings.catch_warnings():
-                            warnings.simplefilter("ignore")
+                            warnings.simplefilter("once")
                             cls.plot_time_series(dmap_data, beam_num=beam_num,
                                                  parameter=axes_parameters[
                                                      i][1],
@@ -1123,11 +1115,8 @@ class RTP():
                 axes[i].set_facecolor(background)
             # plot cp id
             elif i == 2:
-                # with warning catch, catches all the warnings
-                # that would be produced by time-series this would be
-                # the citing warning.
                 with warnings.catch_warnings():
-                    warnings.simplefilter("ignore")
+                    warnings.simplefilter("once")
                     cls.plot_time_series(dmap_data, beam_num=beam_num,
                                          channel=channel,
                                          parameter=axes_parameters[i],
@@ -1147,7 +1136,7 @@ class RTP():
                 # that would be produced by time-series this would be
                 # the citing warning.
                 with warnings.catch_warnings():
-                    warnings.simplefilter("ignore")
+                    warnings.simplefilter("once")
                     _, cbar, _, x, _, _ =\
                         cls.plot_range_time(dmap_data, beam_num=beam_num,
                                             colorbar_label=labels[i],
