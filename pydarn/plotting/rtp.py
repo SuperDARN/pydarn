@@ -943,12 +943,6 @@ class RTP():
             - elv : elevation (optional) (range-time)
         """
 
-        #message = "WARNING: matplotlib Default dpi may cause distortion"\
-        #          " in range gates and time period. The figure size can"\
-        #          " be adjusted with the option figsize and dpi can be"\
-        #          " adjusted when saving the file."
-        #warnings.warn(message)
-
         # Default boundary ranges for the various parameter
         boundary_ranges = {'noise.search': (1e0, 1e5),
                            'noise.sky': (1e0, 1e5),
