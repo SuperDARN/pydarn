@@ -31,9 +31,9 @@ class Citations():
     # Chisham model/ Standard model:
     chisham2008 = 'Chisham, G. 2008, 10.5194/angeo-26-823-2008 \n'
     #pydarn citation:
-    pydarn2023 = 'DWVG, 2023, 10.5281/zenodo.3727269 \n'
+    pydarn2023 = 'DVWG, 2023, 10.5281/zenodo.3727269 \n'
     #pydarnio citation:
-    pydarnio2023 = 'DWVG, 2023, 10.5281/zenodo.4009470 \n'
+    pydarnio2023 = 'DVWG, 2023, 10.5281/zenodo.4009470 \n'
     # AACGMv2 Paper:
     shepherd2014 = 'Shepherd, S. G., 2014, 10.1002/2014JA020264 \n'
     # elevation angle claculations:

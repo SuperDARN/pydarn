@@ -31,8 +31,8 @@ If using pyDARN produced plots in publications please be aware of the following 
  Ground Scatter Mapped Range:  Bristow, W. A. et al, 1994, 10.1029/93JA01470 
  AACGMv2 Wrapper:              Burrell, A. G. et al, 2023, 10.5281/zenodo.7621545 
  Chisham Virtual Height Model: Chisham, G. 2008, 10.5194/angeo-26-823-2008 
- pyDARN Software:              DWVG, 2023, 10.5281/zenodo.3727269 
- pyDARNio Software:            DWVG, 2023, 10.5281/zenodo.4009470 
+ pyDARN Software:              DVWG, 2023, 10.5281/zenodo.3727269 
+ pyDARNio Software:            DVWG, 2023, 10.5281/zenodo.4009470 
  Cartopy:                      Met Office, 2010-2015, scitools.org.uk/cartopy 
  AACGMv2 article:              Shepherd, S. G., 2014, 10.1002/2014JA020264 
  Elevation Angle Calculations: Shepherd, S. G., 2017, 10.1002/2017RS006348 
