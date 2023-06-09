@@ -32,7 +32,6 @@ from .exceptions import plot_exceptions
 from .exceptions import radar_exceptions
 from .exceptions.warning_formatting import standard_warning_format
 from .exceptions.warning_formatting import only_message_warning_format
-from .exceptions.warning_formatting import citing_warning
 from .exceptions.warning_formatting import partial_record_warning
 from .exceptions.warning_formatting import cartopy_warning
 from .exceptions.warning_formatting import cartopy_print_warning
@@ -71,5 +70,3 @@ from .plotting.grid import Grid
 from .plotting.acf import ACF
 from .plotting.power import Power
 from .plotting.maps import Maps
-
-citing_warning()
