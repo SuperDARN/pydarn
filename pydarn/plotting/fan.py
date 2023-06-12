@@ -261,8 +261,7 @@ class Fan():
         if cmap is None:
             cmap = {'p_l': 'plasma', 'v': PyDARNColormaps.PYDARN_VELOCITY,
                     'w_l': PyDARNColormaps.PYDARN_VIRIDIS,
-
-                    'elv': PyDARNColormaps.PYDARN}
+                    'elv': 'inferno'}
             cmap = plt.cm.get_cmap(cmap[parameter])
 
         # Set background to transparent - avoids carry over
