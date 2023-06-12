@@ -418,7 +418,7 @@ class RTP():
             cmaps = {'p_l': copy.copy(cm.get_cmap('plasma')),
                      'v': PyDARNColormaps.PYDARN_VELOCITY,
                      'w_l': PyDARNColormaps.PYDARN_VIRIDIS,
-                     'elv': PyDARNColormaps.PYDARN}
+                     'elv': copy.copy(cm.get_cmap('inferno'))}
             cmap = cmaps[parameter]
 
         # set the background color, this needs to happen to avoid
@@ -883,7 +883,7 @@ class RTP():
             Default: {'p_l': 'plasma',
                       'v': PyDARNColormaps.PYDARN_VELOCITY,
                       'w_l': PyDARNColormaps.PYDARN_VIRIDIS,
-                      'elv': PyDARNColormaps.PYDARN}
+                      'elv': 'inferno'}
             note: to reverse the color just add _r to the string name
         lines: dict or str
             dictionary of time-series line colors.
@@ -982,7 +982,7 @@ class RTP():
         cmap = {'p_l': 'plasma',
                 'v': PyDARNColormaps.PYDARN_VELOCITY,
                 'w_l': PyDARNColormaps.PYDARN_VIRIDIS,
-                'elv': PyDARNColormaps.PYDARN}
+                'elv': 'inferno'}
         if isinstance(cmaps, dict):
             cmap.update(cmaps)
         else:
