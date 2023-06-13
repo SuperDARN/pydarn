@@ -338,11 +338,6 @@ class Fan():
                                              ~grndsct.astype(bool)),
                           norm=norm, cmap='Greys',
                           transform=transform, zorder=3)
-        if ccrs is None:
-            azm = np.linspace(0, 2 * np.pi, 100)
-            r, th = np.meshgrid(rs, azm)
-            plt.plot(azm, r, color='k', ls='none')
-            plt.grid()
 
         if boundary:
             cls.plot_fov(stid=dmap_data[0]['stid'], date=date, ax=ax,
