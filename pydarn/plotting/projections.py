@@ -131,8 +131,6 @@ def axis_polar(date, ax: object = None, lowlat: int = 30,
         # Tick labels will depend on coordinate system
         ax.set_xticklabels(['00', '', '06', '', '12', '', '18', ''])
         ax.set_theta_zero_location("S")
-        if grid_lines:
-            ax.grid()
 
     if coastline is True:
         if cartopyInstalled is False:
