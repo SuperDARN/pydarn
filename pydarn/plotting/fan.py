@@ -40,7 +40,7 @@ import datetime as dt
 import matplotlib.pyplot as plt
 import numpy as np
 
-from matplotlib import ticker, cm, colors
+from matplotlib import ticker, cm, colormaps, colors
 from typing import List, Union
 
 # Third party libraries
@@ -262,7 +262,7 @@ class Fan():
             cmap = {'p_l': 'plasma', 'v': PyDARNColormaps.PYDARN_VELOCITY,
                     'w_l': PyDARNColormaps.PYDARN_VIRIDIS,
                     'elv': 'inferno'}
-            cmap = plt.cm.get_cmap(cmap[parameter])
+            cmap = plt.colormaps.get_cmap(cmap[parameter])
 
         # Set background to transparent - avoids carry over
         # does not interfere with the fov color if chosen

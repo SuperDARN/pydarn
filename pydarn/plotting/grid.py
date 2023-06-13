@@ -23,7 +23,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import warnings
 
-from matplotlib import ticker, cm, colors
+from matplotlib import ticker, cm, colormaps, colors
 from typing import List
 
 # Third party libraries
@@ -238,7 +238,7 @@ class Grid():
                         'vector.vel.median': 'plasma_r',
                         'vector.wdt.median':
                         PyDARNColormaps.PYDARN_VIRIDIS}
-                cmap = plt.cm.get_cmap(cmap[parameter])
+                cmap = plt.colormaps.get_cmap(cmap[parameter])
 
             # Setting zmin and zmax
             defaultzminmax = {'vector.pwr.median': [0, 50],

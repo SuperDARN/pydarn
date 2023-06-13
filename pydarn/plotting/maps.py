@@ -32,7 +32,7 @@ import numpy as np
 import warnings
 
 from enum import Enum
-from matplotlib import ticker, cm, colors
+from matplotlib import ticker, cm, colormaps, colors
 from mpl_toolkits.axes_grid1.inset_locator import InsetPosition
 from scipy import special
 from typing import List
@@ -169,7 +169,7 @@ class Maps():
                     MapParams.RAW_VELOCITY: 'plasma_r',
                     MapParams.POWER: 'plasma',
                     MapParams.SPECTRAL_WIDTH: PyDARNColormaps.PYDARN_VIRIDIS}
-            cmap = plt.cm.get_cmap(cmap[parameter])
+            cmap = plt.colormaps.get_cmap(cmap[parameter])
         # Setting zmin and zmax
         defaultzminmax = {MapParams.FITTED_VELOCITY: [0, 1000],
                           MapParams.MODEL_VELOCITY: [0, 1000],

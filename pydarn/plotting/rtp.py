@@ -30,7 +30,7 @@ import numpy as np
 import warnings
 
 from datetime import datetime, timedelta
-from matplotlib import dates, colors, cm, ticker
+from matplotlib import dates, colors, colormaps, ticker
 from typing import List
 
 from pydarn import (RangeEstimation, check_data_type,
@@ -154,7 +154,7 @@ class RTP():
         colorbar_label: str
             the label that appears next to the color bar
             Default: ''
-        cmap: str or matplotlib.cm
+        cmap: str or matplotlib.colormaps
             matplotlib colour map
             https://matplotlib.org/tutorials/colors/colormaps.html
             Default: PyDARNColormaps.PYDARN_VELOCITY
@@ -201,7 +201,7 @@ class RTP():
             matplotlib object from pcolormesh
         cb: matplotlib.colorbar
             matplotlib color bar
-        cmap: matplotlib.cm
+        cmap: matplotlib.colormaps
             matplotlib color map object
         time_axis: list
             list representing the x-axis datetime objects
@@ -411,14 +411,14 @@ class RTP():
                           " options".format(zmax))
         norm = norm(zmin, zmax)
         if isinstance(cmap, str):
-            cmap = cm.get_cmap(cmap)
+            cmap = colormaps.get_cmap(cmap)
         else:
             # need to do this as matplotlib 3.5 will
             # not all direct mutations of the object
-            cmaps = {'p_l': copy.copy(cm.get_cmap('plasma')),
+            cmaps = {'p_l': copy.copy(colormaps.get_cmap('plasma')),
                      'v': PyDARNColormaps.PYDARN_VELOCITY,
                      'w_l': PyDARNColormaps.PYDARN_VIRIDIS,
-                     'elv': copy.copy(cm.get_cmap('inferno'))}
+                     'elv': copy.copy(colormaps.get_cmap('inferno'))}
             cmap = cmaps[parameter]
 
         # set the background color, this needs to happen to avoid
