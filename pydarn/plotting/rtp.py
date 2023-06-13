@@ -30,7 +30,7 @@ import numpy as np
 import warnings
 
 from datetime import datetime, timedelta
-from matplotlib import dates, colors, colormaps, ticker
+from matplotlib import dates, colors, ticker
 from typing import List
 
 from pydarn import (RangeEstimation, check_data_type,
@@ -154,7 +154,7 @@ class RTP():
         colorbar_label: str
             the label that appears next to the color bar
             Default: ''
-        cmap: str or matplotlib.colormaps
+        cmap: matplotlib.colormaps
             matplotlib colour map
             https://matplotlib.org/tutorials/colors/colormaps.html
             Default: PyDARNColormaps.PYDARN_VELOCITY
@@ -410,15 +410,13 @@ class RTP():
                           "set zmin and zmax in the functions"
                           " options".format(zmax))
         norm = norm(zmin, zmax)
-        if isinstance(cmap, str):
-            cmap = colormaps.get_cmap(cmap)
-        else:
-            # need to do this as matplotlib 3.5 will
-            # not all direct mutations of the object
-            cmaps = {'p_l': copy.copy(colormaps.get_cmap('plasma')),
+        if cmap is None:
+            # If cmap is not None then cmap should have read in a
+            # colormap object already - error from matplotlib is instructive
+            cmaps = {'p_l': PyDARNColormaps.PYDARN_PLASMA,
                      'v': PyDARNColormaps.PYDARN_VELOCITY,
                      'w_l': PyDARNColormaps.PYDARN_VIRIDIS,
-                     'elv': copy.copy(colormaps.get_cmap('inferno'))}
+                     'elv': PyDARNColormaps.PYDARN_INFERNO}
             cmap = cmaps[parameter]
 
         # set the background color, this needs to happen to avoid
@@ -979,10 +977,10 @@ class RTP():
             line.update(lines)
         else:
             line.update({k: lines for k, v in line.items()})
-        cmap = {'p_l': 'plasma',
+        cmap = {'p_l': PyDARNColormaps.PYDARN_PLASMA,
                 'v': PyDARNColormaps.PYDARN_VELOCITY,
                 'w_l': PyDARNColormaps.PYDARN_VIRIDIS,
-                'elv': 'inferno'}
+                'elv': PyDARNColormaps.PYDARN_INFERNO}
         if isinstance(cmaps, dict):
             cmap.update(cmaps)
         else:

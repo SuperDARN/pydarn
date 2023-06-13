@@ -40,7 +40,7 @@ import datetime as dt
 import matplotlib.pyplot as plt
 import numpy as np
 
-from matplotlib import ticker, cm, colormaps, colors
+from matplotlib import ticker, cm, colors
 from typing import List, Union
 
 # Third party libraries
@@ -259,10 +259,11 @@ class Fan():
         # Colour table and max value selection depending on parameter plotted
         # Load defaults if none given
         if cmap is None:
-            cmap = {'p_l': 'plasma', 'v': PyDARNColormaps.PYDARN_VELOCITY,
+            cmap = {'p_l': PyDARNColormaps.PYDARN_PLASMA,
+                    'v': PyDARNColormaps.PYDARN_VELOCITY,
                     'w_l': PyDARNColormaps.PYDARN_VIRIDIS,
-                    'elv': 'inferno'}
-            cmap = plt.colormaps.get_cmap(cmap[parameter])
+                    'elv': PyDARNColormaps.PYDARN_INFERNO}
+            cmap = cmap[parameter]
 
         # Set background to transparent - avoids carry over
         # does not interfere with the fov color if chosen
