@@ -75,6 +75,8 @@ class Maps():
                      hmb: bool = True, boundary: bool = False,
                      radar_location: bool = False, map_info: bool = True,
                      imf_dial: bool = True, reference_vector: int = 500,
+                     pot_vmin: float = None,
+                     pot_vmax: float = None,
                      projs: Projs = Projs.POLAR, **kwargs):
         """
         Plots convection maps data points and vectors
@@ -150,6 +152,12 @@ class Maps():
                 Vector can be turned off by setting this value to False or 0.
                 Will not plot for power or spectral width options.
                 Default: 500 (vector plotted)
+            pot_vmin: float
+                Minumum value of color map used for potential contours.
+                If None, defaults to -abs(pot_arr).max()
+            pot_vmax: float
+                Maximum value of color map used for potential contours.
+                If None, defaults to abs(pot_arr).max()
             projs: Enum
                 choice of projection for plot
                 default: Projs.POLAR (polar projection)
@@ -396,6 +404,7 @@ class Maps():
         cls.plot_potential_contours(fit_coefficient, lat_min, date, ax,
                                     lat_shift=lat_shift, lon_shift=lon_shift,
                                     fit_order=fit_order, hemisphere=hemisphere,
+                                    pot_vmin=pot_vmin,pot_vmax=pot_vmax,
                                     **kwargs)
 
         if hmb is True:
@@ -896,7 +905,10 @@ class Maps():
                                 contour_colorbar: bool = True,
                                 contour_fill_cmap: str = 'RdBu',
                                 contour_colorbar_label: str = 'Potential (kV)',
-                                pot_minmax_color: str = 'k', **kwargs):
+                                pot_minmax_color: str = 'k', 
+                                pot_vmin: float = None,
+                                pot_vmax: float = None,
+                                **kwargs):
         # TODO: No evaluation of coordinate system made! May need if in
         # plotting to plot in radians/geo ect.
         '''
@@ -964,6 +976,12 @@ class Maps():
                 Colour of the cross and plus symbols for
                 minimum and maximum potentials
                 Default: 'k' - black
+            pot_vmin: float
+                Minumum value of color map used for potential contours.
+                If None, defaults to -abs(pot_arr).max()
+            pot_vmax: float
+                Maximum value of color map used for potential contours.
+                If None, defaults to abs(pot_arr).max()
             **kwargs
                 including lowlat and hemisphere for calculating
                 potentials
@@ -997,20 +1015,27 @@ class Maps():
                          extend='both', zorder=3.0)
             if contour_colorbar is True:
                 norm = colors.Normalize
-                norm = norm(-abs(pot_arr).max(), abs(pot_arr).max())
+
+                if pot_vmin is None:
+                    pot_vmin = -abs(pot_arr).max()
+                if pot_vmax is None:
+                    pot_vmax =  abs(pot_arr).max()
+
+                norm = norm(pot_vmin,pot_vmax)
+                
                 mappable = cm.ScalarMappable(norm=norm, cmap=contour_fill_cmap)
                 locator = ticker.MaxNLocator(symmetric=True, min_n_ticks=3,
                                              integer=True, nbins='auto')
-                ticks = locator.tick_values(vmin=-abs(pot_arr).max(),
-                                            vmax=abs(pot_arr).max())
+                ticks = locator.tick_values(vmin=pot_vmin,
+                                            vmax=pot_vmax)
                 cb = plt.colorbar(mappable, ax=ax, extend='both', ticks=ticks)
                 if contour_colorbar_label != '':
                     cb.set_label(contour_colorbar_label)
         else:
             # Contour lines only
             cs = plt.contour(np.radians(mlon), mlat, pot_arr, 2,
-                             vmax=abs(pot_arr).max(),
-                             vmin=-abs(pot_arr).max(),
+                             vmax=pot_vmax,
+                             vmin=pot_vmin,
                              locator=ticker.FixedLocator(contour_levels),
                              colors=contour_color, alpha=0.8,
                              linewidths=contour_linewidths, zorder=3.0)
