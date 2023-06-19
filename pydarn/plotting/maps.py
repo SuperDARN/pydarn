@@ -1032,28 +1032,29 @@ class Maps():
                     color=pot_minmax_color, zorder=5.0)
         
     
+
     class TimeSeriesParams(Enum):
         """
         Enum class to hold the parameters that can be plotted
         Members
         ------------
         NUM_VECTORS:
-            the number of aviliable vectors in the map
+        the number of aviliable vectors in the map
         IMF_BY:
-            The magnitude of the IMF By component in nT
+        The magnitude of the IMF By component in nT
         IMF_BZ:
-            The magnitude of the IMF Bz component in nT
+        The magnitude of the IMF Bz component in nT
         KP:
-            The Kp index
+        The Kp index
         HMB_MAX:
-            The farthest equatorward extent of the HMB
+        The farthest equatorward extent of the HMB
 
         """
         NUM_VECTORS = 'num_vectors'
         IMF_BY = 'imf_by'
         IMF_BZ = 'imf_bz'
         KP = 'kp'
-        HMB_MAX = 'hmb_max'
+        HMB_MAX = 'hmb_max'     
         
     @classmethod
     def plot_time_series(cls, dmap_data: List[dict],
@@ -1070,7 +1071,7 @@ class Maps():
         start_record: int
             time index that we will plot from
         end_record: int
-            time index that we will plot to
+            time index that we will plot to (-1 will plot the entire period)
         start_time: dt.datetime
             Start time of the data
         end_time: dt.datetime
@@ -1078,11 +1079,14 @@ class Maps():
             '''
         #create a new matplotlib figure
         fig = plt.figure()
-        
+        #if end_record is -1, set it to the last record
+        if end_record == -1:
+            end_record = len(dmap_data)-1
         #determine the start and end record
         if start_time is not None and end_time is not None:
-            start_record = find_record(dmap_data, start_time,1)
-            end_record = find_record(dmap_data, end_time,1)
+            raise NotImplementedError('use of datetime objects is not yet implemeneted')
+            #start_record = find_record(dmap_data, start_time) #TODO: Fix the error that gets thrown when using this
+            #end_record = find_record(dmap_data, end_time)
         else:
             start_time = time2datetime(dmap_data[start_record])
             end_time = time2datetime(dmap_data[end_record])
@@ -1124,7 +1128,7 @@ class Maps():
             datalist = []
             timelist = []
             for records in range(start_record, end_record):
-                datalist.append(dmap_data[records]['Kp'])
+                datalist.append(dmap_data[records]['IMF.Kp'])
                 timelist.append(time2datetime(dmap_data[records]))
             plt.plot(timelist, datalist)
             plt.ylabel('Kp')
@@ -1134,7 +1138,7 @@ class Maps():
             datalist = []
             timelist = []
             for records in range(start_record, end_record):
-                datalist.append(dmap_data[records]['hmb_max'])
+                datalist.append(max(dmap_data[records]['boundary.mlat']))
                 timelist.append(time2datetime(dmap_data[records]))
             plt.plot(timelist, datalist)
             plt.ylabel('Latitude (deg)')
