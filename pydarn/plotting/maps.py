@@ -1030,3 +1030,113 @@ class Maps():
                     color=pot_minmax_color, zorder=5.0)
         plt.scatter(np.radians(min_mlon), min_mlat, marker='_', s=70,
                     color=pot_minmax_color, zorder=5.0)
+        
+    
+    class TimeSeriesParams(Enum):
+        """
+        Enum class to hold the parameters that can be plotted
+        Members
+        ------------
+        NUM_VECTORS:
+            the number of aviliable vectors in the map
+        IMF_BY:
+            The magnitude of the IMF By component in nT
+        IMF_BZ:
+            The magnitude of the IMF Bz component in nT
+        KP:
+            The Kp index
+        HMB_MAX:
+            The farthest equatorward extent of the HMB
+
+        """
+        NUM_VECTORS = 'num_vectors'
+        IMF_BY = 'imf_by'
+        IMF_BZ = 'imf_bz'
+        KP = 'kp'
+        HMB_MAX = 'hmb_max'
+        
+    @classmethod
+    def plot_time_series(cls, dmap_data: List[dict],
+                     parameter: Enum = TimeSeriesParams.NUM_VECTORS,
+                     start_record: int = 0,end_record: int = 1, start_time: dt.datetime = None,
+                     end_time: dt.datetime = None):
+        '''
+        Plot time series of various map parameters
+        
+        Params
+        ----------
+        dmap_data: List[dict]
+            List of dictionaries containing the data to be plotted
+        start_record: int
+            time index that we will plot from
+        end_record: int
+            time index that we will plot to
+        start_time: dt.datetime
+            Start time of the data
+        end_time: dt.datetime
+            End time of the data
+            '''
+        #create a new matplotlib figure
+        fig = plt.figure()
+        
+        #determine the start and end record
+        if start_time is not None and end_time is not None:
+            start_record = find_record(dmap_data, start_time,1)
+            end_record = find_record(dmap_data, end_time,1)
+        else:
+            start_time = time2datetime(dmap_data[start_record])
+            end_time = time2datetime(dmap_data[end_record])
+        #based on the parameter, plot the data
+        if parameter == cls.TimeSeriesParams.NUM_VECTORS:
+            datalist = []
+            timelist = []
+            for records in range(start_record, end_record):
+                #append the dimension of numv for each record
+                #we can just uexse any of the keys with dimensionality numv
+                datalist.append(len(dmap_data[records]['vector.mlat']))
+                #now get the associated time data point per record
+                timelist.append(time2datetime(dmap_data[records]))
+            plt.plot(timelist, datalist)
+            plt.ylabel('Number of Vectors')
+            plt.xlabel('Time (UTC)')
+            plt.title("Number of Vectors for " + str(start_time) + " to " + str(end_time))
+        elif parameter == cls.TimeSeriesParams.IMF_BY:
+            datalist = []
+            timelist = []
+            for records in range(start_record, end_record):
+                datalist.append(dmap_data[records]['IMF.By'])
+                timelist.append(time2datetime(dmap_data[records]))
+            plt.plot(timelist, datalist)
+            plt.ylabel('IMF By Magnitude(nT)')
+            plt.xlabel('Time (UTC)')
+            plt.title("IMF By for " + str(start_time) + " to " + str(end_time))
+        elif parameter == cls.TimeSeriesParams.IMF_BZ:
+            datalist = []
+            timelist = []
+            for records in range(start_record, end_record):
+                datalist.append(dmap_data[records]['IMF.Bz'])
+                timelist.append(time2datetime(dmap_data[records]))
+            plt.plot(timelist, datalist)
+            plt.ylabel('IMF Bz Magnitude (nT)')
+            plt.xlabel('Time (UTC)')
+            plt.title("IMF Bz for " + str(start_time) + " to " + str(end_time))
+        elif parameter == cls.TimeSeriesParams.KP:
+            datalist = []
+            timelist = []
+            for records in range(start_record, end_record):
+                datalist.append(dmap_data[records]['Kp'])
+                timelist.append(time2datetime(dmap_data[records]))
+            plt.plot(timelist, datalist)
+            plt.ylabel('Kp')
+            plt.xlabel('Time (UTC)')
+            plt.title("Kp for " + str(start_time) + " to " + str(end_time))
+        elif parameter == cls.TimeSeriesParams.HMB_MAX:
+            datalist = []
+            timelist = []
+            for records in range(start_record, end_record):
+                datalist.append(dmap_data[records]['hmb_max'])
+                timelist.append(time2datetime(dmap_data[records]))
+            plt.plot(timelist, datalist)
+            plt.ylabel('Latitude (deg)')
+            plt.xlabel('Time (UTC)')
+            plt.title("HMB Max for " + str(start_time) + " to " + str(end_time))
