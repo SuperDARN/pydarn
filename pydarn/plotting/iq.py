@@ -27,10 +27,7 @@ from datetime import datetime, timedelta
 from matplotlib import dates, colors, cm, ticker
 from typing import List
 
-from pydarn import (RangeEstimation, check_data_type,
-                    time2datetime, rtp_exceptions, plot_exceptions,
-                    SuperDARNCpids, SuperDARNRadars,
-                    standard_warning_format, PyDARNColormaps)
+from pydarn import (time2datetime, standard_warning_format, find_record)
 
 warnings.formatwarning = standard_warning_format
 
@@ -60,9 +57,9 @@ class IQ():
 
 
     @classmethod
-    def plot_iq(cls, dmap_data: List[dict], beam_num: int=0,
-                channel: int=0, ax=None, spec_time: datetime = None,
-                sequence: int=0):
+    def plot_iq(cls, dmap_data: List[dict], start_time: datetime = None,
+                channel: int=0, ax=None, beam_num: int=0,
+                sequence_num: int=0, interferometer: bool=False):
         """
         Plots IQ data
         
@@ -73,104 +70,97 @@ class IQ():
             The beam number of data to plot
             Default: 0
         channel : int or str
-            The channel 0, 1, 2 ...
+            The frequency channel 0, 1, 2 ...
             Default : 0
         ax: matplotlib.axes
             axes object for another way of plotting
             Default: None
-        spec_time: datetime
+        start_time: datetime
             Specified time of interest as a datetime object
+        sequence_num: int
+            Sequence in the record to be plotted
+            Default: 0
+        interferometer: bool
+            Data from main array (False) or interferometer array (True)
+            Default False
         """
-        # If an axes object is not passed in then store
-        # the equivalent object in matplotlib. This allows
-        # for variant matplotlib plotting styles.
         if not ax:
             ax = plt.gca()
         cls.dmap_data = dmap_data
 
-        # If time is given, then find the record with the nearest time
-        for i, record in enumerate(cls.dmap_data):
-            rec_time = time2datetime(record)
-            if record['bmnum'] == beam_num and record['channel'] == channel:
-                
-        
-        # If beam and channel given then find the 
-        
-        # for a single record
-        dmap_record = cls.dmap_data[0]
+        # Finds start of minute scan records, then scans the records to 
+        # find the next record with the correct beam
+        if start_time is not None:
+            record_num = find_record(cls.dmap_data, start_time)
+        else:
+            record_num = 0
+        # Get the next record with the correct beam
+        while dmap_data[record_num]['bmnum'] != beam_num:
+            record_num += 1
+            if record_num >= len(dmap_data):
+                raise Exception("No matching data found for beam {} "
+                                "near time {}".format(beam_num,
+                                start_time.strftime('%Y-%m-%d %H:%M:%S')))
+        dmap_record = dmap_data[record_num]
+
+        # Details from chosen record
+        date = time2datetime(dmap_record)
         smpnum = dmap_record['smpnum']
         chnnum = dmap_record['chnnum']
         seqnum = dmap_record['seqnum']
+
+        # Warning to too hihc sequence numberes
+        if sequence_num >= seqnum:
+            raise ValueError("Sequence numbers available for this record range "
+                         "from 0 to {}.".format(seqnum-1))
+
+        if interferometer and chnnum < 2:
+            raise ValueError("No interferometer data for record chosen.")
         
+        # Calculate starting data position
+        # For layout of data and how to access see:
+        # https://radar-software-toolkit-rst.readthedocs.io
+        # /en/latest/references/general/iqdat/
+        if interferometer:
+            smp = sequence_num * chnnum * 2 * smpnum + 2 * smpnum
+        else:
+            smp = sequence_num * chnnum * 2 * smpnum
         iq_real = []
         iq_imag = []
-        smp_count = 0
-        psn_in_data = 0
-        smp = 0
-        while smp < smp_count + 2*smpnum:
+        smp_initial = smp
+        while smp < smp_initial + 2*smpnum:
             iq_real.append(dmap_record['data'][smp])
             smp=smp+1
             iq_imag.append(dmap_record['data'][smp])
             smp=smp+1
-        smp_count = smp
 
-
+        # Calculate magnitude and phase
         mag = [np.sqrt(i**2 + j**2) for i,j in zip(iq_real, iq_imag)]
         mag_neg = [-np.sqrt(i**2 + j**2) for i,j in zip(iq_real, iq_imag)]
         phase = np.arctan2(iq_imag,iq_real)
-        plt.plot(mag, 'grey', linestyle='--')
-        plt.plot(mag_neg, 'grey', linestyle='--')
-        plt.plot(iq_real, 'r')
-        plt.plot(iq_imag, 'b')
-        
+
+        # Plot lines
+        real_line, = ax.plot(iq_real, 'r')
+        imag_line, = ax.plot(iq_imag, 'b')
+        mag_line, = ax.plot(mag, 'grey', linestyle='--', linewidth=0.5)
+        ax.plot(mag_neg, 'grey', linestyle='--', linewidth=0.5)
+
+        # Plot legend and labels
+        real_line.set_label('Real')
+        imag_line.set_label('Imaginary')
+        mag_line.set_label('Magnitude')
+        ax.legend()
+
+        # Plot title and axis labels
         #plt.plot(phase, 'y')
-        plt.title('Raw Data in each Sample in one Sequence')
-        plt.ylabel('Raw Data')
-        plt.xlabel('Sample Number')
-        plt.show()
-#        # Set data shapes
-#         y_max = max(record['smpnum'] for record in cls.dmap_data)
-#         y = np.arange(0, y_max+1, 1)
-#         z: parameter data mapped into the color mesh
-#         z = np.zeros((1, y_max)) * np.nan
-#         Start time data
-#         x = []
-# 
-#         for dmap_record in cls.dmap_data:
-#             rec_time =time2datetime(dmap_record)
-#             diff_time = 0.0
-#             if rec_time > end_time:
-#                 break
-#             if x != []:
-#                 delta_diff_time = abs(rec_time - x[-1])
-#                 diff_time = delta_diff_time.seconds/60.0
-#                 if (rec_time - x[-1]) < timedelta(0):
-#                     warn.warning("Please be aware that the data for timestamp {}"
-#                           " contains a record that is not"
-#                           " in time order. As such the plot of the"
-#                           " data may not be correct, you can solve"
-#                           " this by sorting the data stream by date"
-#                           " before plotting.".format(rec_time))
-# 
-#             if diff_time > 2.0:
-#                 for _ in range(0, int(np.floor(diff_time/2.0))):
-#                     x.append(x[-1] + timedelta(0,120))
-#                     i = len(x) - 1
-#                     if i > 0:
-#                         z = np.insert(z, len(z), np.zeros(1, y_max) * np.nan,
-#                                       axis=0)
-#             if (beam_num = 'all' or dmap_record['bmnum'] == beam_num):
-#                 if start_time <= rec_time:
-#                     x.append(rec_time)
-#                     i = len(x - 1)
-#                     if i > 0:
-#                         z = np.insert(z, len(z), np.zeros(1, y_max) * np.nan,
-#                                       axis=0)
-#                     try:
-                        
-                
-                
-                
-                
-                
-                
+        if interferometer:
+            array_type = 'Interferometer Array'
+        else:
+            array_type = 'Main Array'
+        ax.set_title('IQ Data for ' + array_type + '\n Beam='
+                     + str(beam_num) + ' '
+                     + ' Sequence=' + str(sequence_num) + '\n '
+                     + date.strftime('%Y-%m-%d %H:%M:%S'))
+        ax.set_ylabel('Raw Data')
+        ax.set_xlabel('Sample Number')
+        ax.grid()
