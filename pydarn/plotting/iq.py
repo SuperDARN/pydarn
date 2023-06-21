@@ -25,7 +25,7 @@ import warnings
 from datetime import datetime
 from typing import List
 
-from pydarn import (time2datetime, standard_warning_format, find_record)
+from pydarn import (time2datetime, standard_warning_format, find_record, RTP)
 
 warnings.formatwarning = standard_warning_format
 
@@ -53,6 +53,28 @@ class IQ():
                 " the following methods: \n"\
                 "   - plot_time_series()\n"\
                 "   - plot_iq()\n"
+
+
+    @classmethod
+    def plot_time_series(cls, dmap_data: List[dict], **kwargs):
+        """
+        Plots scalar variables from IQ dat files
+
+        SEE ALSO: RTP.plot_time_series() for more information and
+        inputs
+
+        Parameters
+        ----------
+        dmap_data: List[dict]
+
+        Returns
+        -------
+        time_series_data: Lines, x, y
+            standard return values from RTP.plot_time_series
+        """
+        time_series_info = RTP.plot_time_series(dmap_data, **kwargs)
+        return time_series_info
+
 
     @classmethod
     def plot_iq(cls, dmap_data: List[dict], start_time: datetime = None,
