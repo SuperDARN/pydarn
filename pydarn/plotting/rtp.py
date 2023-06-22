@@ -881,7 +881,7 @@ class RTP():
             Default: {'p_l': PyDARNColormaps.PYDARN_PLASMA,
                       'v': PyDARNColormaps.PYDARN_VELOCITY,
                       'w_l': PyDARNColormaps.PYDARN_VIRIDIS,
-                      'elv': 'inferno'}
+                      'elv': PyDARNColormaps.PYDARN_INFERNO}
             note: to reverse the color just add _r to the string name
         lines: dict or str
             dictionary of time-series line colors.
