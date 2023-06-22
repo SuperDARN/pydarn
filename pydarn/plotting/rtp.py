@@ -878,7 +878,7 @@ class RTP():
             dictionary of matplotlib color maps for the summary
             range time parameter plots.
             https://matplotlib.org/tutorials/colors/colormaps.html
-            Default: {'p_l': 'plasma',
+            Default: {'p_l': PyDARNColormaps.PYDARN_PLASMA,
                       'v': PyDARNColormaps.PYDARN_VELOCITY,
                       'w_l': PyDARNColormaps.PYDARN_VIRIDIS,
                       'elv': 'inferno'}
