@@ -43,14 +43,18 @@ class IQ():
     Methods
     -------
     plot_time_series
-    plot_iq
+    plot_iq_sequence
+    plot_iq_record
+    plot_iq_overview
     """
 
     def __str__(self):
         return "This class is static class that provides"\
                 " the following methods: \n"\
                 "   - plot_time_series()\n"\
-                "   - plot_iq()\n"
+                "   - plot_iq_sequence()\n"\
+                "   - plot_iq_record()\n"\
+                "   - plot_iq_overview()\n"
 
     @classmethod
     def plot_time_series(cls, dmap_data: List[dict], **kwargs):
