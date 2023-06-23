@@ -115,7 +115,9 @@ class IQ():
         else:
             record_num = 0
         # Get the next record with the correct beam
-        while dmap_data[record_num]['bmnum'] != beam_num:
+        while (dmap_data[record_num]['bmnum'] != beam_num 
+                and (dmap_data[record_num]['channel'] != channel 
+                     and channel != 'all')):
             record_num += 1
             if record_num >= len(dmap_data):
                 raise Exception("No matching data found for beam {} "
@@ -238,7 +240,9 @@ class IQ():
         else:
             record_num = 0
         # Get the next record with the correct beam
-        while dmap_data[record_num]['bmnum'] != beam_num:
+        while (dmap_data[record_num]['bmnum'] != beam_num
+                and (dmap_data[record_num]['channel'] != channel 
+                     and channel != 'all')):
             record_num += 1
             if record_num >= len(dmap_data):
                 raise Exception("No matching data found for beam {} "
