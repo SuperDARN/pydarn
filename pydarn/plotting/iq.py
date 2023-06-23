@@ -1,7 +1,5 @@
 # Copyright (C) 2023 SuperDARN Canada, University of Saskwatchewan
 # Author: Carley Martin
-# This code is improvement based on rti.py in the DaVitpy library
-# https://github.com/vtsuperdarn/davitpy/blob/master/davitpy
 #
 # Modifications:
 #
@@ -32,7 +30,7 @@ warnings.formatwarning = standard_warning_format
 
 class IQ():
     """
-    Time-series and range-time plots for IQ data
+    Time-series and specialised plots for IQ data
 
     Class pattern design: Builder
     This class inherits matplotlib.pyplot to inherit plotting features as well
@@ -44,7 +42,7 @@ class IQ():
 
     Methods
     -------
-    plot_iq_time_series
+    plot_time_series
     plot_iq
     """
 
@@ -53,7 +51,6 @@ class IQ():
                 " the following methods: \n"\
                 "   - plot_time_series()\n"\
                 "   - plot_iq()\n"
-
 
     @classmethod
     def plot_time_series(cls, dmap_data: List[dict], **kwargs):
@@ -75,14 +72,14 @@ class IQ():
         time_series_info = RTP.plot_time_series(dmap_data, **kwargs)
         return time_series_info
 
-
     @classmethod
-    def plot_iq(cls, dmap_data: List[dict], start_time: datetime = None,
-                channel: int = 0, ax=None, beam_num: int = 0,
-                sequence_num: int = 0, interferometer: bool = False,
-                plot_phase: bool = False):
+    def plot_iq_sequence(cls, dmap_data: List[dict],
+                         start_time: datetime = None,
+                         channel: int = 0, ax=None, beam_num: int = 0,
+                         sequence_num: int = 0, interferometer: bool = False,
+                         plot_phase: bool = False):
         """
-        Plots IQ data
+        Plots a single sequence from a record of IQ data
 
         Parameters
         -----------
@@ -198,3 +195,214 @@ class IQ():
         ax.set_ylabel('Raw Data')
         ax.set_xlabel('Sample Number')
         ax.grid()
+
+        return ax, [iq_real, iq_imag, mag]
+
+    @classmethod
+    def plot_iq_record(cls, dmap_data: List[dict],
+                       start_time: datetime = None,
+                       channel: int = 0, ax=None, beam_num: int = 0,
+                       interferometer: bool = False):
+        """
+        Plots all sequences from a record of IQ data
+
+        Parameters
+        -----------
+        dmap_data: List[dict]
+        beam_num : int
+            The beam number of data to plot
+            Default: 0
+        channel : int or str
+            The frequency channel 0, 1, 2 ...
+            Default : 0
+        ax: matplotlib.axes
+            axes object for another way of plotting
+            Default: None
+        start_time: datetime
+            Specified time of interest as a datetime object
+        interferometer: bool
+            Data from main array (False) or interferometer array (True)
+            Default False
+        """
+        cls.dmap_data = dmap_data
+
+        # Finds start of minute scan records, then scans the records to
+        # find the next record with the correct beam
+        if start_time is not None:
+            record_num = find_record(cls.dmap_data, start_time)
+        else:
+            record_num = 0
+        # Get the next record with the correct beam
+        while dmap_data[record_num]['bmnum'] != beam_num:
+            record_num += 1
+            if record_num >= len(dmap_data):
+                raise Exception("No matching data found for beam {} "
+                                "near time {}"
+                                .format(beam_num,
+                                        start_time.strftime('%Y-%m-%d' +
+                                                            ' %H:%M:%S')))
+        dmap_record = dmap_data[record_num]
+
+        # Details from chosen record
+        date = time2datetime(dmap_record)
+        smpnum = dmap_record['smpnum']
+        chnnum = dmap_record['chnnum']
+        seqnum = dmap_record['seqnum']
+
+        if interferometer and chnnum < 2:
+            raise ValueError("No interferometer data for record chosen.")
+
+        # Calculate starting data position
+        # For layout of data and how to access see:
+        # https://radar-software-toolkit-rst.readthedocs.io
+        # /en/latest/references/general/iqdat/
+        iq_real_arr = np.empty([smpnum, seqnum])
+        iq_imag_arr = np.empty([smpnum, seqnum])
+        for seq in range(0,seqnum):
+            if interferometer:
+                smp = seq * chnnum * 2 * smpnum + 2 * smpnum
+            else:
+                smp = seq * chnnum * 2 * smpnum
+            iq_real_arr[:,seq] = dmap_record['data'][smp: smp + smpnum]
+            iq_imag_arr[:,seq] = dmap_record['data'][smp + smpnum : smp + 2*smpnum]
+
+        # Calculate magnitude
+        mag = np.sqrt(iq_real_arr**2 + iq_imag_arr**2)
+        # Plot
+        ax = plt.gca()
+        pcol = ax.pcolormesh(mag, vmin=0, vmax=600)
+        cb = ax.figure.colorbar(pcol, extend='max')
+        cb.set_label('Power (AU)')
+
+        # Plot title and axis labels
+        if interferometer:
+            array_type = 'Interferometer Array'
+        else:
+            array_type = 'Main Array'
+        ax.set_title('IQ Data for ' + array_type + '\n Beam='
+                     + str(beam_num) + ' '
+                     + date.strftime('%Y-%m-%d %H:%M:%S'))
+        ax.set_ylabel('Sample Number')
+        ax.set_xlabel('Sequence Number')
+        ax.grid()
+        
+        return ax, mag
+
+    @classmethod
+    def plot_iq_overview(cls, dmap_data: List[dict],
+                         start_time: datetime = None,
+                         end_time: datetime = None,
+                         channel: int = 0, ax=None, beam_num: int = 'all',
+                         interferometer: bool = False):
+        """
+        Plots all sequences from a record of IQ data
+
+        Parameters
+        -----------
+        dmap_data: List[dict]
+        beam_num : int
+            The beam number of data to plot
+            Default: 0
+        channel : int or str
+            The frequency channel 0, 1, 2 ...
+            Default : 0
+        ax: matplotlib.axes
+            axes object for another way of plotting
+            Default: None
+        start_time: datetime
+            Specified start time of interest as a datetime object
+        end_time: datetime
+            Specified end time of interest as a datetime object
+        interferometer: bool
+            Data from main array (False) or interferometer array (True)
+            Default False
+        """
+        cls.dmap_data = dmap_data
+        start_time, end_time = cls.__determine_start_end_time(start_time,
+                                                              end_time)
+
+        # Assuming the samples and sequences will stay constant
+        # over the file
+        smpnum = dmap_data[0]['smpnum']
+        chnnum = dmap_data[0]['chnnum']
+        seqnum = dmap_data[0]['seqnum']
+
+        # Empty lists to append data to
+        # TODO: did not work using arrays
+        iq_real_arr = []
+        iq_imag_arr = []
+        for dmap_record in cls.dmap_data:
+            if (dmap_record['bmnum'] == beam_num or beam_num == 'all') and\
+                   (dmap_record['channel'] == channel or channel == 'all'):
+                    rec_time = time2datetime(dmap_record)
+                    if start_time <= rec_time and rec_time <= end_time:
+                        
+                        if interferometer and chnnum < 2:
+                            raise ValueError("No interferometer data for "
+                                             "record chosen.")
+
+                        # Calculate starting data position
+                        # For layout of data and how to access see:
+                        # https://radar-software-toolkit-rst.readthedocs.io
+                        # /en/latest/references/general/iqdat/
+                        for seq in range(0,seqnum):
+                            if interferometer:
+                                smp = seq * chnnum * 2 * smpnum + 2 * smpnum
+                            else:
+                                smp = seq * chnnum * 2 * smpnum
+                            iq_real = dmap_record['data'][smp: smp + smpnum]
+                            iq_imag = dmap_record['data'][smp + smpnum : smp + 2*smpnum]
+                            if len(iq_real) == smpnum:
+                                iq_real_arr.append(iq_real)
+                                iq_imag_arr.append(iq_imag)
+
+        # Convert to arrays, dtype important for mag calc
+        iq_real_arr = np.array(iq_real_arr, dtype='float64')
+        iq_imag_arr = np.array(iq_imag_arr, dtype='float64')
+        # Calculate magnitude
+        mag = np.sqrt(np.add(np.square(iq_real_arr), np.square(iq_imag_arr)))
+
+        # Plot
+        ax = plt.gca()
+        pcol = ax.pcolormesh(mag.T, vmin=0, vmax=1000)
+        cb = ax.figure.colorbar(pcol, extend='max')
+        cb.set_label('Power (AU)')
+
+        # Plot title and axis labels
+        if interferometer:
+            array_type = 'Interferometer Array'
+        else:
+            array_type = 'Main Array'
+        ax.set_title('IQ Data for ' + array_type + ' Beam='
+                     + str(beam_num) + '\n'
+                     + start_time.strftime('%Y-%m-%d %H:%M:%S') + ' - '
+                     + end_time.strftime('%Y-%m-%d %H:%M:%S'))
+        ax.set_ylabel('Sample Number')
+        ax.set_xlabel('Sequence Number')
+        ax.grid()
+
+        return ax, mag
+
+    @classmethod
+    def __determine_start_end_time(cls, start_time: datetime,
+                                   end_time: datetime) -> tuple:
+        """
+        Sets the start and end time based on import of dmap_data
+
+        Parameter
+        ---------
+        start_time: datetime
+            Start time is used to check if it was set or not
+        end_time: datetime
+            End time is used to check if it was set or not
+
+        Returns
+        -------
+        start_time: datetime
+        end_time: datetime
+        """
+        if not start_time:
+            start_time = time2datetime(cls.dmap_data[0])
+        if not end_time:
+            end_time = time2datetime(cls.dmap_data[-1])
+        return start_time, end_time
