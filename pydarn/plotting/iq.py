@@ -160,6 +160,7 @@ class IQ():
         if plot_phase:
             phase = np.arctan2(iq_imag, iq_real)
             fig = plt.gcf()
+            fig.tight_layout()
             gs = fig.add_gridspec(3, 1)
             ax = fig.add_subplot(gs[0:2, :])
             ax2 = fig.add_subplot(gs[2, :])
@@ -258,13 +259,14 @@ class IQ():
         # /en/latest/references/general/iqdat/
         iq_real_arr = np.empty([smpnum, seqnum])
         iq_imag_arr = np.empty([smpnum, seqnum])
-        for seq in range(0,seqnum):
+        for seq in range(0, seqnum):
             if interferometer:
                 smp = seq * chnnum * 2 * smpnum + 2 * smpnum
             else:
                 smp = seq * chnnum * 2 * smpnum
-            iq_real_arr[:,seq] = dmap_record['data'][smp: smp + smpnum]
-            iq_imag_arr[:,seq] = dmap_record['data'][smp + smpnum : smp + 2*smpnum]
+            iq_real_arr[:, seq] = dmap_record['data'][smp: smp + smpnum]
+            iq_imag_arr[:, seq] =\
+                dmap_record['data'][smp + smpnum: smp + 2*smpnum]
 
         # Calculate magnitude
         mag = np.sqrt(iq_real_arr**2 + iq_imag_arr**2)
@@ -285,7 +287,7 @@ class IQ():
         ax.set_ylabel('Sample Number')
         ax.set_xlabel('Sequence Number')
         ax.grid()
-        
+
         return ax, mag
 
     @classmethod
@@ -333,28 +335,28 @@ class IQ():
         iq_imag_arr = []
         for dmap_record in cls.dmap_data:
             if (dmap_record['bmnum'] == beam_num or beam_num == 'all') and\
-                   (dmap_record['channel'] == channel or channel == 'all'):
-                    rec_time = time2datetime(dmap_record)
-                    if start_time <= rec_time and rec_time <= end_time:
-                        
-                        if interferometer and chnnum < 2:
-                            raise ValueError("No interferometer data for "
-                                             "record chosen.")
+                    (dmap_record['channel'] == channel or channel == 'all'):
+                rec_time = time2datetime(dmap_record)
+                if start_time <= rec_time and rec_time <= end_time:
+                    if interferometer and chnnum < 2:
+                        raise ValueError("No interferometer data for "
+                                         "record chosen.")
 
-                        # Calculate starting data position
-                        # For layout of data and how to access see:
-                        # https://radar-software-toolkit-rst.readthedocs.io
-                        # /en/latest/references/general/iqdat/
-                        for seq in range(0,seqnum):
-                            if interferometer:
-                                smp = seq * chnnum * 2 * smpnum + 2 * smpnum
-                            else:
-                                smp = seq * chnnum * 2 * smpnum
-                            iq_real = dmap_record['data'][smp: smp + smpnum]
-                            iq_imag = dmap_record['data'][smp + smpnum : smp + 2*smpnum]
-                            if len(iq_real) == smpnum:
-                                iq_real_arr.append(iq_real)
-                                iq_imag_arr.append(iq_imag)
+                    # Calculate starting data position
+                    # For layout of data and how to access see:
+                    # https://radar-software-toolkit-rst.readthedocs.io
+                    # /en/latest/references/general/iqdat/
+                    for seq in range(0, seqnum):
+                        if interferometer:
+                            smp = seq * chnnum * 2 * smpnum + 2 * smpnum
+                        else:
+                            smp = seq * chnnum * 2 * smpnum
+                        iq_real = dmap_record['data'][smp: smp + smpnum]
+                        iq_imag =\
+                            dmap_record['data'][smp + smpnum: smp + 2*smpnum]
+                        if len(iq_real) == smpnum:
+                            iq_real_arr.append(iq_real)
+                            iq_imag_arr.append(iq_imag)
 
         # Convert to arrays, dtype important for mag calc
         iq_real_arr = np.array(iq_real_arr, dtype='float64')
