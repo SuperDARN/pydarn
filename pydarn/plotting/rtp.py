@@ -826,7 +826,7 @@ class RTP():
     @classmethod
     def plot_summary(cls, dmap_data: List[dict],
                      beam_num: int = 0, figsize: tuple = (11, 8.5),
-                     watermark: bool = True, boundary: dict = {},
+                     watermark: bool = False, boundary: dict = {},
                      cmaps: dict = {}, lines: dict = {},
                      plot_elv: bool = True, title=None,
                      background: str = 'w', groundscatter: bool = True,
