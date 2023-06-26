@@ -24,7 +24,6 @@
 """
 Range-Time Parameter (aka Intensity) plots
 """
-import copy
 import matplotlib.pyplot as plt
 import numpy as np
 import warnings
@@ -305,7 +304,6 @@ class RTP():
                           " data may not be correct, you can solve"
                           " this by sorting the data stream by date"
                           " before plotting.".format(rec_time))
-
 
             # separation roughly 2 minutes
             if diff_time > 2.0:
@@ -966,7 +964,7 @@ class RTP():
         color = {'noise.search': 'k',
                  'noise.sky': 'k',
                  'tfreq': 'k',
-                 'nave': 'k'}
+                 'nave': 'b'}
 
         if isinstance(line_color, dict):
             color.update(line_color)
@@ -1096,7 +1094,8 @@ class RTP():
                                                  **kwargs)
                         second_ax.set_xticklabels([])
                         second_ax.set_ylabel(labels[i][1], rotation=0,
-                                             labelpad=25)
+                                             labelpad=25, color=color[
+                                                axes_parameters[i][1]])
                         second_ax.\
                             axhline(y=boundary_ranges[axes_parameters[i][1]][0]
                                     + 0.8, xmin=1.07, xmax=1.13,
@@ -1107,6 +1106,14 @@ class RTP():
                             set_ylim(boundary_ranges[axes_parameters[i][1]][0],
                                      boundary_ranges[axes_parameters[i][1]][1])
                         second_ax.yaxis.set_label_coords(1.1, 0.7)
+                        # Set color of second axis
+                        second_ax.spines["right"].set_edgecolor(color=color[
+                                                    axes_parameters[i][1]])
+                        second_ax.tick_params(axis='y', color=color[
+                                                axes_parameters[i][1]])
+                        [lab.set_color(color=color[axes_parameters[i][1]])
+                            for lab in second_ax.yaxis.get_ticklabels()]
+
                         if scale == 'log':
                             second_ax.yaxis.\
                                     set_major_locator(ticker.
@@ -1136,7 +1143,7 @@ class RTP():
             # plot range-time
             else:
                 # Current standard is to only have groundscatter
-                # on the velocity plot. 
+                # on the velocity plot.
                 if groundscatter and axes_parameters[i] == 'v':
                     grndflg = True
                 else:
