@@ -348,7 +348,17 @@ class ACF():
                           cpid=record['cp'])
         ax.set_title(title)
 
-        return masked_re, masked_im, masked_pwr, masked_phs, blanked_lags
+        return {'ax': ax,
+                'ccrs': None,
+                'cm': None,
+                'cb': None,
+                'fig':  plt.gcf(),
+                'data': {'real': masked_re,
+                         'imaginary': masked_im,
+                         'power': masked_pwr,
+                         'phase':  masked_phs,
+                         'blanked': blanked_lags}
+                }
 
     @classmethod
     def __found_scan(cls, scan_num: int, count_num: int,

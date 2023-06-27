@@ -24,7 +24,6 @@
 """
 Range-Time Parameter (aka Intensity) plots
 """
-import copy
 import matplotlib.pyplot as plt
 import numpy as np
 import warnings
@@ -306,7 +305,6 @@ class RTP():
                           " this by sorting the data stream by date"
                           " before plotting.".format(rec_time))
 
-
             # separation roughly 2 minutes
             if diff_time > 2.0:
                 # if there is gap data (no data recorded past 2 minutes)
@@ -532,7 +530,16 @@ class RTP():
             cb = colorbar
         if colorbar_label != '':
             cb.set_label(colorbar_label)
-        return im, cb, cmap, x, y, z_data
+        return {'ax': ax,
+                'ccrs': None,
+                'cm': cmap,
+                'cb': cb,
+                'fig': plt.gcf(),
+                'data': {'plot_data': im,
+                         'x': x,
+                         'y': y,
+                         'z': z_data}
+                }
 
     @classmethod
     def plot_time_series(cls, dmap_data: List[dict],
@@ -821,7 +828,15 @@ class RTP():
         ax.margins(x=0)
         ax.tick_params(axis='y', which='minor')
 
-        return lines, x, y
+        return {'ax': ax,
+                'ccrs': None,
+                'cm': None,
+                'cb': None,
+                'fig': plt.gcf(),
+                'data': {'lines': lines,
+                         'x': x,
+                         'y': y}
+                }
 
     @classmethod
     def plot_summary(cls, dmap_data: List[dict],
@@ -1136,7 +1151,7 @@ class RTP():
             # plot range-time
             else:
                 # Current standard is to only have groundscatter
-                # on the velocity plot. 
+                # on the velocity plot.
                 if groundscatter and axes_parameters[i] == 'v':
                     grndflg = True
                 else:
@@ -1146,21 +1161,18 @@ class RTP():
                 # the citing warning.
                 with warnings.catch_warnings():
                     warnings.simplefilter("ignore")
-                    _, cbar, _, x, _, _ =\
-                        cls.plot_range_time(dmap_data, beam_num=beam_num,
-                                            colorbar_label=labels[i],
-                                            channel=channel,
-                                            parameter=axes_parameters[i],
-                                            ax=axes[i], groundscatter=grndflg,
-                                            cmap=cmap[axes_parameters[i]],
-                                            zmin=boundary_ranges[
-                                                axes_parameters[i]][0],
-                                            zmax=boundary_ranges[
-                                                axes_parameters[i]][1],
-                                            yspacing=500,
-                                            background=background,
-                                            range_estimation=range_estimation,
-                                            **kwargs)
+                    rt_rtn = cls.plot_range_time(
+                                dmap_data, beam_num=beam_num,
+                                colorbar_label=labels[i], channel=channel,
+                                parameter=axes_parameters[i], ax=axes[i],
+                                groundscatter=grndflg,
+                                cmap=cmap[axes_parameters[i]],
+                                zmin=boundary_ranges[axes_parameters[i]][0],
+                                zmax=boundary_ranges[axes_parameters[i]][1],
+                                yspacing=500, background=background,
+                                range_estimation=range_estimation, **kwargs)
+                    cbar = rt_rtn['cb']
+                    x = rt_rtn['data']['x']
                 # Overwriting velocity ticks to get a better pleasing
                 # look on the colorbar
                 # Preference by Marina Schmidt
@@ -1203,7 +1215,13 @@ class RTP():
                      color='gray', ha='right', va='top',
                      rotation=-38, alpha=0.3)
 
-        return fig, axes
+        return {'ax': axes,
+                'ccrs': None,
+                'cm': cmap,
+                'cb': None,
+                'fig': fig,
+                'data': 'Individual range-time plots will return full data.'
+                }
 
     @classmethod
     def __generate_title(cls, start_time: datetime, end_time: datetime,

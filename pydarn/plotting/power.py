@@ -213,6 +213,12 @@ class Power():
                                           beam_num, '==', split_frequency)
                     cls.__plot_pwr0(records_of_interest, beam_num,
                                     statistical_method)
+        return {'ax': plt.gca(),
+                'ccrs': None,
+                'cm': None,
+                'cb': None,
+                'fig': plt.gcf(),
+                'data': None}
 
     @staticmethod
     def __plot_pwr0(records: list, beam_num: int, statistical_method: object,

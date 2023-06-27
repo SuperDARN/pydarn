@@ -365,12 +365,23 @@ class Fan():
 
             if colorbar_label != '':
                 cb.set_label(colorbar_label)
+        else:
+            cb = None
         if title:
             start_time = time2datetime(dmap_data[plot_beams[0][0]])
             end_time = time2datetime(dmap_data[plot_beams[-1][-1]])
             title = cls.__add_title__(start_time, end_time)
             plt.title(title)
-        return ax, beam_corners_lats, beam_corners_lons, scan, grndsct
+        return {'ax': ax,
+                'ccrs': ccrs,
+                'cm': cmap,
+                'cb': cb,
+                'fig': plt.gcf(),
+                'data': {'beam_corners_lats': beam_corners_lats,
+                         'beam_corners_lons': beam_corners_lons,
+                         'scan_data': scan,
+                         'ground_scatter': grndsct}
+                }
 
     @classmethod
     def plot_fov(cls, stid: str, date: dt.datetime,
@@ -570,7 +581,14 @@ class Fan():
             ax.fill(theta, r, color=fov_color, alpha=alpha, zorder=1,
                     transform=transform)
 
-        return beam_corners_lats, beam_corners_lons, ax, ccrs
+        return {'ax': ax,
+                'ccrs': ccrs,
+                'cm': None,
+                'cb': None,
+                'fig': plt.gcf(),
+                'data': {'beam_corners_lats': beam_corners_lats,
+                         'beam_corners_lons': beam_corners_lons}
+                }
 
     @classmethod
     def plot_radar_position(cls, stid: int, date: dt.datetime,

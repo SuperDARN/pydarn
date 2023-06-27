@@ -169,9 +169,9 @@ class Grid():
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             # Check for partial records
-            if all(dmap_data[record]['nvec'] == 0) :
+            if all(dmap_data[record]['nvec'] == 0):
                 raise plot_exceptions.PartialRecordsError('~all vectors~')
-    
+
             data_lons = dmap_data[record]['vector.mlon']
             data_lats = dmap_data[record]['vector.mlat']
 
@@ -185,9 +185,11 @@ class Grid():
                 transform = ccrs.PlateCarree()
 
             for stid in dmap_data[record]['stid']:
-                _, coord_lons, ax, ccrs =\
-                        Fan.plot_fov(stid, date, ax=ax, ccrs=ccrs,
-                                     coords=coords, projs=projs, **kwargs)
+                fan_rtn = Fan.plot_fov(stid, date, ax=ax, ccrs=ccrs,
+                                       coords=coords, projs=projs, **kwargs)
+                coord_lons = fan_rtn['data']['beam_corners_lons']
+                ax = fan_rtn['ax']
+                ccrs = fan_rtn['ccrs']
 
             if coords != Coords.GEOGRAPHIC and projs == Projs.GEO:
                 raise plot_exceptions.NotImplemented(
@@ -324,9 +326,9 @@ class Grid():
                         # If the vector does not cross the meridian
                         if np.sign(thetas[i]) == np.sign(end_g_thetas[i]):
                             plt.plot([thetas[i], end_g_thetas[i]],
-                                 [rs[i], end_g_rs[i]],
-                                 c=cmap(norm(data[i])),
-                                 linewidth=0.5, transform=transform)
+                                     [rs[i], end_g_rs[i]],
+                                     c=cmap(norm(data[i])),
+                                     linewidth=0.5, transform=transform)
                         # If the vector crosses the meridian then amend so that
                         # the start and end are in the same sign
                         else:
@@ -338,9 +340,9 @@ class Grid():
                             # Vector plots correctly over the 0 meridian so
                             # Nothing is done to correct that section
                             plt.plot([thetas[i], end_g_thetas[i]],
-                                 [rs[i], end_g_rs[i]],
-                                 c=cmap(norm(data[i])),
-                                 linewidth=0.5, transform=transform)
+                                     [rs[i], end_g_rs[i]],
+                                     c=cmap(norm(data[i])),
+                                     linewidth=0.5, transform=transform)
 
                 # TODO: Add a velocity reference vector
 
@@ -359,6 +361,8 @@ class Grid():
 
             if colorbar_label != '':
                 cb.set_label(colorbar_label)
+        else:
+            cb = None
 
         if title == '':
             title = "{year}-{month}-{day} {start_hour}:{start_minute} -"\
@@ -375,4 +379,15 @@ class Grid():
         plt.title(title)
         if parameter == 'vector.vel.median':
             return thetas, end_thetas, rs, end_rs, data, azm_v
-        return thetas, rs, data
+        return {'ax': ax,
+                'ccrs': ccrs,
+                'cm': cmap,
+                'cb': cb,
+                'fig': plt.gcf(),
+                'data': {'data_position_theta': thetas,
+                         'end_stick_position_theta': end_thetas,
+                         'data_position_r': rs,
+                         'end_stick_position_r': end_rs,
+                         'raw_data': data,
+                         'raw_azimuths': azm_v}
+                }
