@@ -9,6 +9,7 @@
 # 2021-07-06 Carley Martin added keyword to aid in rounding start times
 # 2022-03-04 Marina Schmidt added RangeEstimations in
 # 2022-08-04 Carley Martin added elifs for HALF_SLANT options
+# 2023-06-28 Carley Martin refactored return values
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md

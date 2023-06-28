@@ -3,6 +3,7 @@
 #
 # Modifications:
 #   20220308 MTS added partial record exception
+#   20230628 CJM refactored return values
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
@@ -377,8 +378,10 @@ class Grid():
                               end_minute=str(dmap_data[record]['end.minute']).
                               zfill(2))
         plt.title(title)
-        if parameter == 'vector.vel.median':
-            return thetas, end_thetas, rs, end_rs, data, azm_v
+        if parameter != 'vector.vel.median':
+            end_thetas = None
+            end_rs = None
+            azm_v = None
         return {'ax': ax,
                 'ccrs': ccrs,
                 'cm': cmap,

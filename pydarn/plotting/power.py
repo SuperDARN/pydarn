@@ -1,5 +1,19 @@
 #  Copyright (C) 2020 SuperDARN Canada, University of Saskatchewan
 #  Author: Cooper Ross Robertson, Summer Student 2020, Marina Schmidt
+#
+# Modifications:
+# 2023-06-28 Carley Martin refactored return values
+#
+# Disclaimer:
+# pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
+# Everyone is permitted to copy and distribute verbatim copies of this license
+# document, but changing it is not allowed.
+#
+# This version of the GNU Lesser General Public License incorporates the terms
+# and conditions of version 3 of the GNU General Public License,
+# supplemented by the additional permissions listed below.
+#
+
 import copy
 import matplotlib.pyplot as plt
 import numpy as np

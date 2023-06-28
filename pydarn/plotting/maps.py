@@ -11,6 +11,7 @@
 #                   vector
 # 2022-08-15: CJM - Removed plot_FOV call for default uses
 # 2022-12-13: CJM - Limited reference vectors to only velocity use
+# 2023-06-28: CJM - Refactored return values
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
@@ -412,6 +413,9 @@ class Maps():
             hmb_lon, hmb_lat = cls.plot_heppner_maynard_boundary(mlats_hmb,
                                                                  mlons_hmb,
                                                                  date)
+        else:
+            hmb_lon = None
+            hmb_lat = None
 
         if title == '':
             title = "{year}-{month}-{day} {start_hour}:{start_minute} -"\
