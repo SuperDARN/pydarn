@@ -20,14 +20,16 @@
 Code which generates axis objects for use in plotting functions
 """
 import aacgmv2
+import ast
 import enum
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import numpy as np
+import os
 from packaging import version
 
 from pydarn import (Hemisphere, plot_exceptions, terminator, Re,
-                    new_coordinate, nightshade_warning)
+                    new_coordinate, nightshade_warning, utils)
 try:
     import cartopy
     # from cartopy.mpl import geoaxes
@@ -133,22 +135,32 @@ def axis_polar(date, ax: object = None, lowlat: int = 30,
         ax.set_theta_zero_location("S")
 
     if coastline is True:
-        if cartopyInstalled is False:
-            raise plot_exceptions.CartopyMissingError()
-        if cartopyVersion is False:
-            raise plot_exceptions.CartopyVersionError(cartopy.__version__)
-        # Read in the geometry object of the coastlines
-        cc = cfeature.NaturalEarthFeature('physical', 'coastline', '110m',
-                                          color='k', zorder=2.0)
-        # Convert geometry object coordinates to MLT
-        geom_mag = []
-        for geom in cc.geometries():
-            geom_mag.append(convert_geo_coastline_to_mag(geom, date))
-        cc_mag = cfeature.ShapelyFeature(geom_mag, ccrs.PlateCarree(),
-                                         color='k', zorder=2.0)
-        # Plot each geometry object
-        for geom in cc_mag.geometries():
-            plt.plot(*geom.coords.xy, color='k', linewidth=0.5, zorder=2.0)
+        #if cartopyInstalled is False:
+            #raise plot_exceptions.CartopyMissingError()
+        #if cartopyVersion is False:
+            #raise plot_exceptions.CartopyVersionError(cartopy.__version__)
+        if cartopyInstalled is False or cartopyVersion is False: 
+            # Path should the path where pydarn is installed
+            coastal_path = "{}/coastlines/"\
+                           .format(os.path.dirname(utils.__file__))
+            date_str = date.strftime('%Y%m')
+            with open(coastal_path + date_str + '.coastline') as f:
+                geoms = f.read()
+            for geom in geoms:
+                print(geom)
+        else:
+            # Read in the geometry object of the coastlines
+            cc = cfeature.NaturalEarthFeature('physical', 'coastline', '110m',
+                                              color='k', zorder=2.0)
+            # Convert geometry object coordinates to MLT
+            geom_mag = []
+            for geom in cc.geometries():
+                geom_mag.append(convert_geo_coastline_to_mag(geom, date))
+            cc_mag = cfeature.ShapelyFeature(geom_mag, ccrs.PlateCarree(),
+                                             color='k', zorder=2.0)
+            # Plot each geometry object
+            for geom in cc_mag.geometries():
+                plt.plot(*geom.coords.xy, color='k', linewidth=0.5, zorder=2.0)
 
     if nightshade:
         nightshade_warning()
