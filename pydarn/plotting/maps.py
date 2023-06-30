@@ -1008,6 +1008,9 @@ class Maps():
                               *range(contour_spacing, 
                                      pot_zmax + contour_spacing,
                                      contour_spacing)]
+        else:
+            pot_zmax = np.max(contour_levels)
+            pot_zmin = np.min(contour_levels)
 
         if contour_fill:
             # Filled contours
