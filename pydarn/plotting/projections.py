@@ -22,6 +22,7 @@ Code which generates axis objects for use in plotting functions
 import aacgmv2
 import ast
 import enum
+import json
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import numpy as np
@@ -145,9 +146,18 @@ def axis_polar(date, ax: object = None, lowlat: int = 30,
                            .format(os.path.dirname(utils.__file__))
             date_str = date.strftime('%Y%m')
             with open(coastal_path + date_str + '.coastline') as f:
-                geoms = f.read()
-            for geom in geoms:
-                print(geom)
+                coast_json = json.load(f)
+            for poly in coast_json:
+                [mlat, lon_mag, _] = \
+                    aacgmv2.convert_latlon_arr(poly['lat'], poly['lon'], 0.0,
+                                               date, method_code='G2A')
+                # Shift to MLT
+                shifted_mlts = lon_mag[0] - \
+                    (aacgmv2.convert_mlt(lon_mag[0], date) * 15)
+                shifted_lons = lon_mag - shifted_mlts
+                mlon = np.radians(shifted_lons)
+                print(mlon, mlat)
+                plt.plot(mlon, mlat, color='k', linewidth=0.5, zorder=2.0)
         else:
             # Read in the geometry object of the coastlines
             cc = cfeature.NaturalEarthFeature('physical', 'coastline', '110m',
