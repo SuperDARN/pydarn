@@ -27,7 +27,7 @@ import numpy as np
 from packaging import version
 
 from pydarn import (Hemisphere, plot_exceptions, terminator, Re,
-                    new_coordinate, nightshade_warning)
+                    nightshade_warning)
 try:
     import cartopy
     # from cartopy.mpl import geoaxes
