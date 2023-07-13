@@ -65,7 +65,7 @@ class GeneralUtils():
                           * np.cos(lon1 - lon2)))
 
     @classmethod
-    def new_coordinate(lat, lon, d, bearing, R=Re):
+    def new_coordinate(cls, lat, lon, d, bearing, R=Re):
         """
         new coordinate will calculate the new coordinate from a given
         position, distance and bearing

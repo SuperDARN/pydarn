@@ -3,6 +3,7 @@
 #
 # Modifications:
 #   20220308 MTS added partial record exception
+#   20230713 CJM corrected geographic quivers
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
