@@ -38,7 +38,7 @@ def gate2halfslant(**kwargs):
     return half_slant
 
 
-def gate2groundscatter(reflection_height: float = 250, **kwargs):
+def gate2gs_bristow(reflection_height: float = 250, **kwargs):
     """
     Calculate the ground scatter mapped range (km) for each slanted range
     for SuperDARN data. This function is based on the Ground Scatter equation
@@ -58,6 +58,36 @@ def gate2groundscatter(reflection_height: float = 250, **kwargs):
     ground_scatter_mapped_ranges =\
             Re*np.arcsin(np.sqrt((slant_ranges**2/4)-
                                  (reflection_height**2))/Re)
+
+    return ground_scatter_mapped_ranges
+
+
+def gate2groundscatter(reflection_height: float = 250, hop: float = 0.5,
+                       **kwargs):
+    """
+    Calculate the ground scatter mapped range (km) for each slanted range
+    for SuperDARN data. This function is based on the Ground Scatter equation
+    discussed in the issue github.com/SuperDARN/pydarn/issues/257
+    Parameters
+    ----------
+        reflection_height: float
+            reflection height
+            default:  250
+        hop: float
+            hop numberof returning data
+            default: 0.5
+
+    Returns
+    -------
+        ground_scatter_mapped_ranges : np.array
+            returns an array of ground scatter mapped ranges for the radar
+    """
+    slant_ranges = gate2slant(**kwargs)
+
+    num = - Re**2 - (Re + reflection_height)**2\
+          + (slant_ranges * (0.5 / hop))**2
+    den = 2 * Re * (Re + reflection_height)
+    ground_scatter_mapped_ranges = (hop/0.5) * Re * np.arccos( - num / den )
 
     return ground_scatter_mapped_ranges
 
@@ -139,6 +169,7 @@ class RangeEstimation(enum.Enum):
     SLANT_RANGE = (gate2slant,)
     HALF_SLANT = (gate2halfslant,)
     GSMR = (gate2groundscatter,)
+    GSMR_BRISTOW = (gate2gs_bristow,)
 
     # Need this to make the functions callable
     def __call__(self, *args, **kwargs):
