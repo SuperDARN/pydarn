@@ -3,7 +3,8 @@
 #
 # Modifications:
 # 2022-03-11 MTS added enums for projection function calls
-# 2022-03-22 MTS removed coastline call and added grid lines to cartopy plotting
+# 2022-03-22 MTS removed coastline call and added grid lines to cartopy
+#                plotting
 # 2022-05-20 CJM added options to plot coastlines
 # 2022-06-13 Elliott Day don't create new ax if ax passed in to Projs
 # 2023-02-22 CJM added options for nightshade
@@ -20,24 +21,19 @@
 Code which generates axis objects for use in plotting functions
 """
 import aacgmv2
-import ast
 import enum
-import json
 import matplotlib.pyplot as plt
-import matplotlib.patches as patches
 import numpy as np
-import os
 from packaging import version
 
-from pydarn import (Hemisphere, plot_exceptions, terminator, Re,
-                    new_coordinate, nightshade_warning, utils)
+from pydarn import (Hemisphere, plot_exceptions, Re,
+                    nightshade_warning, coast_outline)
 try:
     import cartopy
     # from cartopy.mpl import geoaxes
     import cartopy.crs as ccrs
     import cartopy.feature as cfeature
     from cartopy.feature.nightshade import Nightshade
-    from shapely.geometry import mapping, Polygon
     cartopyInstalled = True
     if version.parse(cartopy.__version__) < version.parse("0.19"):
         cartopyVersion = False
@@ -47,10 +43,37 @@ except Exception:
     cartopyInstalled = False
 
 
+def convert_coastline_list_to_mag(geom, date, alt: float = 0.0):
+    '''
+    Takes a list of coastlines and converts
+    the coordinates into AACGM_MLT
+    Parameters
+    ----------
+    geom: list
+        A list/collection of lat lon positions
+    date: datetime object
+        Date of required plot
+    alt: float
+        Altitude in km
+        Default 0 (sea level) for coastlines
+    '''
+    [mlat, lon_mag, _] = \
+        aacgmv2.convert_latlon_arr(geom['lat'], geom['lon'], alt, date,
+                                   method_code='G2A')
+    # Clean Nans (effects plotting)
+    mlat = mlat[np.logical_not(np.isnan(mlat))]
+    lon_mag = lon_mag[np.logical_not(np.isnan(lon_mag))]
+    # Shift to MLT
+    shifted_mlts = lon_mag[0] - (aacgmv2.convert_mlt(lon_mag[0], date) * 15)
+    shifted_lons = lon_mag - shifted_mlts
+    mlon = np.radians(shifted_lons)
+    return [mlat, mlon]
+
+
 def convert_geo_coastline_to_mag(geom, date, alt: float = 0.0):
     '''
     Takes the geometry object of coastlines and converts
-    the coordinates into AACGM_MLT for convection maps only
+    the coordinates into AACGM_MLT
     Only required usage is for cartopys NaturalEarthFeature
     at 110m resolution only
     Parameters
@@ -135,29 +158,12 @@ def axis_polar(date, ax: object = None, lowlat: int = 30,
         ax.set_xticklabels(['00', '', '06', '', '12', '', '18', ''])
         ax.set_theta_zero_location("S")
 
-    if coastline is True:
-        #if cartopyInstalled is False:
-            #raise plot_exceptions.CartopyMissingError()
-        #if cartopyVersion is False:
-            #raise plot_exceptions.CartopyVersionError(cartopy.__version__)
-        if cartopyInstalled is False or cartopyVersion is False: 
-            # Path should the path where pydarn is installed
-            coastal_path = "{}/coastlines/"\
-                           .format(os.path.dirname(utils.__file__))
-            date_str = date.strftime('%Y%m')
-            with open(coastal_path + date_str + '.coastline') as f:
-                coast_json = json.load(f)
-            for poly in coast_json:
-                [mlat, lon_mag, _] = \
-                    aacgmv2.convert_latlon_arr(poly['lat'], poly['lon'], 0.0,
-                                               date, method_code='G2A')
-                # Shift to MLT
-                shifted_mlts = lon_mag[0] - \
-                    (aacgmv2.convert_mlt(lon_mag[0], date) * 15)
-                shifted_lons = lon_mag - shifted_mlts
-                mlon = np.radians(shifted_lons)
-                print(mlon, mlat)
-                plt.plot(mlon, mlat, color='k', linewidth=0.5, zorder=2.0)
+    if coastline:
+        if not cartopyInstalled or not cartopyVersion:
+            # Cartopy not installed, call on the set outlines
+            for g, geom in enumerate(coast_outline):
+                [mlat, mlon] = convert_coastline_list_to_mag(geom, date)
+                plt.plot(mlon, mlat, color='k', linewidth=0.5, zorder=2)
         else:
             # Read in the geometry object of the coastlines
             cc = cfeature.NaturalEarthFeature('physical', 'coastline', '110m',
@@ -184,7 +190,7 @@ def axis_geological(date, ax: object = None,
                     coastline: bool = False, nightshade: int = 0,
                     **kwargs):
     """
-    
+
     Sets up the cartopy orthographic plot axis object, for use in
     various other functions. Geographic projection.
 
@@ -222,11 +228,9 @@ def axis_geological(date, ax: object = None,
     if hemisphere == Hemisphere.North:
         pole_lat = 90
         noon = -deg_from_midnight
-        ylocations = -5
     else:
         pole_lat = -90
         noon = 360 - deg_from_midnight
-        ylocations = 5
         lowlat = -abs(lowlat)
     # handle none types or wrongly built axes
     proj = ccrs.Orthographic(noon, pole_lat)
@@ -239,9 +243,9 @@ def axis_geological(date, ax: object = None,
         extent = abs(proj.transform_point(noon, lowlat, ccrs.PlateCarree())[1])
         ax.set_extent(extents=(-extent, extent, -extent, extent), crs=proj)
 
-    if coastline is True:
+    if coastline:
         ax.coastlines()
-    
+
     if nightshade:
         refraction_value = -np.degrees(np.arccos(Re / (Re + nightshade)))
         ns = Nightshade(date, refraction=refraction_value, alpha=0.1)
