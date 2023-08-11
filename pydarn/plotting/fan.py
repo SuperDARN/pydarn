@@ -51,7 +51,7 @@ from pydarn import (PyDARNColormaps, build_scan, partial_record_warning,
                     Projs, Coords, Hemisphere)
 
 
-class Fan():
+class Fan:
     """
     'Fan', or 'Field-of-view' plots for SuperDARN FITACF data
     This class inherits from matplotlib to generate the figures
@@ -70,7 +70,7 @@ class Fan():
                 "   - plot_fov()\n"
 
     @classmethod
-    def plot_fan(cls, dmap_data: List[dict], ax=None, ranges: List = [],
+    def plot_fan(cls, dmap_data: List[dict], ax=None, ranges=None,
                  scan_index: Union[int, dt.datetime] = 1,
                  parameter: str = 'v', cmap: str = None,
                  groundscatter: bool = False, zmin: int = None,
@@ -87,11 +87,14 @@ class Fan():
         -----------
             dmap_data: List[dict]
                 Named list of dictionaries obtained from SDarn_read
-            ax: matplotlib.pyplot axis
+            ax: axes.Axes
                 Pre-defined axis object to pass in, must currently be
                 polar projection
                 Default: Generates a polar projection for the user
                 with MLT/latitude labels
+            ranges: List[int]
+                Range bounds to plot, as [lower_bound, upper_bound].
+                Default: Plots all ranges out to max given in hardware file.
             scan_index: int or datetime
                 Scan number starting from the first record in file with
                 associated channel number or datetime given first record
@@ -120,11 +123,6 @@ class Fan():
                 the label that appears next to the colour bar.
                 Requires colorbar to be true
                 Default: ''
-            fov_files: bool
-                boolean if the fov data should be read in by a file
-                pyDARN supplies. If false then it uses radar position
-                code.
-                default: False
             title: bool
                 if true then will create a title, else user
                 can define it with plt.title
@@ -167,6 +165,8 @@ class Fan():
             plot_fov
         """
         # Remove all data from dmap_data that is not in chosen channel
+        if ranges is None:
+            ranges = []
         if channel != 'all':
             # Get the first channel used in case of no data in given channel
             opt_channel = dmap_data[0]['channel']
@@ -376,7 +376,7 @@ class Fan():
     def plot_fov(cls, stid: int, date: dt.datetime,
                  ax=None, ccrs=None, ranges: List = None, boundary: bool = True,
                  rsep: int = 45, frang: int = 180,
-                 projs: object = Projs.POLAR,
+                 projs: Projs = Projs.POLAR,
                  coords: Coords = Coords.AACGM_MLT,
                  fov_color: str = None, alpha: int = 0.5,
                  radar_location: bool = True, radar_label: bool = False,
@@ -392,6 +392,7 @@ class Fan():
                 Radar station ID
             ax: matplotlib.axes.Axes
                 Pre-defined axis object to pass in.
+            ccrs:
             date: datetime object
                 Sets the datetime used to find the coordinates of the FOV
                 Default: Current time
@@ -399,12 +400,20 @@ class Fan():
                 Set to a two element list of the lower and upper ranges to plot
                 If None, the  max will be obtained by SuperDARNRadars
                 Default: None
-            projs: Pojs object
-                Sets the projection type for the plot
-                Default: Projs.POLAR
             boundary: bool
                 Set to false to not plot the outline of the FOV
                 Default: True
+            rsep: int
+                Separation between range gates, in kilometers.
+                Default: 45
+            frang: int
+                Kilometers to first range.
+                Default: 180
+            projs: Projs object
+                Sets the projection type for the plot
+                Default: Projs.POLAR
+            coords: Coords object
+
             grid: bool
                 Set to false to not plot the grid of gates in the FOV
                 Default: False
@@ -588,6 +597,9 @@ class Fan():
             date: datetime datetime object
                 sets the datetime used to find the coordinates of the
                 FOV
+            transform:
+            coords: Coords object
+            projs: Projs object
             line_color: str
                 color of the dot
                 default: black
@@ -630,12 +642,15 @@ class Fan():
                 Radar station ID
             ax: matplotlib.axes.Axes
                 Pre-defined axis object to plot on.
+            coords: Coords object
+            projs: Projs object
             date: datetime datetime object
                 sets the datetime used to find the coordinates of the
                 FOV
             line_color: str
                 color of the text
                 default: black
+            transform:
 
         Returns
         -------
