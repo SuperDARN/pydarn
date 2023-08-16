@@ -463,6 +463,13 @@ class Fan():
         if projs == Projs.POLAR:
             beam_corners_lons = np.radians(beam_corners_lons)
 
+        # This section corrects winding order for cartopy plots on a sphere
+        # so that the outline is always anti-clockwise and will fill inside
+        bmsep = SuperDARNRadars.radars[stid].hardware_info.beam_separation
+        if projs == Projs.GEO and bmsep < 0:
+            beam_corners_lons = beam_corners_lons[::-1]
+            beam_corners_lats = beam_corners_lats[::-1]
+
         # Setup plot
         # This may screw up references
         hemisphere = SuperDARNRadars.radars[stid].hemisphere
