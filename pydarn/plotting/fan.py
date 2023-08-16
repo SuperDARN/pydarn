@@ -259,11 +259,11 @@ class Fan:
         # Colour table and max value selection depending on parameter plotted
         # Load defaults if none given
         if cmap is None:
-            cmap = {'p_l': 'plasma', 'v': PyDARNColormaps.PYDARN_VELOCITY,
+            cmap = {'p_l': PyDARNColormaps.PYDARN_PLASMA,
+                    'v': PyDARNColormaps.PYDARN_VELOCITY,
                     'w_l': PyDARNColormaps.PYDARN_VIRIDIS,
-
-                    'elv': PyDARNColormaps.PYDARN}
-            cmap = plt.cm.get_cmap(cmap[parameter])
+                    'elv': PyDARNColormaps.PYDARN_INFERNO}
+            cmap = cmap[parameter]
 
         # Set background to transparent - avoids carry over
         # does not interfere with the fov color if chosen
@@ -656,31 +656,26 @@ class Fan:
         -------
             No variables returned
         """
+        if coords == Coords.AACGM_MLT or coords == Coords.AACGM:
+            lat, lon = SuperDARNRadars.radars[stid].mag_label
+        else:
+            lat, lon = SuperDARNRadars.radars[stid].geo_label
+        
         # Label text
         label_str = ' ' + SuperDARNRadars.radars[stid]\
                     .hardware_info.abbrev.upper()
-        # Get location of radar
-        lat = SuperDARNRadars.radars[stid].hardware_info.geographic.lat
-        lon = SuperDARNRadars.radars[stid].hardware_info.geographic.lon
 
         # Convert to geomag coords
-        if coords == Coords.AACGM_MLT or coords == Coords.AACGM:
-            geomag_radar = aacgmv2.get_aacgm_coord(lat, lon, 250, date)
-            lat = geomag_radar[0]
-            lon = geomag_radar[1]
-            if coords == Coords.AACGM_MLT:
-                mltshift = geomag_radar[1] -\
-                        (aacgmv2.convert_mlt(geomag_radar[1], date) * 15)
-                lon = geomag_radar[1] - mltshift
+        if coords == Coords.AACGM_MLT:
+            mltshift = lon -\
+                    (aacgmv2.convert_mlt(lon, date) * 15)
+            lon = lon - mltshift
         if projs == Projs.POLAR:
             lon = np.radians(lon)
 
         theta_text = lon
-        # Shift in latitude (dependent on hemisphere)
-        if SuperDARNRadars.radars[stid].hemisphere == Hemisphere.North:
-            r_text = lat - 5
-        else:
-            r_text = lat + 5
+        r_text = lat
+        
         ax.text(theta_text, r_text, label_str, ha='center',
                 transform=transform, c=line_color)
         return
