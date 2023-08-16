@@ -12,6 +12,7 @@
 #
 # Modifications:
 # 2022-03-10 MTS - removed radar_fov from the __init__ file
+# 2023-06-20 PXP - added TimeSeriesParams to the __init__ file
 """
 Init file to setup the logging configuration and linking pyDARN's
 module, classes, and functions.
@@ -46,6 +47,7 @@ from .utils.range_estimations import RangeEstimation
 from .utils.virtual_heights import VHModels
 from .utils.conversions import dmap2dict
 from .utils.plotting import MapParams
+from .utils.plotting import TimeSeriesParams
 from .utils.plotting import check_data_type
 from .utils.plotting import time2datetime
 from .utils.plotting import find_record
