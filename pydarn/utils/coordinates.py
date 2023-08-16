@@ -153,14 +153,16 @@ def gate2geographic_location(stid: int, beam: int, height: float = None,
     # too much converting back and forth.
     boresight = np.radians(SuperDARNRadars.
                            radars[stid].hardware_info.boresight.physical)
+    bmoff = np.radians(SuperDARNRadars.
+                       radars[stid].hardware_info.boresight.electronic)
     radar_lat = np.radians(SuperDARNRadars.
                            radars[stid].hardware_info.geographic.lat)
     radar_lon = np.radians(SuperDARNRadars.
                            radars[stid].hardware_info.geographic.lon)
     # Some beam seperations are negative which changes how the coordinates wrap
     # we absolute to make it easier of fov-color for cartopy plotting
-    beam_sep = np.radians(abs(SuperDARNRadars.
-                          radars[stid].hardware_info.beam_separation))
+    beam_sep = np.radians(SuperDARNRadars.
+                          radars[stid].hardware_info.beam_separation)
     rxrise = SuperDARNRadars.radars[stid].hardware_info.rx_rise_time
 
     # TODO: fix after slant range change
@@ -172,7 +174,7 @@ def gate2geographic_location(stid: int, beam: int, height: float = None,
         beam_edge = 0
 
     # psi [rad] in the angle from the boresight
-    psi = beam_sep * (beam - offset) + beam_edge
+    psi = beam_sep * (beam - offset) - beam_edge + bmoff
     # Calculate the slant range [km]
     if range_estimation != RangeEstimation.RANGE_GATE:
         target_range = range_estimation(rxrise=rxrise, **kwargs)
