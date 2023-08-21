@@ -342,7 +342,7 @@ class Fan:
             azm = np.linspace(0, 2 * np.pi, 100)
             r, th = np.meshgrid(rs, azm)
             ax.plot(azm, r, color='k', ls='none')
-            ax.grid()
+            ax.grid(True)
 
         if boundary:
             cls.plot_fov(stid=dmap_data[0]['stid'], date=date, ax=ax,
