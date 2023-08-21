@@ -57,7 +57,7 @@ from .utils.superdarn_radars import Hemisphere
 from .utils.superdarn_radars import read_hdw_file
 from .utils.superdarn_radars import get_hdw_files
 from .utils.scan import build_scan
-from .utils.geo import geocentric_coordinates
+from .utils.geo import geocentric_coordinates, calculate_azimuth
 from .utils.coordinates import Coords
 from .utils.terminator import terminator, new_coordinate
 from .utils.recalculate_elevation import recalculate_elevation
