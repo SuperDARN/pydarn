@@ -63,7 +63,7 @@ def gate2groundscatter(reflection_height: float = 250, **kwargs):
 
 
 def gate2slant(rxrise: int = 0, range_gate: int = 0, frang: int = 180,
-               rsep: int = 45, nrang: int = None, center: bool = True,
+               rsep: int = 45, nrang: int = None, center: bool = False,
                **kwargs):
     """
     Calculate the slant range (km) for each range gate for SuperDARN data
@@ -87,7 +87,9 @@ def gate2slant(rxrise: int = 0, range_gate: int = 0, frang: int = 180,
             default: None
         center: boolean
             Calculate the slant range in the center of range gate
-            or edge
+            or near-left corner see also: gate2geographic_location in
+            coordinates module
+            default: False (return corner values)
 
     Returns
     -------
@@ -103,13 +105,15 @@ def gate2slant(rxrise: int = 0, range_gate: int = 0, frang: int = 180,
     lag_first = frang * distance_factor / speed_of_light
     # sample separation in microseconds
     sample_sep = rsep * distance_factor / speed_of_light
-    # Range offset
-    # If center is true, calculate at the center
+
+    # Across fov direction is corrected in coordinates module already
+    # 0.5 off set to the centre of the range gate instead of edge
+    # This assumes that frang is to the center of the range gate
     if center:
-        # 0.5 off set to the centre of the range gate instead of edge
-        range_offset = -0.5 * rsep
-    else:
         range_offset = 0.0
+    else:
+        range_offset = -0.5 * rsep
+
     # Now calculate slant range in km
     if nrang is None:
         slant_ranges = (lag_first - rxrise +
