@@ -61,7 +61,9 @@ plt.show()
 
 [summary plot](docs/imgs/summary_clyb2.png)
 
-For more information and tutorials on pyDARN please see the [tutorial section](https://pydarn.readthedocs.io/en/latest/index.html)
+For more information and tutorials on pyDARN please see the [tutorial section](https://pydarn.readthedocs.io/en/latest/index.html).
+
+We also have a [Jupyter notebook](https://zenodo.org/record/7005203) with many examples to support our recent [publication](https://doi.org/10.3389/fspas.2022.1022690).
 
 ## Getting involved
 

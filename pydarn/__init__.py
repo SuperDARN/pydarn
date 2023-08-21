@@ -12,6 +12,7 @@
 #
 # Modifications:
 # 2022-03-10 MTS - removed radar_fov from the __init__ file
+# 2023-06-20 PXP - added TimeSeriesParams to the __init__ file
 """
 Init file to setup the logging configuration and linking pyDARN's
 module, classes, and functions.
@@ -32,19 +33,21 @@ from .exceptions import plot_exceptions
 from .exceptions import radar_exceptions
 from .exceptions.warning_formatting import standard_warning_format
 from .exceptions.warning_formatting import only_message_warning_format
-from .exceptions.warning_formatting import citing_warning
 from .exceptions.warning_formatting import partial_record_warning
 from .exceptions.warning_formatting import cartopy_warning
 from .exceptions.warning_formatting import cartopy_print_warning
+from .exceptions.warning_formatting import nightshade_warning
 
 # importing utils
 from .utils.constants import Re
 from .utils.constants import EARTH_EQUATORIAL_RADIUS
 from .utils.constants import C
+from .utils.citations import Citations
 from .utils.range_estimations import RangeEstimation
 from .utils.virtual_heights import VHModels
 from .utils.conversions import dmap2dict
 from .utils.plotting import MapParams
+from .utils.plotting import TimeSeriesParams
 from .utils.plotting import check_data_type
 from .utils.plotting import time2datetime
 from .utils.plotting import find_record
@@ -56,6 +59,7 @@ from .utils.superdarn_radars import get_hdw_files
 from .utils.scan import build_scan
 from .utils.geo import geocentric_coordinates, calculate_azimuth
 from .utils.coordinates import Coords
+from .utils.terminator import terminator, new_coordinate
 from .utils.recalculate_elevation import recalculate_elevation
 from .utils.filters import Boxcar
 
@@ -68,5 +72,3 @@ from .plotting.grid import Grid
 from .plotting.acf import ACF
 from .plotting.power import Power
 from .plotting.maps import Maps
-
-citing_warning()

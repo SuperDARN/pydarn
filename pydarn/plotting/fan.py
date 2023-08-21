@@ -41,7 +41,7 @@ import datetime as dt
 import matplotlib.pyplot as plt
 import numpy as np
 
-from matplotlib import ticker, cm, colors
+from matplotlib import ticker, cm, colors, axes
 from typing import List, Union
 
 # Third party libraries
@@ -52,7 +52,7 @@ from pydarn import (PyDARNColormaps, build_scan, partial_record_warning,
                     calculate_azimuth, Projs, Coords, Hemisphere)
 
 
-class Fan():
+class Fan:
     """
     'Fan', or 'Field-of-view' plots for SuperDARN FITACF data
     This class inherits from matplotlib to generate the figures
@@ -71,7 +71,7 @@ class Fan():
                 "   - plot_fov()\n"
 
     @classmethod
-    def plot_fan(cls, dmap_data: List[dict], ax=None, ranges: List = [],
+    def plot_fan(cls, dmap_data: List[dict], ax=None, ranges=None,
                  scan_index: Union[int, dt.datetime] = 1,
                  parameter: str = 'v', cmap: str = None,
                  groundscatter: bool = False, zmin: int = None,
@@ -89,11 +89,14 @@ class Fan():
         -----------
             dmap_data: List[dict]
                 Named list of dictionaries obtained from SDarn_read
-            ax: matplotlib.pyplot axis
+            ax: axes.Axes
                 Pre-defined axis object to pass in, must currently be
                 polar projection
                 Default: Generates a polar projection for the user
                 with MLT/latitude labels
+            ranges: List[int]
+                Range bounds to plot, as [lower_bound, upper_bound].
+                Default: Plots all ranges out to max given in hardware file.
             scan_index: int or datetime
                 Scan number starting from the first record in file with
                 associated channel number or datetime given first record
@@ -122,11 +125,6 @@ class Fan():
                 the label that appears next to the colour bar.
                 Requires colorbar to be true
                 Default: ''
-            fov_files: bool
-                boolean if the fov data should be read in by a file
-                pyDARN supplies. If false then it uses radar position
-                code.
-                default: False
             title: bool
                 if true then will create a title, else user
                 can define it with plt.title
@@ -175,6 +173,8 @@ class Fan():
             plot_fov
         """
         # Remove all data from dmap_data that is not in chosen channel
+        if ranges is None:
+            ranges = []
         if channel != 'all':
             # Get the first channel used in case of no data in given channel
             opt_channel = dmap_data[0]['channel']
@@ -267,11 +267,11 @@ class Fan():
         # Colour table and max value selection depending on parameter plotted
         # Load defaults if none given
         if cmap is None:
-            cmap = {'p_l': 'plasma', 'v': PyDARNColormaps.PYDARN_VELOCITY,
+            cmap = {'p_l': PyDARNColormaps.PYDARN_PLASMA,
+                    'v': PyDARNColormaps.PYDARN_VELOCITY,
                     'w_l': PyDARNColormaps.PYDARN_VIRIDIS,
-
-                    'elv': PyDARNColormaps.PYDARN}
-            cmap = plt.cm.get_cmap(cmap[parameter])
+                    'elv': PyDARNColormaps.PYDARN_INFERNO}
+            cmap = cmap[parameter]
 
         # Set background to transparent - avoids carry over
         # does not interfere with the fov color if chosen
@@ -437,8 +437,8 @@ class Fan():
         if ccrs is None:
             azm = np.linspace(0, 2 * np.pi, 100)
             r, th = np.meshgrid(rs, azm)
-            plt.plot(azm, r, color='k', ls='none')
-            plt.grid(visible=True)
+            ax.plot(azm, r, color='k', ls='none')
+            ax.grid(True)
 
         if boundary:
             cls.plot_fov(stid=dmap_data[0]['stid'], date=date, ax=ax,
@@ -465,14 +465,14 @@ class Fan():
             start_time = time2datetime(dmap_data[plot_beams[0][0]])
             end_time = time2datetime(dmap_data[plot_beams[-1][-1]])
             title = cls.__add_title__(start_time, end_time)
-            plt.title(title)
+            ax.set_title(title)
         return ax, beam_corners_lats, beam_corners_lons, scan, grndsct
 
     @classmethod
-    def plot_fov(cls, stid: str, date: dt.datetime,
-                 ax=None, ccrs=None, ranges: List = [], boundary: bool = True,
+    def plot_fov(cls, stid: int, date: dt.datetime,
+                 ax=None, ccrs=None, ranges: List = None, boundary: bool = True,
                  rsep: int = 45, frang: int = 180,
-                 projs: object = Projs.POLAR,
+                 projs: Projs = Projs.POLAR,
                  coords: Coords = Coords.AACGM_MLT,
                  fov_color: str = None, alpha: int = 0.5,
                  radar_location: bool = True, radar_label: bool = False,
@@ -486,11 +486,9 @@ class Fan():
         -----------
             stid: int
                 Radar station ID
-            ax: matplotlib.pyplot axis
-                Pre-defined axis object to pass in, must currently be
-                polar projection
-                Default: Generates a polar projection for the user
-                with MLT/latitude labels
+            ax: matplotlib.axes.Axes
+                Pre-defined axis object to pass in.
+            ccrs:
             date: datetime object
                 Sets the datetime used to find the coordinates of the FOV
                 Default: Current time
@@ -498,12 +496,20 @@ class Fan():
                 Set to a two element list of the lower and upper ranges to plot
                 If None, the  max will be obtained by SuperDARNRadars
                 Default: None
-            projs: Pojs object
-                Sets the projection type for the plot
-                Default: Projs.POLAR
             boundary: bool
                 Set to false to not plot the outline of the FOV
                 Default: True
+            rsep: int
+                Separation between range gates, in kilometers.
+                Default: 45
+            frang: int
+                Kilometers to first range.
+                Default: 180
+            projs: Projs object
+                Sets the projection type for the plot
+                Default: Projs.POLAR
+            coords: Coords object
+
             grid: bool
                 Set to false to not plot the grid of gates in the FOV
                 Default: False
@@ -573,56 +579,56 @@ class Fan():
 
         if boundary:
             # left boundary line
-            plt.plot(beam_corners_lons[0:ranges[1]-ranges[0]+1, 0],
-                     beam_corners_lats[0:ranges[1]-ranges[0]+1, 0],
-                     color=line_color, linewidth=0.5,
-                     alpha=line_alpha, transform=transform, zorder=3)
+            ax.plot(beam_corners_lons[0:ranges[1]-ranges[0]+1, 0],
+                    beam_corners_lats[0:ranges[1]-ranges[0]+1, 0],
+                    color=line_color, linewidth=0.5,
+                    alpha=line_alpha, transform=transform, zorder=3)
             # top radar arc
-            plt.plot(beam_corners_lons[ranges[1]-ranges[0],
-                                       0:beam_corners_lons.shape[1]],
-                     beam_corners_lats[ranges[1]-ranges[0],
-                                       0:beam_corners_lons.shape[1]],
-                     color=line_color, linewidth=0.5,
-                     alpha=line_alpha, transform=transform, zorder=3)
+            ax.plot(beam_corners_lons[ranges[1]-ranges[0],
+                                      0:beam_corners_lons.shape[1]],
+                    beam_corners_lats[ranges[1]-ranges[0],
+                                      0:beam_corners_lons.shape[1]],
+                    color=line_color, linewidth=0.5,
+                    alpha=line_alpha, transform=transform, zorder=3)
             # right boundary line
-            plt.plot(beam_corners_lons[0:ranges[1]-ranges[0]+1,
-                                       beam_corners_lons.shape[1] - 1],
-                     beam_corners_lats[0:ranges[1]-ranges[0]+1,
-                                       beam_corners_lons.shape[1] - 1],
-                     color=line_color, linewidth=0.5,
-                     alpha=line_alpha, transform=transform, zorder=3)
+            ax.plot(beam_corners_lons[0:ranges[1]-ranges[0]+1,
+                                      beam_corners_lons.shape[1] - 1],
+                    beam_corners_lats[0:ranges[1]-ranges[0]+1,
+                                      beam_corners_lons.shape[1] - 1],
+                    color=line_color, linewidth=0.5,
+                    alpha=line_alpha, transform=transform, zorder=3)
             # bottom arc
-            plt.plot(beam_corners_lons[0, 0:beam_corners_lons.shape[1]],
-                     beam_corners_lats[0, 0:beam_corners_lons.shape[1]],
-                     color=line_color, linewidth=0.5, alpha=line_alpha,
-                     transform=transform, zorder=3)
+            ax.plot(beam_corners_lons[0, 0:beam_corners_lons.shape[1]],
+                    beam_corners_lats[0, 0:beam_corners_lons.shape[1]],
+                    color=line_color, linewidth=0.5, alpha=line_alpha,
+                    transform=transform, zorder=3)
 
         fan_shape = beam_corners_lons.shape
 
         if grid:
             # This plots lines along the beams
             for bm in range(fan_shape[1]):
-                plt.plot(beam_corners_lons[0:ranges[1] + 1, bm - 1],
-                         beam_corners_lats[0:ranges[1] + 1, bm - 1],
-                         color=line_color, linewidth=0.2,
-                         alpha=line_alpha, transform=transform,
-                         zorder=3)
+                ax.plot(beam_corners_lons[0:ranges[1] + 1, bm - 1],
+                        beam_corners_lats[0:ranges[1] + 1, bm - 1],
+                        color=line_color, linewidth=0.2,
+                        alpha=line_alpha, transform=transform,
+                        zorder=3)
             # This plots arcs along the gates
             for g in range(ranges[1] - ranges[0] + 1):
-                plt.plot(beam_corners_lons[g - 1,
-                                           0:beam_corners_lons.shape[1]],
-                         beam_corners_lats[g - 1,
-                                           0:beam_corners_lons.shape[1]],
-                         color=line_color, linewidth=0.2,
-                         alpha=line_alpha, transform=transform,
-                         zorder=3)
+                ax.plot(beam_corners_lons[g - 1,
+                                          0:beam_corners_lons.shape[1]],
+                        beam_corners_lats[g - 1,
+                                          0:beam_corners_lons.shape[1]],
+                        color=line_color, linewidth=0.2,
+                        alpha=line_alpha, transform=transform,
+                        zorder=3)
 
         if radar_location:
-            cls.plot_radar_position(stid, date=date, line_color=line_color,
+            cls.plot_radar_position(stid, ax, date=date, line_color=line_color,
                                     transform=transform, projs=projs,
                                     coords=coords, ccrs=ccrs, **kwargs)
         if radar_label:
-            cls.plot_radar_label(stid, date=date, line_color=line_color,
+            cls.plot_radar_label(stid, ax, date=date, line_color=line_color,
                                  transform=transform, projs=projs,
                                  coords=coords, ccrs=ccrs, **kwargs)
 
@@ -710,7 +716,9 @@ class Fan():
         return azm
 
     @classmethod
-    def plot_radar_position(cls, stid: int, date: dt.datetime,
+    def plot_radar_position(cls, stid: int, ax: axes.Axes,
+                            date: dt.datetime,
+
                             transform: object = None,
                             coords: Coords = Coords.AACGM_MLT,
                             projs: Projs = Projs.POLAR,
@@ -722,9 +730,14 @@ class Fan():
         -----------
             stid: int
                 Radar station ID
+            ax: matplotlib.axes.Axes
+                Pre-defined axis object to plot on.
             date: datetime datetime object
                 sets the datetime used to find the coordinates of the
                 FOV
+            transform:
+            coords: Coords object
+            projs: Projs object
             line_color: str
                 color of the dot
                 default: black
@@ -748,11 +761,12 @@ class Fan():
         if projs == Projs.POLAR:
             lon = np.radians(lon)
         # Plot a dot at the radar site
-        plt.scatter(lon, lat, c=line_color, s=5, transform=transform)
+        ax.scatter(lon, lat, c=line_color, s=5, transform=transform)
         return
 
     @classmethod
-    def plot_radar_label(cls, stid: int, date: dt.datetime,
+    def plot_radar_label(cls, stid: int, ax: axes.Axes,
+                         date: dt.datetime,
                          coords: Coords = Coords.AACGM_MLT,
                          projs: Projs = Projs.POLAR,
                          line_color: str = 'black', transform: object = None,
@@ -764,44 +778,44 @@ class Fan():
         -----------
             stid: int
                 Radar station ID
+            ax: matplotlib.axes.Axes
+                Pre-defined axis object to plot on.
+            coords: Coords object
+            projs: Projs object
             date: datetime datetime object
                 sets the datetime used to find the coordinates of the
                 FOV
             line_color: str
                 color of the text
                 default: black
+            transform:
 
         Returns
         -------
             No variables returned
         """
+        if coords == Coords.AACGM_MLT or coords == Coords.AACGM:
+            lat, lon = SuperDARNRadars.radars[stid].mag_label
+        else:
+            lat, lon = SuperDARNRadars.radars[stid].geo_label
+        
         # Label text
         label_str = ' ' + SuperDARNRadars.radars[stid]\
                     .hardware_info.abbrev.upper()
-        # Get location of radar
-        lat = SuperDARNRadars.radars[stid].hardware_info.geographic.lat
-        lon = SuperDARNRadars.radars[stid].hardware_info.geographic.lon
 
         # Convert to geomag coords
-        if coords == Coords.AACGM_MLT or coords == Coords.AACGM:
-            geomag_radar = aacgmv2.get_aacgm_coord(lat, lon, 250, date)
-            lat = geomag_radar[0]
-            lon = geomag_radar[1]
-            if coords == Coords.AACGM_MLT:
-                mltshift = geomag_radar[1] -\
-                        (aacgmv2.convert_mlt(geomag_radar[1], date) * 15)
-                lon = geomag_radar[1] - mltshift
+        if coords == Coords.AACGM_MLT:
+            mltshift = lon -\
+                    (aacgmv2.convert_mlt(lon, date) * 15)
+            lon = lon - mltshift
         if projs == Projs.POLAR:
             lon = np.radians(lon)
 
         theta_text = lon
-        # Shift in latitude (dependent on hemisphere)
-        if SuperDARNRadars.radars[stid].hemisphere == Hemisphere.North:
-            r_text = lat - 5
-        else:
-            r_text = lat + 5
-        plt.text(theta_text, r_text, label_str, ha='center',
-                 transform=transform, c=line_color)
+        r_text = lat
+        
+        ax.text(theta_text, r_text, label_str, ha='center',
+                transform=transform, c=line_color)
         return
 
     @classmethod

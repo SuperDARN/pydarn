@@ -72,3 +72,55 @@ Spatial plots have two options for projections.
     For example, you cannot plot a fan plot using range gates, spatial plots require a value in kilometers. 
     At the moment, AACGM Coordinates do not plot on Geographic projections as it has not been developed yet. 
     Convection maps only support polar projections due to lack of interest in requiring geographic projections.
+
+# Including a Terminator
+
+Spatial plots have the option to include a terminator called `nightshade` at a given height in the ionosphere. This functions uses the *Cartopy* `nightshade` function.
+Nightshade is only available using the geographic projection and can be implemented by adding `nightshade=250` to the spacial plot call where 250 is the desired height in the
+ionosphere to be in the Earth's shadow. If you would like to plot your own terminator on any plot, the `terminator` function will return the anti-sub-solar position and the 
+great circle distance to the terminator in geographic coordinates:
+```python
+antisolarpsn, arc_length, angle_of_terminator = terminator(date, nightshade)
+```
+The `antisolarpsn` is given in degrees lon, lat. The `arc_length` is in kilometers and the `angle_of_terminator` is the angle from the subsolar point to the terminator (i.e. is 90 degrees at ground level).
+The terminator position can be calculated using `(lat, lon) = new_coordinate(lat, lon, arc_length, bearing, R=Re)` for any bearing from the antisolar position. This can be converted to magnetic coordinates using the
+AACGMv2 library. Unfortunately, matplotlib is unable to plot the terminator using `fill` consistently, hence we leave this option up to the user.
+An example of this is shown below:
+```python
+import pydarn
+import aacgmv2
+import datetime as dt
+import matplotlib.pyplot as plt
+import numpy as np
+
+# North Winter
+_,_,ax1,ccrs1=pydarn.Fan.plot_fov(66, dt.datetime(2023, 12, 21, 0, 0),
+    lowlat= 5, boundary=True, line_color='red', coastline=True, nightshade=250)
+
+# Test to plot terminator if ever required - plot line not fill!
+# Get antisolar point in geographic coords and radius of terminator
+# at given height
+date = dt.datetime(2023, 12, 21, 0, 0)
+antisolarpsn, arc, ang = pydarn.terminator(date, 250)
+# Convert position to magnetic coordinates
+mlat, lon_mag, _ =  aacgmv2.convert_latlon(antisolarpsn[1],
+                                           antisolarpsn[0],
+                                           250, date, method_code='G2A')
+# Shift to MLT
+shifted_mlts = lon_mag - (aacgmv2.convert_mlt(lon_mag, date) * 15)
+shifted_lons = lon_mag - shifted_mlts
+mlon = np.radians(shifted_lons)
+# Get positions at a distance from new position to plot terminator
+lats = []
+lons = []
+for b in range(-180,180,1):
+    (lat, lon) = pydarn.new_coordinate(mlat, shifted_lons, arc, b, R=pydarn.Re)
+    nlon =np.radians(lon)
+    lats.append(lat)
+    lons.append(nlon)
+lats2 = np.zeros(len(lats))
+plt.plot(np.squeeze(lons), np.squeeze(lats), color='b', zorder=2.0,
+         linewidth=3.0, linestyle='dashed')
+
+plt.show()
+```

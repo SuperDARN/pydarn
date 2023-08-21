@@ -13,11 +13,46 @@ and conditions of version 3 of the GNU General Public License, supplemented by
 the additional permissions listed below.
 -->
 
-If pyDARN contributes to a project that leads to a scientific publication, please acknowledge this fact by citing the software and SuperDARN.  
+# Publications used within pyDARN
 
-# How to cite SuperDARN
+If pyDARN contributes to a project that leads to a scientific publication, please acknowledge this fact by acknowledging the software and citing relevant publications used within the software. 
+You can print the citations in command line by using the Citations class. 
 
-Super Dual Auroral Radar Network (SuperDARN) is a made up of 35+ radars and 20 institutions, to generally cite SuperDARN you can use: 
+```python
+import pydarn
+
+pydarn.Citations.print_citations()
+
+```
+
+```
+If using pyDARN produced plots in publications please be aware of the following citations that may have been used to produce your plot:
+
+ Ground Scatter Mapped Range:  Bristow, W. A. et al, 1994, 10.1029/93JA01470 
+ AACGMv2 Wrapper:              Burrell, A. G. et al, 2023, 10.5281/zenodo.7621545 
+ Chisham Virtual Height Model: Chisham, G. 2008, 10.5194/angeo-26-823-2008 
+ pyDARN Software:              DVWG, 2023, 10.5281/zenodo.3727269 
+ pyDARNio Software:            DVWG, 2023, 10.5281/zenodo.4009470 
+ Cartopy:                      Met Office, 2010-2015, scitools.org.uk/cartopy 
+ AACGMv2 article:              Shepherd, S. G., 2014, 10.1002/2014JA020264 
+ Elevation Angle Calculations: Shepherd, S. G., 2017, 10.1002/2017RS006348 
+ Ground Scatter Mapped Range:  Thomas, E. G. et al, 2022, 10.1029/2022RS007429
+
+```
+
+These citations refer to methods or codebases previously published that are used in the pyDARN software.
+A list of the journal article citations is below, formatted to each journals specification:
+
+- Bristow, W. A., Greenwald, R. A., and Samson, J. C. (1994), Identification of high-latitude acoustic gravity wave sources using the Goose Bay HF Radar, J. Geophys. Res., 99( A1), 319– 331, doi:10.1029/93JA01470.
+- Chisham, G., Yeoman, T. K., and Sofko, G. J.: Mapping ionospheric backscatter measured by the SuperDARN HF radars – Part 1: A new empirical virtual height model, Ann. Geophys., 26, 823–841, https://doi.org/10.5194/angeo-26-823-2008, 2008.
+- Shepherd, S. G. (2014), Altitude-adjusted corrected geomagnetic coordinates: Definition and functional approximations, J. Geophys. Res. Space Physics, 119, 7501– 7521, doi:10.1002/2014JA020264.
+- Shepherd, S. G. (2017), Elevation angle determination for SuperDARN HF radar layouts, Radio Sci., 52, 938– 950, doi:10.1002/2017RS006348.
+- Thomas, E. G., & Shepherd, S. G. (2022). Virtual height characteristics of ionospheric and ground scatter observed by mid-latitude SuperDARN HF radars. Radio Science, 57, e2022RS007429. https://doi.org/10.1029/2022RS007429
+
+# How to cite the SuperDARN Community
+
+Super Dual Auroral Radar Network (SuperDARN) is a made up of 35+ radars and 20 institutions. 
+To generally cite SuperDARN you can use: 
 
 - Greenwald, R.A., Baker, K.B., Dudeney, J.R. et al. Space Sci Rev (1995) 71: 761. [doi:10.1007/BF00751350](https://doi.org/10.1007/BF00751350)
 
@@ -29,15 +64,35 @@ For the general achievements of the SuperDARN Network, you can read these papers
 During your study, if using data from individual radars only, please contact the Principal Investigator (PI) of that radar about potential co-authorship. 
 A list of radars, institutions, and their PI's information can be found [here](http://vt.superdarn.org/tiki-index.php?page=Radar+Overview).  
 
-## DOI
+## Acknowledgements
 
-Currently SuperDARN in the process of placing DOI's on their data set. In the meantime, please use any local available services to DOI your data set. 
-Possible services:
+All publications that use SuperDARN Data must contain the following acknowledgement:
 
-  - [FRDR](https://www.frdr.ca/repo/): Canadian resource 
-  - [zenodo](https://help.zenodo.org/features/) 
+*The authors acknowledge the use of SuperDARN data. SuperDARN is a collection of radars funded by national scientific funding agencies of Australia, Canada, China, France, Italy, Japan, Norway, South Africa, United Kingdom and the United States of America.* 
+
+This phrase can be accessed using the Citations class as shown below:
+
+
+```python
+import pydarn
+
+pydarn.Citations.print_acknowledgements()
+
+```
+
+```
+Acknowledgement required for SuperDARN data use:
+
+The authors acknowledge the use of SuperDARN data. SuperDARN is a collection of radars funded by national scientific funding agencies of Australia, Canada, China, France, Italy, Japan, Norway, South Africa, United Kingdom and the United States of America. 
+
+During your study, if using data from individual radars only, please contact the Principal Investigator (PI) of that radar about potential co-authorship or appropriate acknowledgments.
+
+```
 
 # Citing pyDARN
+
+If pyDARN is used in a publication, we would like to be able to easily track this to show how widely used pyDARN is. 
+Please either cite using the version DOI's below or acknowledge the use of the software in your acknowledgements section, giving the version or DOI of the software for reproducibility. 
 
 ## DOI's 
 
@@ -52,11 +107,7 @@ Possible services:
 - Release 3.1 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7468856.svg)](https://doi.org/10.5281/zenodo.7468856)
 - Release 3.1.1 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7767590.svg)](https://doi.org/10.5281/zenodo.7767590)
 
-## Acknowledgements
-
-pyDARN uses other python libraries and the SuperDARN community's help. 
-
-### Python Library References 
+## Python Library References 
 
 #### Matplotlib
 John D. Hunter. Matplotlib: A 2D Graphics Environment, Computing in Science & Engineering, 9, 90-95 (2007), [DOI:10.5281/zenodo.3264781](https://zenodo.org/record/3264781)
