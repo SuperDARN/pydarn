@@ -40,6 +40,7 @@ Fan plots, mapped to AACGM coordinates in a polar format
 import datetime as dt
 import matplotlib.pyplot as plt
 import numpy as np
+import warnings
 
 from matplotlib import ticker, cm, colors, axes
 from typing import List, Union
@@ -182,7 +183,7 @@ class Fan:
             # If no records exist, advise user that the channel is not used
             if not dmap_data:
                 raise plot_exceptions.NoChannelError(channel, opt_channel)
-
+        cls.dmap_data = dmap_data
         # Get scan numbers for each record
         beam_scan = build_scan(dmap_data)
         scan_time = None
@@ -461,11 +462,15 @@ class Fan:
 
             if colorbar_label != '':
                 cb.set_label(colorbar_label)
+
         if title:
             start_time = time2datetime(dmap_data[plot_beams[0][0]])
             end_time = time2datetime(dmap_data[plot_beams[-1][-1]])
             title = cls.__add_title__(start_time, end_time)
             ax.set_title(title)
+
+        # Determine embargo status
+        cls.__determine_embargo(time2datetime(dmap_data[plot_beams[-1][-1]]))
         return ax, beam_corners_lats, beam_corners_lons, scan, grndsct
 
     @classmethod
@@ -835,3 +840,29 @@ class Fan:
                           zfill(2),
                           end_second=str(end_timestamp.second).zfill(2))
         return title
+
+    @classmethod
+    def __determine_embargo(cls, end_time: dt.datetime):
+        """
+        Determines if the data is under the embargo period and
+        has negative CPID
+
+        Parameter
+        ---------
+        end_time: datetime
+        """
+        year_ago = dt.datetime.now() - dt.timedelta(days=365)
+        if end_time > year_ago and cls.dmap_data[-1]['cp'] < 0:
+            fig = plt.gcf()
+            vals = []
+            for t in range(0, len(fig.texts)):
+                vals.append(fig.texts[t].get_text())
+            if not any(item == 'EMBARGOED' for item in vals):
+                fig.text(0.5, 0.5, "EMBARGOED", fontsize=70,
+                         color='grey', ha='center', va='center',
+                         rotation=-20, alpha=0.3)
+                warnings.warn('The data you are using is under embargo. '
+                              'Please contact the principal investigator '
+                              'of the {} radar for authorization to use the '
+                              'data'.format(SuperDARNRadars.radars[
+                                cls.dmap_data[0]['stid']].name))
