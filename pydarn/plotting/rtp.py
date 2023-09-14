@@ -9,6 +9,7 @@
 # 2021-07-06 Carley Martin added keyword to aid in rounding start times
 # 2022-03-04 Marina Schmidt added RangeEstimations in
 # 2022-08-04 Carley Martin added elifs for HALF_SLANT options
+# 2023-10-14 Carley Martin added embargoed data method
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
@@ -24,7 +25,6 @@
 """
 Range-Time Parameter (aka Intensity) plots
 """
-import copy
 import matplotlib.pyplot as plt
 import numpy as np
 import warnings
@@ -305,7 +305,6 @@ class RTP():
                           " data may not be correct, you can solve"
                           " this by sorting the data stream by date"
                           " before plotting.".format(rec_time))
-
 
             # separation roughly 2 minutes
             if diff_time > 2.0:
@@ -1139,7 +1138,7 @@ class RTP():
             # plot range-time
             else:
                 # Current standard is to only have groundscatter
-                # on the velocity plot. 
+                # on the velocity plot.
                 if groundscatter and axes_parameters[i] == 'v':
                     grndflg = True
                 else:
@@ -1344,8 +1343,8 @@ class RTP():
                 vals.append(fig.texts[t].get_text())
             if not any(item == 'EMBARGOED' for item in vals):
                 fig.text(0.5, 0.5, "EMBARGOED", fontsize=70,
-                         color='grey', ha='center', va='center',
-                         rotation=-20, alpha=0.3)
+                         color='k', ha='center', va='center',
+                         rotation=-20, alpha=0.5)
                 warnings.warn('The data you are using is under embargo. '
                               'Please contact the principal investigator '
                               'of the {} radar for authorization to use '

@@ -22,6 +22,7 @@
 #                   as this has yet to be figured out
 # 2023-02-06: CJM - Added option to plot single beams in a scan or FOV diagram
 # 2023-03-01: CJM - Added ball and stick plotting options
+# 2023-10-14: CJM - Add embargoed data method
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
@@ -50,7 +51,7 @@ import aacgmv2
 
 from pydarn import (PyDARNColormaps, build_scan, partial_record_warning,
                     time2datetime, plot_exceptions, SuperDARNRadars,
-                    calculate_azimuth, Projs, Coords, Hemisphere)
+                    calculate_azimuth, Projs, Coords)
 
 
 class Fan:
@@ -475,7 +476,8 @@ class Fan:
 
     @classmethod
     def plot_fov(cls, stid: int, date: dt.datetime,
-                 ax=None, ccrs=None, ranges: List = None, boundary: bool = True,
+                 ax=None, ccrs=None, ranges: List = None,
+                 boundary: bool = True,
                  rsep: int = 45, frang: int = 180,
                  projs: Projs = Projs.POLAR,
                  coords: Coords = Coords.AACGM_MLT,
@@ -803,7 +805,7 @@ class Fan:
             lat, lon = SuperDARNRadars.radars[stid].mag_label
         else:
             lat, lon = SuperDARNRadars.radars[stid].geo_label
-        
+
         # Label text
         label_str = ' ' + SuperDARNRadars.radars[stid]\
                     .hardware_info.abbrev.upper()
@@ -818,7 +820,7 @@ class Fan:
 
         theta_text = lon
         r_text = lat
-        
+
         ax.text(theta_text, r_text, label_str, ha='center',
                 transform=transform, c=line_color)
         return
