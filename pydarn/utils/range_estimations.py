@@ -12,7 +12,7 @@
 #
 # Modifications:
 # 2022-08-04 CJM added HALF_SLANT option and gate2halfslant method
-#
+# 2023-09-14 CJM moved GSMR to GSMR_BRISTOW and used new GSMR alg
 
 import enum
 import numpy as np
