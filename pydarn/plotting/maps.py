@@ -38,13 +38,14 @@ from mpl_toolkits.axes_grid1.inset_locator import InsetPosition
 from scipy import special
 from typing import List
 
+
 # Third party libraries
 import aacgmv2
 
 from pydarn import (PyDARNColormaps, plot_exceptions,
                     standard_warning_format, Re, Hemisphere,
-                    time2datetime, find_record, Fan, Projs, MapParams)
-
+                    time2datetime, find_record, Fan, Projs, 
+                    MapParams, TimeSeriesParams)
 warnings.formatwarning = standard_warning_format
 
 
@@ -910,13 +911,17 @@ class Maps():
                                 lon_shift: int = 0, fit_order: int = 6,
                                 hemisphere: Enum = Hemisphere.North,
                                 contour_levels: list = [],
+                                contour_spacing: int = None,
                                 contour_color: str = 'dimgrey',
                                 contour_linewidths: float = 0.8,
                                 contour_fill: bool = False,
                                 contour_colorbar: bool = True,
                                 contour_fill_cmap: str = 'RdBu',
                                 contour_colorbar_label: str = 'Potential (kV)',
-                                pot_minmax_color: str = 'k', **kwargs):
+                                pot_minmax_color: str = 'k', 
+                                pot_zmin: int = -50,
+                                pot_zmax: int = 50,
+                                **kwargs):
         # TODO: No evaluation of coordinate system made! May need if in
         # plotting to plot in radians/geo ect.
         '''
@@ -952,6 +957,11 @@ class Maps():
                 lower than the minimum and maximum values
                 given are colored in as min and max color
                 values if contour_fill=True
+            contour_spacing: int
+                If levels are not set explicitly, then use this value to
+                set the spacing between the contour levels.
+                Default is None which defaults to the max value/20
+                which works out to be 5 with other default values
             contour_color: str
                 Colour of the contour lines plotted
                 Default: dimgrey
@@ -984,6 +994,12 @@ class Maps():
                 Colour of the cross and plus symbols for
                 minimum and maximum potentials
                 Default: 'k' - black
+            pot_zmin: float
+                Minumum value of color map used for potential contours.
+                If None, defaults to -abs(pot_arr).max()
+            pot_zmax: float
+                Maximum value of color map used for potential contours.
+                If None, defaults to abs(pot_arr).max()
             **kwargs
                 including lowlat and hemisphere for calculating
                 potentials
@@ -1002,36 +1018,46 @@ class Maps():
 
         # Contained in function as too long to go into the function call
         if contour_levels == []:
-            contour_levels = [-100, -95, -90, -85, -80, -75, -70, -65, -60,
-                              -55, -50, -45, -40, -35, -30, -25, -20, -15,
-                              -10, -5, -1, 1, 5, 10, 15, 20, 25, 30, 35, 40,
-                              45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]
+            if contour_spacing is None:
+                # If not set this sets the maximum number of contours to be 40
+                contour_spacing = int(np.floor(np.max([abs(pot_zmin),
+                                                       abs(pot_zmax)]) / 10))
+
+            # Making the levels required, but skipping 0 as default to avoid a
+            # contour at 0 position (looks weird)
+            contour_levels = [*range(pot_zmin, 0, contour_spacing),
+                              *range(contour_spacing, 
+                                     pot_zmax + contour_spacing,
+                                     contour_spacing)]
+        else:
+            pot_zmax = np.max(contour_levels)
+            pot_zmin = np.min(contour_levels)
 
         if contour_fill:
             # Filled contours
-            plt.contourf(np.radians(mlon), mlat, pot_arr, 2,
-                         vmax=abs(pot_arr).max(),
-                         vmin=-abs(pot_arr).max(),
-                         locator=ticker.FixedLocator(contour_levels),
+            norm = colors.Normalize
+            norm = norm(pot_zmin, pot_zmax)
+            plt.contourf(np.radians(mlon), mlat, pot_arr, 2, norm=norm,
+                         vmax=pot_zmax,
+                         vmin=pot_zmin,
+                         levels=np.array(contour_levels),
                          cmap=contour_fill_cmap, alpha=0.5,
                          extend='both', zorder=3.0)
             if contour_colorbar is True:
-                norm = colors.Normalize
-                norm = norm(-abs(pot_arr).max(), abs(pot_arr).max())
                 mappable = cm.ScalarMappable(norm=norm, cmap=contour_fill_cmap)
                 locator = ticker.MaxNLocator(symmetric=True, min_n_ticks=3,
                                              integer=True, nbins='auto')
-                ticks = locator.tick_values(vmin=-abs(pot_arr).max(),
-                                            vmax=abs(pot_arr).max())
+                ticks = locator.tick_values(vmin=pot_zmin,
+                                            vmax=pot_zmax)
                 cb = plt.colorbar(mappable, ax=ax, extend='both', ticks=ticks)
                 if contour_colorbar_label != '':
                     cb.set_label(contour_colorbar_label)
         else:
             # Contour lines only
             cs = plt.contour(np.radians(mlon), mlat, pot_arr, 2,
-                             vmax=abs(pot_arr).max(),
-                             vmin=-abs(pot_arr).max(),
-                             locator=ticker.FixedLocator(contour_levels),
+                             vmax=pot_zmax,
+                             vmin=pot_zmin,
+                             levels=np.array(contour_levels),
                              colors=contour_color, alpha=0.8,
                              linewidths=contour_linewidths, zorder=3.0)
             # TODO: Add in contour labels
@@ -1051,3 +1077,119 @@ class Maps():
         plt.scatter(np.radians(min_mlon), min_mlat, marker='_', s=70,
                     color=pot_minmax_color, zorder=5.0)
         return mlat, mlon_u, pot_arr, cs
+
+    @classmethod
+    def find_map_record(cls, dmap_data: List[dict], start_time: dt.datetime):
+        """
+        looks through the data from a given map file and
+        returns the record number nearest the
+        passed datetime object
+
+        Parameters
+        -----------
+        dmap_data: List[dict]
+            the data to look through
+        start_time: datetime
+            the time to find the nearest record number to
+
+        Returns
+        -------
+        Returns the closet record to the passed time
+        """
+        # recursively identify the index of the list
+        # where the time is closest to the passed time
+        def find_nearest_time(dmap_data: List[dict], start_time: dt.datetime,
+                              start_index: int, end_index: int):
+            # base case
+            if start_index == end_index:
+                return start_index
+            # recursive case
+            else:
+                # find the middle index
+                mid_index = int((start_index + end_index)/2)
+                # if the time at the middle index is
+                # greater than the passed time
+                if time2datetime(dmap_data[mid_index]) > start_time:
+                    # search the lower half of the list
+                    return find_nearest_time(dmap_data, start_time,
+                                             start_index, mid_index)
+                # if the time at the middle index
+                # is less than the passed time
+                elif time2datetime(dmap_data[mid_index]) < start_time:
+                    # search the upper half of the list
+                    return find_nearest_time(dmap_data, start_time,
+                                             mid_index + 1, end_index)
+                # if the time at the middle index is equal to the passed time
+                else:
+                    # return the middle index
+                    return mid_index
+
+        return find_nearest_time(dmap_data,
+                                 start_time, 0, len(dmap_data) - 1)
+
+    @classmethod
+    def plot_time_series(cls, dmap_data: List[dict],
+                         parameter: Enum = TimeSeriesParams.NUM_VECTORS,
+                         start_record: int = 0, end_record: int = 1,
+                         start_time: dt.datetime = None,
+                         end_time: dt.datetime = None, ax=None, **kwargs):
+        '''
+        Plot time series of various map parameters
+
+        Params
+        ----------
+        dmap_data: List[dict]
+            List of dictionaries containing the data to be plotted
+        start_record: int
+            time index that we will plot from
+        end_record: int
+            time index that we will plot to (-1 will plot the entire period)
+        start_time: dt.datetime
+            Start time of the data
+        end_time: dt.datetime
+            End time of the data
+        ax:
+            matplotlib axis
+        kwargs:
+            keyword arguments to be passed to the plotting function
+            '''
+        # if no time objects are passed & no start/end record is passed
+        # then plot all availaible data
+        record_absent = start_time is None and end_time is None
+        if start_record == 0 and end_record == 1 and record_absent:
+
+            start_record = 0
+            end_record = len(dmap_data)-1
+        # determine the start and end record
+        if start_time is not None and end_time is not None:
+            start_record = cls.find_map_record(dmap_data, start_time)
+            end_record = cls.find_map_record(dmap_data, end_time)
+        else:
+            start_time = time2datetime(dmap_data[start_record])
+            end_time = time2datetime(dmap_data[end_record])
+        # based on the parameter, plot the data
+        if parameter == TimeSeriesParams.NUM_VECTORS:
+            datalist = []
+            timelist = []
+            for records in range(start_record, end_record):
+                # append the dimension of numv for each record
+                # we can just uexse any of the keys with dimensionality numv
+                datalist.append(len(dmap_data[records]['vector.mlat']))
+                # now get the associated time data point per record
+                timelist.append(time2datetime(dmap_data[records]))
+            plt.plot(timelist, datalist, **kwargs)
+            plt.ylabel('Number of Vectors')
+            plt.xlabel('Time (UTC)')
+            plt.title("Number of Vectors for " + str(start_time)
+                      + " to " + str(end_time))
+        elif parameter is not None:
+            datalist = []
+            timelist = []
+            for records in range(start_record, end_record):
+                datalist.append(dmap_data[records][parameter.value])
+                timelist.append(time2datetime(dmap_data[records]))
+            plt.plot(timelist, datalist, **kwargs)
+            plt.ylabel(parameter.value)
+            plt.xlabel('Time (UTC)')
+            plt.title(parameter.value + ' for ' + str(start_time)
+                      + " to " + str(end_time))

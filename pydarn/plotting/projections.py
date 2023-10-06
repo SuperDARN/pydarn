@@ -7,6 +7,7 @@
 # 2022-05-20 CJM added options to plot coastlines
 # 2022-06-13 Elliott Day don't create new ax if ax passed in to Projs
 # 2023-02-22 CJM added options for nightshade
+# 2023-08-11 RR added crude check for unmodified axes, handle both hemispheres
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
@@ -22,15 +23,14 @@ Code which generates axis objects for use in plotting functions
 import aacgmv2
 import enum
 import matplotlib.pyplot as plt
-import matplotlib.patches as patches
+from matplotlib import axes
 import numpy as np
 from packaging import version
 
-from pydarn import (Hemisphere, plot_exceptions, terminator, Re,
-                    new_coordinate, nightshade_warning)
+from pydarn import (Hemisphere, plot_exceptions, Re, nightshade_warning)
+
 try:
     import cartopy
-    # from cartopy.mpl import geoaxes
     import cartopy.crs as ccrs
     import cartopy.feature as cfeature
     from cartopy.feature.nightshade import Nightshade
@@ -45,7 +45,7 @@ except Exception:
 
 
 def convert_geo_coastline_to_mag(geom, date, alt: float = 0.0):
-    '''
+    """
     Takes the geometry object of coastlines and converts
     the coordinates into AACGM_MLT for convection maps only
     Only required usage is for cartopys NaturalEarthFeature
@@ -59,9 +59,9 @@ def convert_geo_coastline_to_mag(geom, date, alt: float = 0.0):
     alt: float
         Altitude in km
         Default 0 (sea level) for coastlines
-    '''
+    """
     # Iterate over the coordinates and convert to MLT
-    def convert_to_mag(coords, date, alt):
+    def convert_to_mag(date, alt):
         for glon, glat in geom.coords:
             [mlat, lon_mag, _] = \
                 aacgmv2.convert_latlon_arr(glat, glon, alt,
@@ -71,14 +71,15 @@ def convert_geo_coastline_to_mag(geom, date, alt: float = 0.0):
                 (aacgmv2.convert_mlt(lon_mag[0], date) * 15)
             shifted_lons = lon_mag - shifted_mlts
             mlon = np.radians(shifted_lons)
-            yield (mlon.item(), mlat.item())
+            yield mlon.item(), mlat.item()
+
     # Return geometry object
-    return type(geom)(list(convert_to_mag(geom.coords, date, alt)))
+    return type(geom)(list(convert_to_mag(date, alt)))
 
 
-def axis_polar(date, ax: object = None, lowlat: int = 30,
+def axis_polar(date, ax: axes.Axes = None, lowlat: int = 30,
                hemisphere: Hemisphere = Hemisphere.North,
-               grid_lines: bool = True, coastline: bool = False,
+               coastline: bool = False,
                nightshade: int = 0, **kwargs):
 
     """
@@ -91,7 +92,7 @@ def axis_polar(date, ax: object = None, lowlat: int = 30,
         date: datetime object
             Date of required plot. Only required if using coastlines
             (for AACGM conversion)
-        ax: matplotlib.pyplot axis
+        ax: matplotlib.axes.Axes
             Pre-defined axis object to pass in, must be
             polar projection
             Default: Generates a polar projection for the user
@@ -99,16 +100,17 @@ def axis_polar(date, ax: object = None, lowlat: int = 30,
         lowlat: int
             Lower AACGM latitude boundary for the polar plot
             Default: 30
-        hemiphere: enum
+        hemisphere: enum
             Hemisphere of polar projection. Can be Hemisphere.North or
             Hemisphere. South for northern and southern hemispheres,
             respectively
             Default: Hemisphere.North
-        grid_lines: bool
-            required for axis_geological
         coastline: bool
             Set to true to overlay coastlines with cartopy. Requires
             date.
+        nightshade: int
+            Altitude above surface for calculating regions shadowed from Sun.
+            Not supported for this projection.
     """
 
     if ax is None:
@@ -131,6 +133,16 @@ def axis_polar(date, ax: object = None, lowlat: int = 30,
         # Tick labels will depend on coordinate system
         ax.set_xticklabels(['00', '', '06', '', '12', '', '18', ''])
         ax.set_theta_zero_location("S")
+    else:
+        if ax.get_ylim() == (0.0, 1.0):
+            # Set upper and lower latitude limits (pole and lowlat)
+            if hemisphere == Hemisphere.North:
+                ax.set_ylim(90, lowlat)
+                ax.set_yticks(np.arange(lowlat, 90, 10))
+            else:
+                # If hemisphere is South, lowlat must be negative
+                ax.set_ylim(-90, -abs(lowlat))
+                ax.set_yticks(np.arange(-abs(lowlat), -90, -10))
 
     if coastline is True:
         if cartopyInstalled is False:
@@ -156,7 +168,7 @@ def axis_polar(date, ax: object = None, lowlat: int = 30,
     return ax, None
 
 
-def axis_geological(date, ax: object = None,
+def axis_geological(date, ax: axes.Axes = None,
                     hemisphere: Hemisphere = Hemisphere.North,
                     lowlat: int = 30, grid_lines: bool = True,
                     coastline: bool = False, nightshade: int = 0,
@@ -170,7 +182,7 @@ def axis_geological(date, ax: object = None,
     -----------
         date: datetime object
             Date of required plot
-        ax: matplotlib.pyplot axis
+        ax: matplotlib.axes.Axes
             Pre-defined axis object to pass in, must be
             geological projection
             Default: Generates a geographical projection for the user
@@ -178,7 +190,7 @@ def axis_geological(date, ax: object = None,
         lowlat: int
             Lower geographic latitude boundary for the geographic plot
             Default: 30
-        hemiphere: enum
+        hemisphere: enum
             Hemisphere of geographic projection. Can be Hemisphere.North or
             Hemisphere.South for northern and southern hemispheres,
             respectively
@@ -188,6 +200,8 @@ def axis_geological(date, ax: object = None,
             Default: True
         coastline: bool
             Set to true to overlay coastlines with cartopy
+        nightshade: int
+            Altitude above surface for calculating regions shadowed from Sun.
     """
     if cartopyInstalled is False:
         raise plot_exceptions.CartopyMissingError()
@@ -200,22 +214,22 @@ def axis_geological(date, ax: object = None,
     if hemisphere == Hemisphere.North:
         pole_lat = 90
         noon = -deg_from_midnight
-        ylocations = -5
     else:
         pole_lat = -90
         noon = 360 - deg_from_midnight
-        ylocations = 5
         lowlat = -abs(lowlat)
+
     # handle none types or wrongly built axes
     proj = ccrs.Orthographic(noon, pole_lat)
 
     if ax is None:
         ax = plt.subplot(111, projection=proj, aspect='auto')
-        if grid_lines:
-            ax.gridlines(draw_labels=True)
 
-        extent = abs(proj.transform_point(noon, lowlat, ccrs.PlateCarree())[1])
-        ax.set_extent(extents=(-extent, extent, -extent, extent), crs=proj)
+    if grid_lines:
+        ax.gridlines(draw_labels=True)
+
+    extent = abs(proj.transform_point(noon, lowlat, ccrs.PlateCarree())[1])
+    ax.set_extent(extents=(-extent, extent, -extent, extent), crs=proj)
 
     if coastline is True:
         ax.coastlines()

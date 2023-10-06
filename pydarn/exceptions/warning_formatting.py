@@ -7,18 +7,6 @@
 #
 import warnings
 
-def citing_warning():
-    """
-    prints a citation warning for pyDARN users to remind them to cite
-    pyDARN in publications.
-    """
-    print() # create a newline
-    print("IMPORTANT: Please make sure to cite pyDARN in publications that"
-          " use plots created by pyDARN using DOI:"
-          " https://zenodo.org/record/3727269. Citing information"
-          " for SuperDARN data is found at"
-          " https://pydarn.readthedocs.io/en/master/user/citing/")
-
 def cartopy_print_warning():
     """
     This warning prints on installation to inform users they

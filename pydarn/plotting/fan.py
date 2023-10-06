@@ -21,6 +21,7 @@
 # 2022-03-23: MTS - added the NotImplementedError for AACGM and GEO projection
 #                   as this has yet to be figured out
 # 2023-02-06: CJM - Added option to plot single beams in a scan or FOV diagram
+# 2023-03-01: CJM - Added ball and stick plotting options
 # 2023-06-28: CJM - Refactored return values
 #
 # Disclaimer:
@@ -41,7 +42,7 @@ import datetime as dt
 import matplotlib.pyplot as plt
 import numpy as np
 
-from matplotlib import ticker, cm, colors
+from matplotlib import ticker, cm, colors, axes
 from typing import List, Union
 
 # Third party libraries
@@ -49,10 +50,10 @@ import aacgmv2
 
 from pydarn import (PyDARNColormaps, build_scan, partial_record_warning,
                     time2datetime, plot_exceptions, SuperDARNRadars,
-                    Projs, Coords, Hemisphere)
+                    calculate_azimuth, Projs, Coords, Hemisphere)
 
 
-class Fan():
+class Fan:
     """
     'Fan', or 'Field-of-view' plots for SuperDARN FITACF data
     This class inherits from matplotlib to generate the figures
@@ -71,15 +72,16 @@ class Fan():
                 "   - plot_fov()\n"
 
     @classmethod
-    def plot_fan(cls, dmap_data: List[dict], ax=None, ranges: List = [],
+    def plot_fan(cls, dmap_data: List[dict], ax=None, ranges=None,
                  scan_index: Union[int, dt.datetime] = 1,
                  parameter: str = 'v', cmap: str = None,
                  groundscatter: bool = False, zmin: int = None,
                  zmax: int = None, colorbar: bool = True,
                  colorbar_label: str = '', title: bool = True,
                  boundary: bool = True, projs: Projs = Projs.POLAR,
-                 coords: Coords = Coords.AACGM_MLT, beam: int = None,
-                 channel: int = 'all', **kwargs):
+                 coords: Coords = Coords.AACGM_MLT,
+                 channel: int = 'all', ball_and_stick: bool = False,
+                 len_factor: float = 300, beam: int = None, **kwargs):
         """
         Plots a radar's Field Of View (FOV) fan plot for the given data and
         scan number
@@ -88,11 +90,14 @@ class Fan():
         -----------
             dmap_data: List[dict]
                 Named list of dictionaries obtained from SDarn_read
-            ax: matplotlib.pyplot axis
+            ax: axes.Axes
                 Pre-defined axis object to pass in, must currently be
                 polar projection
                 Default: Generates a polar projection for the user
                 with MLT/latitude labels
+            ranges: List[int]
+                Range bounds to plot, as [lower_bound, upper_bound].
+                Default: Plots all ranges out to max given in hardware file.
             scan_index: int or datetime
                 Scan number starting from the first record in file with
                 associated channel number or datetime given first record
@@ -121,11 +126,6 @@ class Fan():
                 the label that appears next to the colour bar.
                 Requires colorbar to be true
                 Default: ''
-            fov_files: bool
-                boolean if the fov data should be read in by a file
-                pyDARN supplies. If false then it uses radar position
-                code.
-                default: False
             title: bool
                 if true then will create a title, else user
                 can define it with plt.title
@@ -145,6 +145,12 @@ class Fan():
                 integer indicating which channel to plot or 'all' to
                 plot all channels
                 Default: 'all'
+            ball_and_stick : bool
+                plot the data as a vector instead of filling a box
+                Default: False
+            len_factor : float
+                control the length of the ball and stick plot stick length
+                Default : 300
             kwargs: key = value
                 Additional keyword arguments to be used in projection plotting
                 and plot_fov for possible keywords, see: projections.axis_polar
@@ -168,6 +174,8 @@ class Fan():
             plot_fov
         """
         # Remove all data from dmap_data that is not in chosen channel
+        if ranges is None:
+            ranges = []
         if channel != 'all':
             # Get the first channel used in case of no data in given channel
             opt_channel = dmap_data[0]['channel']
@@ -231,11 +239,11 @@ class Fan():
 
         if coords != Coords.GEOGRAPHIC and projs == Projs.GEO:
             raise plot_exceptions.NotImplemented("AACGM coordinates are"
-                                                 " not implemented for"
+                                                 " not implemented for "
                                                  " geographic projections"
-                                                 " right now, if you would "
-                                                 "like to see it sooner please"
-                                                 " help out at "
+                                                 " right now, if you would"
+                                                 " like to see it sooner"
+                                                 " please help out at "
                                                  "https://github.com"
                                                  "/SuperDARN/pyDARN")
 
@@ -327,13 +335,101 @@ class Fan():
 
         else:
             transform = ccrs.PlateCarree()
-        ax.pcolormesh(thetas, rs,
-                      np.ma.masked_array(scan, ~scan.astype(bool)),
-                      norm=norm, cmap=cmap, transform=transform,
-                      zorder=2)
+
+        if not ball_and_stick:
+            ax.pcolormesh(thetas, rs,
+                          np.ma.masked_array(scan, ~scan.astype(bool)),
+                          norm=norm, cmap=cmap, transform=transform,
+                          zorder=2)
+        else:
+            # Get center of each gate instead of edges
+            fan_shape = thetas.shape
+            t_center = np.empty([fan_shape[0]-1, fan_shape[1]-1])
+            r_center = np.empty([fan_shape[0]-1, fan_shape[1]-1])
+            for i in range(0, fan_shape[0]-1):
+                for j in range(0, fan_shape[1]-1):
+                    t_center = (thetas[i, j] + thetas[i+1, j]
+                                + thetas[i, j+1] + thetas[i+1, j+1]) / 4
+                    r_center = (rs[i, j] + rs[i+1, j]
+                                + rs[i, j+1] + rs[i+1, j+1]) / 4
+                    if scan[i, j] != 0.0:
+                        col = cmap((scan[i, j] - zmin) / (zmax-zmin))
+                        # Plot balls!
+                        ax.scatter(t_center, r_center, color=col, s=1.0,
+                                   transform=transform, zorder=3.0)
+                        # Stick only needed for velocity data
+                        if parameter == 'v':
+                            # Get azimuth in correct coord system
+                            if coords != Coords.GEOGRAPHIC:
+                                lat = r_center
+                                lon = np.degrees(t_center)
+                            else:
+                                lat = r_center
+                                lon = t_center
+                            azm = cls.get_gate_azm(lon, lat, stid,
+                                                   coords, date)
+
+                            # Make sure each coordinate is in correct
+                            # units again
+                            if projs != Projs.GEO:
+                                thetas_calc = np.radians(lon)
+                                rs_calc = lat
+                            else:
+                                thetas_calc = np.radians(lon)
+                                rs_calc = lat
+
+                            hemisphere = SuperDARNRadars.radars[stid]\
+                                                        .hemisphere
+
+                            # Find the end point of the stick to plot
+                            # Angle to rotate each vector
+                            alpha = thetas_calc
+
+                            # Convert to Cartesian
+                            start_pos_x = (90 - abs(rs_calc)) \
+                                * np.cos(thetas_calc)
+                            start_pos_y = (90 - abs(rs_calc)) \
+                                * np.sin(thetas_calc)
+
+                            # Results LOS vector in x and y
+                            los_x = -scan[i, j] * np.cos(
+                                    np.radians(-azm * hemisphere.value))
+                            los_y = -scan[i, j] * np.sin(
+                                    np.radians(-azm * hemisphere.value))
+
+                            # Rotate vector into same ref frame
+                            vec_x = (los_x * np.cos(alpha)) \
+                                - (los_y * np.sin(alpha))
+                            vec_y = (los_x * np.sin(alpha)) \
+                                + (los_y * np.cos(alpha))
+
+                            # New vector end points
+                            end_pos_x = start_pos_x\
+                                + (vec_x * hemisphere.value / len_factor)
+                            end_pos_y = start_pos_y\
+                                + (vec_y * hemisphere.value / len_factor)
+                            # Convert back to polar for plotting
+                            end_rs = 90 - (np.sqrt(end_pos_x**2
+                                                   + end_pos_y**2))
+                            end_thetas = np.arctan2(end_pos_y, end_pos_x)
+                            end_rs = end_rs * hemisphere.value
+
+                            # Convert to degrees for geo plots
+                            if projs == Projs.GEO:
+                                end_thetas = np.degrees(end_thetas)
+                            # Plot sticks!
+                            plt.plot([t_center, end_thetas],
+                                     [r_center, end_rs],
+                                     color=col, zorder=3.0, linewidth=0.5,
+                                     transform=transform)
+
+                    # Plot ground scatter balls (no sticks)
+                    if groundscatter and grndsct[i, j] != 0.0:
+                        ax.scatter(t_center, r_center, c='grey', s=1.0,
+                                   transform=transform, zorder=3.0)
 
         # plot the groundscatter as grey fill
-        if groundscatter:
+        if groundscatter and not ball_and_stick:
             ax.pcolormesh(thetas, rs,
                           np.ma.masked_array(grndsct,
                                              ~grndsct.astype(bool)),
@@ -342,8 +438,8 @@ class Fan():
         if ccrs is None:
             azm = np.linspace(0, 2 * np.pi, 100)
             r, th = np.meshgrid(rs, azm)
-            plt.plot(azm, r, color='k', ls='none')
-            plt.grid()
+            ax.plot(azm, r, color='k', ls='none')
+            ax.grid(True)
 
         if boundary:
             cls.plot_fov(stid=dmap_data[0]['stid'], date=date, ax=ax,
@@ -384,11 +480,12 @@ class Fan():
                          'ground_scatter': grndsct}
                 }
 
+  
     @classmethod
-    def plot_fov(cls, stid: str, date: dt.datetime,
-                 ax=None, ccrs=None, ranges: List = [], boundary: bool = True,
+    def plot_fov(cls, stid: int, date: dt.datetime,
+                 ax=None, ccrs=None, ranges: List = None, boundary: bool = True,
                  rsep: int = 45, frang: int = 180,
-                 projs: object = Projs.POLAR,
+                 projs: Projs = Projs.POLAR,
                  coords: Coords = Coords.AACGM_MLT,
                  fov_color: str = None, alpha: int = 0.5,
                  radar_location: bool = True, radar_label: bool = False,
@@ -402,11 +499,9 @@ class Fan():
         -----------
             stid: int
                 Radar station ID
-            ax: matplotlib.pyplot axis
-                Pre-defined axis object to pass in, must currently be
-                polar projection
-                Default: Generates a polar projection for the user
-                with MLT/latitude labels
+            ax: matplotlib.axes.Axes
+                Pre-defined axis object to pass in.
+            ccrs:
             date: datetime object
                 Sets the datetime used to find the coordinates of the FOV
                 Default: Current time
@@ -414,12 +509,20 @@ class Fan():
                 Set to a two element list of the lower and upper ranges to plot
                 If None, the  max will be obtained by SuperDARNRadars
                 Default: None
-            projs: Pojs object
-                Sets the projection type for the plot
-                Default: Projs.POLAR
             boundary: bool
                 Set to false to not plot the outline of the FOV
                 Default: True
+            rsep: int
+                Separation between range gates, in kilometers.
+                Default: 45
+            frang: int
+                Kilometers to first range.
+                Default: 180
+            projs: Projs object
+                Sets the projection type for the plot
+                Default: Projs.POLAR
+            coords: Coords object
+
             grid: bool
                 Set to false to not plot the grid of gates in the FOV
                 Default: False
@@ -489,56 +592,56 @@ class Fan():
 
         if boundary:
             # left boundary line
-            plt.plot(beam_corners_lons[0:ranges[1]-ranges[0]+1, 0],
-                     beam_corners_lats[0:ranges[1]-ranges[0]+1, 0],
-                     color=line_color, linewidth=0.5,
-                     alpha=line_alpha, transform=transform, zorder=3)
+            ax.plot(beam_corners_lons[0:ranges[1]-ranges[0]+1, 0],
+                    beam_corners_lats[0:ranges[1]-ranges[0]+1, 0],
+                    color=line_color, linewidth=0.5,
+                    alpha=line_alpha, transform=transform, zorder=3)
             # top radar arc
-            plt.plot(beam_corners_lons[ranges[1]-ranges[0],
-                                       0:beam_corners_lons.shape[1]],
-                     beam_corners_lats[ranges[1]-ranges[0],
-                                       0:beam_corners_lons.shape[1]],
-                     color=line_color, linewidth=0.5,
-                     alpha=line_alpha, transform=transform, zorder=3)
+            ax.plot(beam_corners_lons[ranges[1]-ranges[0],
+                                      0:beam_corners_lons.shape[1]],
+                    beam_corners_lats[ranges[1]-ranges[0],
+                                      0:beam_corners_lons.shape[1]],
+                    color=line_color, linewidth=0.5,
+                    alpha=line_alpha, transform=transform, zorder=3)
             # right boundary line
-            plt.plot(beam_corners_lons[0:ranges[1]-ranges[0]+1,
-                                       beam_corners_lons.shape[1] - 1],
-                     beam_corners_lats[0:ranges[1]-ranges[0]+1,
-                                       beam_corners_lons.shape[1] - 1],
-                     color=line_color, linewidth=0.5,
-                     alpha=line_alpha, transform=transform, zorder=3)
+            ax.plot(beam_corners_lons[0:ranges[1]-ranges[0]+1,
+                                      beam_corners_lons.shape[1] - 1],
+                    beam_corners_lats[0:ranges[1]-ranges[0]+1,
+                                      beam_corners_lons.shape[1] - 1],
+                    color=line_color, linewidth=0.5,
+                    alpha=line_alpha, transform=transform, zorder=3)
             # bottom arc
-            plt.plot(beam_corners_lons[0, 0:beam_corners_lons.shape[1]],
-                     beam_corners_lats[0, 0:beam_corners_lons.shape[1]],
-                     color=line_color, linewidth=0.5, alpha=line_alpha,
-                     transform=transform, zorder=3)
+            ax.plot(beam_corners_lons[0, 0:beam_corners_lons.shape[1]],
+                    beam_corners_lats[0, 0:beam_corners_lons.shape[1]],
+                    color=line_color, linewidth=0.5, alpha=line_alpha,
+                    transform=transform, zorder=3)
 
         fan_shape = beam_corners_lons.shape
 
         if grid:
             # This plots lines along the beams
             for bm in range(fan_shape[1]):
-                plt.plot(beam_corners_lons[0:ranges[1] + 1, bm - 1],
-                         beam_corners_lats[0:ranges[1] + 1, bm - 1],
-                         color=line_color, linewidth=0.2,
-                         alpha=line_alpha, transform=transform,
-                         zorder=3)
+                ax.plot(beam_corners_lons[0:ranges[1] + 1, bm - 1],
+                        beam_corners_lats[0:ranges[1] + 1, bm - 1],
+                        color=line_color, linewidth=0.2,
+                        alpha=line_alpha, transform=transform,
+                        zorder=3)
             # This plots arcs along the gates
             for g in range(ranges[1] - ranges[0] + 1):
-                plt.plot(beam_corners_lons[g - 1,
-                                           0:beam_corners_lons.shape[1]],
-                         beam_corners_lats[g - 1,
-                                           0:beam_corners_lons.shape[1]],
-                         color=line_color, linewidth=0.2,
-                         alpha=line_alpha, transform=transform,
-                         zorder=3)
+                ax.plot(beam_corners_lons[g - 1,
+                                          0:beam_corners_lons.shape[1]],
+                        beam_corners_lats[g - 1,
+                                          0:beam_corners_lons.shape[1]],
+                        color=line_color, linewidth=0.2,
+                        alpha=line_alpha, transform=transform,
+                        zorder=3)
 
         if radar_location:
-            cls.plot_radar_position(stid, date=date, line_color=line_color,
+            cls.plot_radar_position(stid, ax, date=date, line_color=line_color,
                                     transform=transform, projs=projs,
                                     coords=coords, ccrs=ccrs, **kwargs)
         if radar_label:
-            cls.plot_radar_label(stid, date=date, line_color=line_color,
+            cls.plot_radar_label(stid, ax, date=date, line_color=line_color,
                                  transform=transform, projs=projs,
                                  coords=coords, ccrs=ccrs, **kwargs)
 
@@ -592,7 +695,50 @@ class Fan():
                 }
 
     @classmethod
-    def plot_radar_position(cls, stid: int, date: dt.datetime,
+    def get_gate_azm(cls, theta: float, r: float, stid: int, coords, date):
+        """
+        gets the azimuth of the gate, requires some changes depending on
+        coordinates before using calculate_azimuth
+
+        Parameters
+        ----------
+            theta: float
+                longitude
+            r: float
+                latitude
+            stid: int
+                station id of radar
+            coords: Enum
+                enumeration of coordinate system
+            date: datetime object
+                date of data
+
+        Returns
+        -------
+            azm: float
+                azimuth direction of radar from gate in coordinate system
+                given
+        """
+        # Get position of radar in geographic from hdw files
+        radlat = SuperDARNRadars.radars[stid].hardware_info.geographic.lat
+        radlon = SuperDARNRadars.radars[stid].hardware_info.geographic.lon
+        # Convert radar position to correct coordinate system
+        if coords == Coords.AACGM_MLT or coords == Coords.AACGM:
+            geomag_radar = aacgmv2.get_aacgm_coord(radlat, radlon, 250, date)
+            radlat = geomag_radar[0]
+            radlon = geomag_radar[1]
+            if coords == Coords.AACGM_MLT:
+                mltshift = geomag_radar[1] -\
+                        (aacgmv2.convert_mlt(geomag_radar[1], date) * 15)
+                radlon = geomag_radar[1] - mltshift[0]
+        # Call calculate azimuth function from geo
+        azm = calculate_azimuth(r, theta, 300, radlat, radlon, 300)
+        return azm
+
+    @classmethod
+    def plot_radar_position(cls, stid: int, ax: axes.Axes,
+                            date: dt.datetime,
+
                             transform: object = None,
                             coords: Coords = Coords.AACGM_MLT,
                             projs: Projs = Projs.POLAR,
@@ -604,9 +750,14 @@ class Fan():
         -----------
             stid: int
                 Radar station ID
+            ax: matplotlib.axes.Axes
+                Pre-defined axis object to plot on.
             date: datetime datetime object
                 sets the datetime used to find the coordinates of the
                 FOV
+            transform:
+            coords: Coords object
+            projs: Projs object
             line_color: str
                 color of the dot
                 default: black
@@ -630,11 +781,12 @@ class Fan():
         if projs == Projs.POLAR:
             lon = np.radians(lon)
         # Plot a dot at the radar site
-        plt.scatter(lon, lat, c=line_color, s=5, transform=transform)
+        ax.scatter(lon, lat, c=line_color, s=5, transform=transform)
         return
 
     @classmethod
-    def plot_radar_label(cls, stid: int, date: dt.datetime,
+    def plot_radar_label(cls, stid: int, ax: axes.Axes,
+                         date: dt.datetime,
                          coords: Coords = Coords.AACGM_MLT,
                          projs: Projs = Projs.POLAR,
                          line_color: str = 'black', transform: object = None,
@@ -646,44 +798,44 @@ class Fan():
         -----------
             stid: int
                 Radar station ID
+            ax: matplotlib.axes.Axes
+                Pre-defined axis object to plot on.
+            coords: Coords object
+            projs: Projs object
             date: datetime datetime object
                 sets the datetime used to find the coordinates of the
                 FOV
             line_color: str
                 color of the text
                 default: black
+            transform:
 
         Returns
         -------
             No variables returned
         """
+        if coords == Coords.AACGM_MLT or coords == Coords.AACGM:
+            lat, lon = SuperDARNRadars.radars[stid].mag_label
+        else:
+            lat, lon = SuperDARNRadars.radars[stid].geo_label
+        
         # Label text
         label_str = ' ' + SuperDARNRadars.radars[stid]\
                     .hardware_info.abbrev.upper()
-        # Get location of radar
-        lat = SuperDARNRadars.radars[stid].hardware_info.geographic.lat
-        lon = SuperDARNRadars.radars[stid].hardware_info.geographic.lon
 
         # Convert to geomag coords
-        if coords == Coords.AACGM_MLT or coords == Coords.AACGM:
-            geomag_radar = aacgmv2.get_aacgm_coord(lat, lon, 250, date)
-            lat = geomag_radar[0]
-            lon = geomag_radar[1]
-            if coords == Coords.AACGM_MLT:
-                mltshift = geomag_radar[1] -\
-                        (aacgmv2.convert_mlt(geomag_radar[1], date) * 15)
-                lon = geomag_radar[1] - mltshift
+        if coords == Coords.AACGM_MLT:
+            mltshift = lon -\
+                    (aacgmv2.convert_mlt(lon, date) * 15)
+            lon = lon - mltshift
         if projs == Projs.POLAR:
             lon = np.radians(lon)
 
         theta_text = lon
-        # Shift in latitude (dependent on hemisphere)
-        if SuperDARNRadars.radars[stid].hemisphere == Hemisphere.North:
-            r_text = lat - 5
-        else:
-            r_text = lat + 5
-        plt.text(theta_text, r_text, label_str, ha='center',
-                 transform=transform, c=line_color)
+        r_text = lat
+        
+        ax.text(theta_text, r_text, label_str, ha='center',
+                transform=transform, c=line_color)
         return
 
     @classmethod

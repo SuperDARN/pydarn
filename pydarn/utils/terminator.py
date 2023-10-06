@@ -302,36 +302,3 @@ def terminator(date, height):
     
     return antisolar_point, arc_length, arc_angle
 
-
-def new_coordinate(lat, lon, d, bearing, R=Re):
-    # Can be moved to other utils when general utils mod made?
-    """
-    new coordinate will calculate the new coordinate from a given
-    position, distance and bearing
-
-    Parameters
-    ----------
-    lat: float
-        initial latitude, in degrees
-    lon: float
-        initial longitude, in degrees
-    d: target distance from initial
-    bearing: (true) heading in degrees
-    R: optional radius of sphere, defaults to mean radius of earth
-
-    Returns
-    -------
-    lat: float
-        new latitude, in degrees
-    lon: float
-        new longitude, in degrees
-    """
-    lat1 = np.radians(lat)
-    lon1 = np.radians(lon)
-    a = np.radians(bearing)
-    lat2 = np.arcsin(np.sin(lat1) * np.cos(d/R) + np.cos(lat1)
-                     * np.sin(d/R) * np.cos(a))
-    lon2 = lon1 + np.arctan2(np.sin(a) * np.sin(d/R) * np.cos(lat1),
-                             np.cos(d/R) - np.sin(lat1) * np.sin(lat2))
-    return (np.degrees(lat2), np.degrees(lon2))
-    
