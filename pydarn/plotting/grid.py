@@ -168,6 +168,13 @@ class Grid():
 
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
+            # Check for partial records
+            if all(dmap_data[record]['nvec'] == 0) :
+                raise plot_exceptions.PartialRecordsError('~all vectors~')
+    
+            data_lons = dmap_data[record]['vector.mlon']
+            data_lats = dmap_data[record]['vector.mlat']
+
             # Hemisphere is not found in grid files so take from latitudes
             hemisphere = Hemisphere(np.sign(
                                     dmap_data[record]['vector.mlat'][0]))
@@ -181,11 +188,6 @@ class Grid():
                 _, coord_lons, ax, ccrs =\
                         Fan.plot_fov(stid, date, ax=ax, ccrs=ccrs,
                                      coords=coords, projs=projs, **kwargs)
-            try:
-                data_lons = dmap_data[record]['vector.mlon']
-                data_lats = dmap_data[record]['vector.mlat']
-            except KeyError:
-                raise plot_exceptions.PartialRecordsError('vector.mlon')
 
             if coords != Coords.GEOGRAPHIC and projs == Projs.GEO:
                 raise plot_exceptions.NotImplemented(
@@ -232,11 +234,10 @@ class Grid():
             # Colour table and max value selection depending on
             # parameter plotted Load defaults if none given
             if cmap is None:
-                cmap = {'vector.pwr.median': 'plasma',
-                        'vector.vel.median': 'plasma_r',
-                        'vector.wdt.median':
-                        PyDARNColormaps.PYDARN_VIRIDIS}
-                cmap = plt.cm.get_cmap(cmap[parameter])
+                cmap = {'vector.pwr.median': PyDARNColormaps.PYDARN_PLASMA,
+                        'vector.vel.median': PyDARNColormaps.PYDARN_PLASMA_R,
+                        'vector.wdt.median': PyDARNColormaps.PYDARN_VIRIDIS}
+                cmap = cmap[parameter]
 
             # Setting zmin and zmax
             defaultzminmax = {'vector.pwr.median': [0, 50],

@@ -33,6 +33,34 @@ class MapParams(enum.Enum):
     POWER = "vector.pwr.median"
     SPECTRAL_WIDTH = "vector.wdt.median"
 
+class TimeSeriesParams(enum.Enum):
+        """
+        Enum class to hold the parameters that can be plotted
+        Members
+        ------------
+        NUM_VECTORS:
+        the number of aviliable vectors in the map
+        IMF_BY:
+        The magnitude of the IMF By component in nT
+        IMF_BZ:
+        The magnitude of the IMF Bz component in nT
+        KP:
+        The Kp index
+        HMB_MAX:
+        The farthest equatorward extent of the HMB
+
+        """
+        NUM_VECTORS = 'num_vectors'
+        IMF_BY = 'IMF.By'
+        IMF_BZ = 'IMF.Bz'
+        IMF_BX = 'IMF.Bx'
+        IMF_Vx = 'IMF.Vx'
+        IMF_TILT = 'IMF.tilt'
+        KP = 'IMF.Kp'
+        LATMINN = 'latmin'
+        ERR = 'chi.sqr.dat'
+        CPP = 'pot.drop'     
+        
 
 def find_record(dmap_data: List[dict], start_time: datetime, time_delta:int = 1):
     """

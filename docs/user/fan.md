@@ -117,6 +117,7 @@ Here is a list of all the current options than can be used with `plot_fan`
 | projs=(Projs)                 | Projections to plot the data on top of                                                                  |
 | colorbar_label=(string)       | Label that appears next to the color bar, requires colorbar to be True                                  |
 | coastline=(bool)              | Plots outlines of coastlines below data (Uses Cartopy)                                                  |
+| beam=(int)                    | Only plots data/outline of specified beam (default: None)                                               |
 | kwargs **                     | Axis Polar settings. See [polar axis](axis.md)                                                          |
 
 

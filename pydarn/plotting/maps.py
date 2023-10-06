@@ -38,13 +38,14 @@ from mpl_toolkits.axes_grid1.inset_locator import InsetPosition
 from scipy import special
 from typing import List
 
+
 # Third party libraries
 import aacgmv2
 
 from pydarn import (PyDARNColormaps, plot_exceptions,
                     standard_warning_format, Re, Hemisphere,
-                    time2datetime, find_record, Fan, Projs, MapParams)
-
+                    time2datetime, find_record, Fan, Projs, 
+                    MapParams, TimeSeriesParams)
 warnings.formatwarning = standard_warning_format
 
 
@@ -168,13 +169,13 @@ class Maps():
         date = time2datetime(dmap_data[record])
 
         if cmap is None:
-            cmap = {MapParams.FITTED_VELOCITY: 'plasma_r',
-                    MapParams.MODEL_VELOCITY: 'plasma_r',
-                    MapParams.RAW_VELOCITY: 'plasma_r',
-                    MapParams.TRUE_VELOCITY: 'plasma_r',
-                    MapParams.POWER: 'plasma',
+            cmap = {MapParams.FITTED_VELOCITY: PyDARNColormaps.PYDARN_PLASMA_R,
+                    MapParams.MODEL_VELOCITY: PyDARNColormaps.PYDARN_PLASMA_R,
+                    MapParams.RAW_VELOCITY: PyDARNColormaps.PYDARN_PLASMA_R,
+                    MapParams.TRUE_VELOCITY: PyDARNColormaps.PYDARN_PLASMA_R,
+                    MapParams.POWER: PyDARNColormaps.PYDARN_PLASMA,
                     MapParams.SPECTRAL_WIDTH: PyDARNColormaps.PYDARN_VIRIDIS}
-            cmap = plt.cm.get_cmap(cmap[parameter])
+            cmap = cmap[parameter]
         # Setting zmin and zmax
         defaultzminmax = {MapParams.FITTED_VELOCITY: [0, 1000],
                           MapParams.MODEL_VELOCITY: [0, 1000],
@@ -345,7 +346,10 @@ class Maps():
                              MapParams.RAW_VELOCITY,
                              MapParams.TRUE_VELOCITY]:
                 if reference_vector > 0:
-                    plt.scatter(mlons[:], mlats[:], c=v_mag[:], s=2.0,
+                    plt.scatter(mlons[:-1], mlats[:-1], c=v_mag[:-1], s=2.0,
+                                vmin=zmin, vmax=zmax,  cmap=cmap, zorder=5.0,
+                                clip_on=True)
+                    plt.scatter(mlons[-1], mlats[-1], c=v_mag[-1], s=2.0,
                                 vmin=zmin, vmax=zmax,  cmap=cmap, zorder=5.0,
                                 clip_on=False)
                     plt.plot([mlons[-1], end_mlons[-1]],
@@ -368,7 +372,9 @@ class Maps():
                              MapParams.RAW_VELOCITY,
                              MapParams.TRUE_VELOCITY]:
                 if reference_vector > 0:
-                    plt.scatter(mlons[:], mlats[:], c='#292929', s=2.0,
+                    plt.scatter(mlons[:-1], mlats[:-1], c='#292929', s=2.0,
+                                zorder=5.0, clip_on=True)
+                    plt.scatter(mlons[-1], mlats[-1], c='#292929', s=2.0,
                                 zorder=5.0, clip_on=False)
                     plt.plot([mlons[-1], end_mlons[-1]],
                              [mlats[-1], end_mlats[-1]], c='#292929',
@@ -1101,3 +1107,119 @@ class Maps():
                     color=pot_minmax_color, zorder=5.0)
         plt.scatter(np.radians(min_mlon), min_mlat, marker='_', s=70,
                     color=pot_minmax_color, zorder=5.0)
+
+    @classmethod
+    def find_map_record(cls, dmap_data: List[dict], start_time: dt.datetime):
+        """
+        looks through the data from a given map file and
+        returns the record number nearest the
+        passed datetime object
+
+        Parameters
+        -----------
+        dmap_data: List[dict]
+            the data to look through
+        start_time: datetime
+            the time to find the nearest record number to
+
+        Returns
+        -------
+        Returns the closet record to the passed time
+        """
+        # recursively identify the index of the list
+        # where the time is closest to the passed time
+        def find_nearest_time(dmap_data: List[dict], start_time: dt.datetime,
+                              start_index: int, end_index: int):
+            # base case
+            if start_index == end_index:
+                return start_index
+            # recursive case
+            else:
+                # find the middle index
+                mid_index = int((start_index + end_index)/2)
+                # if the time at the middle index is
+                # greater than the passed time
+                if time2datetime(dmap_data[mid_index]) > start_time:
+                    # search the lower half of the list
+                    return find_nearest_time(dmap_data, start_time,
+                                             start_index, mid_index)
+                # if the time at the middle index
+                # is less than the passed time
+                elif time2datetime(dmap_data[mid_index]) < start_time:
+                    # search the upper half of the list
+                    return find_nearest_time(dmap_data, start_time,
+                                             mid_index + 1, end_index)
+                # if the time at the middle index is equal to the passed time
+                else:
+                    # return the middle index
+                    return mid_index
+
+        return find_nearest_time(dmap_data,
+                                 start_time, 0, len(dmap_data) - 1)
+
+    @classmethod
+    def plot_time_series(cls, dmap_data: List[dict],
+                         parameter: Enum = TimeSeriesParams.NUM_VECTORS,
+                         start_record: int = 0, end_record: int = 1,
+                         start_time: dt.datetime = None,
+                         end_time: dt.datetime = None, ax=None, **kwargs):
+        '''
+        Plot time series of various map parameters
+
+        Params
+        ----------
+        dmap_data: List[dict]
+            List of dictionaries containing the data to be plotted
+        start_record: int
+            time index that we will plot from
+        end_record: int
+            time index that we will plot to (-1 will plot the entire period)
+        start_time: dt.datetime
+            Start time of the data
+        end_time: dt.datetime
+            End time of the data
+        ax:
+            matplotlib axis
+        kwargs:
+            keyword arguments to be passed to the plotting function
+            '''
+        # if no time objects are passed & no start/end record is passed
+        # then plot all availaible data
+        record_absent = start_time is None and end_time is None
+        if start_record == 0 and end_record == 1 and record_absent:
+
+            start_record = 0
+            end_record = len(dmap_data)-1
+        # determine the start and end record
+        if start_time is not None and end_time is not None:
+            start_record = cls.find_map_record(dmap_data, start_time)
+            end_record = cls.find_map_record(dmap_data, end_time)
+        else:
+            start_time = time2datetime(dmap_data[start_record])
+            end_time = time2datetime(dmap_data[end_record])
+        # based on the parameter, plot the data
+        if parameter == TimeSeriesParams.NUM_VECTORS:
+            datalist = []
+            timelist = []
+            for records in range(start_record, end_record):
+                # append the dimension of numv for each record
+                # we can just uexse any of the keys with dimensionality numv
+                datalist.append(len(dmap_data[records]['vector.mlat']))
+                # now get the associated time data point per record
+                timelist.append(time2datetime(dmap_data[records]))
+            plt.plot(timelist, datalist, **kwargs)
+            plt.ylabel('Number of Vectors')
+            plt.xlabel('Time (UTC)')
+            plt.title("Number of Vectors for " + str(start_time)
+                      + " to " + str(end_time))
+        elif parameter is not None:
+            datalist = []
+            timelist = []
+            for records in range(start_record, end_record):
+                datalist.append(dmap_data[records][parameter.value])
+                timelist.append(time2datetime(dmap_data[records]))
+            plt.plot(timelist, datalist, **kwargs)
+            plt.ylabel(parameter.value)
+            plt.xlabel('Time (UTC)')
+            plt.title(parameter.value + ' for ' + str(start_time)
+                      + " to " + str(end_time))

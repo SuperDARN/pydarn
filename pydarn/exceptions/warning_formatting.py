@@ -7,18 +7,6 @@
 #
 import warnings
 
-def citing_warning():
-    """
-    prints a citation warning for pyDARN users to remind them to cite
-    pyDARN in publications.
-    """
-    print() # create a newline
-    print("IMPORTANT: Please make sure to cite pyDARN in publications that"
-          " use plots created by pyDARN using DOI:"
-          " https://zenodo.org/record/3727269. Citing information"
-          " for SuperDARN data is found at"
-          " https://pydarn.readthedocs.io/en/master/user/citing/")
-
 def cartopy_print_warning():
     """
     This warning prints on installation to inform users they
@@ -42,6 +30,19 @@ def cartopy_warning():
                  "plots, then make sure cartopy is installed on your machine. "
                  "If you do not need to use cartopy for your plotting, ignore "
                  "this message.")
+
+def nightshade_warning():
+    """
+    This warning prints when a user tries to use something that is not
+    implemented yet, however the plot will still plot without the
+    feature
+    """
+    warnings.warn("Nightshade is not implemented for plots in AACGMv2 "
+                  "coordinates. You can plot nightshade in geographic "
+                  "coordinates, or you can call the terminator function "
+                  "to return the antisolarposition and radius to "
+                  "decide how you would like to plot."
+                  "https://pydarn.readthedocs.io/en/main/user/coordinates/")
 
 def partial_record_warning():
     """
