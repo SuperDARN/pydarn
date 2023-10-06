@@ -3,6 +3,7 @@
 #
 # Modifications:
 #   20220308 MTS added partial record exception
+#   20230713 CJM corrected geographic quivers
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
@@ -30,7 +31,7 @@ from typing import List
 import aacgmv2
 
 from pydarn import (PyDARNColormaps, Fan, plot_exceptions, Hemisphere,
-                    standard_warning_format, Projs, Coords)
+                    standard_warning_format, Projs, Coords, GeneralUtils)
 
 warnings.formatwarning = standard_warning_format
 
@@ -169,9 +170,9 @@ class Grid():
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             # Check for partial records
-            if all(dmap_data[record]['nvec'] == 0) :
+            if all(dmap_data[record]['nvec'] == 0):
                 raise plot_exceptions.PartialRecordsError('~all vectors~')
-    
+
             data_lons = dmap_data[record]['vector.mlon']
             data_lats = dmap_data[record]['vector.mlat']
 
@@ -215,21 +216,22 @@ class Grid():
             shifted_mlts = coord_lons[0, 0] - \
                 (aacgmv2.convert_mlt(coord_lons[0, 0], date) * 15)
             shifted_lons = data_lons - shifted_mlts
-            rs_calc = data_lats
 
             if projs != Projs.GEO:
                 # Convert to radians for polar plots
                 thetas_calc = np.radians(shifted_lons)
                 thetas = np.radians(shifted_lons)
                 rs = data_lats
+                rs_calc = data_lats
             else:
                 # Convert to geographic coordinates
                 glats, glons, _ = aacgmv2.convert_latlon_arr(
                                     data_lats, data_lons, 300,
                                     date, method_code="A2G")
-                thetas_calc = np.radians(data_lons)
+                thetas_calc = np.radians(glons)
                 thetas = glons
                 rs = glats
+                rs_calc = glats
 
             # Colour table and max value selection depending on
             # parameter plotted Load defaults if none given
@@ -266,8 +268,45 @@ class Grid():
             # If the parameter is velocity then plot the LOS vectors
             if parameter == "vector.vel.median":
 
-                # Get the azimuths from the data
+                # Get the mag azimuths from the data
                 azm_v = dmap_data[record]['vector.kvect']
+
+                # Azimuth direction needs to be converted to geographic
+                if projs == Projs.GEO:
+                    # Pole coords in geo for this date
+                    gpole_lat = 90 * hemisphere.value
+                    gpole_lon = 0
+                    mpole_lat, mpole_lon, _ = \
+                        aacgmv2.convert_latlon(gpole_lat, gpole_lon, 300,
+                                               date, method_code='A2G')
+
+                    # Flatten array to work on
+                    a_m_flat = []
+                    b_m_flat = []
+                    thetas_flat = thetas.flatten()
+                    rs_flat = rs.flatten()
+                    for i in range(len(rs_flat)):
+                        a_m_flat.append(
+                            GeneralUtils.great_circle(thetas_flat[i],
+                                                      rs_flat[i],
+                                                      gpole_lon,
+                                                      gpole_lat))
+                        b_m_flat.append(
+                            GeneralUtils.great_circle(thetas_flat[i],
+                                                      rs_flat[i],
+                                                      mpole_lon,
+                                                      mpole_lat))
+                    a_m = np.reshape(a_m_flat, rs.shape)
+                    b_m = np.reshape(b_m_flat, rs.shape)
+                    c_m_flat = np.ones(len(rs_flat)) * \
+                        GeneralUtils.great_circle(gpole_lon, gpole_lat,
+                                                  mpole_lon, mpole_lat)
+                    c_m = np.reshape(c_m_flat, rs.shape)
+                    declination = np.arccos((np.cos(c_m) - np.cos(a_m)
+                                             * np.cos(b_m)) /
+                                            (np.sin(a_m) * np.sin(b_m)))
+
+                    azm_v = azm_v + np.degrees(declination) * hemisphere.value
 
                 # Number of data points
                 num_pts = range(len(data))
@@ -313,35 +352,29 @@ class Grid():
                                  [rs[i], end_rs[i]], c=cmap(norm(data[i])),
                                  linewidth=0.5, transform=transform)
                 else:
-                    # If proj is geographic, convert the end points into
-                    # geographic positions to plot
-                    end_g_rs, end_g_thetas, _ = \
-                        aacgmv2.convert_latlon_arr(end_rs,
-                                                   np.degrees(end_thetas),
-                                                   300, date,
-                                                   method_code="A2G")
+                    # If proj is geographic
+                    end_thetas = np.degrees(end_thetas)
                     for i in num_pts:
                         # If the vector does not cross the meridian
-                        if np.sign(thetas[i]) == np.sign(end_g_thetas[i]):
-                            plt.plot([thetas[i], end_g_thetas[i]],
-                                 [rs[i], end_g_rs[i]],
-                                 c=cmap(norm(data[i])),
-                                 linewidth=0.5, transform=transform)
+                        if np.sign(thetas[i]) == np.sign(end_thetas[i]):
+                            plt.plot([thetas[i], end_thetas[i]],
+                                     [rs[i], end_rs[i]],
+                                     c=cmap(norm(data[i])),
+                                     linewidth=0.5, transform=transform)
                         # If the vector crosses the meridian then amend so that
                         # the start and end are in the same sign
                         else:
-                            if abs(end_g_thetas[i]) > 90:
-                                if end_g_thetas[i] < 0:
-                                    end_g_thetas[i] = end_g_thetas[i] + 360
+                            if abs(end_thetas[i]) > 90:
+                                if end_thetas[i] < 0:
+                                    end_thetas[i] = end_thetas[i] + 360
                                 else:
                                     thetas[i] = thetas[i] + 360
                             # Vector plots correctly over the 0 meridian so
                             # Nothing is done to correct that section
-                            plt.plot([thetas[i], end_g_thetas[i]],
-                                 [rs[i], end_g_rs[i]],
-                                 c=cmap(norm(data[i])),
-                                 linewidth=0.5, transform=transform)
-
+                            plt.plot([thetas[i], end_thetas[i]],
+                                     [rs[i], end_rs[i]],
+                                     c=cmap(norm(data[i])),
+                                     linewidth=0.5, transform=transform)
                 # TODO: Add a velocity reference vector
 
         if colorbar is True:

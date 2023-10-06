@@ -12,6 +12,7 @@
 #
 # Modifications:
 # 2022-03-10 MTS - removed radar_fov from the __init__ file
+# 2023-06-20 PXP - added TimeSeriesParams to the __init__ file
 """
 Init file to setup the logging configuration and linking pyDARN's
 module, classes, and functions.
@@ -47,18 +48,20 @@ from .utils.range_estimations import RangeEstimation
 from .utils.virtual_heights import VHModels
 from .utils.conversions import dmap2dict
 from .utils.plotting import MapParams
+from .utils.plotting import TimeSeriesParams
 from .utils.plotting import check_data_type
 from .utils.plotting import time2datetime
 from .utils.plotting import find_record
+from .utils.general_utils import GeneralUtils
 from .utils.superdarn_radars import SuperDARNRadars
 from .utils.superdarn_cpid import SuperDARNCpids
 from .utils.superdarn_radars import Hemisphere
 from .utils.superdarn_radars import read_hdw_file
 from .utils.superdarn_radars import get_hdw_files
 from .utils.scan import build_scan
-from .utils.geo import geocentric_coordinates
+from .utils.geo import geocentric_coordinates, calculate_azimuth
 from .utils.coordinates import Coords
-from .utils.terminator import terminator, new_coordinate
+from .utils.terminator import terminator
 from .utils.recalculate_elevation import recalculate_elevation
 from .utils.filters import Boxcar
 
