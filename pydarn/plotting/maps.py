@@ -891,13 +891,17 @@ class Maps():
                                 lon_shift: int = 0, fit_order: int = 6,
                                 hemisphere: Enum = Hemisphere.North,
                                 contour_levels: list = [],
+                                contour_spacing: int = None,
                                 contour_color: str = 'dimgrey',
                                 contour_linewidths: float = 0.8,
                                 contour_fill: bool = False,
                                 contour_colorbar: bool = True,
                                 contour_fill_cmap: str = 'RdBu',
                                 contour_colorbar_label: str = 'Potential (kV)',
-                                pot_minmax_color: str = 'k', **kwargs):
+                                pot_minmax_color: str = 'k', 
+                                pot_zmin: int = -50,
+                                pot_zmax: int = 50,
+                                **kwargs):
         # TODO: No evaluation of coordinate system made! May need if in
         # plotting to plot in radians/geo ect.
         '''
@@ -933,6 +937,11 @@ class Maps():
                 lower than the minimum and maximum values
                 given are colored in as min and max color
                 values if contour_fill=True
+            contour_spacing: int
+                If levels are not set explicitly, then use this value to
+                set the spacing between the contour levels.
+                Default is None which defaults to the max value/20
+                which works out to be 5 with other default values
             contour_color: str
                 Colour of the contour lines plotted
                 Default: dimgrey
@@ -965,6 +974,12 @@ class Maps():
                 Colour of the cross and plus symbols for
                 minimum and maximum potentials
                 Default: 'k' - black
+            pot_zmin: float
+                Minumum value of color map used for potential contours.
+                If None, defaults to -abs(pot_arr).max()
+            pot_zmax: float
+                Maximum value of color map used for potential contours.
+                If None, defaults to abs(pot_arr).max()
             **kwargs
                 including lowlat and hemisphere for calculating
                 potentials
@@ -983,36 +998,46 @@ class Maps():
 
         # Contained in function as too long to go into the function call
         if contour_levels == []:
-            contour_levels = [-100, -95, -90, -85, -80, -75, -70, -65, -60,
-                              -55, -50, -45, -40, -35, -30, -25, -20, -15,
-                              -10, -5, -1, 1, 5, 10, 15, 20, 25, 30, 35, 40,
-                              45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]
+            if contour_spacing is None:
+                # If not set this sets the maximum number of contours to be 40
+                contour_spacing = int(np.floor(np.max([abs(pot_zmin),
+                                                       abs(pot_zmax)]) / 10))
+
+            # Making the levels required, but skipping 0 as default to avoid a
+            # contour at 0 position (looks weird)
+            contour_levels = [*range(pot_zmin, 0, contour_spacing),
+                              *range(contour_spacing, 
+                                     pot_zmax + contour_spacing,
+                                     contour_spacing)]
+        else:
+            pot_zmax = np.max(contour_levels)
+            pot_zmin = np.min(contour_levels)
 
         if contour_fill:
             # Filled contours
-            plt.contourf(np.radians(mlon), mlat, pot_arr, 2,
-                         vmax=abs(pot_arr).max(),
-                         vmin=-abs(pot_arr).max(),
-                         locator=ticker.FixedLocator(contour_levels),
+            norm = colors.Normalize
+            norm = norm(pot_zmin, pot_zmax)
+            plt.contourf(np.radians(mlon), mlat, pot_arr, 2, norm=norm,
+                         vmax=pot_zmax,
+                         vmin=pot_zmin,
+                         levels=np.array(contour_levels),
                          cmap=contour_fill_cmap, alpha=0.5,
                          extend='both', zorder=3.0)
             if contour_colorbar is True:
-                norm = colors.Normalize
-                norm = norm(-abs(pot_arr).max(), abs(pot_arr).max())
                 mappable = cm.ScalarMappable(norm=norm, cmap=contour_fill_cmap)
                 locator = ticker.MaxNLocator(symmetric=True, min_n_ticks=3,
                                              integer=True, nbins='auto')
-                ticks = locator.tick_values(vmin=-abs(pot_arr).max(),
-                                            vmax=abs(pot_arr).max())
+                ticks = locator.tick_values(vmin=pot_zmin,
+                                            vmax=pot_zmax)
                 cb = plt.colorbar(mappable, ax=ax, extend='both', ticks=ticks)
                 if contour_colorbar_label != '':
                     cb.set_label(contour_colorbar_label)
         else:
             # Contour lines only
             cs = plt.contour(np.radians(mlon), mlat, pot_arr, 2,
-                             vmax=abs(pot_arr).max(),
-                             vmin=-abs(pot_arr).max(),
-                             locator=ticker.FixedLocator(contour_levels),
+                             vmax=pot_zmax,
+                             vmin=pot_zmin,
+                             levels=np.array(contour_levels),
                              colors=contour_color, alpha=0.8,
                              linewidths=contour_linewidths, zorder=3.0)
             # TODO: Add in contour labels

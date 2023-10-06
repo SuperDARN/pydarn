@@ -28,6 +28,7 @@ import numpy as np
 from packaging import version
 
 from pydarn import (Hemisphere, plot_exceptions, Re, nightshade_warning)
+
 try:
     import cartopy
     import cartopy.crs as ccrs
