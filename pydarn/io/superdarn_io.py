@@ -1,5 +1,7 @@
 # Copyright (C) 2020 SuperDARN Canada, University of Saskatchewan
 # Author: Marina Schmidt
+# Modifications:
+# 20230623 - CJM - Removed checks for read_dmap, will read in any dmap
 
 import bz2
 import pydarnio
@@ -51,15 +53,7 @@ class SuperDARNRead(pydarnio.SDarnRead):
 
         try:
             # Check which file type it is
-            if 'rawacf' in filename:
-                data = self.read_rawacf()
-            elif 'fitacf' in filename:
-                data = self.read_fitacf()
-            elif 'iqdat' in filename:
-                self.read_iqdat()
-            # if not noticeable then just read the file
-            else:
-                data = self.read_records()
+            data = self.read_records()
         except Exception as err:
             # sometimes files might fail due to issues with
             # the specific reading methods. This is not a pyDARN
@@ -67,8 +61,9 @@ class SuperDARNRead(pydarnio.SDarnRead):
             # then make an issue on pyDARNio
             print(err)
             print("..... Will try to read DMap file with read_dmap")
-            print(" IF THIS FAILS please make an issue on pyDARNio, not "
-                  "pyDARN's issue")
+            print(" IF THIS FAILS please make an issue on the pyDARNio"
+                  " GitHub repository:"
+                  " https://github.com/SuperDARN/pyDARNio/issues")
             data = self.read_records
         return data
 
