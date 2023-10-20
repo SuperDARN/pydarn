@@ -42,6 +42,7 @@ from .exceptions.warning_formatting import nightshade_warning
 from .utils.constants import Re
 from .utils.constants import EARTH_EQUATORIAL_RADIUS
 from .utils.constants import C
+from .utils.geocoastline import coast_outline
 from .utils.citations import Citations
 from .utils.range_estimations import RangeEstimation
 from .utils.virtual_heights import VHModels
