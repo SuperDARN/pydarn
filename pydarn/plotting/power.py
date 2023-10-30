@@ -97,6 +97,8 @@ class Power():
                                                             beam_num)
                 cls.__plot_pwr0(records_of_interest, beam_num,
                                 statistical_method)
+                data = {'method': statistical_method,
+                        'values': records_of_interest}
             else:
                 # plot all frequencies lower than max_frequency
                 if min_frequency is None:
@@ -105,6 +107,8 @@ class Power():
                                               beam_num, '<=', max_frequency)
                     cls.__plot_pwr0(records_of_interest, beam_num,
                                     statistical_method)
+                    data = {'method': statistical_method,
+                            'values': records_of_interest}
 
                 elif max_frequency is None:
                     # plot all frequencies higher than min_frequency
@@ -113,6 +117,8 @@ class Power():
                                               beam_num, '>=', min_frequency)
                     cls.__plot_pwr0(records_of_interest, beam_num,
                                     statistical_method)
+                    data = {'method': statistical_method,
+                            'values': records_of_interest}
 
                 else:
                     # plot all frequencies between min and max frequency
@@ -127,6 +133,8 @@ class Power():
 
                     cls.__plot_pwr0(records_of_interest, beam_num,
                                     statistical_method)
+                    data = {'method': statistical_method,
+                            'values': records_of_interest}
         else:
             if min_frequency is None and max_frequency is None:
                 # Plot high and low frequencies
@@ -145,6 +153,9 @@ class Power():
                 plt.subplot(2, 1, 2)
                 cls.__plot_pwr0(high_frequency_records, beam_num,
                                 statistical_method, False)
+                data = {'method': statistical_method,
+                        'high_freq_values': high_frequency_records,
+                        'low_freq_values': low_frequency_records}
 
             else:
                 # plot all frequencies lower than
@@ -169,6 +180,9 @@ class Power():
                     plt.subplot(2, 1, 2)
                     cls.__plot_pwr0(high_frequency_records, beam_num,
                                     statistical_method, False)
+                    data = {'method': statistical_method,
+                            'high_freq_values': high_frequency_records,
+                            'low_freq_values': low_frequency_records}
 
                 elif max_frequency is None:
                     # plot all frequencies between min_frequency and
@@ -192,6 +206,9 @@ class Power():
                     plt.subplot(2, 1, 2)
                     cls.__plot_pwr0(high_frequency_records, beam_num,
                                     statistical_method, False)
+                    data = {'method': statistical_method,
+                            'high_freq_values': high_frequency_records,
+                            'low_freq_values': low_frequency_records}
 
                 # if min=max=split frequency this is the same as
                 # split and compare = False
@@ -221,18 +238,23 @@ class Power():
                     plt.subplot(2, 1, 2)
                     cls.__plot_pwr0(high_frequency_records, beam_num,
                                     statistical_method, False)
+                    data = {'method': statistical_method,
+                            'high_freq_values': high_frequency_records,
+                            'low_freq_values': low_frequency_records}
                 else:
                     records_of_interest = cls.\
                         __apply_stat2pwr0(records, statistical_method,
                                           beam_num, '==', split_frequency)
                     cls.__plot_pwr0(records_of_interest, beam_num,
                                     statistical_method)
+                    data = {'method': statistical_method,
+                            'values': records_of_interest}
         return {'ax': plt.gca(),
                 'ccrs': None,
                 'cm': None,
                 'cb': None,
                 'fig': plt.gcf(),
-                'data': None}
+                'data': data}
 
     @staticmethod
     def __plot_pwr0(records: list, beam_num: int, statistical_method: object,
