@@ -1344,7 +1344,8 @@ class RTP():
                         norm=colors.Normalize, cmap: str = None,
                         filter_settings: dict = {},
                         date_fmt: str = '%y/%m/%d\n %H:%M',
-                        round_start: bool = True, **kwargs):
+                        round_start: bool = True,
+                        plot_equatorward: bool = False, **kwargs):
         """
         Plots a range-time parameter plot of the given
         field name in the dmap_data using coordinates in latitude and
@@ -1455,6 +1456,11 @@ class RTP():
                 option to round the start time to give tick at start of xaxis
                 Set True to round, set False to plot from start of data.
                 Default: True
+        plot_equatorward: bool = False
+                option if the radar plots data in latitude that changes
+                direction to plot the equator-ward or pole-ward data
+                No option to overplot.
+                Default: False (plot poleward data only)
         kwargs:
             used for other methods in pyDARN
                 - reflection_height
@@ -1662,22 +1668,35 @@ class RTP():
         if latlon == 'lat':
             y = lats[:, beam_num]
             # If the FOV is over the pole, only plot up to the pole to avoid
-            # overplotting data
+            # overplotting data unless the user specifies downward
             if y[0] > 0:
                 diff_y = [j-i for i, j in zip(y[:-1], y[1:])]
             else:
                 # If southern hemisphere, just switch diff_y values to get
                 # correct position
                 diff_y = [-(j-i) for i, j in zip(y[:-1], y[1:])]
-            if any(x < 0 for x in diff_y):
+
+            if any(x < 0 for x in diff_y) and not plot_equatorward:
                 yind = np.min([i for i in range(len(diff_y)) if diff_y[i] < 0]) - 1
-                warnings.warn('Warning: This radar has a field of view that goes '
-                            'over the pole and back down again. Only the partial'
-                            ' field of view up to range gate {} is plotted.'
-                            .format(yind))
+                warnings.warn('Warning: This radar has a field of view that over'
+                            'plots data in latitude. Only the partial '
+                            'field of view to range gate '
+                            '{} is plotted. To see the other section of data '
+                            'use the keyword plot_equatorward=True.'
+                            .format(yind,))
                 y = y[:yind]
                 y = np.append(y, y[-1])
                 z = z[:, :yind]
+            if any(x < 0 for x in diff_y) and plot_equatorward:
+                yind = np.min([i for i in range(len(diff_y)) if diff_y[i] < 0]) -1
+                warnings.warn('Warning: This radar has a field of view that over'
+                            'plots data in latitude. Only the partial '
+                            'field of view from range gate '
+                            '{} is plotted. To see the other section of data '
+                            'use the keyword plot_equatorward=False.'
+                            .format(yind))
+                y = y[yind-1:]
+                z = z[:, yind-1:]
         elif latlon == 'lon':
             y = lons[:, beam_num]
         else:
