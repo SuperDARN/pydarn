@@ -1,5 +1,5 @@
 {
-    "creators":[
+    "creators": [
         {
             "name": "SuperDARN Data Visualization Working Group"
         },
@@ -10,51 +10,12 @@
         },
         {
             "affiliation": "Virginia Tech",
-            "name": "Shi, X.",
-            "orcid": "0000-0001-8425-8241"
-        },
-        {
-            "affiliation": "University of Saskatchewan",
-            "name": "Schmidt, M.T.",
-            "orcid": "0000-0002-3265-977X"
-        },
-        {
-            "affiliation": "Lancaster University",
-            "name": "Day, E. K.",
-	    "orcid": "0000-0002-0169-6201"
-        },
-        {
-            "affiliation": "The University Centre in Svalbard",
-            "name": "Bland, E.C.",
-            "orcid": "0000-0002-0252-0400"
-        },
-        {
-            "affiliation": "University of Alabama",
-            "name": "Khanal, K.",
-            "orcid": "0000-0003-3927-7501" 
-        },
-        {
-            "affiliation": "University of Saskatchewan",
-            "name": "Billett, D.D.",
-            "orcid": "0000-0002-8905-8609"
-        },
-        {
-            "affiliation": "Virginia Tech",
             "name": "Kunduri, B.S.R.",
             "orcid": "0000-0002-7406-7641"
         },
-        {   "affiliation": "University of Scranton",
-            "name":  "Tholley, F."
-        },
-        {
-            "affiliation": "University of Scranton",
-            "name":  "Frissell, N.",
-            "orcid": "0000-0002-8398-4222" 
-        },
         {
             "affiliation": "Virginia Tech",
-            "name": "Coyle, S.",
-            "orcid": "0000-0003-1730-2753"
+            "name": "Pitzer, P."
         },
         {
             "affiliation": "University of Saskatchewan",
@@ -62,13 +23,52 @@
             "orcid": "0000-0003-2208-1553"
         },
         {
-            "affiliation": "University of Saskatchewan",
-            "name": "Kolkman, T.J.",
-            "orcid": "0000-0001-9759-9045"
+            "affiliation": "University of Alabama",
+            "name": "Khanal, K.",
+            "orcid": "0000-0003-3927-7501"
+        },
+        {
+            "affiliation": "Virginia Tech",
+            "name": "Shi, X.",
+            "orcid": "0000-0001-8425-8241"
+        },
+        {
+            "affiliation": "University of Scranton",
+            "name": "Frissell, N.",
+            "orcid": "0000-0002-8398-4222"
+        },
+        {
+            "affiliation": "SANSA/University of KwaZulu-Natal",
+            "name": "Hiyadutuje, A.",
+            "orcid": "0000-0002-3391-8737"
+        },
+        {
+            "affiliation": "Dartmouth College",
+            "name": "Thomas, E. G.",
+            "orcid": "0000-0001-8036-8793"
+        },
+        {
+            "affiliation": "University of Newcastle",
+            "name": "Waters, C. L.",
+            "orcid": "0000-0003-2121-6962"
         },
         {
             "affiliation": "University of Saskatchewan",
-            "name": "Krieger, K.J.",
-            "orcid": "0000-0002-3678-4201"
-        }]
+            "name": "Billett, D.D.",
+            "orcid": "0000-0002-8905-8609"
+        },
+        {
+            "affiliation": "University of Saskatchewan",
+            "name": "Galeshuck, D."
+        },
+        {
+            "affiliation": "University of Saskatchewan",
+            "name": "Detwiller, M."
+        },
+        {
+            "affiliation": "University of Saskatchewan",
+            "name": "Schmidt, M.T.",
+            "orcid": "0000-0002-3265-977X"
+        }
+    ]
 }
