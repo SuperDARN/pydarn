@@ -82,7 +82,7 @@ lats.shape
 ```
 Which returns `>>>(76, 17)`, i.e. ranges x beams array of the latitude, and so on for the other variables. The groundscatter array is 0's and 1's, 1 being a range gate flagged as groundscatter.
 
-### Additional parameters
+### Parameters Available for Plotting
 
 In addition to line-of-sight velocity, you can choose one of three other data products to plot by setting `parameter=String name`:
 
@@ -93,7 +93,23 @@ In addition to line-of-sight velocity, you can choose one of three other data pr
 | Elevation angle (degrees)             | 'elv'       |
 | Power (dB)                            | 'p_l'       |
 
-### Additional options
+### Ball and Stick Plots
+
+Data on fan plots can also be displayed as a 'ball and stick' plot, where each data point is represented by a ball with a stick showing direction towards or away from the radar, coloured by the magnitude of the parameter plotted.
+Ball and stick plots can be plotted usng the `ball_and_stick` with `len_factor` key words, as follows:
+
+```
+pydarn.Fan.plot_fan(fitacf_data,
+                    scan_index=1, lowlat=60, zmin=-1000, zmax=1000,
+                    boundary=True, radar_label=True,
+                    groundscatter=True, ball_and_stick=True, len_factor=300,
+                    coastline=True, parameter="v")
+plt.show()
+```
+
+![](../imgs/ball_and_stick.png)
+
+### Additional Options
 
 Here is a list of all the current options than can be used with `plot_fan`
 

@@ -1,8 +1,8 @@
 # Axes Setup 
 
-For spatial plots (FOV, Fan, Grid), pyDARN allows users to choose between Polar and
+For some spatial plots (FOV, Fan, Grid), pyDARN allows users to choose between Polar and
 Geographic axes using the `projs` keyword and `Projs` module.
-Convection maps do not allow for geographic projects due to lack of interest.
+Convection maps do not allow for geographic projections due to lack of interest.
 
 ## Projs.POLAR 
 

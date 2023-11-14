@@ -22,7 +22,7 @@ Summary plots in SuperDARN are a collection of set parameter plots from a FITACF
 	* Sky Noise (`noise.sky`)
 	* Transmission Frequency and Number of averages (`tfreq` and `nav`)
 	* Control Program ID (`cp`)
-* Range-time plots:
+* Range(or Coord)-time plots:
 	* Signal to Noise (`p_l`)
 	* Velocity (`v`)
 	* Spectral Width (`w_l`)

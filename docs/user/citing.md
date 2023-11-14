@@ -117,7 +117,7 @@ Stéfan van der Walt, S. Chris Colbert and Gaël Varoquaux. The NumPy Array: A S
 
 #### pyDARNio
 
-SuperDARN Data Standards Working Group, Krieger, K.J., Kotyk, K., Detwiller, M.H., Billett, D.D., Burrell, A.G., … Schmidt, M.T. (2021, May 25). SuperDARN/pyDARNio: pyDARNio v1.1 (Version v1.1). Zenodo. http://doi.org/10.5281/zenodo.4792463
+SuperDARN Data Visualization Working Group, Rohel et al. Version 1.2.1 [Zenodo Link](https://zenodo.org/records/7615720)
 
 #### AACGM
 

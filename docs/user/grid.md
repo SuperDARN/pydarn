@@ -61,7 +61,7 @@ You might have noticed that the variable `gridplot` in the examples above actual
 lats,lons,data=pydarn.Grid.plot_grid(grid_data, start_time=stime)
 ```
 
-### Additional parameters
+### Additional Parameters
 
 In addition to the gridded line-of-sight velocity, you can choose one of two other data products to plot by setting `parameter=String name`:
 
@@ -71,7 +71,7 @@ In addition to the gridded line-of-sight velocity, you can choose one of two oth
 | Spectral width (m/s)                  | `wdt`       |
 | Power (dB)                            | `pwr`       |
 
-### Additional options
+### Additional Options
 
 Here is a list of all the current options than can be used with `plot_grid`
 

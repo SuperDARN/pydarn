@@ -12,9 +12,10 @@ and conditions of version 3 of the GNU General Public License, supplemented by
 the additional permissions listed below.
 -->
 
-# Map plots
+# Map Data Plots
 ---
 
+## Convection Maps
 Map plots are a way to visualize data from a MAP file of SuperDARN radar data. Please read RST documentation on how to process [MAP files](https://radar-software-toolkit-rst.readthedocs.io/en/latest/user_guide/map_grid/) from GRID files.    
 
 Map field descriptions can be found [here](https://radar-software-toolkit-rst.readthedocs.io/en/latest/references/general/map/). pyDARN uses a `enum` object to select different common parameters to plot in a MAP file:
@@ -123,3 +124,37 @@ pydarn.Maps.plot_mapdata(map_data, record=150,
 plt.show()
 ```
 ![](../imgs/map_2.png)
+
+## Map Time-Series Plots
+Values within a map file can also be plotted using the `plot_time_series` method.
+
+```
+import pydarn
+import datetime as dt
+import matplotlib.pyplot as plt
+
+file_path = "path/to/map/file.map"
+data = pydarn.SuperDARNRead().read_dmap(file_path)
+start_time = dt.datetime(2019,4,21,11,0)
+end_time = dt.datetime(2019,4,21,13,0)
+pydarn.Maps.plot_time_series(data, parameter=pydarn.TimeSeriesParams.IMF_BY,
+                             start_time=start_time, end_time=end_time, color='r')
+plt.show()
+```
+
+![](../imgs/map_ts.png)
+
+Specific values available to be plotted are:
+
+| Name                          | parameter name                 |
+| ----------------------------- | ------------------------------ |
+| Number of vectors             | `TimeSeriesParams.NUM_VECTORS` |
+| IMF By                        | `TimeSeriesParams.IMF_BY`      |
+| IMF Bz                        | `TimeSeriesParams.IMF_BZ`      |
+| IMF Bx                        | `TimeSeriesParams.IMF_BX`      |
+| IMF Vx                        | `TimeSeriesParams.IMF_VX`      |
+| IMF Tilt                      | `TimeSeriesParams.IMF_TILT`    |
+| KP index                      | `TimeSeriesParams.KP`          |
+| Minimum Latitude              | `TimeSeriesParams.LATMIN`      |
+| Error in model fitting        | `TimeSeriesParams.ERR`         |
+| Cross Polar Cap Potential     | `TimeSeriesParams.CPP`         |
