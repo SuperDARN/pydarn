@@ -32,7 +32,7 @@ plt.ylabel('Magnetic Latitude (Degrees)')
 plt.show()
 ```
 
-![](../imgs/CPT_1.png)
+![](../imgs/CTP_1.png)
 
 !!! Warning
     This plotting method does not evaluate if the data is appropriate to plot in the given circumstances. Some radars point north and some are point longitudinally, therefore data shown in a plot may not be useful given the orientation.
@@ -53,7 +53,7 @@ plt.ylabel('Magnetic Latitude (Degrees)')
 plt.show()
 ```
 
-![](../imgs/cpt_equator.png)
+![](../imgs/ctp_equator.png)
 
 ```
 a = pydarn.RTP.plot_coord_time(fitacf_data, beam_num=0,
@@ -65,7 +65,7 @@ plt.ylabel('Magnetic Latitude (Degrees)')
 plt.show()
 ```
 
-![](../imgs/cpt_pole.png)
+![](../imgs/ctp_pole.png)
 
 !!! Note
     These same key words can also be used in the summary plot method to plot coordinate-time data in summary format. 
