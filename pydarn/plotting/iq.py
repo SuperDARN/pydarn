@@ -28,7 +28,7 @@ from pydarn import (time2datetime, standard_warning_format, find_record, RTP)
 warnings.formatwarning = standard_warning_format
 
 
-class IQ():
+class IQ:
     """
     Time-series and specialised plots for IQ data
 
@@ -79,7 +79,7 @@ class IQ():
     @classmethod
     def plot_iq_sequence(cls, dmap_data: List[dict],
                          start_time: datetime = None,
-                         channel: int = 0, ax=None, beam_num: int = 0,
+                         channel: int = 0, ax = None, beam_num: int = 0,
                          sequence_num: int = 0, interferometer: bool = False,
                          plot_phase: bool = False):
         """
@@ -174,7 +174,7 @@ class IQ():
             ax2.grid()
             ax2.set_ylabel('Phase')
             ax2.set_xlabel('Sample Number')
-        else:
+        elif ax is None:
             ax = plt.gca()
 
         # Plot lines
@@ -208,7 +208,7 @@ class IQ():
     @classmethod
     def plot_iq_record(cls, dmap_data: List[dict],
                        start_time: datetime = None,
-                       channel: int = 0, ax=None, beam_num: int = 0,
+                       channel: int = 0, ax = None, beam_num: int = 0,
                        interferometer: bool = False):
         """
         Plots all sequences from a record of IQ data
@@ -279,7 +279,8 @@ class IQ():
         # Calculate magnitude
         mag = np.sqrt(iq_real_arr**2 + iq_imag_arr**2)
         # Plot
-        ax = plt.gca()
+        if ax is None:
+            ax = plt.gca()
         pcol = ax.pcolormesh(mag, vmin=0, vmax=600)
         cb = ax.figure.colorbar(pcol, extend='max')
         cb.set_label('Power (AU)')
@@ -302,7 +303,7 @@ class IQ():
     def plot_iq_overview(cls, dmap_data: List[dict],
                          start_time: datetime = None,
                          end_time: datetime = None,
-                         channel: int = 0, ax=None, beam_num: int = 'all',
+                         channel: int = 0, ax = None, beam_num: int = 'all',
                          interferometer: bool = False):
         """
         Plots all sequences from a record of IQ data
@@ -345,7 +346,7 @@ class IQ():
             if (dmap_record['bmnum'] == beam_num or beam_num == 'all') and\
                     (dmap_record['channel'] == channel or channel == 'all'):
                 rec_time = time2datetime(dmap_record)
-                if start_time <= rec_time and rec_time <= end_time:
+                if start_time <= rec_time <= end_time:
                     if interferometer and chnnum < 2:
                         raise ValueError("No interferometer data for "
                                          "record chosen.")
@@ -373,7 +374,8 @@ class IQ():
         mag = np.sqrt(np.add(np.square(iq_real_arr), np.square(iq_imag_arr)))
 
         # Plot
-        ax = plt.gca()
+        if ax is None:
+            ax = plt.gca()
         pcol = ax.pcolormesh(mag.T, vmin=0, vmax=1000)
         cb = ax.figure.colorbar(pcol, extend='max')
         cb.set_label('Power (AU)')
