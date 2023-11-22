@@ -33,7 +33,7 @@ iq_data = pydarn.SuperDARNRead(iq_file).read_iqdat()
 These plots show any of the scalar products found in the IQ file. This method directly calls the time series method in the RTP module.
 
 ```python
-pydarn.IQ.plot_time_series(iq_data, beam_num = 7, parameter='tfreq')
+pydarn.IQ.plot_time_series(iq_data, beam_num=7, parameter='tfreq')
 plt.show()
 ```
 
@@ -46,7 +46,7 @@ You can also choose to view the IQ data from the main array, or the interferomet
 
 ```python
 pydarn.IQ.plot_iq_sequence(iq_data, start_time=datetime(2016,1,13,16,15),
-                           beam_num=15, sequence_num = 20,
+                           beam_num=15, sequence_num=20,
                            interferometer=False, plot_phase=True)
 plt.show()
 ```

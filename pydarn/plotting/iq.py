@@ -56,8 +56,8 @@ class IQ:
                 "   - plot_iq_record()\n"\
                 "   - plot_iq_overview()\n"
 
-    @classmethod
-    def plot_time_series(cls, dmap_data: List[dict], **kwargs):
+    @staticmethod
+    def plot_time_series(dmap_data: List[dict], **kwargs):
         """
         Plots scalar variables from IQ dat files
 
@@ -76,8 +76,8 @@ class IQ:
         time_series_info = RTP.plot_time_series(dmap_data, **kwargs)
         return time_series_info
 
-    @classmethod
-    def plot_iq_sequence(cls, dmap_data: List[dict],
+    @staticmethod
+    def plot_iq_sequence(dmap_data: List[dict],
                          start_time: datetime = None,
                          channel: int = 0, ax = None, beam_num: int = 0,
                          sequence_num: int = 0, interferometer: bool = False,
@@ -105,13 +105,14 @@ class IQ:
         interferometer: bool
             Data from main array (False) or interferometer array (True)
             Default False
+        plot_phase: bool
+            Option to plot the phase of the data (True)
+            Default False
         """
-        cls.dmap_data = dmap_data
-
         # Finds start of minute scan records, then scans the records to
         # find the next record with the correct beam
         if start_time is not None:
-            record_num = find_record(cls.dmap_data, start_time)
+            record_num = find_record(dmap_data, start_time)
         else:
             record_num = 0
         # Get the next record with the correct beam
@@ -170,7 +171,7 @@ class IQ:
             gs = fig.add_gridspec(3, 1)
             ax = fig.add_subplot(gs[0:2, :])
             ax2 = fig.add_subplot(gs[2, :])
-            phase_line, = ax2.plot(phase, 'mediumseagreen')
+            ax2.plot(phase, 'mediumseagreen')
             ax2.grid()
             ax2.set_ylabel('Phase')
             ax2.set_xlabel('Sample Number')
@@ -190,7 +191,6 @@ class IQ:
         ax.legend()
 
         # Plot title and axis labels
-        # plt.plot(phase, 'y')
         if interferometer:
             array_type = 'Interferometer Array'
         else:
@@ -205,8 +205,8 @@ class IQ:
 
         return ax, [iq_real, iq_imag, mag]
 
-    @classmethod
-    def plot_iq_record(cls, dmap_data: List[dict],
+    @staticmethod
+    def plot_iq_record(dmap_data: List[dict],
                        start_time: datetime = None,
                        channel: int = 0, ax = None, beam_num: int = 0,
                        interferometer: bool = False):
@@ -231,12 +231,10 @@ class IQ:
             Data from main array (False) or interferometer array (True)
             Default False
         """
-        cls.dmap_data = dmap_data
-
         # Finds start of minute scan records, then scans the records to
         # find the next record with the correct beam
         if start_time is not None:
-            record_num = find_record(cls.dmap_data, start_time)
+            record_num = find_record(dmap_data, start_time)
         else:
             record_num = 0
         # Get the next record with the correct beam
@@ -299,8 +297,35 @@ class IQ:
 
         return ax, mag
 
-    @classmethod
-    def plot_iq_overview(cls, dmap_data: List[dict],
+
+    @staticmethod
+    def __determine_start_end_time(dmap_data, start_time: datetime,
+                                   end_time: datetime) -> tuple:
+        """
+        Sets the start and end time based on import of dmap_data
+
+        Parameter
+        ---------
+        dmap_data: List[dict]
+        start_time: datetime
+            Start time is used to check if it was set or not
+        end_time: datetime
+            End time is used to check if it was set or not
+
+        Returns
+        -------
+        start_time: datetime
+        end_time: datetime
+        """
+        if not start_time:
+            start_time = time2datetime(dmap_data[0])
+        if not end_time:
+            end_time = time2datetime(dmap_data[-1])
+        return start_time, end_time
+
+
+    @staticmethod
+    def plot_iq_overview(dmap_data: List[dict],
                          start_time: datetime = None,
                          end_time: datetime = None,
                          channel: int = 0, ax = None, beam_num: int = 'all',
@@ -328,9 +353,9 @@ class IQ:
             Data from main array (False) or interferometer array (True)
             Default False
         """
-        cls.dmap_data = dmap_data
-        start_time, end_time = cls.__determine_start_end_time(start_time,
-                                                              end_time)
+        start_time, end_time = IQ.__determine_start_end_time(dmap_data,
+                                                           start_time,
+                                                           end_time)
 
         # Assuming the samples and sequences will stay constant
         # over the file
@@ -342,7 +367,7 @@ class IQ:
         # TODO: did not work using arrays
         iq_real_arr = []
         iq_imag_arr = []
-        for dmap_record in cls.dmap_data:
+        for dmap_record in dmap_data:
             if (dmap_record['bmnum'] == beam_num or beam_num == 'all') and\
                     (dmap_record['channel'] == channel or channel == 'all'):
                 rec_time = time2datetime(dmap_record)
@@ -395,26 +420,3 @@ class IQ:
 
         return ax, mag
 
-    @classmethod
-    def __determine_start_end_time(cls, start_time: datetime,
-                                   end_time: datetime) -> tuple:
-        """
-        Sets the start and end time based on import of dmap_data
-
-        Parameter
-        ---------
-        start_time: datetime
-            Start time is used to check if it was set or not
-        end_time: datetime
-            End time is used to check if it was set or not
-
-        Returns
-        -------
-        start_time: datetime
-        end_time: datetime
-        """
-        if not start_time:
-            start_time = time2datetime(cls.dmap_data[0])
-        if not end_time:
-            end_time = time2datetime(cls.dmap_data[-1])
-        return start_time, end_time
