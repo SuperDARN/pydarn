@@ -79,7 +79,7 @@ class IQ:
     @staticmethod
     def plot_iq_sequence(dmap_data: List[dict],
                          start_time: datetime = None,
-                         channel: int = 0, ax = None, beam_num: int = 0,
+                         channel: int = 0, ax=None, beam_num: int = 0,
                          sequence_num: int = 0, interferometer: bool = False,
                          plot_phase: bool = False):
         """
@@ -116,8 +116,8 @@ class IQ:
         else:
             record_num = 0
         # Get the next record with the correct beam
-        while (dmap_data[record_num]['bmnum'] != beam_num 
-                and (dmap_data[record_num]['channel'] != channel 
+        while (dmap_data[record_num]['bmnum'] != beam_num
+                and (dmap_data[record_num]['channel'] != channel
                      and channel != 'all')):
             record_num += 1
             if record_num >= len(dmap_data):
@@ -203,13 +203,22 @@ class IQ:
         ax.set_xlabel('Sample Number')
         ax.grid()
 
-        return ax, [iq_real, iq_imag, mag]
+        return {'ax': ax,
+                'ccrs': None,
+                'cm': None,
+                'cb': None,
+                'fig': plt.gcf(),
+                'data': {'iq_real': iq_real,
+                         'iq_imag': iq_imag,
+                         'magnitude': mag}
+                }
 
     @staticmethod
     def plot_iq_record(dmap_data: List[dict],
                        start_time: datetime = None,
-                       channel: int = 0, ax = None, beam_num: int = 0,
-                       interferometer: bool = False):
+                       channel: int = 0, ax=None, beam_num: int = 0,
+                       interferometer: bool = False,
+                       cmap=plt.colormaps['viridis']):
         """
         Plots all sequences from a record of IQ data
 
@@ -230,6 +239,8 @@ class IQ:
         interferometer: bool
             Data from main array (False) or interferometer array (True)
             Default False
+        cmap: matplotlib.cm object
+            Default: viridis
         """
         # Finds start of minute scan records, then scans the records to
         # find the next record with the correct beam
@@ -239,7 +250,7 @@ class IQ:
             record_num = 0
         # Get the next record with the correct beam
         while (dmap_data[record_num]['bmnum'] != beam_num
-                and (dmap_data[record_num]['channel'] != channel 
+                and (dmap_data[record_num]['channel'] != channel
                      and channel != 'all')):
             record_num += 1
             if record_num >= len(dmap_data):
@@ -279,7 +290,7 @@ class IQ:
         # Plot
         if ax is None:
             ax = plt.gca()
-        pcol = ax.pcolormesh(mag, vmin=0, vmax=600)
+        pcol = ax.pcolormesh(mag, vmin=0, vmax=600, cmap=cmap)
         cb = ax.figure.colorbar(pcol, extend='max')
         cb.set_label('Power (AU)')
 
@@ -295,8 +306,15 @@ class IQ:
         ax.set_xlabel('Sequence Number')
         ax.grid()
 
-        return ax, mag
-
+        return {'ax': ax,
+                'ccrs': None,
+                'cm': cmap,
+                'cb': cb,
+                'fig': plt.gcf(),
+                'data': {'iq_real': iq_real_arr,
+                         'iq_imag': iq_imag_arr,
+                         'magnitude': mag}
+                }
 
     @staticmethod
     def __determine_start_end_time(dmap_data, start_time: datetime,
@@ -323,13 +341,13 @@ class IQ:
             end_time = time2datetime(dmap_data[-1])
         return start_time, end_time
 
-
     @staticmethod
     def plot_iq_overview(dmap_data: List[dict],
                          start_time: datetime = None,
                          end_time: datetime = None,
-                         channel: int = 0, ax = None, beam_num: int = 'all',
-                         interferometer: bool = False):
+                         channel: int = 0, ax=None, beam_num: int = 'all',
+                         interferometer: bool = False,
+                         cmap: object = plt.colormaps['viridis']):
         """
         Plots all sequences from a record of IQ data
 
@@ -352,10 +370,12 @@ class IQ:
         interferometer: bool
             Data from main array (False) or interferometer array (True)
             Default False
+        cmap: matplotlib.cm object
+            Default: viridis
         """
         start_time, end_time = IQ.__determine_start_end_time(dmap_data,
-                                                           start_time,
-                                                           end_time)
+                                                             start_time,
+                                                             end_time)
 
         # Assuming the samples and sequences will stay constant
         # over the file
@@ -401,7 +421,7 @@ class IQ:
         # Plot
         if ax is None:
             ax = plt.gca()
-        pcol = ax.pcolormesh(mag.T, vmin=0, vmax=1000)
+        pcol = ax.pcolormesh(mag.T, vmin=0, vmax=1000, cmap=cmap)
         cb = ax.figure.colorbar(pcol, extend='max')
         cb.set_label('Power (AU)')
 
@@ -418,5 +438,12 @@ class IQ:
         ax.set_xlabel('Sequence Number')
         ax.grid()
 
-        return ax, mag
-
+        return {'ax': ax,
+                'ccrs': None,
+                'cm': cmap,
+                'cb': cb,
+                'fig': plt.gcf(),
+                'data': {'iq_real': iq_real_arr,
+                         'iq_imag': iq_imag_arr,
+                         'magnitude': mag}
+                }
