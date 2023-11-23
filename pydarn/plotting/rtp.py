@@ -10,6 +10,7 @@
 # 2022-03-04 Marina Schmidt added RangeEstimations in
 # 2022-08-04 Carley Martin added elifs for HALF_SLANT options
 # 2023-06-12 Carley Martin added coordinate plotting method
+# 2023-06-28 Carley Martin refactored return values
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
@@ -534,7 +535,16 @@ class RTP():
             cb = colorbar
         if colorbar_label != '':
             cb.set_label(colorbar_label)
-        return im, cb, cmap, x, y, z_data
+        return {'ax': ax,
+                'ccrs': None,
+                'cm': cmap,
+                'cb': cb,
+                'fig': plt.gcf(),
+                'data': {'plot_data': im,
+                         'x': x,
+                         'y': y,
+                         'z': z_data}
+                }
 
 
     @classmethod
@@ -824,7 +834,15 @@ class RTP():
         ax.margins(x=0)
         ax.tick_params(axis='y', which='minor')
 
-        return lines, x, y
+        return {'ax': ax,
+                'ccrs': None,
+                'cm': None,
+                'cb': None,
+                'fig': plt.gcf(),
+                'data': {'lines': lines,
+                         'x': x,
+                         'y': y}
+                }
 
     @classmethod
     def plot_summary(cls, dmap_data: List[dict],
@@ -1150,7 +1168,7 @@ class RTP():
                 with warnings.catch_warnings():
                     warnings.simplefilter("once")
                     if latlon is None:
-                        _, cbar, _, x, _, _ =\
+                        rt_rtn =\
                             cls.plot_range_time(dmap_data, beam_num=beam_num,
                                             colorbar_label=labels[i],
                                             channel=channel,
@@ -1166,7 +1184,7 @@ class RTP():
                                             range_estimation=range_estimation,
                                             **kwargs)
                     else:
-                        _, cbar, _, x, _, _ =\
+                        rt_rtn =\
                             cls.plot_coord_time(dmap_data, beam_num=beam_num,
                                             colorbar_label=labels[i],
                                             channel=channel,
@@ -1182,6 +1200,8 @@ class RTP():
                                             range_estimation=range_estimation,
                                             coords=coords, latlon=latlon,
                                             **kwargs)
+                cbar = rt_rtn['cb']
+                x = rt_rtn['data']['x']
                 # Overwriting velocity ticks to get a better pleasing
                 # look on the colorbar
                 # Preference by Marina Schmidt
@@ -1234,7 +1254,13 @@ class RTP():
                      color='gray', ha='right', va='top',
                      rotation=-38, alpha=0.3)
 
-        return fig, axes
+        return {'ax': axes,
+                'ccrs': None,
+                'cm': cmap,
+                'cb': None,
+                'fig': fig,
+                'data': 'Individual range-time plots will return full data.'
+                }
 
 
     @classmethod
@@ -1856,7 +1882,16 @@ class RTP():
             cb = colorbar
         if colorbar_label != '':
             cb.set_label(colorbar_label)
-        return im, cb, cmap, x, y, z_data
+        return {'ax': ax,
+                'ccrs': None,
+                'cm': cmap,
+                'cb': cb,
+                'fig': plt.gcf(),
+                'data': {'plot_data': im,
+                         'x': x,
+                         'y': y,
+                         'z': z_data}
+                }
 
 
     # TODO: if used in other plotting methods then this should moved to

@@ -11,6 +11,7 @@
 #                   vector
 # 2022-08-15: CJM - Removed plot_FOV call for default uses
 # 2022-12-13: CJM - Limited reference vectors to only velocity use
+# 2023-06-28: CJM - Refactored return values
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
@@ -62,7 +63,6 @@ class Maps():
         return "This class is static class that provides"\
                 " the following methods: \n"\
                 "   - plot_maps()\n"
-
 
     @classmethod
     def plot_mapdata(cls, dmap_data: List[dict], ax=None,
@@ -201,10 +201,11 @@ class Maps():
             # Else just call the axis maker: proj
             if boundary or radar_location:
                 for stid in dmap_data[record]['stid']:
-                    _, _, ax, _ =\
-                            Fan.plot_fov(stid, date, ax=ax, boundary=boundary,
-                                         radar_location=radar_location,
-                                         **kwargs)
+                    fan_rtn = Fan.plot_fov(stid, date, ax=ax,
+                                           boundary=boundary,
+                                           radar_location=radar_location,
+                                           **kwargs)
+                    ax = fan_rtn['ax']
             else:
                 ax, _ = projs(date, ax=ax, hemisphere=hemisphere, **kwargs)
 
@@ -328,7 +329,8 @@ class Maps():
                                 vmin=zmin, vmax=zmax,  cmap=cmap, zorder=5.0,
                                 clip_on=False)
                     plt.plot([mlons[-1], end_mlons[-1]],
-                             [mlats[-1], end_mlats[-1]], c=cmap(norm(v_mag[-1])),
+                             [mlats[-1], end_mlats[-1]],
+                             c=cmap(norm(v_mag[-1])),
                              linewidth=0.5, zorder=5.0, clip_on=False)
                     plt.figtext(0.675, 0.15, str(reference_vector) + ' m/s',
                                 fontsize=8)
@@ -360,7 +362,7 @@ class Maps():
                                 zorder=5.0)
             else:
                 plt.scatter(mlons[:], mlats[:], c='#292929', s=2.0,
-                                zorder=5.0)
+                            zorder=5.0)
 
         if colorbar is True:
             mappable = cm.ScalarMappable(norm=norm, cmap=cmap)
@@ -386,6 +388,8 @@ class Maps():
                     cb.set_label('Spectral Width (m s$^{-1}$)')
                 elif parameter is MapParams.POWER:
                     cb.set_label('Power')
+        else:
+            cb = None
 
         # Plot potential contours
         fit_coefficient = dmap_data[record]['N+2']
@@ -394,16 +398,25 @@ class Maps():
         lon_shift = dmap_data[record]['lon.shft']
         lat_min = dmap_data[record]['latmin']
 
-        cls.plot_potential_contours(fit_coefficient, lat_min, date, ax,
-                                    lat_shift=lat_shift, lon_shift=lon_shift,
-                                    fit_order=fit_order, hemisphere=hemisphere,
-                                    **kwargs)
+        _, _, pot_arr, cs = cls.plot_potential_contours(fit_coefficient,
+                                                        lat_min,
+                                                        date, ax,
+                                                        lat_shift=lat_shift,
+                                                        lon_shift=lon_shift,
+                                                        fit_order=fit_order,
+                                                        hemisphere=hemisphere,
+                                                        **kwargs)
 
         if hmb is True:
             # Plot the HMB
             mlats_hmb = dmap_data[record]['boundary.mlat']
             mlons_hmb = dmap_data[record]['boundary.mlon']
-            cls.plot_heppner_maynard_boundary(mlats_hmb, mlons_hmb, date)
+            hmb_lon, hmb_lat = cls.plot_heppner_maynard_boundary(mlats_hmb,
+                                                                 mlons_hmb,
+                                                                 date)
+        else:
+            hmb_lon = None
+            hmb_lat = None
 
         if title == '':
             title = "{year}-{month}-{day} {start_hour}:{start_minute} -"\
@@ -425,17 +438,33 @@ class Maps():
             pol_cap_pot = dmap_data[record]['pot.drop']
             cls.add_map_info(fit_order, pol_cap_pot, num_points, model)
 
+        bx = dmap_data[record]['IMF.Bx']
+        by = dmap_data[record]['IMF.By']
+        bz = dmap_data[record]['IMF.Bz']
+        delay = dmap_data[record]['IMF.delay']
+        bt = np.sqrt(bx**2 + by**2 + bz**2)
         if imf_dial is True:
             # Plot the IMF dial
-            bx = dmap_data[record]['IMF.Bx']
-            by = dmap_data[record]['IMF.By']
-            bz = dmap_data[record]['IMF.Bz']
-            delay = dmap_data[record]['IMF.delay']
-            bt = np.sqrt(bx**2 + by**2 + bz**2)
             cls.plot_imf_dial(ax, by, bz, bt, delay)
 
-        return mlats, mlons, v_mag
-
+        return {'ax': ax,
+                'ccrs': None,
+                'cm': cmap,
+                'cb': cb,
+                'fig': plt.gcf(),
+                'data': {'cpcp': pol_cap_pot,
+                         'fit_model': model,
+                         'fit_order': fit_order,
+                         'num_vectors': num_points,
+                         'mlats': mlats,
+                         'mlons': mlons,
+                         'v_mag': v_mag,
+                         'azm_v': azm_v,
+                         'potential_array': pot_arr,
+                         'hmb': [hmb_lat, hmb_lon],
+                         'imf': [bx, by, bz, bt, delay],
+                         'contours': cs}
+                }
 
     @classmethod
     def index_legendre(cls, l: int, m: int):
@@ -455,7 +484,6 @@ class Maps():
         """
         return (m == 0 and l**2) or ((l != 0)
                                      and (m != 0) and l**2 + 2 * m - 1) or 0
-
 
     @classmethod
     def calculated_fitted_velocities(cls, mlats: list, mlons: list,
@@ -659,7 +687,6 @@ class Maps():
 
         return velocity, azm_v
 
-
     @classmethod
     def add_map_info(cls, fit_order: float, pol_cap_pot: float,
                      num_points: float, model: str):
@@ -685,7 +712,6 @@ class Maps():
                       + 'Order: ' + str(fit_order) + '\n' \
                       + 'Model: ' + model + '\n'
         plt.figtext(0.1, 0.1, text_string)
-
 
     @classmethod
     def plot_heppner_maynard_boundary(cls, mlats: list, mlons: list,
@@ -718,7 +744,7 @@ class Maps():
         mlon = np.radians(shifted_lons)
 
         plt.plot(mlon, mlats, c=line_color, zorder=4.0, **kwargs)
-
+        return mlon, mlats
 
     @classmethod
     def plot_imf_dial(cls, ax: object, by: float = 0, bz: float = 0,
@@ -774,7 +800,6 @@ class Maps():
                         fontsize=7)
         ax_imf.annotate('Delay = -' + str(delay) + ' min', xy=(-16, -17),
                         fontsize=7)
-
 
     @classmethod
     def calculate_potentials(cls, fit_coefficient: list, lat_min: list,
@@ -883,7 +908,6 @@ class Maps():
         mlat_center = mlat_center * hemisphere.value
 
         return mlat_center, mlon_center, pot_arr
-
 
     @classmethod
     def plot_potential_contours(cls, fit_coefficient: list, lat_min: list,
@@ -1056,6 +1080,7 @@ class Maps():
                     color=pot_minmax_color, zorder=5.0)
         plt.scatter(np.radians(min_mlon), min_mlat, marker='_', s=70,
                     color=pot_minmax_color, zorder=5.0)
+        return mlat, mlon_u, pot_arr, cs
 
     @classmethod
     def find_map_record(cls, dmap_data: List[dict], start_time: dt.datetime):

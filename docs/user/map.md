@@ -54,16 +54,17 @@ map_data = SDarn_read.read_map()
 ```
 With the map data loaded as a list of dictionaries (`map_data` variable in above example), you may now call the `plot_mapdata` method. Make sure you tell the method what time, in [`datetime` format], or record number (numbered from first recorded in file, counting from 0):
 ```python
-mapplot = pydarn.Maps.plot_mapdata(map_data, record=150)
+map_rtn = pydarn.Maps.plot_mapdata(map_data, record=150)
 plt.show()
 
 ```
 In this example, the record at 150 was plotted with the defaulted parameter, `MapParams.FITTED_VELOCITIES` (fitted velocities), being mapped:
 ![](../imgs/map_1.png)
 
-You might have noticed that the variable `mapplot` in the examples above actually holds some information. This contains the AACGM latitude and longitude of the mapped vectors plotted. If you instead change `mapplot` to 3 separate variables, it will return the latitude, longitude, and data info into separate variables:
+You might have noticed that the variable `map_rtn` in the examples above actually holds some information. This dictionary contains the AACGM latitude and longitude of the mapped vectors plotted:
 ```python
-lats,lons,data=pydarn.Maps.plot_mapdata(map_data, start_time=stime)
+map_rtn = pydarn.Maps.plot_mapdata(map_data, start_time=stime)
+print(map_rtn.keys())
 ```
 
 ### Additional options
