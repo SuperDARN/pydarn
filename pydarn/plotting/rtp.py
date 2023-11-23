@@ -1882,7 +1882,16 @@ class RTP():
             cb = colorbar
         if colorbar_label != '':
             cb.set_label(colorbar_label)
-        return im, cb, cmap, x, y, z_data
+        return {'ax': ax,
+                'ccrs': None,
+                'cm': cmap,
+                'cb': cb,
+                'fig': plt.gcf(),
+                'data': {'plot_data': im,
+                         'x': x,
+                         'y': y,
+                         'z': z_data}
+                }
 
 
     # TODO: if used in other plotting methods then this should moved to
