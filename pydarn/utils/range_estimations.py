@@ -12,12 +12,15 @@
 #
 # Modifications:
 # 2022-08-04 CJM added HALF_SLANT option and gate2halfslant method
-#
+# 2023-09-14 CJM moved GSMR to GSMR_BRISTOW and used new GSMR alg
 
 import enum
 import numpy as np
+import warnings
 
-from pydarn import Re, C
+from pydarn import Re, C, standard_warning_format
+
+warnings.formatwarning = standard_warning_format
 
 
 def gate2halfslant(**kwargs):
@@ -38,15 +41,15 @@ def gate2halfslant(**kwargs):
     return half_slant
 
 
-def gate2groundscatter(reflection_height: float = 250, **kwargs):
+def gate2gs_bristow(virtual_height: float = 250, **kwargs):
     """
     Calculate the ground scatter mapped range (km) for each slanted range
     for SuperDARN data. This function is based on the Ground Scatter equation
     from Bristow paper at https://doi.org/10.1029/93JA01470 on page 325
     Parameters
     ----------
-        reflection_height: float
-            reflection height
+        virtual_height: float
+            virtual height
             default:  250
 
     Returns
@@ -55,9 +58,47 @@ def gate2groundscatter(reflection_height: float = 250, **kwargs):
             returns an array of ground scatter mapped ranges for the radar
     """
     slant_ranges = gate2slant(**kwargs)
-    ground_scatter_mapped_ranges =\
-            Re*np.arcsin(np.sqrt((slant_ranges**2/4)-
-                                 (reflection_height**2))/Re)
+    ground_scatter_mapped_ranges = Re * np.arcsin(np.sqrt((slant_ranges**2 / 4)
+                                                  - (virtual_height**2)) / Re)
+    # Check to see if there is an issue with the sqrt and
+    # give user a warning if so, these values will be dealt with in
+    # the individual plotting algs as we need to return the full array
+    # of values for the complete beam*range gate array
+    if any(np.isfinite(ground_scatter_mapped_ranges)):
+        warnings.warn("Warning: Be aware that the range estimation"
+                      " you have chosen has calculated some infinite"
+                      " values. These values will not be plotted."
+                      " You may use RangeEstimation.GSMR to avoid this"
+                      " issue.")
+    return ground_scatter_mapped_ranges
+
+
+def gate2groundscatter(virtual_height: float = 250, hop: float = 0.5,
+                       **kwargs):
+    """
+    Calculate the ground scatter mapped range (km) for each slanted range
+    for SuperDARN data. This function is based on the Ground Scatter equation
+    discussed in the issue github.com/SuperDARN/pydarn/issues/257
+    Parameters
+    ----------
+        virtual_height: float
+            virtual height
+            default:  250
+        hop: float
+            hop number of returning data
+            default: 0.5
+
+    Returns
+    -------
+        ground_scatter_mapped_ranges : np.array
+            returns an array of ground scatter mapped ranges for the radar
+    """
+    slant_ranges = gate2slant(**kwargs)
+
+    num = - Re**2 - (Re + virtual_height)**2\
+        + (slant_ranges/2 * (0.5 / hop))**2
+    den = 2 * Re * (Re + virtual_height)
+    ground_scatter_mapped_ranges = (hop/0.5) * Re * np.arccos(- num / den)
 
     return ground_scatter_mapped_ranges
 
@@ -139,6 +180,7 @@ class RangeEstimation(enum.Enum):
     SLANT_RANGE = (gate2slant,)
     HALF_SLANT = (gate2halfslant,)
     GSMR = (gate2groundscatter,)
+    GSMR_BRISTOW = (gate2gs_bristow,)
 
     # Need this to make the functions callable
     def __call__(self, *args, **kwargs):

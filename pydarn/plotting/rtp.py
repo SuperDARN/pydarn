@@ -1211,6 +1211,8 @@ class RTP():
                     axes[i].set_ylabel('Slant Range (km)')
                 elif range_estimation == RangeEstimation.GSMR:
                     axes[i].set_ylabel('Ground Scatter\nMapped Range\n(km)')
+                elif range_estimation == RangeEstimation.GSMR_BRISTOW:
+                    axes[i].set_ylabel('Ground Scatter\nMapped Range\n(km)')
                 elif range_estimation == RangeEstimation.HALF_SLANT:
                     axes[i].set_ylabel('Slant Range/2\n(km)')
                 else:
