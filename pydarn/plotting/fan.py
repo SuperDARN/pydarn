@@ -21,7 +21,8 @@
 # 2022-03-23: MTS - added the NotImplementedError for AACGM and GEO projection
 #                   as this has yet to be figured out
 # 2023-02-06: CJM - Added option to plot single beams in a scan or FOV diagram
-# 2023-03-01: CJM - Added ball and stick plotting options
+# 2023-03-01: CJM - Added ball and stick plotting options (merged later in year)
+# 2023-08-16: CJM - Corrected for winding order in geo plots
 # 2023-06-28: CJM - Refactored return values
 #
 # Disclaimer:
@@ -577,6 +578,13 @@ class Fan:
 
         if projs == Projs.POLAR:
             beam_corners_lons = np.radians(beam_corners_lons)
+
+        # This section corrects winding order for cartopy plots on a sphere
+        # so that the outline is always anti-clockwise and will fill inside
+        bmsep = SuperDARNRadars.radars[stid].hardware_info.beam_separation
+        if projs == Projs.GEO and bmsep < 0:
+            beam_corners_lons = beam_corners_lons[::-1]
+            beam_corners_lats = beam_corners_lats[::-1]
 
         # Setup plot
         # This may screw up references
