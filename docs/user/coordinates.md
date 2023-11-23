@@ -94,7 +94,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # North Winter
-_,_,ax1,ccrs1=pydarn.Fan.plot_fov(66, dt.datetime(2023, 12, 21, 0, 0),
+pydarn.Fan.plot_fov(66, dt.datetime(2023, 12, 21, 0, 0),
     lowlat= 5, boundary=True, line_color='red', coastline=True, nightshade=250)
 
 # Test to plot terminator if ever required - plot line not fill!

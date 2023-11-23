@@ -42,7 +42,7 @@ fitacf_data = SDarn_read.read_fitacf()
 ```
 With the FITACF data loaded as a list of dictionaries (`fitacf_data` variable in above example), you may now call the `plot_fan` method. Make sure you tell it which scan (numbered from first recorded scan in file, counting from 1 or give it a `datetime` object for the scan at that time) you want using `scan_index`:
 ```python
-fanplot = pydarn.Fan.plot_fan(fitacf_data, scan_index=27, 
+fan_rtn = pydarn.Fan.plot_fan(fitacf_data, scan_index=27, 
                               colorbar_label='Velocity [m/s]')
 plt.show()
 ```
@@ -64,7 +64,7 @@ plt.show()
 Default plots also do not show groundscatter as grey. Set it to true to colour groundscatter:
 
 ```python
-fanplot = pydarn.Fan.plot_fan(fitacf_data,
+fan_rtn = pydarn.Fan.plot_fan(fitacf_data,
                               scan_index=27,
                               groundscatter=True)
 plt.show()
@@ -72,15 +72,15 @@ plt.show()
 ```
 ![](../imgs/fan_2.png)
 
-You might have noticed that the variable `fanplot` in the examples above actually holds some information. This contains the AACGM latitude and longitude of the fan just plotted, as well as the data, ground scatter information, and datetime object. If you instead change `fanplot` to 5 separate variables, it will return the latitude, longitude, data, groundscatter and datetime info into seperate variables:
+You might have noticed that the variable `fan_rtn` in the examples above actually holds some information. This return value is a dictionary containing data in the plot, ax and ccrs values along with color map and color bar information:
 ```python
-ax, lats, lons, data, grndsct = pydarn.Fan.plot_fan(fitacf_data,
-                                                    scan_index=27)
+fan_rtn = pydarn.Fan.plot_fan(fitacf_data, scan_index=27)
 
-lats.shape
-
+print(fan_rtn.keys())
 ```
-Which returns `>>>(76, 17)`, i.e. ranges x beams array of the latitude, and so on for the other variables. The groundscatter array is 0's and 1's, 1 being a range gate flagged as groundscatter.
+```
+>>> dict_keys(['ax', 'ccrs', 'cm', 'cb', 'fig', 'data'])
+```
 
 ### Additional parameters
 
@@ -139,13 +139,13 @@ pyk_file = 'data/20150308.1401.00.pyk.fitacf'
 pyk_data = pydarn.SuperDARNRead().read_dmap(pyk_file)
 cly_data = pydarn.SuperDARNRead().read_dmap(cly_file)
 
-ax, _, _, _, _ = pydarn.Fan.plot_fan(cly_data, scan_index=datetime(2015, 3, 8, 14, 4),
+fan_rtn = pydarn.Fan.plot_fan(cly_data, scan_index=datetime(2015, 3, 8, 14, 4),
                     colorbar=False, fov_color='grey', line_color='blue',
                     radar_label=True)
 
 pydarn.Fan.plot_fan(pyk_data, scan_index=datetime(2015, 3, 8, 14, 4), 
                     colorbar_label='Velocity [m/s]', fov_color='grey',
-                    line_color='red', radar_label=True, ax=ax)
+                    line_color='red', radar_label=True, ax=fan_rtn['ax'])
 
 plt.show()
 ```
@@ -155,12 +155,12 @@ plt.show()
 Using *cartopy* to plot underlaid coastline map using the `coastline` keyword, this example also shows the use of plotting in geographic coordinates:
 
 ```python
-ax, _, _, _, _ = pydarn.Fan.plot_fan(data, scan_index=5, radar_label=True,
-                                     groundscatter=True,
-                                     coords=pydarn.Coords.GEOGRAPHIC,
-                                     projs=pydarn.Projs.GEO,
-                                     colorbar_label="Velocity m/s",
-                                     coastline=True)
+pydarn.Fan.plot_fan(data, scan_index=5, radar_label=True,
+                    groundscatter=True,
+                    coords=pydarn.Coords.GEOGRAPHIC,
+                    projs=pydarn.Projs.GEO,
+                    colorbar_label="Velocity m/s",
+                    coastline=True)
 plt.show()
 ``` 
 
