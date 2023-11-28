@@ -398,14 +398,14 @@ class Maps():
         lon_shift = dmap_data[record]['lon.shft']
         lat_min = dmap_data[record]['latmin']
 
-        _, _, pot_arr, cs = cls.plot_potential_contours(fit_coefficient,
-                                                        lat_min,
-                                                        date, ax,
-                                                        lat_shift=lat_shift,
-                                                        lon_shift=lon_shift,
-                                                        fit_order=fit_order,
-                                                        hemisphere=hemisphere,
-                                                        **kwargs)
+        _, _, pot_arr, cs, cb_contour = \
+            cls.plot_potential_contours(fit_coefficient,
+                                        lat_min,date, ax,
+                                        lat_shift=lat_shift,
+                                        lon_shift=lon_shift,
+                                        fit_order=fit_order,
+                                        hemisphere=hemisphere,
+                                        **kwargs)
 
         if hmb is True:
             # Plot the HMB
@@ -450,7 +450,7 @@ class Maps():
         return {'ax': ax,
                 'ccrs': None,
                 'cm': cmap,
-                'cb': cb,
+                'cb': [cb, cb_contour],
                 'fig': plt.gcf(),
                 'data': {'cpcp': pol_cap_pot,
                          'fit_model': model,
@@ -1041,29 +1041,31 @@ class Maps():
             # Filled contours
             norm = colors.Normalize
             norm = norm(pot_zmin, pot_zmax)
-            plt.contourf(np.radians(mlon), mlat, pot_arr, 2, norm=norm,
-                         vmax=pot_zmax,
-                         vmin=pot_zmin,
-                         levels=np.array(contour_levels),
-                         cmap=contour_fill_cmap, alpha=0.5,
-                         extend='both', zorder=3.0)
+            cs = plt.contourf(np.radians(mlon), mlat, pot_arr, 2,
+                              norm=norm, vmax=pot_zmax, vmin=pot_zmin,
+                              levels=np.array(contour_levels),
+                              cmap=contour_fill_cmap, alpha=0.5,
+                              extend='both', zorder=3.0)
             if contour_colorbar is True:
                 mappable = cm.ScalarMappable(norm=norm, cmap=contour_fill_cmap)
                 locator = ticker.MaxNLocator(symmetric=True, min_n_ticks=3,
                                              integer=True, nbins='auto')
                 ticks = locator.tick_values(vmin=pot_zmin,
                                             vmax=pot_zmax)
-                cb = plt.colorbar(mappable, ax=ax, extend='both', ticks=ticks)
+                cb_contour = plt.colorbar(mappable, ax=ax, extend='both',
+                                          ticks=ticks)
                 if contour_colorbar_label != '':
-                    cb.set_label(contour_colorbar_label)
+                    cb_contour.set_label(contour_colorbar_label)
+            else:
+                cd_contour = None
         else:
             # Contour lines only
             cs = plt.contour(np.radians(mlon), mlat, pot_arr, 2,
-                             vmax=pot_zmax,
-                             vmin=pot_zmin,
+                             vmax=pot_zmax, vmin=pot_zmin,
                              levels=np.array(contour_levels),
                              colors=contour_color, alpha=0.8,
                              linewidths=contour_linewidths, zorder=3.0)
+            cb_contour = None
             # TODO: Add in contour labels
             # if contour_label:
             #    plt.clabel(cs, cs.levels, inline=True, fmt='%d', fontsize=5)
@@ -1080,7 +1082,7 @@ class Maps():
                     color=pot_minmax_color, zorder=5.0)
         plt.scatter(np.radians(min_mlon), min_mlat, marker='_', s=70,
                     color=pot_minmax_color, zorder=5.0)
-        return mlat, mlon_u, pot_arr, cs
+        return mlat, mlon_u, pot_arr, cs, cb_contour
 
     @classmethod
     def find_map_record(cls, dmap_data: List[dict], start_time: dt.datetime):
