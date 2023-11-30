@@ -44,7 +44,7 @@ import aacgmv2
 
 from pydarn import (PyDARNColormaps, plot_exceptions,
                     standard_warning_format, Re, Hemisphere,
-                    time2datetime, find_record, Fan, Projs, 
+                    time2datetime, find_record, Fan, Projs,
                     MapParams, TimeSeriesParams)
 warnings.formatwarning = standard_warning_format
 
@@ -307,19 +307,40 @@ class Maps():
             # vector to be plotted later if required)
             if color_vectors is True:
                 for i in range(len(v_mag) - 1):
-                    plt.plot([mlons[i], end_mlons[i]],
-                             [mlats[i], end_mlats[i]], c=cmap(norm(v_mag[i])),
-                             linewidth=0.5, zorder=5.0)
+                    if parameter == MapParams.FITTED_VELOCITY:
+                        rounded_mlon = int(5 * round(np.degrees(mlons[i])/5))
+                        ind = np.where(dmap_data[record]['boundary.mlon'] ==
+                                       rounded_mlon)
+                        lat_limit = dmap_data[record]['boundary.mlat'][ind]
+                        if mlats[i] >= lat_limit:
+                            plt.plot([mlons[i], end_mlons[i]],
+                                     [mlats[i], end_mlats[i]],
+                                     c=cmap(norm(v_mag[i])),
+                                     linewidth=0.5, zorder=5.0)
+                    else:
+                        plt.plot([mlons[i], end_mlons[i]],
+                                 [mlats[i], end_mlats[i]],
+                                 c=cmap(norm(v_mag[i])),
+                                 linewidth=0.5, zorder=5.0)
             else:
                 for i in range(len(v_mag) - 1):
-                    plt.plot([mlons[i], end_mlons[i]],
-                             [mlats[i], end_mlats[i]], c='#292929',
-                             linewidth=0.5, zorder=5.0)
+                    if parameter == MapParams.FITTED_VELOCITY:
+                        rounded_mlon = int(5 * round(np.degrees(mlons[i])/5))
+                        ind = np.where(dmap_data[record]['boundary.mlon'] ==
+                                       rounded_mlon)
+                        lat_limit = dmap_data[record]['boundary.mlat'][ind]
+                        if mlats[i] >= lat_limit:
+                            plt.plot([mlons[i], end_mlons[i]],
+                                     [mlats[i], end_mlats[i]], c='#292929',
+                                     linewidth=0.5, zorder=5.0)
+                    else:
+                        plt.plot([mlons[i], end_mlons[i]],
+                                 [mlats[i], end_mlats[i]], c='#292929',
+                                 linewidth=0.5, zorder=5.0)
 
         # Plot the sock start dots and reference vector if known
         if color_vectors is True:
-            if parameter in [MapParams.FITTED_VELOCITY,
-                             MapParams.MODEL_VELOCITY,
+            if parameter in [MapParams.MODEL_VELOCITY,
                              MapParams.RAW_VELOCITY]:
                 if reference_vector > 0:
                     plt.scatter(mlons[:-1], mlats[:-1], c=v_mag[:-1], s=2.0,
@@ -337,6 +358,29 @@ class Maps():
                 else:
                     plt.scatter(mlons[:-1], mlats[:-1], c=v_mag[:-1], s=2.0,
                                 vmin=zmin, vmax=zmax,  cmap=cmap, zorder=5.0)
+            elif parameter is MapParams.FITTED_VELOCITY:
+                for m, mlon in enumerate(mlons[:-1]):
+                    rounded_mlon = int(5 * round(np.degrees(mlon)/5))
+                    ind = np.where(dmap_data[record]['boundary.mlon'] ==
+                                   rounded_mlon)
+                    lat_limit = dmap_data[record]['boundary.mlat'][ind]
+                    if mlats[m] >= lat_limit:
+                        plt.scatter(mlon, mlats[m], color=cmap(norm(v_mag[m])),
+                                    s=2.0, zorder=5.0, clip_on=True)
+                    else:
+                        plt.scatter(mlon, mlats[m], c='#DDDDDD', s=2.0,
+                                    zorder=5.0, clip_on=True)
+                if reference_vector > 0:
+                    plt.scatter(mlons[-1], mlats[-1],
+                                color=cmap(norm(v_mag[-1])),
+                                s=2.0, zorder=5.0, clip_on=False)
+                    plt.plot([mlons[-1], end_mlons[-1]],
+                             [mlats[-1], end_mlats[-1]],
+                             c=cmap(norm(v_mag[-1])),
+                             linewidth=0.5, zorder=5.0, clip_on=False)
+                    plt.figtext(0.675, 0.15, str(reference_vector) + ' m/s',
+                                fontsize=8)
+            # No vector socks on spectral width
             else:
                 plt.scatter(mlons[:], mlats[:], c=v_mag[:], s=2.0,
                             vmin=zmin, vmax=zmax,  cmap=cmap, zorder=5.0)
@@ -344,8 +388,7 @@ class Maps():
         else:
             # no color so make sure colorbar is turned off
             colorbar = False
-            if parameter in [MapParams.FITTED_VELOCITY,
-                             MapParams.MODEL_VELOCITY,
+            if parameter in [MapParams.MODEL_VELOCITY,
                              MapParams.RAW_VELOCITY]:
                 if reference_vector > 0:
                     plt.scatter(mlons[:-1], mlats[:-1], c='#292929', s=2.0,
@@ -360,6 +403,27 @@ class Maps():
                 else:
                     plt.scatter(mlons[:-1], mlats[:-1], c='#292929', s=2.0,
                                 zorder=5.0)
+            elif parameter is MapParams.FITTED_VELOCITY:
+                for m, mlon in enumerate(mlons[:-1]):
+                    rounded_mlon = int(5 * round(np.degrees(mlon)/5))
+                    ind = np.where(dmap_data[record]['boundary.mlon'] ==
+                                   rounded_mlon)
+                    lat_limit = dmap_data[record]['boundary.mlat'][ind]
+                    if mlats[m] >= lat_limit:
+                        plt.scatter(mlon, mlats[m], c='#292929', s=2.0,
+                                    zorder=5.0, clip_on=True)
+                    else:
+                        plt.scatter(mlon, mlats[m], c='#DDDDDD', s=2.0,
+                                    zorder=5.0, clip_on=True)
+                if reference_vector > 0:
+                    plt.scatter(mlons[-1], mlats[-1], c='#292929', s=2.0,
+                                zorder=5.0, clip_on=False)
+                    plt.plot([mlons[-1], end_mlons[-1]],
+                             [mlats[-1], end_mlats[-1]], c='#292929',
+                             linewidth=0.5, zorder=5.0, clip_on=False)
+                    plt.figtext(0.675, 0.15, str(reference_vector) + ' m/s',
+                                fontsize=8)
+            # No vector socks on spectral width
             else:
                 plt.scatter(mlons[:], mlats[:], c='#292929', s=2.0,
                             zorder=5.0)
@@ -400,7 +464,7 @@ class Maps():
 
         _, _, pot_arr, cs, cb_contour = \
             cls.plot_potential_contours(fit_coefficient,
-                                        lat_min,date, ax,
+                                        lat_min, date, ax,
                                         lat_shift=lat_shift,
                                         lon_shift=lon_shift,
                                         fit_order=fit_order,
@@ -922,7 +986,7 @@ class Maps():
                                 contour_colorbar: bool = True,
                                 contour_fill_cmap: str = 'RdBu',
                                 contour_colorbar_label: str = 'Potential (kV)',
-                                pot_minmax_color: str = 'k', 
+                                pot_minmax_color: str = 'k',
                                 pot_zmin: int = -50,
                                 pot_zmax: int = 50,
                                 **kwargs):
@@ -1030,7 +1094,7 @@ class Maps():
             # Making the levels required, but skipping 0 as default to avoid a
             # contour at 0 position (looks weird)
             contour_levels = [*range(pot_zmin, 0, contour_spacing),
-                              *range(contour_spacing, 
+                              *range(contour_spacing,
                                      pot_zmax + contour_spacing,
                                      contour_spacing)]
         else:
@@ -1057,7 +1121,7 @@ class Maps():
                 if contour_colorbar_label != '':
                     cb_contour.set_label(contour_colorbar_label)
             else:
-                cd_contour = None
+                cb_contour = None
         else:
             # Contour lines only
             cs = plt.contour(np.radians(mlon), mlat, pot_arr, 2,
