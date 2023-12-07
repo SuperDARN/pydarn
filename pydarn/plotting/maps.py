@@ -308,11 +308,20 @@ class Maps():
             if color_vectors is True:
                 for i in range(len(v_mag) - 1):
                     if parameter == MapParams.FITTED_VELOCITY:
-                        rounded_mlon = int(5 * round(np.degrees(mlons[i])/5))
-                        ind = np.where(dmap_data[record]['boundary.mlon'] ==
-                                       rounded_mlon)
+                        # Shift HMB lons to MLT
+                        shifted_mlts = \
+                            dmap_data[record]['boundary.mlon'][0] - \
+                            (aacgmv2.convert_mlt(
+                                dmap_data[record]['boundary.mlon'][0],
+                                date) * 15)
+                        hmblons = (dmap_data[record]['boundary.mlon'] -
+                                   shifted_mlts) % 360
+                        # Find where the closest HMB value is, set equivalent
+                        # latitude as the lat limit for plotting
+                        rounded_mlon = np.degrees(mlons[i]) % 360
+                        ind = (np.abs(hmblons - rounded_mlon)).argmin()
                         lat_limit = dmap_data[record]['boundary.mlat'][ind]
-                        if mlats[i] >= lat_limit:
+                        if abs(mlats[i]) >= abs(lat_limit):
                             plt.plot([mlons[i], end_mlons[i]],
                                      [mlats[i], end_mlats[i]],
                                      c=cmap(norm(v_mag[i])),
@@ -325,11 +334,20 @@ class Maps():
             else:
                 for i in range(len(v_mag) - 1):
                     if parameter == MapParams.FITTED_VELOCITY:
-                        rounded_mlon = int(5 * round(np.degrees(mlons[i])/5))
-                        ind = np.where(dmap_data[record]['boundary.mlon'] ==
-                                       rounded_mlon)
+                        # Shift HMB lons to MLT
+                        shifted_mlts = \
+                            dmap_data[record]['boundary.mlon'][0] - \
+                            (aacgmv2.convert_mlt(
+                                dmap_data[record]['boundary.mlon'][0],
+                                date) * 15)
+                        hmblons = (dmap_data[record]['boundary.mlon'] -
+                                   shifted_mlts) % 360
+                        # Find where the closest HMB value is, set equivalent
+                        # latitude as the lat limit for plotting
+                        rounded_mlon = np.degrees(mlons[i]) % 360
+                        ind = (np.abs(hmblons - rounded_mlon)).argmin()
                         lat_limit = dmap_data[record]['boundary.mlat'][ind]
-                        if mlats[i] >= lat_limit:
+                        if abs(mlats[i]) >= abs(lat_limit):
                             plt.plot([mlons[i], end_mlons[i]],
                                      [mlats[i], end_mlats[i]], c='#292929',
                                      linewidth=0.5, zorder=5.0)
@@ -359,12 +377,19 @@ class Maps():
                     plt.scatter(mlons[:-1], mlats[:-1], c=v_mag[:-1], s=2.0,
                                 vmin=zmin, vmax=zmax,  cmap=cmap, zorder=5.0)
             elif parameter is MapParams.FITTED_VELOCITY:
+                # Shift HMB lons to MLT
+                shifted_mlts = dmap_data[record]['boundary.mlon'][0] - \
+                        (aacgmv2.convert_mlt(
+                            dmap_data[record]['boundary.mlon'][0], date) * 15)
+                hmblons = (dmap_data[record]['boundary.mlon'] -
+                           shifted_mlts) % 360
+                # Find where the closest HMB value is, set equivalent
+                # latitude as the lat limit for plotting
                 for m, mlon in enumerate(mlons[:-1]):
-                    rounded_mlon = int(5 * round(np.degrees(mlon)/5))
-                    ind = np.where(dmap_data[record]['boundary.mlon'] ==
-                                   rounded_mlon)
+                    rounded_mlon = np.degrees(mlon) % 360
+                    ind = (np.abs(hmblons - rounded_mlon)).argmin()
                     lat_limit = dmap_data[record]['boundary.mlat'][ind]
-                    if mlats[m] >= lat_limit:
+                    if abs(mlats[m]) >= abs(lat_limit):
                         plt.scatter(mlon, mlats[m], color=cmap(norm(v_mag[m])),
                                     s=2.0, zorder=5.0, clip_on=True)
                     else:
@@ -404,12 +429,19 @@ class Maps():
                     plt.scatter(mlons[:-1], mlats[:-1], c='#292929', s=2.0,
                                 zorder=5.0)
             elif parameter is MapParams.FITTED_VELOCITY:
+                # Shift HMB lons to MLT
+                shifted_mlts = dmap_data[record]['boundary.mlon'][0] - \
+                        (aacgmv2.convert_mlt(
+                            dmap_data[record]['boundary.mlon'][0], date) * 15)
+                hmblons = (dmap_data[record]['boundary.mlon'] -
+                           shifted_mlts) % 360
+                # Find where the closest HMB value is, set equivalent
+                # latitude as the lat limit for plotting
                 for m, mlon in enumerate(mlons[:-1]):
-                    rounded_mlon = int(5 * round(np.degrees(mlon)/5))
-                    ind = np.where(dmap_data[record]['boundary.mlon'] ==
-                                   rounded_mlon)
+                    rounded_mlon = np.degrees(mlon) % 360
+                    ind = (np.abs(hmblons - rounded_mlon)).argmin()
                     lat_limit = dmap_data[record]['boundary.mlat'][ind]
-                    if mlats[m] >= lat_limit:
+                    if abs(mlats[m]) >= abs(lat_limit):
                         plt.scatter(mlon, mlats[m], c='#292929', s=2.0,
                                     zorder=5.0, clip_on=True)
                     else:
