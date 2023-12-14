@@ -12,6 +12,7 @@
 # 2022-08-15: CJM - Removed plot_FOV call for default uses
 # 2022-12-13: CJM - Limited reference vectors to only velocity use
 # 2023-03-14: CJM - Added true vector option
+# 2023-06-28: CJM - Refactored return values
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
@@ -63,7 +64,6 @@ class Maps():
         return "This class is static class that provides"\
                 " the following methods: \n"\
                 "   - plot_maps()\n"
-
 
     @classmethod
     def plot_mapdata(cls, dmap_data: List[dict], ax=None,
@@ -207,10 +207,11 @@ class Maps():
             # Else just call the axis maker: proj
             if boundary or radar_location:
                 for stid in dmap_data[record]['stid']:
-                    _, _, ax, _ =\
-                            Fan.plot_fov(stid, date, ax=ax, boundary=boundary,
-                                         radar_location=radar_location,
-                                         **kwargs)
+                    fan_rtn = Fan.plot_fov(stid, date, ax=ax,
+                                           boundary=boundary,
+                                           radar_location=radar_location,
+                                           **kwargs)
+                    ax = fan_rtn['ax']
             else:
                 ax, _ = projs(date, ax=ax, hemisphere=hemisphere, **kwargs)
 
@@ -353,7 +354,8 @@ class Maps():
                                 vmin=zmin, vmax=zmax,  cmap=cmap, zorder=5.0,
                                 clip_on=False)
                     plt.plot([mlons[-1], end_mlons[-1]],
-                             [mlats[-1], end_mlats[-1]], c=cmap(norm(v_mag[-1])),
+                             [mlats[-1], end_mlats[-1]],
+                             c=cmap(norm(v_mag[-1])),
                              linewidth=0.5, zorder=5.0, clip_on=False)
                     plt.figtext(0.675, 0.15, str(reference_vector) + ' m/s',
                                 fontsize=8)
@@ -386,7 +388,7 @@ class Maps():
                                 zorder=5.0)
             else:
                 plt.scatter(mlons[:], mlats[:], c='#292929', s=2.0,
-                                zorder=5.0)
+                            zorder=5.0)
 
         if colorbar is True:
             mappable = cm.ScalarMappable(norm=norm, cmap=cmap)
@@ -413,6 +415,8 @@ class Maps():
                     cb.set_label('Spectral Width (m s$^{-1}$)')
                 elif parameter is MapParams.POWER:
                     cb.set_label('Power')
+        else:
+            cb = None
 
         # Plot potential contours
         fit_coefficient = dmap_data[record]['N+2']
@@ -421,16 +425,25 @@ class Maps():
         lon_shift = dmap_data[record]['lon.shft']
         lat_min = dmap_data[record]['latmin']
 
-        cls.plot_potential_contours(fit_coefficient, lat_min, date, ax,
-                                    lat_shift=lat_shift, lon_shift=lon_shift,
-                                    fit_order=fit_order, hemisphere=hemisphere,
-                                    **kwargs)
+        _, _, pot_arr, cs = cls.plot_potential_contours(fit_coefficient,
+                                                        lat_min,
+                                                        date, ax,
+                                                        lat_shift=lat_shift,
+                                                        lon_shift=lon_shift,
+                                                        fit_order=fit_order,
+                                                        hemisphere=hemisphere,
+                                                        **kwargs)
 
         if hmb is True:
             # Plot the HMB
             mlats_hmb = dmap_data[record]['boundary.mlat']
             mlons_hmb = dmap_data[record]['boundary.mlon']
-            cls.plot_heppner_maynard_boundary(mlats_hmb, mlons_hmb, date)
+            hmb_lon, hmb_lat = cls.plot_heppner_maynard_boundary(mlats_hmb,
+                                                                 mlons_hmb,
+                                                                 date)
+        else:
+            hmb_lon = None
+            hmb_lat = None
 
         if title == '':
             title = "{year}-{month}-{day} {start_hour}:{start_minute} -"\
@@ -452,17 +465,33 @@ class Maps():
             pol_cap_pot = dmap_data[record]['pot.drop']
             cls.add_map_info(fit_order, pol_cap_pot, num_points, model)
 
+        bx = dmap_data[record]['IMF.Bx']
+        by = dmap_data[record]['IMF.By']
+        bz = dmap_data[record]['IMF.Bz']
+        delay = dmap_data[record]['IMF.delay']
+        bt = np.sqrt(bx**2 + by**2 + bz**2)
         if imf_dial is True:
             # Plot the IMF dial
-            bx = dmap_data[record]['IMF.Bx']
-            by = dmap_data[record]['IMF.By']
-            bz = dmap_data[record]['IMF.Bz']
-            delay = dmap_data[record]['IMF.delay']
-            bt = np.sqrt(bx**2 + by**2 + bz**2)
             cls.plot_imf_dial(ax, by, bz, bt, delay)
 
-        return mlats, mlons, v_mag
-
+        return {'ax': ax,
+                'ccrs': None,
+                'cm': cmap,
+                'cb': cb,
+                'fig': plt.gcf(),
+                'data': {'cpcp': pol_cap_pot,
+                         'fit_model': model,
+                         'fit_order': fit_order,
+                         'num_vectors': num_points,
+                         'mlats': mlats,
+                         'mlons': mlons,
+                         'v_mag': v_mag,
+                         'azm_v': azm_v,
+                         'potential_array': pot_arr,
+                         'hmb': [hmb_lat, hmb_lon],
+                         'imf': [bx, by, bz, bt, delay],
+                         'contours': cs}
+                }
 
     @classmethod
     def index_legendre(cls, l: int, m: int):
@@ -482,7 +511,6 @@ class Maps():
         """
         return (m == 0 and l**2) or ((l != 0)
                                      and (m != 0) and l**2 + 2 * m - 1) or 0
-
 
     @classmethod
     def calculated_true_velocities(cls, v_los: list, a_los: list,
@@ -735,7 +763,6 @@ class Maps():
 
         return velocity, azm_v
 
-
     @classmethod
     def add_map_info(cls, fit_order: float, pol_cap_pot: float,
                      num_points: float, model: str):
@@ -761,7 +788,6 @@ class Maps():
                       + 'Order: ' + str(fit_order) + '\n' \
                       + 'Model: ' + model + '\n'
         plt.figtext(0.1, 0.1, text_string)
-
 
     @classmethod
     def plot_heppner_maynard_boundary(cls, mlats: list, mlons: list,
@@ -794,7 +820,7 @@ class Maps():
         mlon = np.radians(shifted_lons)
 
         plt.plot(mlon, mlats, c=line_color, zorder=4.0, **kwargs)
-
+        return mlon, mlats
 
     @classmethod
     def plot_imf_dial(cls, ax: object, by: float = 0, bz: float = 0,
@@ -850,7 +876,6 @@ class Maps():
                         fontsize=7)
         ax_imf.annotate('Delay = -' + str(delay) + ' min', xy=(-16, -17),
                         fontsize=7)
-
 
     @classmethod
     def calculate_potentials(cls, fit_coefficient: list, lat_min: list,
@@ -960,20 +985,23 @@ class Maps():
 
         return mlat_center, mlon_center, pot_arr
 
-
     @classmethod
     def plot_potential_contours(cls, fit_coefficient: list, lat_min: list,
                                 date: object, ax: object, lat_shift: int = 0,
                                 lon_shift: int = 0, fit_order: int = 6,
                                 hemisphere: Enum = Hemisphere.North,
                                 contour_levels: list = [],
+                                contour_spacing: int = None,
                                 contour_color: str = 'dimgrey',
                                 contour_linewidths: float = 0.8,
                                 contour_fill: bool = False,
                                 contour_colorbar: bool = True,
                                 contour_fill_cmap: str = 'RdBu',
                                 contour_colorbar_label: str = 'Potential (kV)',
-                                pot_minmax_color: str = 'k', **kwargs):
+                                pot_minmax_color: str = 'k', 
+                                pot_zmin: int = -50,
+                                pot_zmax: int = 50,
+                                **kwargs):
         # TODO: No evaluation of coordinate system made! May need if in
         # plotting to plot in radians/geo ect.
         '''
@@ -1009,6 +1037,11 @@ class Maps():
                 lower than the minimum and maximum values
                 given are colored in as min and max color
                 values if contour_fill=True
+            contour_spacing: int
+                If levels are not set explicitly, then use this value to
+                set the spacing between the contour levels.
+                Default is None which defaults to the max value/20
+                which works out to be 5 with other default values
             contour_color: str
                 Colour of the contour lines plotted
                 Default: dimgrey
@@ -1041,6 +1074,12 @@ class Maps():
                 Colour of the cross and plus symbols for
                 minimum and maximum potentials
                 Default: 'k' - black
+            pot_zmin: float
+                Minumum value of color map used for potential contours.
+                If None, defaults to -abs(pot_arr).max()
+            pot_zmax: float
+                Maximum value of color map used for potential contours.
+                If None, defaults to abs(pot_arr).max()
             **kwargs
                 including lowlat and hemisphere for calculating
                 potentials
@@ -1059,36 +1098,46 @@ class Maps():
 
         # Contained in function as too long to go into the function call
         if contour_levels == []:
-            contour_levels = [-100, -95, -90, -85, -80, -75, -70, -65, -60,
-                              -55, -50, -45, -40, -35, -30, -25, -20, -15,
-                              -10, -5, -1, 1, 5, 10, 15, 20, 25, 30, 35, 40,
-                              45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]
+            if contour_spacing is None:
+                # If not set this sets the maximum number of contours to be 40
+                contour_spacing = int(np.floor(np.max([abs(pot_zmin),
+                                                       abs(pot_zmax)]) / 10))
+
+            # Making the levels required, but skipping 0 as default to avoid a
+            # contour at 0 position (looks weird)
+            contour_levels = [*range(pot_zmin, 0, contour_spacing),
+                              *range(contour_spacing, 
+                                     pot_zmax + contour_spacing,
+                                     contour_spacing)]
+        else:
+            pot_zmax = np.max(contour_levels)
+            pot_zmin = np.min(contour_levels)
 
         if contour_fill:
             # Filled contours
-            plt.contourf(np.radians(mlon), mlat, pot_arr, 2,
-                         vmax=abs(pot_arr).max(),
-                         vmin=-abs(pot_arr).max(),
-                         locator=ticker.FixedLocator(contour_levels),
+            norm = colors.Normalize
+            norm = norm(pot_zmin, pot_zmax)
+            plt.contourf(np.radians(mlon), mlat, pot_arr, 2, norm=norm,
+                         vmax=pot_zmax,
+                         vmin=pot_zmin,
+                         levels=np.array(contour_levels),
                          cmap=contour_fill_cmap, alpha=0.5,
                          extend='both', zorder=3.0)
             if contour_colorbar is True:
-                norm = colors.Normalize
-                norm = norm(-abs(pot_arr).max(), abs(pot_arr).max())
                 mappable = cm.ScalarMappable(norm=norm, cmap=contour_fill_cmap)
                 locator = ticker.MaxNLocator(symmetric=True, min_n_ticks=3,
                                              integer=True, nbins='auto')
-                ticks = locator.tick_values(vmin=-abs(pot_arr).max(),
-                                            vmax=abs(pot_arr).max())
+                ticks = locator.tick_values(vmin=pot_zmin,
+                                            vmax=pot_zmax)
                 cb = plt.colorbar(mappable, ax=ax, extend='both', ticks=ticks)
                 if contour_colorbar_label != '':
                     cb.set_label(contour_colorbar_label)
         else:
             # Contour lines only
             cs = plt.contour(np.radians(mlon), mlat, pot_arr, 2,
-                             vmax=abs(pot_arr).max(),
-                             vmin=-abs(pot_arr).max(),
-                             locator=ticker.FixedLocator(contour_levels),
+                             vmax=pot_zmax,
+                             vmin=pot_zmin,
+                             levels=np.array(contour_levels),
                              colors=contour_color, alpha=0.8,
                              linewidths=contour_linewidths, zorder=3.0)
             # TODO: Add in contour labels
@@ -1107,6 +1156,7 @@ class Maps():
                     color=pot_minmax_color, zorder=5.0)
         plt.scatter(np.radians(min_mlon), min_mlat, marker='_', s=70,
                     color=pot_minmax_color, zorder=5.0)
+        return mlat, mlon_u, pot_arr, cs
 
     @classmethod
     def find_map_record(cls, dmap_data: List[dict], start_time: dt.datetime):

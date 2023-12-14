@@ -42,6 +42,7 @@ from .exceptions.warning_formatting import nightshade_warning
 from .utils.constants import Re
 from .utils.constants import EARTH_EQUATORIAL_RADIUS
 from .utils.constants import C
+from .utils.geocoastline import coast_outline
 from .utils.citations import Citations
 from .utils.range_estimations import RangeEstimation
 from .utils.virtual_heights import VHModels
@@ -51,6 +52,7 @@ from .utils.plotting import TimeSeriesParams
 from .utils.plotting import check_data_type
 from .utils.plotting import time2datetime
 from .utils.plotting import find_record
+from .utils.general_utils import GeneralUtils
 from .utils.superdarn_radars import SuperDARNRadars
 from .utils.superdarn_cpid import SuperDARNCpids
 from .utils.superdarn_radars import Hemisphere
@@ -59,7 +61,7 @@ from .utils.superdarn_radars import get_hdw_files
 from .utils.scan import build_scan
 from .utils.geo import geocentric_coordinates, calculate_azimuth
 from .utils.coordinates import Coords
-from .utils.terminator import terminator, new_coordinate
+from .utils.terminator import terminator
 from .utils.recalculate_elevation import recalculate_elevation
 from .utils.filters import Boxcar
 
@@ -72,3 +74,4 @@ from .plotting.grid import Grid
 from .plotting.acf import ACF
 from .plotting.power import Power
 from .plotting.maps import Maps
+from .plotting.iq import IQ

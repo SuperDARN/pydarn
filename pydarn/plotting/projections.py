@@ -3,7 +3,8 @@
 #
 # Modifications:
 # 2022-03-11 MTS added enums for projection function calls
-# 2022-03-22 MTS removed coastline call and added grid lines to cartopy plotting
+# 2022-03-22 MTS removed coastline call and added grid lines to cartopy
+#                plotting
 # 2022-05-20 CJM added options to plot coastlines
 # 2022-06-13 Elliott Day don't create new ax if ax passed in to Projs
 # 2023-02-22 CJM added options for nightshade
@@ -27,13 +28,14 @@ from matplotlib import axes
 import numpy as np
 from packaging import version
 
-from pydarn import (Hemisphere, plot_exceptions, Re, nightshade_warning)
+from pydarn import (Hemisphere, plot_exceptions, Re,
+                    nightshade_warning, coast_outline)
+
 try:
     import cartopy
     import cartopy.crs as ccrs
     import cartopy.feature as cfeature
     from cartopy.feature.nightshade import Nightshade
-    from shapely.geometry import mapping, Polygon
     cartopyInstalled = True
     if version.parse(cartopy.__version__) < version.parse("0.19"):
         cartopyVersion = False
@@ -43,10 +45,37 @@ except Exception:
     cartopyInstalled = False
 
 
+def convert_coastline_list_to_mag(geom, date, alt: float = 0.0):
+    '''
+    Takes a list of coastlines and converts
+    the coordinates into AACGM_MLT
+    Parameters
+    ----------
+    geom: list
+        A list/collection of lat lon positions
+    date: datetime object
+        Date of required plot
+    alt: float
+        Altitude in km
+        Default 0 (sea level) for coastlines
+    '''
+    [mlat, lon_mag, _] = \
+        aacgmv2.convert_latlon_arr(geom['lat'], geom['lon'], alt, date,
+                                   method_code='G2A')
+    # Clean Nans (effects plotting)
+    mlat = mlat[np.logical_not(np.isnan(mlat))]
+    lon_mag = lon_mag[np.logical_not(np.isnan(lon_mag))]
+    # Shift to MLT
+    shifted_mlts = lon_mag[0] - (aacgmv2.convert_mlt(lon_mag[0], date) * 15)
+    shifted_lons = lon_mag - shifted_mlts
+    mlon = np.radians(shifted_lons)
+    return [mlat, mlon]
+
+
 def convert_geo_coastline_to_mag(geom, date, alt: float = 0.0):
     """
     Takes the geometry object of coastlines and converts
-    the coordinates into AACGM_MLT for convection maps only
+    the coordinates into AACGM_MLT
     Only required usage is for cartopys NaturalEarthFeature
     at 110m resolution only
     Parameters
@@ -143,23 +172,25 @@ def axis_polar(date, ax: axes.Axes = None, lowlat: int = 30,
                 ax.set_ylim(-90, -abs(lowlat))
                 ax.set_yticks(np.arange(-abs(lowlat), -90, -10))
 
-    if coastline is True:
-        if cartopyInstalled is False:
-            raise plot_exceptions.CartopyMissingError()
-        if cartopyVersion is False:
-            raise plot_exceptions.CartopyVersionError(cartopy.__version__)
-        # Read in the geometry object of the coastlines
-        cc = cfeature.NaturalEarthFeature('physical', 'coastline', '110m',
-                                          color='k', zorder=2.0)
-        # Convert geometry object coordinates to MLT
-        geom_mag = []
-        for geom in cc.geometries():
-            geom_mag.append(convert_geo_coastline_to_mag(geom, date))
-        cc_mag = cfeature.ShapelyFeature(geom_mag, ccrs.PlateCarree(),
-                                         color='k', zorder=2.0)
-        # Plot each geometry object
-        for geom in cc_mag.geometries():
-            plt.plot(*geom.coords.xy, color='k', linewidth=0.5, zorder=2.0)
+    if coastline:
+        if not cartopyInstalled or not cartopyVersion:
+            # Cartopy not installed, call on the set outlines
+            for g, geom in enumerate(coast_outline):
+                [mlat, mlon] = convert_coastline_list_to_mag(geom, date)
+                plt.plot(mlon, mlat, color='k', linewidth=0.5, zorder=2)
+        else:
+            # Read in the geometry object of the coastlines
+            cc = cfeature.NaturalEarthFeature('physical', 'coastline', '110m',
+                                              color='k', zorder=2.0)
+            # Convert geometry object coordinates to MLT
+            geom_mag = []
+            for geom in cc.geometries():
+                geom_mag.append(convert_geo_coastline_to_mag(geom, date))
+            cc_mag = cfeature.ShapelyFeature(geom_mag, ccrs.PlateCarree(),
+                                             color='k', zorder=2.0)
+            # Plot each geometry object
+            for geom in cc_mag.geometries():
+                plt.plot(*geom.coords.xy, color='k', linewidth=0.5, zorder=2.0)
 
     if nightshade:
         nightshade_warning()
@@ -173,7 +204,7 @@ def axis_geological(date, ax: axes.Axes = None,
                     coastline: bool = False, nightshade: int = 0,
                     **kwargs):
     """
-    
+
     Sets up the cartopy orthographic plot axis object, for use in
     various other functions. Geographic projection.
 
@@ -230,9 +261,9 @@ def axis_geological(date, ax: axes.Axes = None,
     extent = abs(proj.transform_point(noon, lowlat, ccrs.PlateCarree())[1])
     ax.set_extent(extents=(-extent, extent, -extent, extent), crs=proj)
 
-    if coastline is True:
+    if coastline:
         ax.coastlines()
-    
+
     if nightshade:
         refraction_value = -np.degrees(np.arccos(Re / (Re + nightshade)))
         ns = Nightshade(date, refraction=refraction_value, alpha=0.1)
