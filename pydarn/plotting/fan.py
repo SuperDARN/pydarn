@@ -22,6 +22,9 @@
 #                   as this has yet to be figured out
 # 2023-02-06: CJM - Added option to plot single beams in a scan or FOV diagram
 # 2023-03-01: CJM - Added ball and stick plotting options
+# 2023-03-01: CJM - Added ball and stick plotting options (merged later in year)
+# 2023-08-16: CJM - Corrected for winding order in geo plots
+# 2023-06-28: CJM - Refactored return values
 # 2023-10-14: CJM - Add embargoed data method
 #
 # Disclaimer:
@@ -463,16 +466,27 @@ class Fan:
 
             if colorbar_label != '':
                 cb.set_label(colorbar_label)
+        else:
+            cb = None
 
         if title:
             start_time = time2datetime(dmap_data[plot_beams[0][0]])
             end_time = time2datetime(dmap_data[plot_beams[-1][-1]])
             title = cls.__add_title__(start_time, end_time)
-            ax.set_title(title)
+            plt.title(title)
 
         # Determine embargo status
         cls.__determine_embargo(time2datetime(dmap_data[plot_beams[-1][-1]]))
-        return ax, beam_corners_lats, beam_corners_lons, scan, grndsct
+        return {'ax': ax,
+                'ccrs': ccrs,
+                'cm': cmap,
+                'cb': cb,
+                'fig': plt.gcf(),
+                'data': {'beam_corners_lats': beam_corners_lats,
+                         'beam_corners_lons': beam_corners_lons,
+                         'scan_data': scan,
+                         'ground_scatter': grndsct}
+                }
 
     @classmethod
     def plot_fov(cls, stid: int, date: dt.datetime,
@@ -571,6 +585,13 @@ class Fan:
 
         if projs == Projs.POLAR:
             beam_corners_lons = np.radians(beam_corners_lons)
+
+        # This section corrects winding order for cartopy plots on a sphere
+        # so that the outline is always anti-clockwise and will fill inside
+        bmsep = SuperDARNRadars.radars[stid].hardware_info.beam_separation
+        if projs == Projs.GEO and bmsep < 0:
+            beam_corners_lons = beam_corners_lons[::-1]
+            beam_corners_lats = beam_corners_lats[::-1]
 
         # Setup plot
         # This may screw up references
@@ -679,7 +700,14 @@ class Fan:
             ax.fill(theta, r, color=fov_color, alpha=alpha, zorder=1,
                     transform=transform)
 
-        return beam_corners_lats, beam_corners_lons, ax, ccrs
+        return {'ax': ax,
+                'ccrs': ccrs,
+                'cm': None,
+                'cb': None,
+                'fig': plt.gcf(),
+                'data': {'beam_corners_lats': beam_corners_lats,
+                         'beam_corners_lons': beam_corners_lons}
+                }
 
     @classmethod
     def get_gate_azm(cls, theta: float, r: float, stid: int, coords, date):

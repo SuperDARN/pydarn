@@ -92,7 +92,7 @@ def find_record(dmap_data: List[dict], start_time: datetime, time_delta:int = 1)
         if time_diff.seconds/60 <= time_delta:
             return record_num
         record_num += 1
-    raise plot_exceptions.NoDataFoundError(parameter, start_time=start_time)
+    raise plot_exceptions.NoDataFoundError('N/A', start_time=start_time)
 
 def check_data_type(dmap_data: List[dict], parameter: str,
                     expected_type: str, index: int):

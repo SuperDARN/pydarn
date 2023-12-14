@@ -42,6 +42,7 @@ from .exceptions.warning_formatting import nightshade_warning
 from .utils.constants import Re
 from .utils.constants import EARTH_EQUATORIAL_RADIUS
 from .utils.constants import C
+from .utils.geocoastline import coast_outline
 from .utils.citations import Citations
 from .utils.range_estimations import RangeEstimation
 from .utils.virtual_heights import VHModels
@@ -73,3 +74,4 @@ from .plotting.grid import Grid
 from .plotting.acf import ACF
 from .plotting.power import Power
 from .plotting.maps import Maps
+from .plotting.iq import IQ
