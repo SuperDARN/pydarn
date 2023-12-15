@@ -239,7 +239,7 @@ class ACF:
 
         # Calculate pwr and phs regardless of choice as they are returned
         pwr = np.sqrt(np.square(re) + np.square(im))
-        phs = np.arctan2(im, re)
+        phs = np.rad2deg(np.arctan2(im, re))
         masked_pwr = np.ma.array(pwr, mask=mask)
         masked_phs = np.ma.array(phs, mask=mask)
 
