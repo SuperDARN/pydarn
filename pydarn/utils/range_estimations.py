@@ -13,6 +13,7 @@
 # Modifications:
 # 2022-08-04 CJM added HALF_SLANT option and gate2halfslant method
 # 2023-09-14 CJM moved GSMR to GSMR_BRISTOW and used new GSMR alg
+# 2023-12-15 RAR added TIME_OF_FLIGHT option and gate2timeofflight method
 
 import enum
 import numpy as np
@@ -21,6 +22,63 @@ import warnings
 from pydarn import Re, C, standard_warning_format
 
 warnings.formatwarning = standard_warning_format
+
+
+def gate2timeofflight(rxrise: int = 0, range_gate: int = 0, frang: int = 180,
+                      rsep: int = 45, nrang: int = None, center: bool = True,
+                      **kwargs):
+    """
+    Calculate the time of flight for each range gate.
+
+    Parameters
+    ----------
+    frang: int
+        range from the edge of first the gate to the radar [km]
+        This should be given in fitacf record of the control program
+    rsep: int
+        Radar separation of the gates. Determined by control program.
+    rxrise: int
+        Use hardware value for this, avoid data file values
+    gate: int
+        range gate to determine the slant range [km], if nrang
+        is None
+        default: 0
+    nrang: int
+        max number of range gates in the list of records. If
+        not None, will calculate all slant ranges
+        default: None
+    center: boolean
+        Calculate the slant range in the center of range gate
+        or edge
+
+    Returns
+    -------
+    tof: np.array
+        returns an array of times of flight, in ms
+    """
+    # lag to the first range gate in microseconds
+    # 2 - two times for there and back
+    distance_factor = 2.0
+    # C - speed of light m/s to km/ms
+    speed_of_light = C * 0.001 * 1e-3
+    lag_first = frang * distance_factor / speed_of_light
+    # sample separation in microseconds
+    sample_sep = rsep * distance_factor / speed_of_light
+    # Range offset
+    # If center is true, calculate at the center
+    if center:
+        # 0.5 offset to the centre of the range gate instead of edge
+        range_offset = -0.5 * sample_sep
+    else:
+        range_offset = 0.0
+    # Now calculate time of flight in ms
+    if nrang is None:
+        tof = lag_first - rxrise + range_gate * sample_sep + range_offset
+    else:
+        tof = np.zeros(nrang + 1)
+        for gate in range(nrang + 1):
+            tof[gate] = lag_first - rxrise + gate * sample_sep + range_offset
+    return tof
 
 
 def gate2halfslant(**kwargs):
@@ -115,7 +173,7 @@ def gate2slant(rxrise: int = 0, range_gate: int = 0, frang: int = 180,
             range from the edge of first the gate to the radar [km]
             This should be given in fitacf record of the control program
         rsep: int
-            Radar seperation of the gates. Determined by control program.
+            Radar separation of the gates. Determined by control program.
         rxrise: int
             Use hardware value for this, avoid data file values
         gate: int
@@ -183,6 +241,7 @@ class RangeEstimation(enum.Enum):
     RANGE_GATE = enum.auto()
     SLANT_RANGE = (gate2slant,)
     HALF_SLANT = (gate2halfslant,)
+    TIME_OF_FLIGHT = (gate2timeofflight,)
     GSMR = (gate2groundscatter,)
     GSMR_BRISTOW = (gate2gs_bristow,)
 
