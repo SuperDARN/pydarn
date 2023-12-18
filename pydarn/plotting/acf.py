@@ -280,7 +280,8 @@ class ACF:
             imag_dict['data']['blank_line'].set_label('Imag Blanked')
             lim_val = 1.1 * max(np.nanmax(np.abs(re)), np.nanmax(np.abs(im)))
         else:
-            lim_val = 1.1 * max(np.nanmax(np.abs(masked_re), np.nanmax(np.abs(masked_im))))
+            lim_val = 1.1 * max(np.abs(masked_re).max(),
+                                np.abs(masked_im).max())
         ax.set_ylim([-lim_val, lim_val])
         ax.xaxis.set_major_locator(ticker.MaxNLocator(integer=True))
 
