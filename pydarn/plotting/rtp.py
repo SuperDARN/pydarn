@@ -163,7 +163,7 @@ class RTP():
             https://matplotlib.org/tutorials/colors/colormaps.html
             Default: PyDARNColormaps.PYDARN_VELOCITY
             note: to reverse the color just add _r to the string name
-        plot_filter: dict
+        filter_settings: dict
             dictionary of the following keys for filtering data out:
             max_array_filter : dict
                 dictionary that contains the key parameter names and the values
@@ -1463,7 +1463,7 @@ class RTP():
             https://matplotlib.org/tutorials/colors/colormaps.html
             Default: PyDARNColormaps.PYDARN_VELOCITY
             note: to reverse the color just add _r to the string name
-        plot_filter: dict
+        filter_settings: dict
             dictionary of the following keys for filtering data out:
             max_array_filter : dict
                 dictionary that contains the key parameter names and the values
