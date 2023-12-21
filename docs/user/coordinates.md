@@ -32,6 +32,8 @@ pyDARN uses several different measurement and plotting systems to easily allow t
 
 **Alternate Ground Scatter Mapped Range**: `RangeEstimation.GSMR_BRISTOW` uses echos from ground scatter to adjust slant range coordinates based on [Dr. Bill Bristow's paper](https://agupubs.onlinelibrary.wiley.com/doi/abs/10.1029/93JA01470). Implemented by Dr. Nathaniel Frissell and Francis Tholley from University of Scranton. Measured in km.
 
+**Time of Flight**: `RangeEstimation.TIME_OF_FLIGHT` Due to the development of bistatic radar measurements, range estimates of distance cannot be easily used so a time of flight option is alos included. This mode can only be used in range-time plots. Measured in ms.
+
 !!! Note
     Slant range is calculated from the value of `frang`, the distance to the first range gate. In pyDARN, we assume 
     that this value is the distance to the *inner edge* of the first range gate. We are aware that not all radars use this 
@@ -44,9 +46,9 @@ pyDARN uses several different measurement and plotting systems to easily allow t
 
 ## Coords: Coordinate System
 
-Used to determine the position of data in spatial plots: fan, grid and convection map plots
+This function is used to determine the position of data in spatial plots: fan, grid and convection map plots. 
 Range time plots now allow for `Coords` use. The y-axis can be converted to latitude or longitude using a the `coords` keyword.
-E.G. using `coords=Coords.Geographic` and `latlon='lon'` in the method call will convert the chosen range estimate (see above) into geographic longitudes.
+E.G. using `coords=Coords.GEOGRAPHIC` and `latlon='lon'` in the method call, will convert the chosen range estimate (see above) into geographic longitudes.
 
 **Geographic**: `Coords.GEOGRAPHIC` is the standard geographical coordinate system for latitude and longitude (degrees)
 
@@ -58,7 +60,7 @@ E.G. using `coords=Coords.Geographic` and `latlon='lon'` in the method call will
 
 ## Projs: Projections
 
-Spatial plots have two options for projections. 
+Spatial plots have two options for projections. See also [Axes Setup](axis.md) tutorial.
 
 **Polar**: `Projs.POLAR` sets up the axis of the spatial plot in polar coordinates common in studies that show data over the poles.
 
@@ -82,7 +84,7 @@ Nightshade is only available using the geographic projection and can be implemen
 ionosphere to be in the Earth's shadow. If you would like to plot your own terminator on any plot, the `terminator` function will return the anti-sub-solar position and the 
 great circle distance to the terminator in geographic coordinates:
 ```python
-antisolarpsn, arc_length, angle_of_terminator = terminator(date, nightshade)
+antisolarpsn, arc_length, angle_of_terminator = pydarn.terminator(date, nightshade)
 ```
 The `antisolarpsn` is given in degrees lon, lat. The `arc_length` is in kilometers and the `angle_of_terminator` is the angle from the subsolar point to the terminator (i.e. is 90 degrees at ground level).
 The terminator position can be calculated using `(lat, lon) = new_coordinate(lat, lon, arc_length, bearing, R=Re)` for any bearing from the antisolar position. This can be converted to magnetic coordinates using the
@@ -97,7 +99,7 @@ import numpy as np
 
 # North Winter
 pydarn.Fan.plot_fov(66, dt.datetime(2023, 12, 21, 0, 0),
-    lowlat= 5, boundary=True, line_color='red', coastline=True, nightshade=250)
+    lowlat= 5, boundary=True, line_color='red', coastline=True)
 
 # Test to plot terminator if ever required - plot line not fill!
 # Get antisolar point in geographic coords and radius of terminator
@@ -116,7 +118,7 @@ mlon = np.radians(shifted_lons)
 lats = []
 lons = []
 for b in range(-180,180,1):
-    (lat, lon) = pydarn.new_coordinate(mlat, shifted_lons, arc, b, R=pydarn.Re)
+    (lat, lon) = pydarn.GeneralUtils.new_coordinate(mlat, shifted_lons, arc, b, R=pydarn.Re)
     nlon =np.radians(lon)
     lats.append(lat)
     lons.append(nlon)

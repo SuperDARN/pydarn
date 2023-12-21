@@ -40,7 +40,7 @@ Installing in virtual environments is recommended, see below for details.
 pyDARN requires **python 3.7** or later and **matplotlib 3.3.4** or later.
 
 !!! Note
-Python 3.6 is commonly the default version included on many operating systems, you may need to install a newer version and specify that version when running python programs and installing libraries.
+    Python 3.6 is commonly the default version included on many operating systems, you may need to install a newer version and specify that version when running python programs and installing libraries.
 
 Depending on your operating system or distribution, the following package installers, development environments or data parsers are required: 
  

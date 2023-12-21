@@ -19,14 +19,14 @@ the additional permissions listed below.
 Summary plots in SuperDARN are a collection of set parameter plots from a FITACF file. The parameters typically in the plots are:
 
 * Time-series plots:
-	* Sky Noise (`noise.sky`)
-	* Transmission Frequency and Number of averages (`tfreq` and `nav`)
-	* Control Program ID (`cp`)
-* Range(or Coord)-time plots:
-	* Signal to Noise (`p_l`)
-	* Velocity (`v`)
-	* Spectral Width (`w_l`)
-	* Elevation (`elv`)
+    * Sky Noise (`noise.sky`)
+    * Transmission Frequency and Number of averages (`tfreq` and `nav`)
+    * Control Program ID (`cp`)
+    * Range(or Coord)-time plots:
+    * Signal to Noise (`p_l`)
+    * Velocity (`v`)
+    * Spectral Width (`w_l`)
+    * Elevation (`elv`)
 
 !!! Note
     Elevation (`elv`) is optional to plot and is set to be plotted, however, not all radars have elevation data. 
@@ -87,5 +87,7 @@ Other common options include:
 | watermark=(bool) | True adds a 'not for publication' watermark                              |
 | cmaps=(dict/str) | Specifies the colour maps used in plotting                               | 
 | range_estimation=(RangeEstimation)              | Range use for the y-axis (See [Ranges, Coords and Projs](coordinates.md)) |
+
+
 For more options on how to modify plot_summary, take a look at the method in `rtp.py`. 
 All options available in time-series and range-time plots can be used in summary plots. 

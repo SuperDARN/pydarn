@@ -27,9 +27,6 @@ Gridded [parameters](https://radar-software-toolkit-rst.readthedocs.io/en/latest
 
 and a time or record number projected onto a polar format plot in [AACGMv2](http://superdarn.thayer.dartmouth.edu/aacgm.html) coordinates. 
 
-
-Currently, grid plots in pyDARN get geomagnetic positions of the gridded data in [`mlon` and `mlat`](https://pypi.org/project/aacgmv2/) from the GRID file, which uses AACGMv2 coordinates. In the future, pyDARN will also generate the geographic position of the data points, which will bring support for non-standard gridded vector layouts.
-
 ### Basic usage
 
 pyDARN and pyplot need to be imported and the desired GRID file needs to be [read in](https://pydarn.readthedocs.io/en/latest/user/SDarnRead/):

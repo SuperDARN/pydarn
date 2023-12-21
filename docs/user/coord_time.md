@@ -35,7 +35,7 @@ plt.show()
 ![](../imgs/CTP_1.png)
 
 !!! Warning
-    This plotting method does not evaluate if the data is appropriate to plot in the given circumstances. Some radars point north and some are point longitudinally, therefore data shown in a plot may not be useful given the orientation.
+    This plotting method does not evaluate if the data is appropriate to plot in the given circumstances. Some radars point north and some point longitudinally, therefore data shown in a plot may not be useful given the orientation.
     Some radars also have a field of view that may increase but then decrease in latitude, we have tried to solve this using the keyword `plot_equatorward`.
 
 ## Plot Equatorward?
@@ -69,3 +69,6 @@ plt.show()
 
 !!! Note
     These same key words can also be used in the summary plot method to plot coordinate-time data in summary format. 
+
+!!! Note
+    In some circumstances the radar is likely to not be located at the 'bottom' of the plot like in the range-time plots, but can be located at a higher lat or lon. Please be aware of the geometry of the system when interpreting data in this plot style.

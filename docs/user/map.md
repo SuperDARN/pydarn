@@ -30,7 +30,7 @@ Map field descriptions can be found [here](https://radar-software-toolkit-rst.re
 
 for a given `start_time` or `record` number projected onto a polar plot in [AACGMv2](http://superdarn.thayer.dartmouth.edu/aacgm.html) coordinates. 
 
-Currently, map plots in pyDARN get geomagnetic positions of the mapped data in [`mlon` and `mlat`](https://pypi.org/project/aacgmv2/) from the MAP file, which uses AACGMv2 coordinates. In the future, pyDARN will also generate the geographic position of the data points, which will bring support for non-standard gridded vector layouts.
+Currently, map plots in pyDARN get geomagnetic positions of the mapped data in [`mlon` and `mlat`](https://pypi.org/project/aacgmv2/) from the MAP file, which uses AACGMv2 coordinates.
 
 ### Fitted Velocities
 
@@ -52,13 +52,13 @@ SDarn_read = pydarn.SuperDARNRead(file)
 map_data = SDarn_read.read_map()
 
 ```
-With the map data loaded as a list of dictionaries (`map_data` variable in above example), you may now call the `plot_mapdata` method. Make sure you tell the method what time, in [`datetime` format], or record number (numbered from first recorded in file, counting from 0):
+With the map data loaded as a list of dictionaries (`map_data` variable in above example), you may now call the `plot_mapdata` method. Make sure you tell the method what time, in `datetime` format, or record number (numbered from first recorded in file, counting from 0):
 ```python
 map_rtn = pydarn.Maps.plot_mapdata(map_data, record=150)
 plt.show()
 
 ```
-In this example, the record at 150 was plotted with the defaulted parameter, `MapParams.FITTED_VELOCITIES` (fitted velocities), being mapped:
+In this example, the record at 150 was plotted with the defaulted parameter, `MapParams.FITTED_VELOCITIES` (fitted velocities):
 ![](../imgs/map_1.png)
 
 You might have noticed that the variable `map_rtn` in the examples above actually holds some information. This dictionary contains the AACGM latitude and longitude of the mapped vectors plotted:
