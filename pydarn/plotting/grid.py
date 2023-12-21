@@ -359,8 +359,8 @@ class Grid():
                     end_thetas = np.degrees(end_thetas)
                     for i in num_pts:
                         # If the vector does not cross the meridian
-                        if np.sign(thetas[i]) == np.sign(end_g_thetas[i]):
-                            plt.plot([thetas[i], end_g_thetas[i]],
+                        if np.sign(thetas[i]) == np.sign(end_thetas[i]):
+                            plt.plot([thetas[i], end_thetas[i]],
                                      [rs[i], end_g_rs[i]],
                                      c=cmap(norm(data[i])),
                                      linewidth=0.5, transform=transform)
@@ -374,7 +374,7 @@ class Grid():
                                     thetas[i] = thetas[i] + 360
                             # Vector plots correctly over the 0 meridian so
                             # Nothing is done to correct that section
-                            plt.plot([thetas[i], end_g_thetas[i]],
+                            plt.plot([thetas[i], end_thetas[i]],
                                      [rs[i], end_g_rs[i]],
                                      c=cmap(norm(data[i])),
                                      linewidth=0.5, transform=transform)
