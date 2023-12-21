@@ -765,7 +765,7 @@ class RTP():
             my = np.ma.array(y)
             my = np.ma.masked_where(np.isnan(my), my)
 
-            lines = ax.plot_date(x, my, fmt='k', tz=None, xdate=True,
+            lines = ax.plot_date(x, my, fmt=color, tz=None, xdate=True,
                                  ydate=False, linestyle=linestyle,
                                  linewidth=linewidth)
 
