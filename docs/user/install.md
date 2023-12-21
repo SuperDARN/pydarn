@@ -17,7 +17,7 @@ the additional permissions listed below.
 ---
 
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPLv3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0) 
-[![Python 3.6](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/downloads/release/python-360/) 
+[![Python 3.7](https://img.shields.io/badge/python-3.7-blue.svg)](https://www.python.org/downloads/release/python-370/) 
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/superdarn/pydarn)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3727269.svg)](https://doi.org/10.5281/zenodo.3727269)
 
@@ -37,7 +37,10 @@ Installing in virtual environments is recommended, see below for details.
 
 ## Prerequisites
 
-pyDARN requires **python 3.6** or later and **matplotlib 3.3.4** or later.
+pyDARN requires **python 3.7** or later and **matplotlib 3.3.4** or later.
+
+!!! Note
+Python 3.6 is commonly the default version included on many operating systems, you may need to install a newer version and specify that version when running python programs and installing libraries.
 
 Depending on your operating system or distribution, the following package installers, development environments or data parsers are required: 
  
