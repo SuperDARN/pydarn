@@ -450,11 +450,14 @@ class RTP():
 
         ax.set_ylim(ymin, ymax)
 
-        if range_estimation != RangeEstimation.RANGE_GATE:
+        if (range_estimation != RangeEstimation.RANGE_GATE and
+            range_estimation != RangeEstimation.TIME_OF_FLIGHT):
             ax.yaxis.set_ticks(np.arange(np.ceil(ymin/100.0)*100,
                                          ymax+1, yspacing))
-        else:
+        elif range_estimation == RangeEstimation.RANGE_GATE:
             ax.yaxis.set_ticks(np.arange(ymin, ymax+1, (ymax)/5))
+        else:
+            ax.yaxis.set_ticks(np.arange(0, np.ceil(ymax)+1, 5))
 
         # SuperDARN file typically are in 2hr or 24 hr files
         # to make the minute ticks sensible, the time length is detected
@@ -1235,8 +1238,10 @@ class RTP():
                     axes[i].set_ylabel('Ground Scatter\nMapped Range\n(km)')
                 elif range_estimation == RangeEstimation.HALF_SLANT:
                     axes[i].set_ylabel('Slant Range/2\n(km)')
-                else:
+                elif range_estimation == RangeEstimation.RANGE_GATE:
                     axes[i].set_ylabel('Range Gates')
+                else:
+                    axes[i].set_ylabel('Time of Flight\n(ms)')
             if i < num_plots-1:
                 axes[i].set_xticklabels([])
             # last plot needs the label on the x-axis
