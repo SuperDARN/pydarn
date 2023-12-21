@@ -887,6 +887,11 @@ class RTP():
             channel number that will be plotted
             in the summary plot.
             Default: 'all'
+        line_color: Dict
+            dictionary of time series parameters and the line color you
+            require for each
+            e.g.: {'nave': 'b', 'tfreq': 'r'}
+            Default {} (set in code later)
         range_estimation: RangeEstimation object
             set the y-axis to a desired  range gate estimation
             calculation
