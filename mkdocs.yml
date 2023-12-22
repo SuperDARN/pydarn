@@ -26,6 +26,7 @@ nav:
             - Convection Map plots: user/map.md
             - Power plots: user/power.md
             - ACF plots: user/acf.md
+            - IQ Plots: user/iq.md
             - Filtering Data: user/filters.md
             - Logging: user/logging.md
     - pyDARN Team: dev/team.md
