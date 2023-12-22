@@ -167,13 +167,18 @@ def gate2geographic_location(stid: int, beam: int, height: float = None,
     # psi [rad] in the angle from the boresight
     psi = beam_sep * (beam - offset) + beam_edge + bmoff
     # Calculate the slant range [km]
-    if range_estimation != RangeEstimation.RANGE_GATE:
-        target_range = range_estimation(rxrise=rxrise, **kwargs)
+    if range_estimation == RangeEstimation.RANGE_GATE:
+        raise radar_exceptions.RangeEstimationError("Range gates cannot be "
+                                                    "used in to estimate "
+                                                    "distance. Try SLANT_RANGE"
+                                                    " instead.")
+    elif range_estimation == RangeEstimation.TIME_OF_FLIGHT:
+        raise radar_exceptions.RangeEstimationError("Time of flight cannot be "
+                                                    "used in to estimate "
+                                                    "distance. Try SLANT_RANGE"
+                                                    " instead.")
     else:
-        raise radar_exceptions.RangeEstimationError("Range Gates cannot be"
-                                                    "used in estimating the"
-                                                    " km for geographic"
-                                                    " coordinates systems")
+        target_range = range_estimation(rxrise=rxrise, **kwargs)
 
     # If no height is specified then use elevation angle (default 0)
     # to calculate the transmutation height
