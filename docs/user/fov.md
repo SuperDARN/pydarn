@@ -59,6 +59,7 @@ Here is a list of all the current options than can be used with `plot_fov`
 | radar_location=(bool)   | Places a dot in the plot representing the radar location (default: True)                                |
 | radar_label=(bool)      | Places the radar 3-letter abbreviation next to the radar location                                       |
 | coastline=(bool)        | Plots outlines of coastlines below FOV (Uses Cartopy)                                                   |
+| beam=(int)              | Only plots outline/fill of specified beam (default: None)                                               |
 | kwargs **               | Axis Polar settings. See [polar axis](axis.md)                                                          |
 
 To plot based on hemisphere or selection of radars, here is an example plotting North hemisphere radars with selected SuperDARN Canada radars colored as green, note that the axes object (ax) needs to be updated inside to loop to plot multiple FOV:
@@ -68,18 +69,20 @@ import pydarn
 from datetime import datetime
 import matplotlib.pyplot as plt 
 
-ax = None
+fov_rtn={}
+fov_rtn['ax'] = None
 for stid in pydarn.SuperDARNRadars.radars.keys():
     if pydarn.SuperDARNRadars.radars[stid].hemisphere == pydarn.Hemisphere.North:
         if stid != 2:
             if stid in [66, 65, 6, 65, 5]: 
-                _ , _, ax, _ = pydarn.Fan.plot_fov(stid, datetime(2021, 2, 5, 12, 5), 
+                fov_rtn = pydarn.Fan.plot_fov(stid, datetime(2021, 2, 5, 12, 5), 
                                     radar_label=True, fov_color='green',
-                                    line_color='green', alpha=0.8, ax=ax)
+                                    line_color='green', alpha=0.8, ax=fov_rtn['ax'])
 
-            _ , _, ax, _ = pydarn.Fan.plot_fov(stid, datetime(2021, 2, 5, 12, 5), 
+            fov_rtn = pydarn.Fan.plot_fov(stid, datetime(2021, 2, 5, 12, 5), 
                                 radar_label=True, fov_color='blue',
-                                line_color='blue', alpha=0.2, lowlat=10, ax=ax)
+                                line_color='blue', alpha=0.2, lowlat=10, 
+                                ax=fov_rtn['ax'])
 
 plt.show()
 ```
@@ -93,13 +96,14 @@ import pydarn
 from datetime import datetime
 import matplotlib.pyplot as plt 
 
-ax = None
+fov_rtn={}
+fov_rtn['ax'] = None
 for stid in pydarn.SuperDARNRadars.radars.keys():
     if pydarn.SuperDARNRadars.radars[stid].hemisphere == pydarn.Hemisphere.South:
         if stid != 2:
-            _, _, ax, _ = pydarn.Fan.plot_fov(stid, datetime(2021, 2, 5, 12, 5),
+            fov_rtn = pydarn.Fan.plot_fov(stid, datetime(2021, 2, 5, 12, 5),
                                 radar_label=True, fov_color='red',
-                                line_color='red', alpha=0.2, ax=ax)
+                                line_color='red', alpha=0.2, ax=fov_rtn['ax'])
 plt.show()
 ```
 
@@ -113,12 +117,9 @@ import pydarn
 from datetime import datetime
 import matplotlib.pyplot as plt 
 
-_ , _, ax, ccrs = pydarn.Fan.plot_fov(stid=65,
-                                      date=datetime(2022, 1, 8, 14, 5),
-                                      fov_color='red',
-                                      coords=pydarn.Coords.GEOGRAPHIC,
-                                      projs=pydarn.Projs.GEO,
-                                      coastline=True)
+pydarn.Fan.plot_fov(stid=65, date=datetime(2022, 1, 8, 14, 5),
+                    fov_color='red', coords=pydarn.Coords.GEOGRAPHIC,
+                    projs=pydarn.Projs.GEO, coastline=True)
 plt.show()
 ```
 
@@ -134,30 +135,34 @@ import pydarn
 from datetime import datetime
 import matplotlib.pyplot as plt 
 
-_, _, ax, ccrs=pydarn.Fan.plot_fov(66, datetime(2021, 6, 21, 6, 0),
-                                   lowlat= 50, boundary=True, radar_label=True,
-                                   line_color='red', grid = True,
-                                   coords=pydarn.Coords.GEOGRAPHIC,
-                                   projs=pydarn.Projs.GEO, coastline=True)
+fov_rtn = pydarn.Fan.plot_fov(66, datetime(2021, 6, 21, 6, 0),
+                              lowlat= 50, boundary=True, radar_label=True,
+                              line_color='red', grid = True,
+                              coords=pydarn.Coords.GEOGRAPHIC,
+                              projs=pydarn.Projs.GEO, coastline=True)
 pydarn.Fan.plot_fov(5, datetime(2021, 2, 5, 12, 5), radar_label=True,
-                    ax=ax, ccrs=ccrs, boundary=True, line_color='blue',
-                    grid = True, coords=pydarn.Coords.GEOGRAPHIC,
+                    ax=fov_rtn['ax'], ccrs=fov_rtn['ccrs'], boundary=True,
+                    line_color='blue', grid = True,
+                    coords=pydarn.Coords.GEOGRAPHIC,
                     projs=pydarn.Projs.GEO)
 pydarn.Fan.plot_fov(64, datetime(2021, 2, 5, 12, 5), radar_label=True,
-                    ax=ax, ccrs=ccrs, boundary=True, line_color='green',
+                    ax=fov_rtn['ax'], ccrs=fov_rtn['ccrs'],
+                    boundary=True, line_color='green',
                     grid = True, coords=pydarn.Coords.GEOGRAPHIC,
                     projs=pydarn.Projs.GEO)
 pydarn.Fan.plot_fov(65, datetime(2021, 2, 5, 12, 5), radar_label=True,
-                    ax=ax, ccrs=ccrs, boundary=True, line_color='orange',
+                    ax=fov_rtn['ax'], ccrs=fov_rtn['ccrs'],
+                    boundary=True, line_color='orange',
                     grid = True, coords=pydarn.Coords.GEOGRAPHIC,
                     projs=pydarn.Projs.GEO)
 pydarn.Fan.plot_fov(6, datetime(2021, 2, 5, 12, 5), radar_label=True,
-                    ax=ax, ccrs=ccrs, boundary=True, grid = True,
+                    ax=fov_rtn['ax'], ccrs=fov_rtn['ccrs'],
+                    boundary=True, grid = True,
                     coords=pydarn.Coords.GEOGRAPHIC, projs=pydarn.Projs.GEO)
 plt.show()
 ```
 
-![](../imgs/fov_8.png_)
+![](../imgs/fov_8.png)
 
 !!! Warning
     You cannot plot AACGM coordinates on a geographic plot as its not correctly transformed.
@@ -189,6 +194,6 @@ plt.show()
 ![](../imgs/fov_4.png)
 
 !!! Note
-    The radar labels will appear at the same longitude, but at -5 degrees of latitude to the position of the radar station. This may cause some to overlap. Users can plot their own labels using `plt.text(*lon psn in radians*, *lat psn in degrees*, *text string*)`
+    The radar label positions have been manually set so that no labels overlap. Users can plot their own labels using `plt.text(*lon psn in radians*, *lat psn in degrees*, *text string*)` if the current position used is not suitable.
 
 

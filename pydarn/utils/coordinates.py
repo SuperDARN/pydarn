@@ -13,6 +13,7 @@
 # Modifications:
 # 2022-03-10 MTS added 4 new methods to generate coordinates for the various
 #                enums
+# 2023-08-26 CJM corrected calculations to use bmoff and removed abs()
 #
 
 """
@@ -102,13 +103,13 @@ def convert2MLT(lons: float, date: object, **kwargs):
     return beam_corners_mlts
 
 
-# RPosGeo line 335
 def gate2geographic_location(stid: int, beam: int, height: float = None,
-                             elv_angle: float = 0.0, center: bool = True,
+                             elv_angle: float = 0.0, center: bool = False,
                              range_estimation: RangeEstimation =
                              RangeEstimation.SLANT_RANGE, **kwargs):
     """
     determines the geographic cell position for a given range gate and beam
+    Notes: From RPosGeo line 335
 
     parameters
     ----------
@@ -116,16 +117,6 @@ def gate2geographic_location(stid: int, beam: int, height: float = None,
             station id of the radar to use
         beam: int
             beam number (indexing at 0)
-        range_gate: int
-            range gate number (indexing at 0)
-        rsep: int
-            range seperation, determined by the mode the
-            radar is using, in [km]
-            default: 45 - normalscan mode
-        frang: int
-            frequency range from the radar to the front edge of the range gate
-            Please note: this definition may be changed, currently defined in
-            RST code to keep consistency
         height: float
             transmutation height [km]
             default: none
@@ -135,8 +126,9 @@ def gate2geographic_location(stid: int, beam: int, height: float = None,
             default: 0
         center: bool
             obtain geographic location of the centre of the range gates
-            False obtains the front edge of the range gates.
-            default: True
+            False obtains the near-left corner of the range gates.
+            See also: gate2slant in range_estimation module
+            default: False (return corner values)
 
     returns
     -------
@@ -153,34 +145,40 @@ def gate2geographic_location(stid: int, beam: int, height: float = None,
     # too much converting back and forth.
     boresight = np.radians(SuperDARNRadars.
                            radars[stid].hardware_info.boresight.physical)
+    bmoff = np.radians(SuperDARNRadars.
+                       radars[stid].hardware_info.boresight.electronic)
     radar_lat = np.radians(SuperDARNRadars.
                            radars[stid].hardware_info.geographic.lat)
     radar_lon = np.radians(SuperDARNRadars.
                            radars[stid].hardware_info.geographic.lon)
-    # Some beam seperations are negative which changes how the coordinates wrap
-    # we absolute to make it easier of fov-color for cartopy plotting
-    beam_sep = np.radians(abs(SuperDARNRadars.
-                          radars[stid].hardware_info.beam_separation))
+    # Note that some beam separations are negative
+    beam_sep = np.radians(SuperDARNRadars.
+                          radars[stid].hardware_info.beam_separation)
     rxrise = SuperDARNRadars.radars[stid].hardware_info.rx_rise_time
 
-    # TODO: fix after slant range change
-    if center is True:
-        # beam edge in [rad]
-        beam_edge = -beam_sep * 0.5
-        # range_edge in [km]
-    else:
+    # If the user wants the edge corner of the range gate:
+    # Radar outwards direction center value is corrected in
+    # range_estimation module
+    if center:
         beam_edge = 0
+    else:
+        beam_edge = -beam_sep * 0.5
 
     # psi [rad] in the angle from the boresight
-    psi = beam_sep * (beam - offset) + beam_edge
+    psi = beam_sep * (beam - offset) + beam_edge + bmoff
     # Calculate the slant range [km]
-    if range_estimation != RangeEstimation.RANGE_GATE:
-        target_range = range_estimation(rxrise=rxrise, **kwargs)
+    if range_estimation == RangeEstimation.RANGE_GATE:
+        raise radar_exceptions.RangeEstimationError("Range gates cannot be "
+                                                    "used in to estimate "
+                                                    "distance. Try SLANT_RANGE"
+                                                    " instead.")
+    elif range_estimation == RangeEstimation.TIME_OF_FLIGHT:
+        raise radar_exceptions.RangeEstimationError("Time of flight cannot be "
+                                                    "used in to estimate "
+                                                    "distance. Try SLANT_RANGE"
+                                                    " instead.")
     else:
-        raise radar_exceptions.RangeEstimationError("Range Gates cannot be"
-                                                    "used in estimating the"
-                                                    " km for geographic"
-                                                    " coordinates systems")
+        target_range = range_estimation(rxrise=rxrise, **kwargs)
 
     # If no height is specified then use elevation angle (default 0)
     # to calculate the transmutation height

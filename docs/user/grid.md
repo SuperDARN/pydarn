@@ -27,9 +27,6 @@ Gridded [parameters](https://radar-software-toolkit-rst.readthedocs.io/en/latest
 
 and a time or record number projected onto a polar format plot in [AACGMv2](http://superdarn.thayer.dartmouth.edu/aacgm.html) coordinates. 
 
-
-Currently, grid plots in pyDARN get geomagnetic positions of the gridded data in [`mlon` and `mlat`](https://pypi.org/project/aacgmv2/) from the GRID file, which uses AACGMv2 coordinates. In the future, pyDARN will also generate the geographic position of the data points, which will bring support for non-standard gridded vector layouts.
-
 ### Basic usage
 
 pyDARN and pyplot need to be imported and the desired GRID file needs to be [read in](https://pydarn.readthedocs.io/en/latest/user/SDarnRead/):
@@ -49,19 +46,20 @@ With the grid data loaded as a list of dictionaries (`grid_data` variable in abo
 import datetime as dt
 
 stime = dt.datetime(year, month, day, hour, minute)
-gridplot = pydarn.Grid.plot_grid(grid_data, start_time=stime)
+grid_rtn = pydarn.Grid.plot_grid(grid_data, start_time=stime)
 plt.show()
 
 ```
 In this example, the record at `stime` was plotted with the defaulted parameter, line-of-sight velocity, being gridded:
 ![](../imgs/grid_1.png)
 
-You might have noticed that the variable `gridplot` in the examples above actually holds some information. This contains the AACGM latitude and longitude of the gridded vectors plotted, as well as the data. If you instead change `gridplot` to 3 separate variables, it will return the latitude, longitude, and data info into separate variables:
+You might have noticed that the variable `gridplot` in the examples above actually holds some information. This dictionary contains the AACGM latitude and longitude of the gridded vectors plotted, as well as the data:
 ```python
-lats,lons,data=pydarn.Grid.plot_grid(grid_data, start_time=stime)
+grid_rtn = pydarn.Grid.plot_grid(grid_data, start_time=stime)
+print(grid_rtn.keys())
 ```
 
-### Additional parameters
+### Additional Parameters
 
 In addition to the gridded line-of-sight velocity, you can choose one of two other data products to plot by setting `parameter=String name`:
 
@@ -71,7 +69,7 @@ In addition to the gridded line-of-sight velocity, you can choose one of two oth
 | Spectral width (m/s)                  | `wdt`       |
 | Power (dB)                            | `pwr`       |
 
-### Additional options
+### Additional Options
 
 Here is a list of all the current options than can be used with `plot_grid`
 

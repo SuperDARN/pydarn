@@ -11,6 +11,7 @@
 #                   vector
 # 2022-08-15: CJM - Removed plot_FOV call for default uses
 # 2022-12-13: CJM - Limited reference vectors to only velocity use
+# 2023-06-28: CJM - Refactored return values
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
@@ -37,13 +38,14 @@ from mpl_toolkits.axes_grid1.inset_locator import InsetPosition
 from scipy import special
 from typing import List
 
+
 # Third party libraries
 import aacgmv2
 
 from pydarn import (PyDARNColormaps, plot_exceptions,
                     standard_warning_format, Re, Hemisphere,
-                    time2datetime, find_record, Fan, Projs, MapParams)
-
+                    time2datetime, find_record, Fan, Projs,
+                    MapParams, TimeSeriesParams)
 warnings.formatwarning = standard_warning_format
 
 
@@ -61,7 +63,6 @@ class Maps():
         return "This class is static class that provides"\
                 " the following methods: \n"\
                 "   - plot_maps()\n"
-
 
     @classmethod
     def plot_mapdata(cls, dmap_data: List[dict], ax=None,
@@ -164,12 +165,12 @@ class Maps():
         date = time2datetime(dmap_data[record])
 
         if cmap is None:
-            cmap = {MapParams.FITTED_VELOCITY: 'plasma_r',
-                    MapParams.MODEL_VELOCITY: 'plasma_r',
-                    MapParams.RAW_VELOCITY: 'plasma_r',
-                    MapParams.POWER: 'plasma',
+            cmap = {MapParams.FITTED_VELOCITY: PyDARNColormaps.PYDARN_PLASMA_R,
+                    MapParams.MODEL_VELOCITY: PyDARNColormaps.PYDARN_PLASMA_R,
+                    MapParams.RAW_VELOCITY: PyDARNColormaps.PYDARN_PLASMA_R,
+                    MapParams.POWER: PyDARNColormaps.PYDARN_PLASMA,
                     MapParams.SPECTRAL_WIDTH: PyDARNColormaps.PYDARN_VIRIDIS}
-            cmap = plt.cm.get_cmap(cmap[parameter])
+            cmap = cmap[parameter]
         # Setting zmin and zmax
         defaultzminmax = {MapParams.FITTED_VELOCITY: [0, 1000],
                           MapParams.MODEL_VELOCITY: [0, 1000],
@@ -200,10 +201,11 @@ class Maps():
             # Else just call the axis maker: proj
             if boundary or radar_location:
                 for stid in dmap_data[record]['stid']:
-                    _, _, ax, _ =\
-                            Fan.plot_fov(stid, date, ax=ax, boundary=boundary,
-                                         radar_location=radar_location,
-                                         **kwargs)
+                    fan_rtn = Fan.plot_fov(stid, date, ax=ax,
+                                           boundary=boundary,
+                                           radar_location=radar_location,
+                                           **kwargs)
+                    ax = fan_rtn['ax']
             else:
                 ax, _ = projs(date, ax=ax, hemisphere=hemisphere, **kwargs)
 
@@ -305,32 +307,105 @@ class Maps():
             # vector to be plotted later if required)
             if color_vectors is True:
                 for i in range(len(v_mag) - 1):
-                    plt.plot([mlons[i], end_mlons[i]],
-                             [mlats[i], end_mlats[i]], c=cmap(norm(v_mag[i])),
-                             linewidth=0.5, zorder=5.0)
+                    if parameter == MapParams.FITTED_VELOCITY:
+                        # Shift HMB lons to MLT
+                        shifted_mlts = \
+                            dmap_data[record]['boundary.mlon'][0] - \
+                            (aacgmv2.convert_mlt(
+                                dmap_data[record]['boundary.mlon'][0],
+                                date) * 15)
+                        hmblons = (dmap_data[record]['boundary.mlon'] -
+                                   shifted_mlts) % 360
+                        # Find where the closest HMB value is, set equivalent
+                        # latitude as the lat limit for plotting
+                        rounded_mlon = np.degrees(mlons[i]) % 360
+                        ind = (np.abs(hmblons - rounded_mlon)).argmin()
+                        lat_limit = dmap_data[record]['boundary.mlat'][ind]
+                        if abs(mlats[i]) >= abs(lat_limit):
+                            plt.plot([mlons[i], end_mlons[i]],
+                                     [mlats[i], end_mlats[i]],
+                                     c=cmap(norm(v_mag[i])),
+                                     linewidth=0.5, zorder=5.0)
+                    else:
+                        plt.plot([mlons[i], end_mlons[i]],
+                                 [mlats[i], end_mlats[i]],
+                                 c=cmap(norm(v_mag[i])),
+                                 linewidth=0.5, zorder=5.0)
             else:
                 for i in range(len(v_mag) - 1):
-                    plt.plot([mlons[i], end_mlons[i]],
-                             [mlats[i], end_mlats[i]], c='#292929',
-                             linewidth=0.5, zorder=5.0)
+                    if parameter == MapParams.FITTED_VELOCITY:
+                        # Shift HMB lons to MLT
+                        shifted_mlts = \
+                            dmap_data[record]['boundary.mlon'][0] - \
+                            (aacgmv2.convert_mlt(
+                                dmap_data[record]['boundary.mlon'][0],
+                                date) * 15)
+                        hmblons = (dmap_data[record]['boundary.mlon'] -
+                                   shifted_mlts) % 360
+                        # Find where the closest HMB value is, set equivalent
+                        # latitude as the lat limit for plotting
+                        rounded_mlon = np.degrees(mlons[i]) % 360
+                        ind = (np.abs(hmblons - rounded_mlon)).argmin()
+                        lat_limit = dmap_data[record]['boundary.mlat'][ind]
+                        if abs(mlats[i]) >= abs(lat_limit):
+                            plt.plot([mlons[i], end_mlons[i]],
+                                     [mlats[i], end_mlats[i]], c='#292929',
+                                     linewidth=0.5, zorder=5.0)
+                    else:
+                        plt.plot([mlons[i], end_mlons[i]],
+                                 [mlats[i], end_mlats[i]], c='#292929',
+                                 linewidth=0.5, zorder=5.0)
 
         # Plot the sock start dots and reference vector if known
         if color_vectors is True:
-            if parameter in [MapParams.FITTED_VELOCITY,
-                             MapParams.MODEL_VELOCITY,
+            if parameter in [MapParams.MODEL_VELOCITY,
                              MapParams.RAW_VELOCITY]:
                 if reference_vector > 0:
-                    plt.scatter(mlons[:], mlats[:], c=v_mag[:], s=2.0,
+                    plt.scatter(mlons[:-1], mlats[:-1], c=v_mag[:-1], s=2.0,
+                                vmin=zmin, vmax=zmax,  cmap=cmap, zorder=5.0,
+                                clip_on=True)
+                    plt.scatter(mlons[-1], mlats[-1], c=v_mag[-1], s=2.0,
                                 vmin=zmin, vmax=zmax,  cmap=cmap, zorder=5.0,
                                 clip_on=False)
                     plt.plot([mlons[-1], end_mlons[-1]],
-                             [mlats[-1], end_mlats[-1]], c=cmap(norm(v_mag[-1])),
+                             [mlats[-1], end_mlats[-1]],
+                             c=cmap(norm(v_mag[-1])),
                              linewidth=0.5, zorder=5.0, clip_on=False)
                     plt.figtext(0.675, 0.15, str(reference_vector) + ' m/s',
                                 fontsize=8)
                 else:
                     plt.scatter(mlons[:-1], mlats[:-1], c=v_mag[:-1], s=2.0,
                                 vmin=zmin, vmax=zmax,  cmap=cmap, zorder=5.0)
+            elif parameter is MapParams.FITTED_VELOCITY:
+                # Shift HMB lons to MLT
+                shifted_mlts = dmap_data[record]['boundary.mlon'][0] - \
+                        (aacgmv2.convert_mlt(
+                            dmap_data[record]['boundary.mlon'][0], date) * 15)
+                hmblons = (dmap_data[record]['boundary.mlon'] -
+                           shifted_mlts) % 360
+                # Find where the closest HMB value is, set equivalent
+                # latitude as the lat limit for plotting
+                for m, mlon in enumerate(mlons[:-1]):
+                    rounded_mlon = np.degrees(mlon) % 360
+                    ind = (np.abs(hmblons - rounded_mlon)).argmin()
+                    lat_limit = dmap_data[record]['boundary.mlat'][ind]
+                    if abs(mlats[m]) >= abs(lat_limit):
+                        plt.scatter(mlon, mlats[m], color=cmap(norm(v_mag[m])),
+                                    s=2.0, zorder=5.0, clip_on=True)
+                    else:
+                        plt.scatter(mlon, mlats[m], c='#DDDDDD', s=2.0,
+                                    zorder=5.0, clip_on=True)
+                if reference_vector > 0:
+                    plt.scatter(mlons[-1], mlats[-1],
+                                color=cmap(norm(v_mag[-1])),
+                                s=2.0, zorder=5.0, clip_on=False)
+                    plt.plot([mlons[-1], end_mlons[-1]],
+                             [mlats[-1], end_mlats[-1]],
+                             c=cmap(norm(v_mag[-1])),
+                             linewidth=0.5, zorder=5.0, clip_on=False)
+                    plt.figtext(0.675, 0.15, str(reference_vector) + ' m/s',
+                                fontsize=8)
+            # No vector socks on spectral width
             else:
                 plt.scatter(mlons[:], mlats[:], c=v_mag[:], s=2.0,
                             vmin=zmin, vmax=zmax,  cmap=cmap, zorder=5.0)
@@ -338,11 +413,12 @@ class Maps():
         else:
             # no color so make sure colorbar is turned off
             colorbar = False
-            if parameter in [MapParams.FITTED_VELOCITY,
-                             MapParams.MODEL_VELOCITY,
+            if parameter in [MapParams.MODEL_VELOCITY,
                              MapParams.RAW_VELOCITY]:
                 if reference_vector > 0:
-                    plt.scatter(mlons[:], mlats[:], c='#292929', s=2.0,
+                    plt.scatter(mlons[:-1], mlats[:-1], c='#292929', s=2.0,
+                                zorder=5.0, clip_on=True)
+                    plt.scatter(mlons[-1], mlats[-1], c='#292929', s=2.0,
                                 zorder=5.0, clip_on=False)
                     plt.plot([mlons[-1], end_mlons[-1]],
                              [mlats[-1], end_mlats[-1]], c='#292929',
@@ -352,9 +428,37 @@ class Maps():
                 else:
                     plt.scatter(mlons[:-1], mlats[:-1], c='#292929', s=2.0,
                                 zorder=5.0)
+            elif parameter is MapParams.FITTED_VELOCITY:
+                # Shift HMB lons to MLT
+                shifted_mlts = dmap_data[record]['boundary.mlon'][0] - \
+                        (aacgmv2.convert_mlt(
+                            dmap_data[record]['boundary.mlon'][0], date) * 15)
+                hmblons = (dmap_data[record]['boundary.mlon'] -
+                           shifted_mlts) % 360
+                # Find where the closest HMB value is, set equivalent
+                # latitude as the lat limit for plotting
+                for m, mlon in enumerate(mlons[:-1]):
+                    rounded_mlon = np.degrees(mlon) % 360
+                    ind = (np.abs(hmblons - rounded_mlon)).argmin()
+                    lat_limit = dmap_data[record]['boundary.mlat'][ind]
+                    if abs(mlats[m]) >= abs(lat_limit):
+                        plt.scatter(mlon, mlats[m], c='#292929', s=2.0,
+                                    zorder=5.0, clip_on=True)
+                    else:
+                        plt.scatter(mlon, mlats[m], c='#DDDDDD', s=2.0,
+                                    zorder=5.0, clip_on=True)
+                if reference_vector > 0:
+                    plt.scatter(mlons[-1], mlats[-1], c='#292929', s=2.0,
+                                zorder=5.0, clip_on=False)
+                    plt.plot([mlons[-1], end_mlons[-1]],
+                             [mlats[-1], end_mlats[-1]], c='#292929',
+                             linewidth=0.5, zorder=5.0, clip_on=False)
+                    plt.figtext(0.675, 0.15, str(reference_vector) + ' m/s',
+                                fontsize=8)
+            # No vector socks on spectral width
             else:
                 plt.scatter(mlons[:], mlats[:], c='#292929', s=2.0,
-                                zorder=5.0)
+                            zorder=5.0)
 
         if colorbar is True:
             mappable = cm.ScalarMappable(norm=norm, cmap=cmap)
@@ -380,6 +484,8 @@ class Maps():
                     cb.set_label('Spectral Width (m s$^{-1}$)')
                 elif parameter is MapParams.POWER:
                     cb.set_label('Power')
+        else:
+            cb = None
 
         # Plot potential contours
         fit_coefficient = dmap_data[record]['N+2']
@@ -388,16 +494,25 @@ class Maps():
         lon_shift = dmap_data[record]['lon.shft']
         lat_min = dmap_data[record]['latmin']
 
-        cls.plot_potential_contours(fit_coefficient, lat_min, date, ax,
-                                    lat_shift=lat_shift, lon_shift=lon_shift,
-                                    fit_order=fit_order, hemisphere=hemisphere,
-                                    **kwargs)
+        _, _, pot_arr, cs, cb_contour = \
+            cls.plot_potential_contours(fit_coefficient,
+                                        lat_min, date, ax,
+                                        lat_shift=lat_shift,
+                                        lon_shift=lon_shift,
+                                        fit_order=fit_order,
+                                        hemisphere=hemisphere,
+                                        **kwargs)
 
         if hmb is True:
             # Plot the HMB
             mlats_hmb = dmap_data[record]['boundary.mlat']
             mlons_hmb = dmap_data[record]['boundary.mlon']
-            cls.plot_heppner_maynard_boundary(mlats_hmb, mlons_hmb, date)
+            hmb_lon, hmb_lat = cls.plot_heppner_maynard_boundary(mlats_hmb,
+                                                                 mlons_hmb,
+                                                                 date)
+        else:
+            hmb_lon = None
+            hmb_lat = None
 
         if title == '':
             title = "{year}-{month}-{day} {start_hour}:{start_minute} -"\
@@ -419,17 +534,33 @@ class Maps():
             pol_cap_pot = dmap_data[record]['pot.drop']
             cls.add_map_info(fit_order, pol_cap_pot, num_points, model)
 
+        bx = dmap_data[record]['IMF.Bx']
+        by = dmap_data[record]['IMF.By']
+        bz = dmap_data[record]['IMF.Bz']
+        delay = dmap_data[record]['IMF.delay']
+        bt = np.sqrt(bx**2 + by**2 + bz**2)
         if imf_dial is True:
             # Plot the IMF dial
-            bx = dmap_data[record]['IMF.Bx']
-            by = dmap_data[record]['IMF.By']
-            bz = dmap_data[record]['IMF.Bz']
-            delay = dmap_data[record]['IMF.delay']
-            bt = np.sqrt(bx**2 + by**2 + bz**2)
             cls.plot_imf_dial(ax, by, bz, bt, delay)
 
-        return mlats, mlons, v_mag
-
+        return {'ax': ax,
+                'ccrs': None,
+                'cm': cmap,
+                'cb': [cb, cb_contour],
+                'fig': plt.gcf(),
+                'data': {'cpcp': pol_cap_pot,
+                         'fit_model': model,
+                         'fit_order': fit_order,
+                         'num_vectors': num_points,
+                         'mlats': mlats,
+                         'mlons': mlons,
+                         'v_mag': v_mag,
+                         'azm_v': azm_v,
+                         'potential_array': pot_arr,
+                         'hmb': [hmb_lat, hmb_lon],
+                         'imf': [bx, by, bz, bt, delay],
+                         'contours': cs}
+                }
 
     @classmethod
     def index_legendre(cls, l: int, m: int):
@@ -449,7 +580,6 @@ class Maps():
         """
         return (m == 0 and l**2) or ((l != 0)
                                      and (m != 0) and l**2 + 2 * m - 1) or 0
-
 
     @classmethod
     def calculated_fitted_velocities(cls, mlats: list, mlons: list,
@@ -653,7 +783,6 @@ class Maps():
 
         return velocity, azm_v
 
-
     @classmethod
     def add_map_info(cls, fit_order: float, pol_cap_pot: float,
                      num_points: float, model: str):
@@ -679,7 +808,6 @@ class Maps():
                       + 'Order: ' + str(fit_order) + '\n' \
                       + 'Model: ' + model + '\n'
         plt.figtext(0.1, 0.1, text_string)
-
 
     @classmethod
     def plot_heppner_maynard_boundary(cls, mlats: list, mlons: list,
@@ -712,7 +840,7 @@ class Maps():
         mlon = np.radians(shifted_lons)
 
         plt.plot(mlon, mlats, c=line_color, zorder=4.0, **kwargs)
-
+        return mlon, mlats
 
     @classmethod
     def plot_imf_dial(cls, ax: object, by: float = 0, bz: float = 0,
@@ -768,7 +896,6 @@ class Maps():
                         fontsize=7)
         ax_imf.annotate('Delay = -' + str(delay) + ' min', xy=(-16, -17),
                         fontsize=7)
-
 
     @classmethod
     def calculate_potentials(cls, fit_coefficient: list, lat_min: list,
@@ -878,20 +1005,23 @@ class Maps():
 
         return mlat_center, mlon_center, pot_arr
 
-
     @classmethod
     def plot_potential_contours(cls, fit_coefficient: list, lat_min: list,
                                 date: object, ax: object, lat_shift: int = 0,
                                 lon_shift: int = 0, fit_order: int = 6,
                                 hemisphere: Enum = Hemisphere.North,
                                 contour_levels: list = [],
+                                contour_spacing: int = None,
                                 contour_color: str = 'dimgrey',
                                 contour_linewidths: float = 0.8,
                                 contour_fill: bool = False,
                                 contour_colorbar: bool = True,
                                 contour_fill_cmap: str = 'RdBu',
                                 contour_colorbar_label: str = 'Potential (kV)',
-                                pot_minmax_color: str = 'k', **kwargs):
+                                pot_minmax_color: str = 'k',
+                                pot_zmin: int = -50,
+                                pot_zmax: int = 50,
+                                **kwargs):
         # TODO: No evaluation of coordinate system made! May need if in
         # plotting to plot in radians/geo ect.
         '''
@@ -927,6 +1057,11 @@ class Maps():
                 lower than the minimum and maximum values
                 given are colored in as min and max color
                 values if contour_fill=True
+            contour_spacing: int
+                If levels are not set explicitly, then use this value to
+                set the spacing between the contour levels.
+                Default is None which defaults to the max value/20
+                which works out to be 5 with other default values
             contour_color: str
                 Colour of the contour lines plotted
                 Default: dimgrey
@@ -959,6 +1094,12 @@ class Maps():
                 Colour of the cross and plus symbols for
                 minimum and maximum potentials
                 Default: 'k' - black
+            pot_zmin: float
+                Minumum value of color map used for potential contours.
+                If None, defaults to -abs(pot_arr).max()
+            pot_zmax: float
+                Maximum value of color map used for potential contours.
+                If None, defaults to abs(pot_arr).max()
             **kwargs
                 including lowlat and hemisphere for calculating
                 potentials
@@ -977,38 +1118,50 @@ class Maps():
 
         # Contained in function as too long to go into the function call
         if contour_levels == []:
-            contour_levels = [-100, -95, -90, -85, -80, -75, -70, -65, -60,
-                              -55, -50, -45, -40, -35, -30, -25, -20, -15,
-                              -10, -5, -1, 1, 5, 10, 15, 20, 25, 30, 35, 40,
-                              45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100]
+            if contour_spacing is None:
+                # If not set this sets the maximum number of contours to be 40
+                contour_spacing = int(np.floor(np.max([abs(pot_zmin),
+                                                       abs(pot_zmax)]) / 10))
+
+            # Making the levels required, but skipping 0 as default to avoid a
+            # contour at 0 position (looks weird)
+            contour_levels = [*range(pot_zmin, 0, contour_spacing),
+                              *range(contour_spacing,
+                                     pot_zmax + contour_spacing,
+                                     contour_spacing)]
+        else:
+            pot_zmax = np.max(contour_levels)
+            pot_zmin = np.min(contour_levels)
 
         if contour_fill:
             # Filled contours
-            plt.contourf(np.radians(mlon), mlat, pot_arr, 2,
-                         vmax=abs(pot_arr).max(),
-                         vmin=-abs(pot_arr).max(),
-                         locator=ticker.FixedLocator(contour_levels),
-                         cmap=contour_fill_cmap, alpha=0.5,
-                         extend='both', zorder=3.0)
+            norm = colors.Normalize
+            norm = norm(pot_zmin, pot_zmax)
+            cs = plt.contourf(np.radians(mlon), mlat, pot_arr, 2,
+                              norm=norm, vmax=pot_zmax, vmin=pot_zmin,
+                              levels=np.array(contour_levels),
+                              cmap=contour_fill_cmap, alpha=0.5,
+                              extend='both', zorder=3.0)
             if contour_colorbar is True:
-                norm = colors.Normalize
-                norm = norm(-abs(pot_arr).max(), abs(pot_arr).max())
                 mappable = cm.ScalarMappable(norm=norm, cmap=contour_fill_cmap)
                 locator = ticker.MaxNLocator(symmetric=True, min_n_ticks=3,
                                              integer=True, nbins='auto')
-                ticks = locator.tick_values(vmin=-abs(pot_arr).max(),
-                                            vmax=abs(pot_arr).max())
-                cb = plt.colorbar(mappable, ax=ax, extend='both', ticks=ticks)
+                ticks = locator.tick_values(vmin=pot_zmin,
+                                            vmax=pot_zmax)
+                cb_contour = plt.colorbar(mappable, ax=ax, extend='both',
+                                          ticks=ticks)
                 if contour_colorbar_label != '':
-                    cb.set_label(contour_colorbar_label)
+                    cb_contour.set_label(contour_colorbar_label)
+            else:
+                cb_contour = None
         else:
             # Contour lines only
             cs = plt.contour(np.radians(mlon), mlat, pot_arr, 2,
-                             vmax=abs(pot_arr).max(),
-                             vmin=-abs(pot_arr).max(),
-                             locator=ticker.FixedLocator(contour_levels),
+                             vmax=pot_zmax, vmin=pot_zmin,
+                             levels=np.array(contour_levels),
                              colors=contour_color, alpha=0.8,
                              linewidths=contour_linewidths, zorder=3.0)
+            cb_contour = None
             # TODO: Add in contour labels
             # if contour_label:
             #    plt.clabel(cs, cs.levels, inline=True, fmt='%d', fontsize=5)
@@ -1025,3 +1178,120 @@ class Maps():
                     color=pot_minmax_color, zorder=5.0)
         plt.scatter(np.radians(min_mlon), min_mlat, marker='_', s=70,
                     color=pot_minmax_color, zorder=5.0)
+        return mlat, mlon_u, pot_arr, cs, cb_contour
+
+    @classmethod
+    def find_map_record(cls, dmap_data: List[dict], start_time: dt.datetime):
+        """
+        looks through the data from a given map file and
+        returns the record number nearest the
+        passed datetime object
+
+        Parameters
+        -----------
+        dmap_data: List[dict]
+            the data to look through
+        start_time: datetime
+            the time to find the nearest record number to
+
+        Returns
+        -------
+        Returns the closet record to the passed time
+        """
+        # recursively identify the index of the list
+        # where the time is closest to the passed time
+        def find_nearest_time(dmap_data: List[dict], start_time: dt.datetime,
+                              start_index: int, end_index: int):
+            # base case
+            if start_index == end_index:
+                return start_index
+            # recursive case
+            else:
+                # find the middle index
+                mid_index = int((start_index + end_index)/2)
+                # if the time at the middle index is
+                # greater than the passed time
+                if time2datetime(dmap_data[mid_index]) > start_time:
+                    # search the lower half of the list
+                    return find_nearest_time(dmap_data, start_time,
+                                             start_index, mid_index)
+                # if the time at the middle index
+                # is less than the passed time
+                elif time2datetime(dmap_data[mid_index]) < start_time:
+                    # search the upper half of the list
+                    return find_nearest_time(dmap_data, start_time,
+                                             mid_index + 1, end_index)
+                # if the time at the middle index is equal to the passed time
+                else:
+                    # return the middle index
+                    return mid_index
+
+        return find_nearest_time(dmap_data,
+                                 start_time, 0, len(dmap_data) - 1)
+
+    @classmethod
+    def plot_time_series(cls, dmap_data: List[dict],
+                         parameter: Enum = TimeSeriesParams.NUM_VECTORS,
+                         start_record: int = 0, end_record: int = 1,
+                         start_time: dt.datetime = None,
+                         end_time: dt.datetime = None, ax=None, **kwargs):
+        '''
+        Plot time series of various map parameters
+
+        Params
+        ----------
+        dmap_data: List[dict]
+            List of dictionaries containing the data to be plotted
+        start_record: int
+            time index that we will plot from
+        end_record: int
+            time index that we will plot to (-1 will plot the entire period)
+        start_time: dt.datetime
+            Start time of the data
+        end_time: dt.datetime
+            End time of the data
+        ax:
+            matplotlib axis
+        kwargs:
+            keyword arguments to be passed to the plotting function
+            '''
+        # if no time objects are passed & no start/end record is passed
+        # then plot all availaible data
+        record_absent = start_time is None and end_time is None
+        if start_record == 0 and end_record == 1 and record_absent:
+
+            start_record = 0
+            end_record = len(dmap_data)-1
+        # determine the start and end record
+        if start_time is not None and end_time is not None:
+            start_record = cls.find_map_record(dmap_data, start_time)
+            end_record = cls.find_map_record(dmap_data, end_time)
+        else:
+            start_time = time2datetime(dmap_data[start_record])
+            end_time = time2datetime(dmap_data[end_record])
+        # based on the parameter, plot the data
+        if parameter == TimeSeriesParams.NUM_VECTORS:
+            datalist = []
+            timelist = []
+            for records in range(start_record, end_record):
+                # append the dimension of numv for each record
+                # we can just uexse any of the keys with dimensionality numv
+                datalist.append(len(dmap_data[records]['vector.mlat']))
+                # now get the associated time data point per record
+                timelist.append(time2datetime(dmap_data[records]))
+            plt.plot(timelist, datalist, **kwargs)
+            plt.ylabel('Number of Vectors')
+            plt.xlabel('Time (UTC)')
+            plt.title("Number of Vectors for " + str(start_time)
+                      + " to " + str(end_time))
+        elif parameter is not None:
+            datalist = []
+            timelist = []
+            for records in range(start_record, end_record):
+                datalist.append(dmap_data[records][parameter.value])
+                timelist.append(time2datetime(dmap_data[records]))
+            plt.plot(timelist, datalist, **kwargs)
+            plt.ylabel(parameter.value)
+            plt.xlabel('Time (UTC)')
+            plt.title(parameter.value + ' for ' + str(start_time)
+                      + " to " + str(end_time))

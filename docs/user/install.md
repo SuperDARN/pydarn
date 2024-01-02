@@ -17,18 +17,30 @@ the additional permissions listed below.
 ---
 
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPLv3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0) 
-[![Python 3.6](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/downloads/release/python-360/) 
+[![Python 3.7](https://img.shields.io/badge/python-3.7-blue.svg)](https://www.python.org/downloads/release/python-370/) 
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/superdarn/pydarn)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3727269.svg)](https://doi.org/10.5281/zenodo.3727269)
 
+For most users, pyDARN can be installed simply by:
 
-!!! Important 
-    It is recommended to install pyDARN via `pip`; however, please cite via the [DOI for the release](https://doi.org/10.5281/zenodo.3727269) 
+```
+pip3 install pydarn
+```
 
+If already installed, pyDARN can be upgraded by:
+
+```
+pip3 install --upgrade pydarn
+```
+
+Installing in virtual environments is recommended, see below for details.
 
 ## Prerequisites
 
-pyDARN requires **python 3.6** or later and **matplotlib 3.3.4** or later.
+pyDARN requires **python 3.7** or later and **matplotlib 3.3.4** or later.
+
+!!! Note
+    Python 3.6 is commonly the default version included on many operating systems, you may need to install a newer version and specify that version when running python programs and installing libraries.
 
 Depending on your operating system or distribution, the following package installers, development environments or data parsers are required: 
  
@@ -41,12 +53,10 @@ You can check your python version using
 `$ python --version` or 
 `$ python3 --version`
 
-!!! Note
-    If you have already installed `pydarn` you can use `pip3 install --upgrade pydarn`
 
 ## Dependencies
 
-pyDARN's setup will download the following dependencies: 
+On installation, pyDARN will download the following dependencies: 
 
 - [Git](https://git-scm.com/) (For developers)
 - [pip3](https://help.dreamhost.com/hc/en-us/articles/115000699011-Using-pip3-to-install-Python3-modules)
@@ -57,39 +67,35 @@ pyDARN's setup will download the following dependencies:
 - [AACGMv2](https://pypi.org/project/aacgmv2/) 
 
 !!! Note
-    If you wish to plot coastlines or geographic projections you will need to install cartopy>=0.19 separately
+    If you wish to plot coastlines or geographic projections you will need to install cartopy>=0.19 separately, see below.
 
 ### Cartopy 
 [Cartopy](https://scitools.org.uk/cartopy/docs/latest/) is a Python package designed for geospatial data processing in order to produce maps and other geospatial data analyses. This library is used when invoking a projection system needing overlapped coastline maps in Fan, Grid and Map plots. 
 
-For installing cartopy please follow the packages [installation](https://scitools.org.uk/cartopy/docs/latest/installing.html) instructions. For ubuntu here is good installation [link](https://techoverflow.net/2021/07/11/how-to-install-cartopy-on-ubuntu/) 
-
-!!! Warning
-    For cartopy to work with pyDARN please make sure it version `>=0.19`. Otherwise pydarn will throw an exception if you try to use it.  
-
+For installing cartopy please follow the [installation](https://scitools.org.uk/cartopy/docs/latest/installing.html) instructions. For ubuntu here is good installation [walkthrough](https://techoverflow.net/2021/07/11/how-to-install-cartopy-on-ubuntu/).
 
 !!! Note
-    cartopy can be a challenging package to install so please provide any information on troubleshooting or solutions to common issues on the [pyDARN github](https://github.com/SuperDARN/pydarn) page. 
-
+    pyDARN requires cartopy version 0.19 or higher.
+    cartopy can be a challenging package to install, please provide any information on troubleshooting or solutions in an issue on the [pyDARN github](https://github.com/SuperDARN/pydarn) page. 
 
 
 ## Virtual Environments
-It is recommended to install pyDARN in one of the suggested virtual environments if you have multiple python/pip 3 version on your computer, or do not want to affect the main system's python libraries. 
+It is recommended to install pyDARN in one of the suggested virtual environments if you have multiple python versions on your computer, or do not want to affect the main system's python libraries. 
 
-The following virtual environments have been tested by pyDARN developers:"
+The following virtual environments have been tested by pyDARN developers:
 
 ### pip Virtual Environment
 Instructions can be found here [virtual environment](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/)
 
 Option 1:
+
 1. `$ python3 -m pip install --user virtualenv` (Install virtual environment package)
-2. `$ python3 -m virtualenv <environment name>`  (Make your virtual environment)
-3. `$ source <environment name>/bin/activate`  (Activate the virtual environment)
-4. `$ pip install pydarn`    (Install pyDARN)
+2. `$ python3 -m virtualenv <environment name>` (Make your virtual environment)
+* `$ source <environment name>/bin/activate` (Activate the virtual environment)
+* `$ pip3 install pydarn` (Install pyDARN)
 
 !!! Note
-    If you have multiple versions of python 3 on your machine, you can access a specific version by: `python<version number>`. 
-    For example, if you want to install python 3.6 virtual environment: `python3.6 -m pip install --user virtualenv`.
+    In newer python version, `virtualenv` is now `venv`.
 
 ### Anaconda Virtual Environment
 Instructions can be found here [conda environment](https://uoa-eresearch.github.io/eresearch-cookbook/recipe/2014/11/20/conda/) and installing [anaconda](https://docs.anaconda.com/anaconda/install/)
@@ -108,44 +114,37 @@ To set the project interpreter to the anaconda environment:
 * Select "Conda Environment" on the left side menu.
 * Click "Existing Environment" and give the interpreter field the path to your environment's python.exe and apply.
 
-## Local Install
-**pip3 install**
 
-`pip3 install --user pydarn`
-
-## System Install 
-`sudo pip3 install pydarn`
-
-## Installing for Development
+## Installing for Development or Testing
 
 pyDARN's default github branch is `develop` for quicker and easer development. 
 
-It is encouraged to use [SSH keys in GitHub](https://docs.github.com/en/github/authenticating-to-github/connecting-to-github-with-ssh) 
+`git clone https://github.com/SuperDARN/pydarn.git`
 
-`git clone git@github.com:SuperDARN/pydarn.git`
+To install a specific branch to develop or test: 
+`cd pydarn`
+`git checkout branch_name`
+`pip3 install .`
 
-To install: 
+You can alternatively install a specific branch using the following installation, this is most useful for testing new branches:
 
-`$ pip3 install . --user`
-
-!!! Note
-    If `pip --version` is pointing to python 3.6+ then you can use `pip install . --user` instead. 
-
-!!! Note
-    Sometimes `python setup.py install` is needed to grab all hardware files (known issue).
+`pip3 install git+https://github.com/superdarn/pydarn@branch_name`
 
 Please read pyDARN [Workflow documentation](../dev/team.md) to further understand how to develop in pyDARN.
     
 ## Troubleshooting
 
-### Pip3 installation with Ubuntu 20.4/python 3.8.4
+Some known issues with solutions are:
+
+### pip3 installation with Ubuntu 20.4/python 3.8.4
 
 Issue: `pip3 install --user git+https://github.com/superdarn/pydarn@develop` not working
 
 Solution:
+
 1. check git is installed `apt install git` (for ubuntu)
-2. Check pip version `pip --version` - with newer distros of Linux/Virtual machines `pip` may point to pyhon3 and you will not need pip3. 
-3. Alternative virtual environment steps for getting python 3.8 working
+2. Check pip version `pip --version` - with newer distros of Linux/Virtual machines `pip` may point to pyhon3 and you will not need pip3.
+* Alternative virtual environment steps for getting python 3.8 working
 
 ```bash 
 $ sudo apt-get update
@@ -157,26 +156,23 @@ $ echo "source $HOME/venvs/py38/bin/activate" >> ~/.bashrc
 ```
 Then open a new terminal and you should see `(pyy38)` in the prompt. 
 
-Credit to this solution is Ashton Reimer, more details on the [issue #37](https://github.com/SuperDARN/pydarn/issues/37)
+More details on [issue #37](https://github.com/SuperDARN/pydarn/issues/37)
 
 ### aacgmv2 won't install 
 
-Issue: `unable to execute 'gcc': No such file or directory
-    error: command 'gcc' failed with exit status 1`
-
-Solution: 
-  1. Ensure `gcc` is installed if not install it
-  2. Ensure you install `python3-dev` (Ubuntu) or `python3-devel` for RPM OS Linux operating systems. 
-
-Credit to this solution is Marina Schmidt brought up by Remington Rohel from SuperDARN Canada
-
-
-> If you find any problems/solutions, please make a [github issue](https://github.com/superdarn/pydarn/issues/new) so the community can help you or add it to the documentation
-
-### Summary plots get a ValueError 
-
-Issue: `ValueError: Cannot convert 0 to a date.  This often happens if non-datetime values are passed to an axis that expects datetime objects.` when using `plot_summary`
+Issue: `unable to execute 'gcc': No such file or directory error: command 'gcc' failed with exit status 1`
 
 Solution:
-1. check matplotlib version, if lower than 3.3.4 then upgrade matplotlib equal or higher version.  
+
+  1. Ensure `gcc` is installed if not install it
+  2. Ensure you install `python3-dev` (Ubuntu) or `python3-devel` for RPM OS Linux operating systems.
+
+### General Plotting Errors
+
+Solution:
+
+1. check matplotlib version, if lower than 3.3.4 then upgrade matplotlib equal or higher version.
 2. `pip install -U matplotlib`
+
+!!! Note 
+If you find any problems/solutions, please make a [github issue](https://github.com/superdarn/pydarn/issues/new) so the community can help you or add it to the documentation!

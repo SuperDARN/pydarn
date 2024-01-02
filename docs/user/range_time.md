@@ -20,10 +20,10 @@ Range-time parameter plots (also known as range-time intensity (RTI) plots) are 
 
 ### Basic RTP
 The general syntax for plot_range_time is:
-'plot_range_time(fitacf_data, options)'
-where 'fitacf_data' is the read in data, and the options are several python parameters used to control how the plot looks.
+`plot_range_time(fitacf_data, options)`
+where `fitacf_data` is the data read in using the read functions, and the options are several python parameters used to control how the plot looks.
 
-First, make sure pyDARN and matplotlib are imported, then read in the .fitacf file with the data you wish to plot:
+First, make sure pyDARN and matplotlib are imported, then read in the fitacf file with the data you wish to plot:
 ```python
 import matplotlib.pyplot as plt
 
@@ -56,6 +56,14 @@ To specify which beam to look at, add the option:
 
 As an example, taking a look at some `v` data from the first record of Clyde River radar FITACF file:
 ```python
+import matplotlib.pyplot as plt
+
+import pydarn
+
+fitacf_file = "20190831.C0.cly.fitacf"
+sdarn_read = pydarn.SuperDARNRead(fitacf_file)
+fitacf_data = sdarn_read.read_fitacf()
+
 pydarn.RTP.plot_range_time(fitacf_data, beam_num=fitacf_data[0]['bmnum'], range_estimation=pydarn.RangeEstimation.RANGE_GATE)
 plt.title("Radar {:d}, Beam {:d}".format(fitacf_data[0]['stid'], fitacf_data[0]['bmnum']))  
 
@@ -131,16 +139,19 @@ Because the default parameter plotted is line-of-sight velocity, there is also a
 
 To change the colormap, use the 'cmap' parameter with the string name of a matplotlib color map ([found here](https://matplotlib.org/tutorials/colors/colormaps.html)). For example, plotting the power along the beam above using the colormap 'viridis':
 ```python
-pydarn.RTP.plot_range_time(fitacf_data, beam_num=7, parameter='p_l', zmax=50, zmin=0, date_fmt='%H%M', colorbar_label='Power (dB)', range_estimation=pydarn.RangeEstimation.RANGE_GATE, cmap='viridis')
+pydarn.RTP.plot_range_time(fitacf_data, beam_num=7, parameter='p_l', zmax=50,
+                           zmin=0, date_fmt='%H%M', colorbar_label='Power (dB)',
+                           range_estimation=pydarn.RangeEstimation.RANGE_GATE,
+                           cmap='viridis')
 ```
 produces:
 
 ![](../imgs/rtp_cly3.png)
 
-Feel free to choose a color map which is palatable for your needs.
+Feel free to choose a color map which is palatable for your needs, except jet.
 
 !!! Warning
-    If the data contains `-inf` or `inf` a warning will be presented and the following parameters will be defaults to the scale:
+    If the data contains `-inf` or `inf` a warning will be presented and the following parameters will be default to the scale:
 
 | Parameter | Name            | Scale       |
 | --------- | --------------- | ----------- |
@@ -175,7 +186,7 @@ UserWarning: Warning: zmin is -inf, set zmin to 0. You canset zmin and zmax in t
     When using filters on data you may remove all data or some data which causes a `NoDataError` or stripping in the plot
 
 
-Example of data looking stripping from filtering setting
+Example of data showing striping due to removal of some frequencies:
 
 ```python
 filts = {'min_scalar_filter':{'tfreq': 11000}}
