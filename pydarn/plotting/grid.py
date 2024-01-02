@@ -361,7 +361,7 @@ class Grid():
                         # If the vector does not cross the meridian
                         if np.sign(thetas[i]) == np.sign(end_thetas[i]):
                             plt.plot([thetas[i], end_thetas[i]],
-                                     [rs[i], end_g_rs[i]],
+                                     [rs[i], end_rs[i]],
                                      c=cmap(norm(data[i])),
                                      linewidth=0.5, transform=transform)
                         # If the vector crosses the meridian then amend so that
@@ -375,7 +375,7 @@ class Grid():
                             # Vector plots correctly over the 0 meridian so
                             # Nothing is done to correct that section
                             plt.plot([thetas[i], end_thetas[i]],
-                                     [rs[i], end_g_rs[i]],
+                                     [rs[i], end_rs[i]],
                                      c=cmap(norm(data[i])),
                                      linewidth=0.5, transform=transform)
                 # TODO: Add a velocity reference vector
