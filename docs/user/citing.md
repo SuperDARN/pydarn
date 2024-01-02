@@ -96,7 +96,7 @@ Please either cite using the version DOI's below or acknowledge the use of the s
 
 ## DOI's 
 
-- Release 1.0.0 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3727270.svg)](https://doi.org/10.5281/zenodo.3727270)
+- Release 1.0 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3727270.svg)](https://doi.org/10.5281/zenodo.3727270)
 - Release 1.1.0 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3978643.svg)](https://doi.org/10.5281/zenodo.3978643)
 - Release 2.0 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4549096.svg)](https://doi.org/10.5281/zenodo.4549096)
 - Release 2.0.1 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4558130.svg)](https://doi.org/10.5281/zenodo.4558130)
@@ -106,6 +106,8 @@ Please either cite using the version DOI's below or acknowledge the use of the s
 - Release 3.0 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6473574.svg)](https://doi.org/10.5281/zenodo.6473574)
 - Release 3.1 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7468856.svg)](https://doi.org/10.5281/zenodo.7468856)
 - Release 3.1.1 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7767590.svg)](https://doi.org/10.5281/zenodo.7767590)
+- Release 4.0 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10452339.svg)](https://doi.org/10.5281/zenodo.10452339)
+
 
 ## Python Library References 
 
