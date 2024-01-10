@@ -74,7 +74,8 @@ class RTP():
     @classmethod
     def plot_range_time(cls, dmap_data: List[dict], parameter: str = 'v',
                         beam_num: int = 0, channel: int = 'all', ax=None,
-                        background: str = 'w', groundscatter: bool = False,
+                        background: str = 'w', background_alpha: float = 1.0,
+                        groundscatter: bool = False,
                         zmin: int = None, zmax: int = None,
                         start_time: datetime = None, end_time: datetime = None,
                         colorbar: plt.colorbar = None, ymin: int = None,
@@ -119,6 +120,9 @@ class RTP():
         background : str
             color of the background in the plot
             default: white
+        background_alpha : float
+            alpha (transparency) of the background in the plot
+            default: 1.0 (opaque)
         zmin: int
             Minimum normalized value
             Default: minimum parameter value in the data set
@@ -424,7 +428,7 @@ class RTP():
 
         # set the background color, this needs to happen to avoid
         # the overlapping problem that occurs
-        cmap.set_bad(color=background, alpha=1.)
+        cmap.set_bad(color=background, alpha=background_alpha)
         # plot!
         im = ax.pcolormesh(time_axis, y_axis, z_data, lw=0.01,
                            cmap=cmap, norm=norm, **kwargs)
@@ -853,7 +857,8 @@ class RTP():
                      watermark: bool = False, boundary: dict = {},
                      cmaps: dict = {}, lines: dict = {},
                      plot_elv: bool = True, title=None,
-                     background: str = 'w', groundscatter: bool = True,
+                     background: str = 'w', background_alpha: float = 1.0,
+                     groundscatter: bool = True,
                      channel: int = 'all', line_color: dict = {},
                      range_estimation: object =
                      RangeEstimation.SLANT_RANGE,
@@ -882,6 +887,9 @@ class RTP():
         background: string
             background color of the plots
             default: white
+        background_alpha : float
+            alpha (transparency) of the background in the plot
+            default: 1.0 (opaque)
         groundscatter : boolean
             Flag to indicate if groundscatter should be plotted.
             Placed only on the velocity plot.
@@ -1189,6 +1197,7 @@ class RTP():
                                                 axes_parameters[i]][1],
                                             yspacing=500,
                                             background=background,
+                                            background_alpha=background_alpha,
                                             range_estimation=range_estimation,
                                             **kwargs)
                     else:
@@ -1205,6 +1214,7 @@ class RTP():
                                                 axes_parameters[i]][1],
                                             yspacing=5,
                                             background=background,
+                                            background_alpha=background_alpha,
                                             range_estimation=range_estimation,
                                             coords=coords, latlon=latlon,
                                             **kwargs)
@@ -1370,7 +1380,8 @@ class RTP():
     @classmethod
     def plot_coord_time(cls, dmap_data: List[dict], parameter: str = 'v',
                         beam_num: int = 0, channel: int = 'all', ax=None,
-                        background: str = 'w', groundscatter: bool = False,
+                        background: str = 'w', background_alpha: float = 1.0,
+                        groundscatter: bool = False,
                         zmin: int = None, zmax: int = None,
                         coords: object = Coords.AACGM, latlon: str = 'lat',
                         start_time: datetime = None, end_time: datetime = None,
@@ -1418,6 +1429,9 @@ class RTP():
         background : str
             color of the background in the plot
             default: white
+        background_alpha : float
+            alpha (transparency) of the background in the plot
+            default: 1.0 (opaque)
         zmin: int
             Minimum normalized value
             Default: minimum parameter value in the data set
@@ -1774,7 +1788,7 @@ class RTP():
 
         # set the background color, this needs to happen to avoid
         # the overlapping problem that occurs
-        cmap.set_bad(color=background, alpha=1.)
+        cmap.set_bad(color=background, alpha=background_alpha)
         # plot!
         im = ax.pcolormesh(time_axis, y_axis, z_data, lw=0.01,
                            cmap=cmap, norm=norm, **kwargs)
