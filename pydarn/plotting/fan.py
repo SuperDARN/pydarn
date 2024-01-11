@@ -49,9 +49,10 @@ from typing import List, Union
 # Third party libraries
 import aacgmv2
 
-from pydarn import (PyDARNColormaps, build_scan, partial_record_warning,
+from pydarn import (PyDARNColormaps, partial_record_warning,
                     time2datetime, plot_exceptions, SuperDARNRadars,
-                    calculate_azimuth, Projs, Coords, Hemisphere)
+                    calculate_azimuth, Projs, Coords,
+                    find_records_by_datetime, find_records_by_scan)
 
 
 class Fan:
@@ -72,14 +73,16 @@ class Fan:
                 "   - plot_fan()\n"\
                 "   - plot_fov()\n"
 
-    @classmethod
-    def plot_fan(cls, dmap_data: List[dict], ax=None, ranges=None,
+    @staticmethod
+    def plot_fan(dmap_data: List[dict], ax=None, ranges=None,
                  scan_index: Union[int, dt.datetime] = 1,
+                 tolerance: dt.timedelta = dt.timedelta(seconds=1),
                  parameter: str = 'v', cmap: str = None,
                  groundscatter: bool = False, zmin: int = None,
                  zmax: int = None, colorbar: bool = True,
-                 colorbar_label: str = '', title: bool = True,
-                 boundary: bool = True, projs: Projs = Projs.POLAR,
+                 colorbar_label: str = '', cax=None,
+                 title: bool = True, boundary: bool = True,
+                 projs: Projs = Projs.POLAR,
                  coords: Coords = Coords.AACGM_MLT,
                  channel: int = 'all', ball_and_stick: bool = False,
                  len_factor: float = 300, beam: int = None, **kwargs):
@@ -104,6 +107,9 @@ class Fan:
                 associated channel number or datetime given first record
                 to match the index
                 Default: 1
+            tolerance: dt.timedelta
+                Search radius when filtering scan by datetime.
+                Default: 1 second
             parameter: str
                 Key name indicating which parameter to plot.
                 Default: v (Velocity). Alternatives: 'p_l', 'w_l', 'elv'
@@ -127,6 +133,10 @@ class Fan:
                 the label that appears next to the colour bar.
                 Requires colorbar to be true
                 Default: ''
+            cax: axes.Axes
+                Pre-defined axis for the colorbar. If not specified and colorbar
+                is True, a new axis will be created.
+                Default: None
             title: bool
                 if true then will create a title, else user
                 can define it with plt.title
@@ -185,35 +195,13 @@ class Fan:
             if not dmap_data:
                 raise plot_exceptions.NoChannelError(channel, opt_channel)
 
-        # Get scan numbers for each record
-        beam_scan = build_scan(dmap_data)
-        scan_time = None
+        # Get the records which match scan_index
         if isinstance(scan_index, dt.datetime):
-            # loop through dmap_data records, dump a datetime
-            # list where scans start
-            scan_time = scan_index
-            scan_index = 0
-            found_match = False
-            for rec in dmap_data:
-                rec_time = time2datetime(rec)
-                if abs(rec['scan']) == 1:
-                    scan_index += 1
-                # Need the abs since you cannot have negative seconds
-                diff_time = abs(scan_time - rec_time)
-                if diff_time.seconds < 1:
-                    found_match = True
-                    break
-            # handle datetimes out of bounds
-            if found_match is False:
-                raise plot_exceptions.IncorrectDateError(rec_time,
-                                                         scan_time)
-        # Locate scan in loaded data
-        plot_beams = np.where(beam_scan == scan_index)
-        # Time for coordinate conversion
-        if not scan_time:
-            date = time2datetime(dmap_data[plot_beams[0][0]])
+            matching_records = find_records_by_datetime(dmap_data, scan_index, tolerance)
+            date = scan_index
         else:
-            date = scan_time
+            matching_records = find_records_by_scan(dmap_data, scan_index)
+            date = time2datetime(matching_records[0])
 
         # Plot FOV outline
         stid = dmap_data[0]['stid']
@@ -289,12 +277,12 @@ class Fan:
         norm = colors.Normalize
         norm = norm(zmin, zmax)
 
-        for i in np.nditer(plot_beams):
+        for rec in matching_records:
             try:
                 # get a list of gates where there is data
-                slist = dmap_data[i.astype(int)]['slist']
+                slist = rec['slist']
                 # get the beam number for the record
-                beami = dmap_data[i.astype(int)]['bmnum']
+                beami = rec['bmnum']
 
                 # Exclude ranges larger than the expected maximum.
                 # This is a temporary fix to manage inconsistencies between the
@@ -303,8 +291,8 @@ class Fan:
                 good_data = np.where((slist >= ranges[0]) &
                                      (slist < ranges[1]))
                 slist = slist[good_data]
-                temp_data = dmap_data[i.astype(int)][parameter][good_data]
-                temp_ground = dmap_data[i.astype(int)]['gflg'][good_data]
+                temp_data = rec[parameter][good_data]
+                temp_ground = rec['gflg'][good_data]
 
                 scan[slist-ranges[0], beami] = temp_data
                 grndsct[slist-ranges[0], beami] = temp_ground
@@ -345,8 +333,6 @@ class Fan:
         else:
             # Get center of each gate instead of edges
             fan_shape = thetas.shape
-            t_center = np.empty([fan_shape[0]-1, fan_shape[1]-1])
-            r_center = np.empty([fan_shape[0]-1, fan_shape[1]-1])
             for i in range(0, fan_shape[0]-1):
                 for j in range(0, fan_shape[1]-1):
                     t_center = (thetas[i, j] + thetas[i+1, j]
@@ -367,7 +353,7 @@ class Fan:
                             else:
                                 lat = r_center
                                 lon = t_center
-                            azm = cls.get_gate_azm(lon, lat, stid,
+                            azm = Fan.get_gate_azm(lon, lat, stid,
                                                    coords, date)
 
                             # Make sure each coordinate is in correct
@@ -443,7 +429,7 @@ class Fan:
             ax.grid(True)
 
         if boundary:
-            cls.plot_fov(stid=dmap_data[0]['stid'], date=date, ax=ax,
+            Fan.plot_fov(stid=dmap_data[0]['stid'], date=date, ax=ax,
                          ccrs=ccrs, coords=coords, projs=projs, rsep=rsep,
                          frang=frang, ranges=ranges, beam=beam, **kwargs)
 
@@ -455,21 +441,24 @@ class Fan:
             ticks = locator.tick_values(vmin=zmin, vmax=zmax)
 
             if zmin == 0:
-                cb = ax.figure.colorbar(mappable, ax=ax, extend='max',
-                                        ticks=ticks)
+                extend = 'max'
             else:
-                cb = ax.figure.colorbar(mappable, ax=ax, extend='both',
-                                        ticks=ticks)
+                extend = 'both'
+
+            if cax is None:
+                cax = ax.inset_axes([1.04, 0.0, 0.05, 1.0])
+            cb = ax.figure.colorbar(mappable, ax=ax, cax=cax, extend=extend,
+                                    ticks=ticks)
 
             if colorbar_label != '':
                 cb.set_label(colorbar_label)
         else:
             cb = None
         if title:
-            start_time = time2datetime(dmap_data[plot_beams[0][0]])
-            end_time = time2datetime(dmap_data[plot_beams[-1][-1]])
-            title = cls.__add_title__(start_time, end_time)
-            plt.title(title)
+            start_time = time2datetime(matching_records[0])
+            end_time = time2datetime(matching_records[-1])
+            title = Fan.__add_title__(start_time, end_time)
+            ax.set_title(title)
         return {'ax': ax,
                 'ccrs': ccrs,
                 'cm': cmap,
@@ -482,8 +471,8 @@ class Fan:
                 }
 
   
-    @classmethod
-    def plot_fov(cls, stid: int, date: dt.datetime,
+    @staticmethod
+    def plot_fov(stid: int, date: dt.datetime,
                  ax=None, ccrs=None, ranges: List = None, boundary: bool = True,
                  rsep: int = 45, frang: int = 180,
                  projs: Projs = Projs.POLAR,
@@ -645,11 +634,11 @@ class Fan:
                         zorder=3)
 
         if radar_location:
-            cls.plot_radar_position(stid, ax, date=date, line_color=line_color,
+            Fan.plot_radar_position(stid, ax, date=date, line_color=line_color,
                                     transform=transform, projs=projs,
                                     coords=coords, ccrs=ccrs, **kwargs)
         if radar_label:
-            cls.plot_radar_label(stid, ax, date=date, line_color=line_color,
+            Fan.plot_radar_label(stid, ax, date=date, line_color=line_color,
                                  transform=transform, projs=projs,
                                  coords=coords, ccrs=ccrs, **kwargs)
 
@@ -702,8 +691,8 @@ class Fan:
                          'beam_corners_lons': beam_corners_lons}
                 }
 
-    @classmethod
-    def get_gate_azm(cls, theta: float, r: float, stid: int, coords, date):
+    @staticmethod
+    def get_gate_azm(theta: float, r: float, stid: int, coords, date):
         """
         gets the azimuth of the gate, requires some changes depending on
         coordinates before using calculate_azimuth
@@ -743,10 +732,9 @@ class Fan:
         azm = calculate_azimuth(r, theta, 300, radlat, radlon, 300)
         return azm
 
-    @classmethod
-    def plot_radar_position(cls, stid: int, ax: axes.Axes,
+    @staticmethod
+    def plot_radar_position(stid: int, ax: axes.Axes,
                             date: dt.datetime,
-
                             transform: object = None,
                             coords: Coords = Coords.AACGM_MLT,
                             projs: Projs = Projs.POLAR,
@@ -760,7 +748,7 @@ class Fan:
                 Radar station ID
             ax: matplotlib.axes.Axes
                 Pre-defined axis object to plot on.
-            date: datetime datetime object
+            date: datetime.datetime
                 sets the datetime used to find the coordinates of the
                 FOV
             transform:
@@ -792,8 +780,8 @@ class Fan:
         ax.scatter(lon, lat, c=line_color, s=5, transform=transform)
         return
 
-    @classmethod
-    def plot_radar_label(cls, stid: int, ax: axes.Axes,
+    @staticmethod
+    def plot_radar_label(stid: int, ax: axes.Axes,
                          date: dt.datetime,
                          coords: Coords = Coords.AACGM_MLT,
                          projs: Projs = Projs.POLAR,
@@ -810,7 +798,7 @@ class Fan:
                 Pre-defined axis object to plot on.
             coords: Coords object
             projs: Projs object
-            date: datetime datetime object
+            date: datetime.datetime object
                 sets the datetime used to find the coordinates of the
                 FOV
             line_color: str
@@ -846,8 +834,8 @@ class Fan:
                 transform=transform, c=line_color)
         return
 
-    @classmethod
-    def __add_title__(cls, first_timestamp: dt.datetime,
+    @staticmethod
+    def __add_title__(first_timestamp: dt.datetime,
                       end_timestamp: dt.datetime):
         title = "{year}-{month}-{day} {start_hour}:{start_minute}:{second} -"\
                 " {end_hour}:{end_minute}:{end_second}"\
