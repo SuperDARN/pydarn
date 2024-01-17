@@ -49,7 +49,7 @@ from pydarn import (PyDARNColormaps, plot_exceptions,
 warnings.formatwarning = standard_warning_format
 
 
-class Maps():
+class Maps:
     """
     Maps plots for SuperDARN data
 
@@ -70,7 +70,7 @@ class Maps():
                      record: int = 0, start_time: dt.datetime = None,
                      time_delta: float = 1,  alpha: float = 1.0,
                      len_factor: float = 150, color_vectors: bool = True,
-                     cmap: str = None, colorbar: bool = True,
+                     cmap: str = None, colorbar: bool = True, cax=None,
                      colorbar_label: str = '', title: str = '',
                      zmin: float = None, zmax: float = None,
                      hmb: bool = True, boundary: bool = False,
@@ -467,11 +467,11 @@ class Maps():
             ticks = locator.tick_values(vmin=zmin, vmax=zmax)
 
             if zmin == 0:
-                cb = ax.figure.colorbar(mappable, ax=ax, extend='max',
-                                        ticks=ticks)
+                extend = 'max'
             else:
-                cb = ax.figure.colorbar(mappable, ax=ax, extend='both',
-                                        ticks=ticks)
+                extend = 'both'
+            cb = ax.figure.colorbar(mappable, ax=ax, extend=extend, pad=0.1,
+                                    ticks=ticks, cax=cax)
 
             if colorbar_label != '':
                 cb.set_label(colorbar_label)
@@ -528,10 +528,10 @@ class Maps():
                               zfill(2))
         plt.title(title)
 
+        model = dmap_data[record]['model.name']
+        num_points = len(dmap_data[record]['vector.mlat'])
+        pol_cap_pot = dmap_data[record]['pot.drop']
         if map_info is True:
-            model = dmap_data[record]['model.name']
-            num_points = len(dmap_data[record]['vector.mlat'])
-            pol_cap_pot = dmap_data[record]['pot.drop']
             cls.add_map_info(fit_order, pol_cap_pot, num_points, model)
 
         bx = dmap_data[record]['IMF.Bx']
@@ -1016,6 +1016,7 @@ class Maps():
                                 contour_linewidths: float = 0.8,
                                 contour_fill: bool = False,
                                 contour_colorbar: bool = True,
+                                contour_cax = None,
                                 contour_fill_cmap: str = 'RdBu',
                                 contour_colorbar_label: str = 'Potential (kV)',
                                 pot_minmax_color: str = 'k',
@@ -1148,8 +1149,8 @@ class Maps():
                                              integer=True, nbins='auto')
                 ticks = locator.tick_values(vmin=pot_zmin,
                                             vmax=pot_zmax)
-                cb_contour = plt.colorbar(mappable, ax=ax, extend='both',
-                                          ticks=ticks)
+                cb_contour = ax.figure.colorbar(mappable, ax=ax, cax=contour_cax, pad=0.1,
+                                          extend='both', ticks=ticks)
                 if contour_colorbar_label != '':
                     cb_contour.set_label(contour_colorbar_label)
             else:
