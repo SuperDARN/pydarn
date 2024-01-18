@@ -72,7 +72,7 @@ def convert_coastline_list_to_mag(geom, date, alt: float = 0.0):
     return [mlat, mlon]
 
 
-def convert_geo_coastline_to_mag(geom, date, alt: float = 0.0):
+def convert_geo_coastline_to_mag(geom, date, alt: float = 0.0, mag_lon=None):
     """
     Takes the geometry object of coastlines and converts
     the coordinates into AACGM_MLT
@@ -87,6 +87,8 @@ def convert_geo_coastline_to_mag(geom, date, alt: float = 0.0):
     alt: float
         Altitude in km
         Default 0 (sea level) for coastlines
+    mag_lon: bool
+        Set true to return magnetic longitude, not MLT
     """
     # Iterate over the coordinates and convert to MLT
     def convert_to_mag(date, alt):
@@ -94,10 +96,15 @@ def convert_geo_coastline_to_mag(geom, date, alt: float = 0.0):
             [mlat, lon_mag, _] = \
                 aacgmv2.convert_latlon_arr(glat, glon, alt,
                                            date, method_code='G2A')
-            # Shift to MLT
-            shifted_mlts = lon_mag[0] - \
-                (aacgmv2.convert_mlt(lon_mag[0], date) * 15)
-            shifted_lons = lon_mag - shifted_mlts
+
+            if mag_lon is True:
+                shifted_lons = lon_mag
+            else:
+                # Shift to MLT
+                shifted_mlts = lon_mag[0] - \
+                    (aacgmv2.convert_mlt(lon_mag[0], date) * 15)
+                shifted_lons = lon_mag - shifted_mlts
+
             mlon = np.radians(shifted_lons)
             yield mlon.item(), mlat.item()
 
