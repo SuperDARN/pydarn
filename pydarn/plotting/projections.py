@@ -45,7 +45,7 @@ except Exception:
     cartopyInstalled = False
 
 
-def convert_coastline_list_to_mag(geom, date, alt: float = 0.0):
+def convert_coastline_list_to_mag(geom, date, alt: float = 0.0, mag_lon=None):
     '''
     Takes a list of coastlines and converts
     the coordinates into AACGM_MLT
@@ -58,6 +58,8 @@ def convert_coastline_list_to_mag(geom, date, alt: float = 0.0):
     alt: float
         Altitude in km
         Default 0 (sea level) for coastlines
+    mag_lon: bool
+        Set true to return magnetic longitude, not MLT
     '''
     [mlat, lon_mag, _] = \
         aacgmv2.convert_latlon_arr(geom['lat'], geom['lon'], alt, date,
@@ -65,11 +67,16 @@ def convert_coastline_list_to_mag(geom, date, alt: float = 0.0):
     # Clean Nans (effects plotting)
     mlat = mlat[np.logical_not(np.isnan(mlat))]
     lon_mag = lon_mag[np.logical_not(np.isnan(lon_mag))]
-    # Shift to MLT
-    shifted_mlts = lon_mag[0] - (aacgmv2.convert_mlt(lon_mag[0], date) * 15)
-    shifted_lons = lon_mag - shifted_mlts
-    mlon = np.radians(shifted_lons)
-    return [mlat, mlon]
+
+    if mag_lon is True:
+        mlon = np.radians(lon_mag)
+        return [mlat, mlon]
+    else:
+        # Shift to MLT
+        shifted_mlts = lon_mag[0] - (aacgmv2.convert_mlt(lon_mag[0], date) * 15)
+        shifted_lons = lon_mag - shifted_mlts
+        mlon = np.radians(shifted_lons)
+        return [mlat, mlon]
 
 
 def convert_geo_coastline_to_mag(geom, date, alt: float = 0.0, mag_lon=None):
