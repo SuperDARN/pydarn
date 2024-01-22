@@ -1006,7 +1006,7 @@ class Maps():
         return mlat_center, mlon_center, pot_arr
 
 
-      @classmethod
+    @classmethod
     def calculate_potentials_pos(cls, mlat, mlon, fit_coefficient: list, lat_min,
                                  lat_shift: int = 0, lon_shift: int = 0,
                                  fit_order: int = 6, hemisphere: Enum = Hemisphere.North,
