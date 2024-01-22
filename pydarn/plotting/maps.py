@@ -1005,6 +1005,85 @@ class Maps():
 
         return mlat_center, mlon_center, pot_arr
 
+
+      @classmethod
+    def calculate_potentials_pos(cls, mlat, mlon, fit_coefficient: list, lat_min,
+                                 lat_shift: int = 0, lon_shift: int = 0,
+                                 fit_order: int = 6, hemisphere: Enum = Hemisphere.North,
+                                 **kwargs):
+        '''
+        Calculates potential for a specific magnetic latitude and longitude,
+        or list of mlats and mlons
+
+        Parameters
+        ----------
+            mlat: float or List[float]
+                Magnetic latitudes of the positions of interest
+            mlon: float or List[float]
+                Magnetic latitudes of the positions of interest
+            fit_coefficient: List[float]
+                Value of the coefficient
+            lat_min: List[float]
+                Minimum latitude that will be evaluated
+                Not to be confused with 'lowlat'
+            lat_shift: int
+                Generic shift in latitude from map file
+                default: 0
+            lon_shift: int
+                Generic shift in longitude from map file
+                default: 0
+            fit_order: int
+                order of the fit
+                default: 6
+            hemisphere: Enum
+                Describes the hemisphere, North or South
+                default: Hemisphere.North
+
+        '''
+
+        # Lowest latitude to calculate potential to
+        theta_max = np.radians(90 - np.abs(lat_min) + 10) * hemisphere.value
+
+        # Convert grid vals to spherical coords
+        theta = np.radians(90.0 - np.abs(mlat))
+        phi = np.radians(mlon)
+
+        # Adjusted/Normalised values (runs 0 - pi)
+        alpha = np.pi / theta_max
+        x = np.cos(alpha * theta)
+
+        # Legendre Polys
+        for j, xj in enumerate(x):
+            plm_tmp = special.lpmn(fit_order, fit_order, xj)
+            if j == 0:
+                plm_fit = np.append([plm_tmp[0]], [plm_tmp[0]], axis=0)
+            else:
+                plm_fit = np.append(plm_fit, [plm_tmp[0]], axis=0)
+        # Remove first element as it is duplicated to start off the array
+        plm_fit = np.delete(plm_fit, 0, 0)
+
+        # Eval the potential
+        lmax = plm_fit.shape
+        lmax = lmax[1]
+        v = np.zeros(phi.shape)
+
+        coeff_fit_flat = fit_coefficient.flatten()
+        for m in range(lmax):
+            for l in range(m, lmax):
+                k = cls.index_legendre(l, m)
+                if m == 0:
+                    v = v + coeff_fit_flat[k] * plm_fit[:, 0, l]
+                else:
+                    v = v + coeff_fit_flat[k] * np.cos(m * phi) \
+                        * plm_fit[:, m, l] + coeff_fit_flat[k + 1] \
+                        * np.sin(m * phi) * plm_fit[:, m, l]
+
+        # Convert from V to kV
+        v /= 1000
+
+        return v
+
+
     @classmethod
     def plot_potential_contours(cls, fit_coefficient: list, lat_min: list,
                                 date: object, ax: object, lat_shift: int = 0,
