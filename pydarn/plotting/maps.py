@@ -1005,11 +1005,11 @@ class Maps():
 
         return mlat_center, mlon_center, pot_arr
 
-
     @classmethod
-    def calculate_potentials_pos(cls, mlat, mlon, fit_coefficient: list, lat_min,
-                                 lat_shift: int = 0, lon_shift: int = 0,
-                                 fit_order: int = 6, hemisphere: Enum = Hemisphere.North,
+    def calculate_potentials_pos(cls, mlat, mlon, fit_coefficient: list,
+                                 lat_min: list, lat_shift: int = 0,
+                                 lon_shift: int = 0, fit_order: int = 6,
+                                 hemisphere: Enum = Hemisphere.North,
                                  **kwargs):
         '''
         Calculates potential for a specific magnetic latitude and longitude,
@@ -1039,7 +1039,18 @@ class Maps():
                 Describes the hemisphere, North or South
                 default: Hemisphere.North
 
+        Returns
+        -------
+        v: List[float]
+            list of potentials at given position(s) in kV
         '''
+        # Check input is in correct format and lengths
+        if not isinstance(mlat, list):
+            mlat = [mlat]
+        if not isinstance(mlon, list):
+            mlon = [mlon]
+        if not len(mlat) == len(mlon):
+            raise ValueError('mlat and mlon must be the same length.')
 
         # Lowest latitude to calculate potential to
         theta_max = np.radians(90 - np.abs(lat_min) + 10) * hemisphere.value
@@ -1082,7 +1093,6 @@ class Maps():
         v /= 1000
 
         return v
-
 
     @classmethod
     def plot_potential_contours(cls, fit_coefficient: list, lat_min: list,
