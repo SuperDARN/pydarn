@@ -37,7 +37,7 @@ import pydarn
 from datetime import datetime
 
 # Read Goose Bay radars hardware file for 2003 03 20
-hdw_data = pydarn.read_hdw_file('gbr', datetime(2003 3, 20))
+hdw_data = pydarn.read_hdw_file('gbr', datetime(2003, 3, 20))
 print(hdw_data.gates)
 ```
 
@@ -46,7 +46,7 @@ Expected output:
 75
 ```
 
-Other information a user can access from the `_HdwInfo` object is:
+Other information a user can access from the `_HdwInfo` object:
 
 | Field name              | Description                                                                                                                                                                     |
 | :---:                   | :---                                                                                                                                                                            |
@@ -73,9 +73,9 @@ Other information a user can access from the `_HdwInfo` object is:
     Prior to version 3.0, pyDARN was built to use the old format of hardware files. However, versions 2.2.1 or lower of pyDARN will try to pull hardware files from the `master` branch of the hardware repository and this may cause some errors in use.
     Version 3.0 uses the new format of hardware files, and pulls hardware files from the `main` hardware branch. Updating to pyDARN version 3.0 or higher will fix any hardware errors. 
 
-# Accessing Radar and Hardware Information
+# Accessing Radar Information
 
-Another way to access the hardware information, the radar's full name, the institution's name and the  hemisphere that the radar is located in is by using the `SuperDARNRadars` class with the station id number (`stid` field in most files). 
+Another way to access the hardware information, the radar's full name, the institution's name,the hemisphere that the radar is located in, and other information not tracked by hardware files is by using the `SuperDARNRadars` class with the station id number (`stid` field in most files). 
 This class contains a dictionary of all currently accepted SuperDARN radars (including decommissioned):
 ``` python
 import pydarn
@@ -93,9 +93,9 @@ _Radar(name='Prince George', institution='University of Saskatchewan', hemispher
 !!! Warning
     The hardware information obtained via this class contains most recent updates to the hardware file as it does not take a specific date as an input. To get specific hardware information, please use `read_hdw_file`.
     
-# Obtaining coordinates for radar fields-of-view
+# Obtaining coordinates for a radar's field of view
 
-The `radar_fov` function in pyDARN is an easy way to grab the coordinates of a specific radars field-of-view. All you need is the station id (key: `stid`) of the radar of interest.
+The `coords` function in pyDARN is an easy way to grab the coordinates of a specific radars field-of-view. All you need is the station id (key: `stid`) of the radar of interest.
 
 Example code:
 ```python
@@ -105,7 +105,7 @@ import pydarn
 geo_lats, geo_lons=pydarn.Coords.GEOGRAPHIC(66)
 ```
 
-You also have the option to set the `coords` keyword to `aacgm`. In this case, [Altitude adjusted corrected geomagnetic](http://superdarn.thayer.dartmouth.edu/aacgm.html) latitude and longitude are returned instead of geographic. Because AACGM requires a date to convert coordinates accurately, a python datetime object is also required to be passed in to `radar_fov` under this circumstance:
+You also have the option to set the `coords` keyword to `aacgm`. In this case, [Altitude adjusted corrected geomagnetic](http://superdarn.thayer.dartmouth.edu/aacgm.html) latitude and longitude are returned instead of geographic. Because AACGM requires a date to convert coordinates accurately, a python datetime object is also required to be passed in to `coords` under this circumstance:
 ```python
 import pydarn
 import datetime as dt

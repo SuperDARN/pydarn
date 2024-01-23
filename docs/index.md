@@ -4,6 +4,8 @@ pyDARN is an open source python library for
 data visualization of SuperDARN data.
 pyDARN also includes support of Input/Output reading of SuperDARN DMAP format files via the io package [pyDARNio](https://pydarnio.readthedocs.io/en/latest/). 
 
+More information can be found in our recent [publication](https://www.frontiersin.org/articles/10.3389/fspas.2022.1022690/full) with supporting [Jupyter notebook](https://zenodo.org/record/7005203) which contains many of the tutorials described in this documentation and more!
+
 ## Source Code 
 
 The library source code can be found on the [pyDARN GitHub](https://github.com/SuperDARN/pydarn) repository. 
@@ -20,6 +22,7 @@ If you have any questions or concerns please submit an **Issue** on the SuperDAR
     - [Axes Setup](user/axis.md)
     - [Ranges, Coords and Projs](user/coordinates.md)
     - [Range-Time plots](user/range_time.md)
+    - [Coordinate-Time plots](user/coord_time.md)
     - [Time-Series plots](user/time_series.md)
     - [Summary plots](user/summary.md)
     - [FOV plots](user/fov.md)
@@ -35,9 +38,9 @@ If you have any questions or concerns please submit an **Issue** on the SuperDAR
     - [Communication Guidelines](dev/communication.md)
     - [Copyrighting and Licensing](dev/copyright_license.md)
     - Workflow
-        - [Projects](dev/projects.md)
         - [Issues](dev/issues.md)
         - [Branches](dev/branching.md)
+        - [Developing](dev/developing.md)
         - [Unit Testing](dev/pytest.md)
         - [Pull Requests](dev/PR.md) 
         - [Testing](dev/testing.md)

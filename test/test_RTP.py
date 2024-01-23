@@ -32,6 +32,11 @@ class TestRTP_defaults:
         with warnings.catch_warnings(record=True):
             pydarn.RTP.plot_range_time(data)
 
+    def test_coord_time_defaults(self):
+        """ """
+        with warnings.catch_warnings(record=True):
+            pydarn.RTP.plot_coord_time(data)
+
     def test_normal_time_series(self):
         """ """
         with warnings.catch_warnings(record=True):
@@ -163,9 +168,9 @@ class TestTimeSeries:
                                        'nave': (0, 30),
                                        'elv': (0, 20),
                                        'tfreq': (0, 15)}])
-@pytest.mark.parametrize('cmaps', [{'elv': plt.get_cmap('rainbow'),
-                                    'p_l': plt.get_cmap('rainbow'),
-                                    'vel': plt.get_cmap('rainbow')}])
+@pytest.mark.parametrize('cmaps', [{'elv':'rainbow',
+                                    'p_l': 'rainbow',
+                                    'vel': 'rainbow'}])
 @pytest.mark.parametrize('lines', [{'nave': '--', 'tfreq': '-'}])
 @pytest.mark.parametrize('plot_elv', [False])
 @pytest.mark.parametrize('title', ['test test'])
@@ -202,4 +207,49 @@ class TestSummaryPlots:
                                     title=title, background=background,
                                     groundscatter=groundscatter,
                                     range_estimation=range_estimation)
+        plt.close('all')
+
+
+@pytest.mark.parametrize('background', ['w'])
+@pytest.mark.parametrize('zmin', [0, -200])
+@pytest.mark.parametrize('zmax', [200, 1000])
+@pytest.mark.parametrize('groundscatter_params', [True, False])
+@pytest.mark.parametrize('colorbar_label', ['test'])
+@pytest.mark.parametrize('yspacing', [150, 250])
+@pytest.mark.parametrize('range_estimation', [
+                          pydarn.RangeEstimation.SLANT_RANGE,
+                          pydarn.RangeEstimation.HALF_SLANT])
+@pytest.mark.parametrize('ymin', [10])
+@pytest.mark.parametrize('ymax', [70])
+@pytest.mark.parametrize('parameters', ['v', 'p_l', 'w_l'])
+@pytest.mark.parametrize('cmap', ['viridis'])
+@pytest.mark.parametrize('start_time', [dt.datetime(2018, 4, 4, 6, 2)])
+@pytest.mark.parametrize('end_time', [dt.datetime(2018, 4, 4, 6, 4)])
+@pytest.mark.parametrize('date_fmt', ['%H:%M'])
+@pytest.mark.parametrize('round_start', [False])
+@pytest.mark.parametrize('latlon', ['lat', 'lon'])
+@pytest.mark.parametrize('plot_equatorward', [False])
+class TestCoordTime:
+
+    def test_parameters_coord_time(self, groundscatter_params,
+                                   parameters, background, zmin, zmax,
+                                   start_time, end_time, ymin, ymax,
+                                   colorbar_label, yspacing, round_start,
+                                   range_estimation, cmap, date_fmt,
+                                   plot_equatorward, latlon):
+        """ this test will give bare minimum input needed for """
+        with warnings.catch_warnings(record=True):
+            pydarn.RTP.plot_coord_time(data, beam_num=15,
+                                       parameter=parameters, channel=1,
+                                       groundscatter=groundscatter_params,
+                                       background=background, zmin=zmin,
+                                       zmax=zmax, start_time=start_time,
+                                       end_time=end_time, ymin=ymin, ymax=ymax,
+                                       colorbar_label=colorbar_label,
+                                       yspacing=yspacing,
+                                       round_start=round_start,
+                                       range_estimation=range_estimation,
+                                       cmap=cmap, date_fmt=date_fmt,
+                                       plot_equatorward=plot_equatorward,
+                                       latlon=latlon)
         plt.close('all')

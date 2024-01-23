@@ -1,32 +1,34 @@
 # Axes Setup 
 
-For spatial plots (FOV, Fan, Grid), pyDARN allows users to choose between Polar and
+For some spatial plots (FOV, Fan, Grid), pyDARN allows users to choose between Polar and
 Geographic axes using the `projs` keyword and `Projs` module.
-Convection maps do not allow for geographic projects due to lack of interest.
+Convection maps do not allow for geographic projections due to lack of interest.
 
 ## Projs.POLAR 
 
-| Option                       | Action                                                            |
-| ---------------------------- | ----------------------------------------------------------------- |
-| lowlat=(int)                 | Lower Latitude boundary for the polar plot (degree) (default: 30) |
-| hemisphere=(pydarn.Hemisphere) | Hemisphere of the radar (default: Hemisphere.North)             |
-| coastline=(bool)             | Uses Cartopy to add outlines fo the coastlines below data         |
+| Option                         | Action                                                                              |
+| ------------------------------ | ----------------------------------------------------------------------------------- |
+| lowlat=(int)                   | Lower Latitude boundary for the polar plot (degree) (default: 30)                   |
+| hemisphere=(pydarn.Hemisphere) | Hemisphere of the radar (default: Hemisphere.North)                                 |
+| coastline=(bool)               | Uses Cartopy to add outlines to the coastlines below data                           |
+| nightshade=(int)               | Uses the value given to calculate and show where on the plot the Earth is in shadow |
 
 
-This choice will return an `ax` object and a value of None for `ccrs`.
+This choice will return an `ax` object and a value of None for the Cartopy `ccrs` (coordinate reference system).
 
 ## Projs.GEO
 
 **REQUIRES CARTOPY INSTALLATION**
 
-| Option                       | Action                                                            |
-| ---------------------------- | ----------------------------------------------------------------- |
-| lowlat=(int)                 | Lower Latitude boundary for the polar plot (degree) (default: 30) |
-| hemisphere=(pydarn.Hemisphere) | Hemisphere of the radar (default: Hemisphere.North)             |
-| coastline=(bool)             | Uses Cartopy to add outlines fo the coastlines below data         |
-| grid_lines=(bool)            | Uses Cartopy to plot grid lines                                   |
+| Option                         | Action                                                                              |
+| ------------------------------ | ----------------------------------------------------------------------------------- |
+| lowlat=(int)                   | Lower Latitude boundary for the polar plot (degree) (default: 30)                   |
+| hemisphere=(pydarn.Hemisphere) | Hemisphere of the radar (default: Hemisphere.North)                                 |
+| coastline=(bool)               | Uses Cartopy to add outlines fo the coastlines below data                           |
+| grid_lines=(bool)              | Uses Cartopy to plot grid lines                                                     |
+| nightshade=(int)               | Uses the value given to calculate and show where on the plot the Earth is in shadow |
 
-This choice will return an `ax` object and a Cartopy `ccrs` object.
+This choice will return an `ax` object and a Cartopy `ccrs` object (coordinate reference system).
 
 ## Custom Axes
 pyDARN does not currently support use of custom axes to read in and plot on. This means

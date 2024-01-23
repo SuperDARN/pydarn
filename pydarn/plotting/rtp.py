@@ -163,7 +163,7 @@ class RTP():
             https://matplotlib.org/tutorials/colors/colormaps.html
             Default: PyDARNColormaps.PYDARN_VELOCITY
             note: to reverse the color just add _r to the string name
-        plot_filter: dict
+        filter_settings: dict
             dictionary of the following keys for filtering data out:
             max_array_filter : dict
                 dictionary that contains the key parameter names and the values
@@ -450,11 +450,14 @@ class RTP():
 
         ax.set_ylim(ymin, ymax)
 
-        if range_estimation != RangeEstimation.RANGE_GATE:
+        if (range_estimation != RangeEstimation.RANGE_GATE and
+            range_estimation != RangeEstimation.TIME_OF_FLIGHT):
             ax.yaxis.set_ticks(np.arange(np.ceil(ymin/100.0)*100,
                                          ymax+1, yspacing))
-        else:
+        elif range_estimation == RangeEstimation.RANGE_GATE:
             ax.yaxis.set_ticks(np.arange(ymin, ymax+1, (ymax)/5))
+        else:
+            ax.yaxis.set_ticks(np.arange(0, np.ceil(ymax)+1, 5))
 
         # SuperDARN file typically are in 2hr or 24 hr files
         # to make the minute ticks sensible, the time length is detected
@@ -765,7 +768,7 @@ class RTP():
             my = np.ma.array(y)
             my = np.ma.masked_where(np.isnan(my), my)
 
-            lines = ax.plot_date(x, my, fmt='k', tz=None, xdate=True,
+            lines = ax.plot_date(x, my, fmt=color, tz=None, xdate=True,
                                  ydate=False, linestyle=linestyle,
                                  linewidth=linewidth)
 
@@ -887,6 +890,11 @@ class RTP():
             channel number that will be plotted
             in the summary plot.
             Default: 'all'
+        line_color: Dict
+            dictionary of time series parameters and the line color you
+            require for each
+            e.g.: {'nave': 'b', 'tfreq': 'r'}
+            Default {} (set in code later)
         range_estimation: RangeEstimation object
             set the y-axis to a desired  range gate estimation
             calculation
@@ -1235,8 +1243,10 @@ class RTP():
                     axes[i].set_ylabel('Ground Scatter\nMapped Range\n(km)')
                 elif range_estimation == RangeEstimation.HALF_SLANT:
                     axes[i].set_ylabel('Slant Range/2\n(km)')
-                else:
+                elif range_estimation == RangeEstimation.RANGE_GATE:
                     axes[i].set_ylabel('Range Gates')
+                else:
+                    axes[i].set_ylabel('Time of Flight\n(ms)')
             if i < num_plots-1:
                 axes[i].set_xticklabels([])
             # last plot needs the label on the x-axis
@@ -1458,7 +1468,7 @@ class RTP():
             https://matplotlib.org/tutorials/colors/colormaps.html
             Default: PyDARNColormaps.PYDARN_VELOCITY
             note: to reverse the color just add _r to the string name
-        plot_filter: dict
+        filter_settings: dict
             dictionary of the following keys for filtering data out:
             max_array_filter : dict
                 dictionary that contains the key parameter names and the values
