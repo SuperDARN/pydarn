@@ -1041,8 +1041,8 @@ class Maps():
 
         Returns
         -------
-        v: List[float]
-            list of potentials at given position(s) in kV
+            v: List[float]
+                list of potentials at given position(s) in kV
         '''
         # Check input is in correct format and lengths
         if not isinstance(mlat, list):
