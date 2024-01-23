@@ -44,6 +44,7 @@ def build_scan(dmap_data: List[dict]):
     timestamps = [time2datetime(rec) for rec in dmap_data]
     timestamps_seen = []
     current_scan = 0
+    first_time = True
     beam_scan = np.zeros((len(dmap_data)))
     for i in range(len(dmap_data)):
         # Check if this record is concurrent with another record
@@ -53,8 +54,9 @@ def build_scan(dmap_data: List[dict]):
             timestamps_seen.append(timestamps[i])   # Record the timestamp from this file
 
             # Absolute value used due to some scan flags set as "-1"
-            if abs(scan_mark[i]) == 1 and current_scan != 0:
+            if abs(scan_mark[i]) == 1 and not first_time:
                 current_scan += 1
+            first_time = False
             beam_scan[i] = current_scan
 
     return beam_scan
