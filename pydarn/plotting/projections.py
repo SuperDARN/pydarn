@@ -249,17 +249,14 @@ def axis_geological(date, ax: axes.Axes = None,
         noon = 360 - deg_from_midnight
         lowlat = -abs(lowlat)
 
-    # handle none types or wrongly built axes
-    proj = ccrs.Orthographic(noon, pole_lat)
-
     if ax is None:
+        proj = ccrs.Orthographic(noon, pole_lat)
         ax = plt.subplot(111, projection=proj, aspect='auto')
+        extent = abs(proj.transform_point(noon, lowlat, ccrs.PlateCarree())[1])
+        ax.set_extent(extents=(-extent, extent, -extent, extent), crs=proj)
 
     if grid_lines:
         ax.gridlines(draw_labels=True)
-
-    extent = abs(proj.transform_point(noon, lowlat, ccrs.PlateCarree())[1])
-    ax.set_extent(extents=(-extent, extent, -extent, extent), crs=proj)
 
     if coastline:
         ax.coastlines()
