@@ -857,7 +857,7 @@ class RTP():
                      watermark: bool = False, boundary: dict = {},
                      cmaps: dict = {}, lines: dict = {},
                      plot_elv: bool = True, title=None,
-                     background: str = 'w', background_alpha: float = 1.0,
+                     background: str = 'w',
                      groundscatter: bool = True,
                      channel: int = 'all', line_color: dict = {},
                      range_estimation: object =
@@ -887,9 +887,6 @@ class RTP():
         background: string
             background color of the plots
             default: white
-        background_alpha : float
-            alpha (transparency) of the background in the plot
-            default: 1.0 (opaque)
         groundscatter : boolean
             Flag to indicate if groundscatter should be plotted.
             Placed only on the velocity plot.
@@ -1197,7 +1194,6 @@ class RTP():
                                                 axes_parameters[i]][1],
                                             yspacing=500,
                                             background=background,
-                                            background_alpha=background_alpha,
                                             range_estimation=range_estimation,
                                             **kwargs)
                     else:
@@ -1214,7 +1210,6 @@ class RTP():
                                                 axes_parameters[i]][1],
                                             yspacing=5,
                                             background=background,
-                                            background_alpha=background_alpha,
                                             range_estimation=range_estimation,
                                             coords=coords, latlon=latlon,
                                             **kwargs)
