@@ -38,7 +38,8 @@ from typing import List
 from pydarn import (RangeEstimation, check_data_type, Coords,
                     time2datetime, rtp_exceptions, plot_exceptions,
                     SuperDARNCpids, SuperDARNRadars,
-                    standard_warning_format, PyDARNColormaps)
+                    standard_warning_format, PyDARNColormaps,
+                    terminator)
 
 warnings.formatwarning = standard_warning_format
 
@@ -850,6 +851,33 @@ class RTP():
                          'x': x,
                          'y': y}
                 }
+    
+    @classmethod
+    def __find_terminator_index(dmap_data: list[dict]) -> [int, int]:
+        """
+        Finds the two indicies in the dmap_data where nightside 
+        begins and ends. 
+        """
+        #get the antisolar point, arc length, and arc angle
+        nightside_indicies = []
+        #get the hardware info of the radar
+        radar = SuperDARNRadars.radars[dmap_data[0]['stid']]
+        #get the location of the radar
+        radar_lat = radar._Coord.lat
+        radar_lon = radar._Coord.lon
+
+        for point in dmap_data:
+
+            date = time2datetime(point)
+            height = 0 #TODO: do we even have the elevation data per radar?
+            #I might be misunderstanding what height means here
+            asp, al, aa = terminator(date, height)
+            # check if the point is swept by the terminator (using radar's loc)
+            if (radar_lon+asp[0])**2 + (radar_lat+asp[1])**2 < al**2:
+                #if it is, then the point is in the nightside
+                nightside_indicies.append(dmap_data.index(point))
+            
+        return [nightside_indicies[0], nightside_indicies[-1]]
 
     @classmethod
     def plot_summary(cls, dmap_data: List[dict],
@@ -863,7 +891,7 @@ class RTP():
                      range_estimation: object =
                      RangeEstimation.SLANT_RANGE,
                      latlon: str = None, coords: object = Coords.AACGM,
-                      **kwargs):
+                     terminator = False, **kwargs):
         """
         Plots the summary of several SuperDARN parameters using time-series and
         range-time plots. Please see Notes for further description
@@ -947,6 +975,8 @@ class RTP():
         latlon: str
             set which coordinate you want to plot with
             default: None
+        terminator: boolean
+            adds a grey area to the plot when the ionosphere is in darkness
         kwargs:
             reflection_height for ground_scatter_mapped method
             background
@@ -1268,6 +1298,13 @@ class RTP():
             fig.text(0.90, 0.99, "Not for Publication Use", fontsize=75,
                      color='gray', ha='right', va='top',
                      rotation=-38, alpha=0.3)
+        if terminator:
+            #get the first and last index of the nightside
+            nightside_indicies = cls.__find_terminator_index(dmap_data)
+            #put a grey box over the nightside
+            axes.axvspan(time2datetime(dmap_data[[nightside_indicies[0]]], 
+                                       time2datetime(dmap_data[[nightside_indicies[1]]]),
+                                       color='grey', alpha=0.3))
 
         return {'ax': axes,
                 'ccrs': None,
@@ -1276,8 +1313,7 @@ class RTP():
                 'fig': fig,
                 'data': 'Individual range-time plots will return full data.'
                 }
-
-
+    
     @classmethod
     def __generate_title(cls, start_time: datetime, end_time: datetime,
                          beam_num: int, channel: int) -> str:
