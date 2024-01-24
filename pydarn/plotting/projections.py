@@ -45,7 +45,7 @@ except Exception:
     cartopyInstalled = False
 
 
-def convert_coastline_list_to_mag(geom, date, alt: float = 0.0, mag_lon=None):
+def convert_coastline_list_to_mag(geom, date, alt: float = 0.0, mag_lon: bool = False):
     '''
     Takes a list of coastlines and converts
     the coordinates into AACGM_MLT
@@ -68,7 +68,7 @@ def convert_coastline_list_to_mag(geom, date, alt: float = 0.0, mag_lon=None):
     mlat = mlat[np.logical_not(np.isnan(mlat))]
     lon_mag = lon_mag[np.logical_not(np.isnan(lon_mag))]
 
-    if mag_lon is True:
+    if mag_lon:
         mlon = np.radians(lon_mag)
         return [mlat, mlon]
     else:
@@ -79,7 +79,7 @@ def convert_coastline_list_to_mag(geom, date, alt: float = 0.0, mag_lon=None):
         return [mlat, mlon]
 
 
-def convert_geo_coastline_to_mag(geom, date, alt: float = 0.0, mag_lon=None):
+def convert_geo_coastline_to_mag(geom, date, alt: float = 0.0, mag_lon: bool = False):
     """
     Takes the geometry object of coastlines and converts
     the coordinates into AACGM_MLT
@@ -104,7 +104,7 @@ def convert_geo_coastline_to_mag(geom, date, alt: float = 0.0, mag_lon=None):
                 aacgmv2.convert_latlon_arr(glat, glon, alt,
                                            date, method_code='G2A')
 
-            if mag_lon is True:
+            if mag_lon:
                 shifted_lons = lon_mag
             else:
                 # Shift to MLT
