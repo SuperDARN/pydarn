@@ -560,12 +560,12 @@ class SuperDARNRadars():
                         read_hdw_file('sas')),
               2: _Radar('Schefferville', 'CNRS/LPCE', Hemisphere.North,
                         75, [50, -67], [60, 14], read_hdw_file('sch')),
-              53: _Radar('Siziwang East',
+              53: _Radar('Siziwanqi East',
                          'National Space Science Center,'
                          'Chinese Academy of Sciences',
                          Hemisphere.North, 100, [38, 115], [37, -169],
                          read_hdw_file('sze')),
-              54: _Radar('Siziwang West',
+              54: _Radar('Siziwanqi West',
                          'National Space Science Center,'
                          'Chinese Academy of Sciences',
                          Hemisphere.North, 100, [38, 109], [37, -179],
