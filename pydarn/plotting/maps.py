@@ -1226,19 +1226,18 @@ class Maps():
             # Filled contours
             norm = colors.Normalize
             norm = norm(pot_zmin, pot_zmax)
-            cs = plt.contourf(np.radians(mlon), mlat, pot_arr, 2,
-                              norm=norm, vmax=pot_zmax, vmin=pot_zmin,
+            cs = plt.contourf(np.radians(mlon), mlat, pot_arr, 2, norm=norm,
+                              vmax=pot_zmax,
+                              vmin=pot_zmin,
                               levels=np.array(contour_levels),
                               cmap=contour_fill_cmap, alpha=0.5,
                               extend='both', zorder=3.0)
             if contour_colorbar is True:
-                mappable = cm.ScalarMappable(norm=norm, cmap=contour_fill_cmap)
                 locator = ticker.MaxNLocator(symmetric=True, min_n_ticks=3,
                                              integer=True, nbins='auto')
                 ticks = locator.tick_values(vmin=pot_zmin,
                                             vmax=pot_zmax)
-                cb_contour = plt.colorbar(mappable, ax=ax, extend='both',
-                                          ticks=ticks)
+                cb_contour = plt.colorbar(cs, ax=ax, extend='both', ticks=ticks)
                 if contour_colorbar_label != '':
                     cb_contour.set_label(contour_colorbar_label)
             else:
