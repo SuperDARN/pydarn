@@ -1238,7 +1238,7 @@ class Maps():
                 ticks = locator.tick_values(vmin=pot_zmin,
                                             vmax=pot_zmax)
                 cb_contour = plt.colorbar(mappable, ax=ax, extend='both',
-                                          ticks=ticks)
+                                          ticks=ticks, alpha=0.5)
                 if contour_colorbar_label != '':
                     cb_contour.set_label(contour_colorbar_label)
             else:
