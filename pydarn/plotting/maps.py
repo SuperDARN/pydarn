@@ -500,7 +500,8 @@ class Maps():
                                         lat_shift=lat_shift,
                                         lon_shift=lon_shift,
                                         fit_order=fit_order,
-                                        hemisphere=hemisphere,
+                                        hemisphere=hemisphere
+                                        contour_colorbar=colorbar,
                                         **kwargs)
 
         if hmb is True:
