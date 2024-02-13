@@ -142,6 +142,9 @@ class Maps():
                 Normalisation factor for the vectors, to control size on plot
                 Larger number means smaller vectors on plot
                 Default: 150.0
+            map_info: bool
+                If true, write information about the map on the plot 
+                (fit order, CPCP, number of points)
             imf_dial: bool
                 If True, draw an IMF dial of the magnetic field clock angle.
                 Default: True
@@ -528,10 +531,10 @@ class Maps():
                               zfill(2))
         plt.title(title)
 
+        model = dmap_data[record]['model.name']
+        num_points = len(dmap_data[record]['vector.mlat'])
+        pol_cap_pot = dmap_data[record]['pot.drop']
         if map_info is True:
-            model = dmap_data[record]['model.name']
-            num_points = len(dmap_data[record]['vector.mlat'])
-            pol_cap_pot = dmap_data[record]['pot.drop']
             cls.add_map_info(fit_order, pol_cap_pot, num_points, model)
 
         bx = dmap_data[record]['IMF.Bx']
