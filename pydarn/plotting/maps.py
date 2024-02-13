@@ -70,7 +70,7 @@ class Maps():
                      record: int = 0, start_time: dt.datetime = None,
                      time_delta: float = 1,  alpha: float = 1.0,
                      len_factor: float = 150, color_vectors: bool = True,
-                     cmap: str = None, colorbar: bool = True,
+                     cmap: str = None, colorbar: bool = True, contour_colorbar=False,
                      colorbar_label: str = '', title: str = '',
                      zmin: float = None, zmax: float = None,
                      hmb: bool = True, boundary: bool = False,
@@ -130,6 +130,9 @@ class Maps():
             colorbar: bool
                 Draw a colourbar if True
                 Default: True
+            contour_colorbar: bool
+                Draw a contour colourbar if True
+                Default: False
             colorbar_label: str
                 The label that appears next to the colour bar.
                 Requires colorbar to be true
@@ -501,7 +504,7 @@ class Maps():
                                         lon_shift=lon_shift,
                                         fit_order=fit_order,
                                         hemisphere=hemisphere
-                                        contour_colorbar=colorbar,
+                                        contour_colorbar=contour_colorbar,
                                         **kwargs)
 
         if hmb is True:
