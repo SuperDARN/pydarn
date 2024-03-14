@@ -588,19 +588,18 @@ class Maps():
     def calculated_fitted_velocities(cls, mlats: list, mlons: list,
                                      fit_coefficient: list,
                                      hemisphere: Enum = Hemisphere.North,
-                                     fit_order: int = 6, lat_min: int = 60,
-                                     len_factor: int = 150):
+                                     fit_order: int = 6, lat_min: int = 60):
         """
         Calculates the fitted velocities using Legrendre polynomial
 
         Parameters
         ----------
-            mlats: List[float]
+            mlats: Array[float]
                 Magnetic Latitude in degrees
-            mlons: List[float]
+            mlons: Array[float]
                 Magnetic Longitude in radians
-            fit_coefficient: List[float]
-                Value of the coefficient
+            fit_coefficient: Array[float]
+                Value of the mapfile coefficients (from record key ['N+2'])
             hemisphere: int
                 1 or -1 for hemisphere North or South
                 default: 1 - North
@@ -610,9 +609,6 @@ class Maps():
             lat_min: int
                 Lower latitude boundary of data in degrees
                 default: 60
-            len_factor: int
-                length of the vector socks multiplied by
-                default: 150
         """
         # convert earth radius to meters
         Re_meters = Re * 1000.0
