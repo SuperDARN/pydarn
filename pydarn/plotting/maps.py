@@ -585,8 +585,8 @@ class Maps():
                                      and (m != 0) and l**2 + 2 * m - 1) or 0
 
     @classmethod
-    def calculated_fitted_velocities(cls, mlats: list, mlons: list,
-                                     fit_coefficient: list,
+    def calculated_fitted_velocities(cls, mlats: np.array, mlons: np.array,
+                                     fit_coefficient: np.array,
                                      hemisphere: Enum = Hemisphere.North,
                                      fit_order: int = 6, lat_min: int = 60):
         """
