@@ -70,7 +70,8 @@ class Maps():
                      record: int = 0, start_time: dt.datetime = None,
                      time_delta: float = 1,  alpha: float = 1.0,
                      len_factor: float = 150, color_vectors: bool = True,
-                     cmap: str = None, colorbar: bool = True, contour_colorbar=False,
+                     cmap: str = None, colorbar: bool = True, 
+                     contour_colorbar: bool = True,
                      colorbar_label: str = '', title: str = '',
                      zmin: float = None, zmax: float = None,
                      hmb: bool = True, boundary: bool = False,
@@ -503,7 +504,7 @@ class Maps():
                                         lat_shift=lat_shift,
                                         lon_shift=lon_shift,
                                         fit_order=fit_order,
-                                        hemisphere=hemisphere
+                                        hemisphere=hemisphere,
                                         contour_colorbar=contour_colorbar,
                                         **kwargs)
 
