@@ -143,7 +143,7 @@ class Maps():
                 Larger number means smaller vectors on plot
                 Default: 150.0
             map_info: bool
-                If true, write information about the map on the plot 
+                If true, write information about the map on the plot
                 (fit order, CPCP, number of points)
             imf_dial: bool
                 If True, draw an IMF dial of the magnetic field clock angle.
@@ -245,8 +245,7 @@ class Maps():
                                                      fit_order=dmap_data[
                                                          record]['fit.order'],
                                                      lat_min=dmap_data[
-                                                         record]['latmin'],
-                                                     len_factor=len_factor)
+                                                         record]['latmin'])
 
         elif parameter == MapParams.MODEL_VELOCITY:
             v_mag = dmap_data[record]['model.vel.median']
@@ -585,22 +584,21 @@ class Maps():
                                      and (m != 0) and l**2 + 2 * m - 1) or 0
 
     @classmethod
-    def calculated_fitted_velocities(cls, mlats: list, mlons: list,
-                                     fit_coefficient: list,
+    def calculated_fitted_velocities(cls, mlats: np.array, mlons: np.array,
+                                     fit_coefficient: np.array,
                                      hemisphere: Enum = Hemisphere.North,
-                                     fit_order: int = 6, lat_min: int = 60,
-                                     len_factor: int = 150):
+                                     fit_order: int = 6, lat_min: int = 60):
         """
         Calculates the fitted velocities using Legrendre polynomial
 
         Parameters
         ----------
-            mlats: List[float]
+            mlats: Array[float]
                 Magnetic Latitude in degrees
-            mlons: List[float]
+            mlons: Array[float]
                 Magnetic Longitude in radians
-            fit_coefficient: List[float]
-                Value of the coefficient
+            fit_coefficient: Array[float]
+                Value of the mapfile coefficients (from record key ['N+2'])
             hemisphere: int
                 1 or -1 for hemisphere North or South
                 default: 1 - North
@@ -610,9 +608,6 @@ class Maps():
             lat_min: int
                 Lower latitude boundary of data in degrees
                 default: 60
-            len_factor: int
-                length of the vector socks multiplied by
-                default: 150
         """
         # convert earth radius to meters
         Re_meters = Re * 1000.0
