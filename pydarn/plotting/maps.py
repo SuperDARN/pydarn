@@ -133,7 +133,7 @@ class Maps():
                 Default: True
             contour_colorbar: bool
                 Draw a contour colourbar if True
-                Default: False
+                Default: True
             colorbar_label: str
                 The label that appears next to the colour bar.
                 Requires colorbar to be true
