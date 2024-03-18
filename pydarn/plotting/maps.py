@@ -903,7 +903,7 @@ class Maps():
     @classmethod
     def calculate_potentials(cls, fit_coefficient: list, lat_min: list,
                              lat_shift: int = 0, lon_shift: int = 0,
-                             fit_order: int = 6, lowlat: int = 60,
+                             fit_order: int = 6, lowlat: int = 30,
                              hemisphere: Enum = Hemisphere.North,
                              **kwargs):
         # TODO: No evaluation of coordinate system made! May need if in
