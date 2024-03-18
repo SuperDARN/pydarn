@@ -143,7 +143,7 @@ class Maps():
                 Larger number means smaller vectors on plot
                 Default: 150.0
             map_info: bool
-                If true, write information about the map on the plot 
+                If true, write information about the map on the plot
                 (fit order, CPCP, number of points)
             imf_dial: bool
                 If True, draw an IMF dial of the magnetic field clock angle.
@@ -245,8 +245,7 @@ class Maps():
                                                      fit_order=dmap_data[
                                                          record]['fit.order'],
                                                      lat_min=dmap_data[
-                                                         record]['latmin'],
-                                                     len_factor=len_factor)
+                                                         record]['latmin'])
 
         elif parameter == MapParams.MODEL_VELOCITY:
             v_mag = dmap_data[record]['model.vel.median']
