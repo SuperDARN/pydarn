@@ -86,6 +86,7 @@ Here is a list of all the current options than can be used with `plot_mapdata`
 | color_vectors=(bool)           | Choose if the vectors are plotted with corresponding color map (True), or in black    |
 | colorbar=(bool)                | Set true to plot a colorbar (default: True)                                           |
 | colorbar_label=(string)        | Label for the colour bar (requires colorbar to be true)                               |
+| contour_colorbar=(bool)        | Set True to show color bar for contour color map (default:True if contour_fill=True)  |
 | title=(str)                    | To add a title to the plot                                                            |
 | hmb=(bool)                     | Set to True to include the Heppnar-Maynard Boundary on the plot                       |
 | imf_dial=(bool)                | Show the IMF data as a clock angle dial (default True)                                |
