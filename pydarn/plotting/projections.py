@@ -99,24 +99,26 @@ def convert_geo_coastline_to_mag(geom, date, alt: float = 0.0, mag_lon: bool = F
     """
     # Iterate over the coordinates and convert to MLT
     def convert_to_mag(date, alt):
-        for glon, glat in geom.coords:
-            [mlat, lon_mag, _] = \
-                aacgmv2.convert_latlon_arr(glat, glon, alt,
-                                           date, method_code='G2A')
+        glons = geom.coords.xy[0]
+        glats = geom.coords.xy[1]
+        [mlats, lon_mag, _] = \
+            aacgmv2.convert_latlon_arr(glats, glons, alt,
+                                       date, method_code='G2A')
+        if mag_lon:
+            shifted_lons = lon_mag
+        else:
+            # Shift to MLT
+            shifted_mlts = lon_mag[0] - \
+                           (aacgmv2.convert_mlt(lon_mag[0], date) * 15)
+            shifted_lons = lon_mag - shifted_mlts
 
-            if mag_lon:
-                shifted_lons = lon_mag
-            else:
-                # Shift to MLT
-                shifted_mlts = lon_mag[0] - \
-                    (aacgmv2.convert_mlt(lon_mag[0], date) * 15)
-                shifted_lons = lon_mag - shifted_mlts
-
-            mlon = np.radians(shifted_lons)
-            yield mlon.item(), mlat.item()
+        return list(zip(np.radians(shifted_lons), mlats))
 
     # Return geometry object
-    return type(geom)(list(convert_to_mag(date, alt)))
+    try:
+        return type(geom)(convert_to_mag(date, alt))
+    except NotImplementedError:
+        return None
 
 
 def axis_polar(date, ax: axes.Axes = None, lowlat: int = 30,
