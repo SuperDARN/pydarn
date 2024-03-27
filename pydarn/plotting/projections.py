@@ -23,6 +23,7 @@ Code which generates axis objects for use in plotting functions
 """
 import aacgmv2
 import enum
+import math
 import matplotlib.pyplot as plt
 from matplotlib import axes
 import numpy as np
@@ -97,23 +98,24 @@ def convert_geo_coastline_to_mag(geom, date, alt: float = 0.0, mag_lon: bool = F
     mag_lon: bool
         Set true to return magnetic longitude, not MLT
     """
-    # Iterate over the coordinates and convert to MLT
-    mlats = []
-    mlons = []
-    for glons, glats in geom.coords:
-        [mlat, lon_mag, _] = \
-            aacgmv2.convert_latlon_arr(glats, glons, alt,
+    [mlats, lon_mag, _] = \
+        aacgmv2.convert_latlon_arr(geom.coords.xy[1], geom.coords.xy[0], alt,
                                        date, method_code='G2A')
-        mlats.append(mlat)
-        if mag_lon:
-            shifted_lons = lon_mag
-        else:
-            # Shift to MLT
-            shifted_mlts = lon_mag[0] - \
-                        (aacgmv2.convert_mlt(lon_mag[0], date) * 15)
-            shifted_lons = lon_mag - shifted_mlts
-        mlons.append(np.radians(shifted_lons))
+    if mag_lon:
+        shifted_lons = lon_mag
+    else:
+        # Finds the first not nan value to calculate the mlt shift
+        # Substitutes NaN if not found which results in no data to plot
+        # aacgmv2 will return NaNs for latitudes lower than 30 so unavoidable
+        # for entire globe plotting
+        notnan_lon = next((x for x in lon_mag if x == x), float('NaN'))
 
+        # Shift to MLT
+        shifted_mlts = notnan_lon - \
+                        (aacgmv2.convert_mlt(notnan_lon, date) * 15)
+        shifted_lons = lon_mag - shifted_mlts
+
+    mlons = np.radians(shifted_lons)
     # Return geometry object
     return type(geom)(list(zip(mlons, mlats)))
 
