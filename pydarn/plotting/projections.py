@@ -222,7 +222,7 @@ def axis_geological(date, ax: axes.Axes = None,
                     hemisphere: Hemisphere = Hemisphere.North,
                     lowlat: int = 30, grid_lines: bool = True,
                     coastline: bool = False, nightshade: int = 0,
-                    **kwargs):
+                    cartopy_scale: str = '110m', **kwargs):
     """
 
     Sets up the cartopy orthographic plot axis object, for use in
@@ -279,7 +279,7 @@ def axis_geological(date, ax: axes.Axes = None,
         ax.gridlines(draw_labels=True)
 
     if coastline:
-        ax.coastlines()
+        ax.coastlines(resolution=cartopy_scale)
 
     if nightshade:
         refraction_value = -np.degrees(np.arccos(Re / (Re + nightshade)))
