@@ -97,31 +97,31 @@ def convert_geo_coastline_to_mag(geom, date, alt: float = 0.0, mag_lon: bool = F
     mag_lon: bool
         Set true to return magnetic longitude, not MLT
     """
-    # Iterate over the coordinates and convert to MLT
-    def convert_to_mag(date, alt):
-        for glon, glat in geom.coords:
-            [mlat, lon_mag, _] = \
-                aacgmv2.convert_latlon_arr(glat, glon, alt,
-                                           date, method_code='G2A')
+    [mlats, lon_mag, _] = \
+        aacgmv2.convert_latlon_arr(geom.coords.xy[1], geom.coords.xy[0], alt,
+                                       date, method_code='G2A')
+    if mag_lon:
+        shifted_lons = lon_mag
+    else:
+        # Finds the first not nan value to calculate the mlt shift
+        # Substitutes NaN if not found which results in no data to plot
+        # aacgmv2 will return NaNs for latitudes lower than 30 so unavoidable
+        # for entire globe plotting
+        notnan_lon = next((x for x in lon_mag if x == x), float('NaN'))
 
-            if mag_lon:
-                shifted_lons = lon_mag
-            else:
-                # Shift to MLT
-                shifted_mlts = lon_mag[0] - \
-                    (aacgmv2.convert_mlt(lon_mag[0], date) * 15)
-                shifted_lons = lon_mag - shifted_mlts
+        # Shift to MLT
+        shifted_mlts = notnan_lon - \
+                        (aacgmv2.convert_mlt(notnan_lon, date) * 15)
+        shifted_lons = lon_mag - shifted_mlts
 
-            mlon = np.radians(shifted_lons)
-            yield mlon.item(), mlat.item()
-
+    mlons = np.radians(shifted_lons)
     # Return geometry object
-    return type(geom)(list(convert_to_mag(date, alt)))
+    return type(geom)(list(zip(mlons, mlats)))
 
 
 def axis_polar(date, ax: axes.Axes = None, lowlat: int = 30,
                hemisphere: Hemisphere = Hemisphere.North,
-               coastline: bool = False,
+               coastline: bool = False, cartopy_scale: str = '110m',
                nightshade: int = 0, **kwargs):
 
     """
@@ -194,12 +194,17 @@ def axis_polar(date, ax: axes.Axes = None, lowlat: int = 30,
                 plt.plot(mlon, mlat, color='k', linewidth=0.5, zorder=2)
         else:
             # Read in the geometry object of the coastlines
-            cc = cfeature.NaturalEarthFeature('physical', 'coastline', '110m',
-                                              color='k', zorder=2.0)
+            cc = cfeature.NaturalEarthFeature('physical', 'coastline',
+                                              cartopy_scale, color='k',
+                                              zorder=2.0)
             # Convert geometry object coordinates to MLT
             geom_mag = []
             for geom in cc.geometries():
-                geom_mag.append(convert_geo_coastline_to_mag(geom, date))
+                if geom.__class__.__name__ == 'MultiLineString':
+                    for g in geom.geoms:
+                        geom_mag.append(convert_geo_coastline_to_mag(g, date))
+                else:
+                    geom_mag.append(convert_geo_coastline_to_mag(geom, date))
             cc_mag = cfeature.ShapelyFeature(geom_mag, ccrs.PlateCarree(),
                                              color='k', zorder=2.0)
             # Plot each geometry object
@@ -216,7 +221,7 @@ def axis_geological(date, ax: axes.Axes = None,
                     hemisphere: Hemisphere = Hemisphere.North,
                     lowlat: int = 30, grid_lines: bool = True,
                     coastline: bool = False, nightshade: int = 0,
-                    **kwargs):
+                    cartopy_scale: str = '110m', **kwargs):
     """
 
     Sets up the cartopy orthographic plot axis object, for use in
@@ -273,7 +278,7 @@ def axis_geological(date, ax: axes.Axes = None,
         ax.gridlines(draw_labels=True)
 
     if coastline:
-        ax.coastlines()
+        ax.coastlines(resolution=cartopy_scale)
 
     if nightshade:
         refraction_value = -np.degrees(np.arccos(Re / (Re + nightshade)))
