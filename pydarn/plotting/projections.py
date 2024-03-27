@@ -23,7 +23,6 @@ Code which generates axis objects for use in plotting functions
 """
 import aacgmv2
 import enum
-import math
 import matplotlib.pyplot as plt
 from matplotlib import axes
 import numpy as np
