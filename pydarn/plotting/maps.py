@@ -71,7 +71,8 @@ class Maps():
                      record: int = 0, start_time: dt.datetime = None,
                      time_delta: float = 1,  alpha: float = 1.0,
                      len_factor: float = 150, color_vectors: bool = True,
-                     cmap: str = None, colorbar: bool = True,
+                     cmap: str = None, colorbar: bool = True, 
+                     contour_colorbar: bool = True,
                      colorbar_label: str = '', title: str = '',
                      zmin: float = None, zmax: float = None,
                      hmb: bool = True, boundary: bool = False,
@@ -134,6 +135,9 @@ class Maps():
             colorbar: bool
                 Draw a colourbar if True
                 Default: True
+            contour_colorbar: bool
+                Draw a contour colourbar if True
+                Default: True
             colorbar_label: str
                 The label that appears next to the colour bar.
                 Requires colorbar to be true
@@ -146,6 +150,9 @@ class Maps():
                 Normalisation factor for the vectors, to control size on plot
                 Larger number means smaller vectors on plot
                 Default: 150.0
+            map_info: bool
+                If true, write information about the map on the plot
+                (fit order, CPCP, number of points)
             imf_dial: bool
                 If True, draw an IMF dial of the magnetic field clock angle.
                 Default: True
@@ -248,8 +255,7 @@ class Maps():
                                                      fit_order=dmap_data[
                                                          record]['fit.order'],
                                                      lat_min=dmap_data[
-                                                         record]['latmin'],
-                                                     len_factor=len_factor)
+                                                         record]['latmin'])
 
         elif parameter == MapParams.MODEL_VELOCITY:
             v_mag = dmap_data[record]['model.vel.median']
@@ -528,6 +534,7 @@ class Maps():
                                         lon_shift=lon_shift,
                                         fit_order=fit_order,
                                         hemisphere=hemisphere,
+                                        contour_colorbar=contour_colorbar,
                                         **kwargs)
 
         if hmb is True:
@@ -555,10 +562,10 @@ class Maps():
                               zfill(2))
         plt.title(title)
 
+        model = dmap_data[record]['model.name']
+        num_points = len(dmap_data[record]['vector.mlat'])
+        pol_cap_pot = dmap_data[record]['pot.drop']
         if map_info is True:
-            model = dmap_data[record]['model.name']
-            num_points = len(dmap_data[record]['vector.mlat'])
-            pol_cap_pot = dmap_data[record]['pot.drop']
             cls.add_map_info(fit_order, pol_cap_pot, num_points, model)
 
         bx = dmap_data[record]['IMF.Bx']
@@ -658,22 +665,21 @@ class Maps():
 
 
     @classmethod
-    def calculated_fitted_velocities(cls, mlats: list, mlons: list,
-                                     fit_coefficient: list,
+    def calculated_fitted_velocities(cls, mlats: np.array, mlons: np.array,
+                                     fit_coefficient: np.array,
                                      hemisphere: Enum = Hemisphere.North,
-                                     fit_order: int = 6, lat_min: int = 60,
-                                     len_factor: int = 150):
+                                     fit_order: int = 6, lat_min: int = 60):
         """
         Calculates the fitted velocities using Legrendre polynomial
 
         Parameters
         ----------
-            mlats: List[float]
+            mlats: Array[float]
                 Magnetic Latitude in degrees
-            mlons: List[float]
+            mlons: Array[float]
                 Magnetic Longitude in radians
-            fit_coefficient: List[float]
-                Value of the coefficient
+            fit_coefficient: Array[float]
+                Value of the mapfile coefficients (from record key ['N+2'])
             hemisphere: int
                 1 or -1 for hemisphere North or South
                 default: 1 - North
@@ -683,9 +689,6 @@ class Maps():
             lat_min: int
                 Lower latitude boundary of data in degrees
                 default: 60
-            len_factor: int
-                length of the vector socks multiplied by
-                default: 150
         """
         # convert earth radius to meters
         Re_meters = Re * 1000.0
@@ -976,7 +979,7 @@ class Maps():
     @classmethod
     def calculate_potentials(cls, fit_coefficient: list, lat_min: list,
                              lat_shift: int = 0, lon_shift: int = 0,
-                             fit_order: int = 6, lowlat: int = 60,
+                             fit_order: int = 6, lowlat: int = 30,
                              hemisphere: Enum = Hemisphere.North,
                              **kwargs):
         # TODO: No evaluation of coordinate system made! May need if in
@@ -1314,7 +1317,7 @@ class Maps():
                 ticks = locator.tick_values(vmin=pot_zmin,
                                             vmax=pot_zmax)
                 cb_contour = plt.colorbar(mappable, ax=ax, extend='both',
-                                          ticks=ticks)
+                                          ticks=ticks, alpha=0.5)
                 if contour_colorbar_label != '':
                     cb_contour.set_label(contour_colorbar_label)
             else:

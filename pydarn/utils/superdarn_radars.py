@@ -14,6 +14,7 @@
 # 2022-02-11 MTS USASK updated the _HDW_info class to take in
 #            the hardware format
 # 2023-01-21 CJM Added ICE and ICW defaults and hdw link
+# 2024-01-24 CJM added NSSC radars and updated hdw link
 """
 This module contains SuperDARN radar information
 """
@@ -276,6 +277,7 @@ class Status(Enum):
     """
     online = 1
     offline = -1
+    other = 0
 
 
 class _InterferometerOffset(NamedTuple):
@@ -466,8 +468,6 @@ class SuperDARNRadars():
         _Radar : radar object containing radar information
         read_hdw_file : function to read hardware information for a given radar
     """
-    # Information obtained from
-    # http://vt.superdarn.org/tiki-index.php?page=Radar+Overview
     radars = {209: _Radar('Adak Island East',
                           'University of Alaska Fairbanks', Hemisphere.North,
                           75, [47, -172], [42, -106], read_hdw_file('ade')),
@@ -494,6 +494,16 @@ class SuperDARNRadars():
               10: _Radar('Hankasalmi', 'University of Leicester',
                          Hemisphere.North, 70, [57, 27], [54, 102],
                          read_hdw_file('han')),
+              55: _Radar('Hejing East',
+                         'National Space Science Center,'
+                         'Chinese Academy of Sciences',
+                         Hemisphere.North, 100, [40, 87], [36, 163],
+                         read_hdw_file('hje')),
+              56: _Radar('Hejing West',
+                         'National Space Science Center,'
+                         'Chinese Academy of Sciences',
+                         Hemisphere.North, 100, [40, 81], [36, 153],
+                         read_hdw_file('hjw')),
               40: _Radar('Hokkaido East', 'Nagoya University',
                          Hemisphere.North, 110, [39, 149], [35, -139],
                          read_hdw_file('hok')),
@@ -509,7 +519,7 @@ class SuperDARNRadars():
               64: _Radar('Inuvik', 'University of Saskatchewan',
                          Hemisphere.North, 75, [63, -134], [66, -80],
                          read_hdw_file('inv')),
-              50: _Radar('Jiamusi East radar',
+              50: _Radar('Jiamusi East',
                          'National Space Science Center,'
                          'Chinese Academy of Sciences',
                          Hemisphere.North, 100, [42, 130], [37, -155],
@@ -523,6 +533,16 @@ class SuperDARNRadars():
               7: _Radar('Kodiak', 'University of Alaska Fairbanks',
                         Hemisphere.North, 110, [53, -152], [52, -92],
                         read_hdw_file('kod')),
+              51: _Radar('Longjing East',
+                         'National Space Science Center,'
+                         'Chinese Academy of Sciences',
+                         Hemisphere.North, 100, [39, 132], [32, -151],
+                         read_hdw_file('lje')),
+              52: _Radar('Longjing West',
+                         'National Space Science Center,'
+                         'Chinese Academy of Sciences',
+                         Hemisphere.North, 100, [39, 126], [42, -161],
+                         read_hdw_file('ljw')),
               90: _Radar('Longyearbyen', 'University of Centre in Svalbard',
                          Hemisphere.North, 70, [73, 16], [71, 108],
                          read_hdw_file('lyr')),
@@ -540,6 +560,16 @@ class SuperDARNRadars():
                         read_hdw_file('sas')),
               2: _Radar('Schefferville', 'CNRS/LPCE', Hemisphere.North,
                         75, [50, -67], [60, 14], read_hdw_file('sch')),
+              53: _Radar('Siziwanqi East',
+                         'National Space Science Center,'
+                         'Chinese Academy of Sciences',
+                         Hemisphere.North, 100, [38, 115], [37, -169],
+                         read_hdw_file('sze')),
+              54: _Radar('Siziwanqi West',
+                         'National Space Science Center,'
+                         'Chinese Academy of Sciences',
+                         Hemisphere.North, 100, [38, 109], [37, -179],
+                         read_hdw_file('szw')),
               8: _Radar('Stokkseyri', 'Lancaster University',
                         Hemisphere.North, 75, [58, -29], [56, 65],
                         read_hdw_file('sto')),

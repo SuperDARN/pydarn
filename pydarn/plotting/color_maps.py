@@ -1,11 +1,5 @@
 import matplotlib
-import packaging
-
-if packaging.version.parse(matplotlib.__version__) < \
-        packaging.version.parse('3.7.0'):
-    from matplotlib import cm
-else:
-    from matplotlib import colormaps as cm
+from matplotlib import colormaps as cm
 
 
 class PyDARNColormaps():
