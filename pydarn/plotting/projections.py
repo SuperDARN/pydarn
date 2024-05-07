@@ -255,10 +255,12 @@ def axis_geographic(date, ax: axes.Axes = None,
             Altitude above surface for calculating regions shadowed from Sun.
         plot_center: list [float, float]
             Longitude and Latitude of the desired center of the plot
+            Plot will still plot if data is on the other side of the Earth
+            Remember to include negative latitude for Southern Hemisphere
             Default: None
             Example: [-90, 60] will show the Earth centered on Canada
         plot_extent: list [float, float]
-            Plotting extent in terms of a percentatge of Earth shown in
+            Plotting extent in terms of a percentage of Earth shown in
             the x and y plotting field 
             Default: None
             Example: [30, 50] shows a plot centered on the pole or specified
