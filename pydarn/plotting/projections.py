@@ -217,11 +217,13 @@ def axis_polar(date, ax: axes.Axes = None, lowlat: int = 30,
     return ax, None
 
 
-def axis_geological(date, ax: axes.Axes = None,
+def axis_geographic(date, ax: axes.Axes = None,
                     hemisphere: Hemisphere = Hemisphere.North,
                     lowlat: int = 30, grid_lines: bool = True,
                     coastline: bool = False, nightshade: int = 0,
-                    cartopy_scale: str = '110m', **kwargs):
+                    cartopy_scale: str = '110m',
+                    plot_center: list = None,
+                    plot_extent: list = None, **kwargs):
     """
 
     Sets up the cartopy orthographic plot axis object, for use in
@@ -251,6 +253,17 @@ def axis_geological(date, ax: axes.Axes = None,
             Set to true to overlay coastlines with cartopy
         nightshade: int
             Altitude above surface for calculating regions shadowed from Sun.
+        plot_center: list [float, float]
+            Longitude and Latitude of the desired center of the plot
+            Default: None
+            Example: [-90, 60] will show the Earth centered on Canada
+        plot_extent: list [float, float]
+            Plotting extent in terms of a percentatge of Earth shown in
+            the x and y plotting field 
+            Default: None
+            Example: [30, 50] shows a plot centered on the pole or specified
+                     plot_center coord that shows 30% of the Earth in x and 
+                     50% of the Earth in y. See tutorials for plotted example.
     """
     if cartopyInstalled is False:
         raise plot_exceptions.CartopyMissingError()
@@ -260,19 +273,43 @@ def axis_geological(date, ax: axes.Axes = None,
     # however, we do need to figure out
     # how much to rotate the projection
     deg_from_midnight = (date.hour + date.minute / 60) / 24 * 360
-    if hemisphere == Hemisphere.North:
-        pole_lat = 90
-        noon = -deg_from_midnight
+    if plot_center is None:
+        # If no center for plotting is given, default to pole
+        if hemisphere == Hemisphere.North:
+            pole_lat = 90
+            lon = -deg_from_midnight
+            lat = abs(lowlat)
+        else:
+            pole_lat = -90
+            lon = 360 - deg_from_midnight
+            lat = -abs(lowlat)
+        if ax is None:
+            proj = ccrs.Orthographic(lon, pole_lat)
+            ax = plt.subplot(111, projection=proj, aspect='auto')
+            if plot_extent is not None and len(plot_extent) == 2:
+                # Padding in % of Earth radius
+                padx = (plot_extent[0] / 100) * Re*1000
+                pady = (plot_extent[1] / 100) * Re*1000
+                ax.set_extent(extents=(-padx, padx, -pady, pady), crs=proj)
+            else:
+                extent = abs(proj.transform_point(lon, lat, ccrs.PlateCarree())[1])
+                ax.set_extent(extents=(-extent, extent, -extent, extent), crs=proj)
     else:
-        pole_lat = -90
-        noon = 360 - deg_from_midnight
-        lowlat = -abs(lowlat)
-
-    if ax is None:
-        proj = ccrs.Orthographic(noon, pole_lat)
-        ax = plt.subplot(111, projection=proj, aspect='auto')
-        extent = abs(proj.transform_point(noon, lowlat, ccrs.PlateCarree())[1])
-        ax.set_extent(extents=(-extent, extent, -extent, extent), crs=proj)
+        # If the center of the plot is given- shift it around
+        lon = plot_center[0]
+        lat = plot_center[1]
+        if ax is None:
+            proj = ccrs.Orthographic(lon, lat)
+            ax = plt.subplot(111, projection=proj, aspect='auto')
+            if plot_extent is not None and len(plot_extent) == 2:
+                # Padding in % of Earth radius
+                padx = (plot_extent[0] / 100) * Re*1000
+                pady = (plot_extent[1] / 100) * Re*1000
+                ax.set_extent(extents=(-padx, padx, -pady, pady), crs=proj)
+            else:
+                # If size is not set or set incorrectly, show  whole
+                # hemisphere centered on plot_center
+                ax.set_global()
 
     if grid_lines:
         ax.gridlines(draw_labels=True)
@@ -298,7 +335,7 @@ class Projs(enum.Enum):
     GEO: axes_geological
     """
     POLAR = (axis_polar, )
-    GEO = (axis_geological, )
+    GEO = (axis_geographic, )
 
     # Need this to make the functions callable
     def __call__(self, *args, **kwargs):
