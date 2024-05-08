@@ -101,7 +101,7 @@ def convert_geo_coastline_to_mag(geom, date, alt: float = 0.0, mag_lon: bool = F
         aacgmv2.convert_latlon_arr(geom.coords.xy[1], geom.coords.xy[0], alt,
                                        date, method_code='G2A')
     if mag_lon:
-        shifted_lons = lon_mag
+        mlons = lon_mag
     else:
         # Finds the first not nan value to calculate the mlt shift
         # Substitutes NaN if not found which results in no data to plot
@@ -114,15 +114,103 @@ def convert_geo_coastline_to_mag(geom, date, alt: float = 0.0, mag_lon: bool = F
                         (aacgmv2.convert_mlt(notnan_lon, date) * 15)
         shifted_lons = lon_mag - shifted_mlts
 
-    mlons = np.radians(shifted_lons)
+        mlons = np.radians(shifted_lons)
     # Return geometry object
     return type(geom)(list(zip(mlons, mlats)))
 
 
-def axis_polar(date, ax: axes.Axes = None, lowlat: int = 30,
-               hemisphere: Hemisphere = Hemisphere.North,
-               coastline: bool = False, cartopy_scale: str = '110m',
-               nightshade: int = 0, **kwargs):
+def axis_geomagnetic(date, ax: axes.Axes = None, lowlat: int = 30,
+                    hemisphere: Hemisphere = Hemisphere.North,
+                    coastline: bool = False, cartopy_scale: str = '110m',
+                    nightshade: int = 0, grid_lines: bool = True,
+                    plot_center: list = None,
+                    plot_extent: list = None, **kwargs):
+    """
+    
+    Parameters
+    ----------
+    
+    """
+    if cartopyInstalled is False:
+        raise plot_exceptions.CartopyMissingError()
+    if cartopyVersion is False:
+        raise plot_exceptions.CartopyVersionError(cartopy.__version__)
+    # no need to shift any coords, let cartopy do that
+    # however, we do need to figure out
+    # how much to rotate the projection
+    deg_from_midnight = (date.hour + date.minute / 60) / 24 * 360
+    if plot_center is None:
+        # If no center for plotting is given, default to pole
+        if hemisphere == Hemisphere.North:
+            pole_lat = 90
+            lon = -deg_from_midnight
+            lat = abs(lowlat)
+        else:
+            pole_lat = -90
+            lon = 360 - deg_from_midnight
+            lat = -abs(lowlat)
+        if ax is None:
+            proj = ccrs.Orthographic(lon, pole_lat)
+            ax = plt.subplot(111, projection=proj, aspect='auto')
+            if plot_extent is not None and len(plot_extent) == 2:
+                # Padding in % of Earth radius
+                padx = (plot_extent[0] / 100) * Re*1000
+                pady = (plot_extent[1] / 100) * Re*1000
+                ax.set_extent(extents=(-padx, padx, -pady, pady), crs=proj)
+            else:
+                extent = abs(proj.transform_point(lon, lat, ccrs.PlateCarree())[1])
+                ax.set_extent(extents=(-extent, extent, -extent, extent), crs=proj)
+    else:
+        # If the center of the plot is given- shift it around
+        lon = plot_center[0]
+        lat = plot_center[1]
+        if ax is None:
+            proj = ccrs.Orthographic(lon, lat)
+            ax = plt.subplot(111, projection=proj, aspect='auto')
+            if plot_extent is not None and len(plot_extent) == 2:
+                # Padding in % of Earth radius
+                padx = (plot_extent[0] / 100) * Re*1000
+                pady = (plot_extent[1] / 100) * Re*1000
+                ax.set_extent(extents=(-padx, padx, -pady, pady), crs=proj)
+            else:
+                # If size is not set or set incorrectly, show  whole
+                # hemisphere centered on plot_center
+                ax.set_global()
+
+    if grid_lines:
+        ax.gridlines(draw_labels=True)
+
+    if coastline:
+        # Read in the geometry object of the coastlines
+        cc = cfeature.NaturalEarthFeature('physical', 'coastline',
+                                          cartopy_scale, color='k',
+                                          zorder=2.0)
+        # Convert geometry object coordinates to MLT
+        geom_mag = []
+        for geom in cc.geometries():
+            if geom.__class__.__name__ == 'MultiLineString':
+                for g in geom.geoms:
+                    geom_mag.append(convert_geo_coastline_to_mag(g, date, mag_lon=True))
+            else:
+                geom_mag.append(convert_geo_coastline_to_mag(geom, date, mag_lon=True))
+        cc_mag = cfeature.ShapelyFeature(geom_mag, ccrs.PlateCarree(),
+                                         color='k', zorder=2.0)
+
+        # Plot each geometry object
+        for geom in cc_mag.geometries():
+            plt.plot(*geom.coords.xy, *geom.coords.xy, color='k', linewidth=0.5, zorder=2.0, transform = ccrs.PlateCarree())
+
+    if nightshade:
+        nightshade_warning()
+
+    return ax, ccrs
+
+
+
+def axis_geomagnetic_polar(date, ax: axes.Axes = None, lowlat: int = 30,
+                    hemisphere: Hemisphere = Hemisphere.North,
+                    coastline: bool = False, cartopy_scale: str = '110m',
+                    nightshade: int = 0, **kwargs):
 
     """
     Sets up the polar plot matplotlib axis object, for use in
@@ -336,8 +424,9 @@ class Projs(enum.Enum):
     POLAR: axes_polar
     GEO: axes_geological
     """
-    POLAR = (axis_polar, )
+    POLAR = (axis_geomagnetic_polar, )
     GEO = (axis_geographic, )
+    MAG = (axis_geomagnetic, )
 
     # Need this to make the functions callable
     def __call__(self, *args, **kwargs):

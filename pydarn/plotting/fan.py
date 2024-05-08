@@ -244,7 +244,7 @@ class Fan:
         if ranges[0] < ranges[1] - fan_shape[0]:
             ranges[0] = ranges[1] - fan_shape[0] + 1
         rs = beam_corners_lats
-        if projs != Projs.GEO:
+        if projs == Projs.POLAR:
             thetas = np.radians(beam_corners_lons)
         else:
             thetas = beam_corners_lons
