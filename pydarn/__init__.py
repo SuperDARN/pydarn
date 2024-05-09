@@ -58,7 +58,7 @@ from .utils.superdarn_cpid import SuperDARNCpids
 from .utils.superdarn_radars import Hemisphere
 from .utils.superdarn_radars import read_hdw_file
 from .utils.superdarn_radars import get_hdw_files
-from .utils.scan import build_scan
+from .utils.scan import find_records_by_datetime, find_records_by_scan
 from .utils.geo import geocentric_coordinates, calculate_azimuth
 from .utils.coordinates import Coords
 from .utils.terminator import terminator

@@ -12,9 +12,10 @@ and conditions of version 3 of the GNU General Public License, supplemented by
 the additional permissions listed below.
 -->
 
-# Map plots
+# Map Data Plots
 ---
 
+## Convection Maps
 Map plots are a way to visualize data from a MAP file of SuperDARN radar data. Please read RST documentation on how to process [MAP files](https://radar-software-toolkit-rst.readthedocs.io/en/latest/user_guide/map_grid/) from GRID files.    
 
 Map field descriptions can be found [here](https://radar-software-toolkit-rst.readthedocs.io/en/latest/references/general/map/). pyDARN uses a `enum` object to select different common parameters to plot in a MAP file:
@@ -29,7 +30,7 @@ Map field descriptions can be found [here](https://radar-software-toolkit-rst.re
 
 for a given `start_time` or `record` number projected onto a polar plot in [AACGMv2](http://superdarn.thayer.dartmouth.edu/aacgm.html) coordinates. 
 
-Currently, map plots in pyDARN get geomagnetic positions of the mapped data in [`mlon` and `mlat`](https://pypi.org/project/aacgmv2/) from the MAP file, which uses AACGMv2 coordinates. In the future, pyDARN will also generate the geographic position of the data points, which will bring support for non-standard gridded vector layouts.
+Currently, map plots in pyDARN get geomagnetic positions of the mapped data in [`mlon` and `mlat`](https://pypi.org/project/aacgmv2/) from the MAP file, which uses AACGMv2 coordinates.
 
 ### Fitted Velocities
 
@@ -51,13 +52,13 @@ SDarn_read = pydarn.SuperDARNRead(file)
 map_data = SDarn_read.read_map()
 
 ```
-With the map data loaded as a list of dictionaries (`map_data` variable in above example), you may now call the `plot_mapdata` method. Make sure you tell the method what time, in [`datetime` format], or record number (numbered from first recorded in file, counting from 0):
+With the map data loaded as a list of dictionaries (`map_data` variable in above example), you may now call the `plot_mapdata` method. Make sure you tell the method what time, in `datetime` format, or record number (numbered from first recorded in file, counting from 0):
 ```python
 map_rtn = pydarn.Maps.plot_mapdata(map_data, record=150)
 plt.show()
 
 ```
-In this example, the record at 150 was plotted with the defaulted parameter, `MapParams.FITTED_VELOCITIES` (fitted velocities), being mapped:
+In this example, the record at 150 was plotted with the defaulted parameter, `MapParams.FITTED_VELOCITIES` (fitted velocities):
 ![](../imgs/map_1.png)
 
 You might have noticed that the variable `map_rtn` in the examples above actually holds some information. This dictionary contains the AACGM latitude and longitude of the mapped vectors plotted:
@@ -85,6 +86,7 @@ Here is a list of all the current options than can be used with `plot_mapdata`
 | color_vectors=(bool)           | Choose if the vectors are plotted with corresponding color map (True), or in black    |
 | colorbar=(bool)                | Set true to plot a colorbar (default: True)                                           |
 | colorbar_label=(string)        | Label for the colour bar (requires colorbar to be true)                               |
+| contour_colorbar=(bool)        | Set True to show color bar for contour color map (default:True if contour_fill=True)  |
 | title=(str)                    | To add a title to the plot                                                            |
 | hmb=(bool)                     | Set to True to include the Heppnar-Maynard Boundary on the plot                       |
 | imf_dial=(bool)                | Show the IMF data as a clock angle dial (default True)                                |
@@ -124,3 +126,37 @@ pydarn.Maps.plot_mapdata(map_data, record=150,
 plt.show()
 ```
 ![](../imgs/map_2.png)
+
+## Map Time-Series Plots
+Values within a map file can also be plotted using the `plot_time_series` method.
+
+```
+import pydarn
+import datetime as dt
+import matplotlib.pyplot as plt
+
+file_path = "path/to/map/file.map"
+data = pydarn.SuperDARNRead().read_dmap(file_path)
+start_time = dt.datetime(2019,4,21,11,0)
+end_time = dt.datetime(2019,4,21,13,0)
+pydarn.Maps.plot_time_series(data, parameter=pydarn.TimeSeriesParams.IMF_BY,
+                             start_time=start_time, end_time=end_time, color='r')
+plt.show()
+```
+
+![](../imgs/map_ts.png)
+
+Specific values available to be plotted are:
+
+| Name                          | parameter name                 |
+| ----------------------------- | ------------------------------ |
+| Number of vectors             | `TimeSeriesParams.NUM_VECTORS` |
+| IMF By                        | `TimeSeriesParams.IMF_BY`      |
+| IMF Bz                        | `TimeSeriesParams.IMF_BZ`      |
+| IMF Bx                        | `TimeSeriesParams.IMF_BX`      |
+| IMF Vx                        | `TimeSeriesParams.IMF_VX`      |
+| IMF Tilt                      | `TimeSeriesParams.IMF_TILT`    |
+| KP index                      | `TimeSeriesParams.KP`          |
+| Minimum Latitude              | `TimeSeriesParams.LATMIN`      |
+| Error in model fitting        | `TimeSeriesParams.ERR`         |
+| Cross Polar Cap Potential     | `TimeSeriesParams.CPP`         |

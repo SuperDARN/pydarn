@@ -51,12 +51,13 @@ class TestFan_defaults:
 @pytest.mark.parametrize('line_alpha', [0.8, 1])
 @pytest.mark.parametrize('date', [dt.datetime(2020, 4, 4, 6, 2)])
 @pytest.mark.parametrize('grid', [True, False])
+@pytest.mark.parametrize('beam', [None, 7])
 class TestFov:
 
     def test_fov_plot(self, stid, ranges, boundary, fov_color,
                                    alpha, radar_location, radar_label,
                                    line_color, date, grid, line_alpha, rsep,
-                                   frang):
+                                   frang, beam):
         """ this test will give bare minimum input needed for """
         with warnings.catch_warnings(record=True):
             pydarn.Fan.plot_fov(stid=stid, ranges=ranges,
@@ -65,7 +66,7 @@ class TestFov:
                                 radar_location=radar_location,
                                 radar_label=radar_label, grid=grid,
                                 line_color=line_color, date=date,
-                                line_alpha=line_alpha)
+                                line_alpha=line_alpha, beam=beam)
         plt.close('all')
 
 
@@ -78,10 +79,14 @@ class TestFov:
 @pytest.mark.parametrize('zmax', [100])
 @pytest.mark.parametrize('title', [False])
 @pytest.mark.parametrize('channel', [1,2])
+@pytest.mark.parametrize('ball_and_stick', [True, False])
+@pytest.mark.parametrize('len_factor', [300, 100])
+@pytest.mark.parametrize('beam', [None, 7])
 class TestFan:
 
     def test_fan_plot(self, parameter, cmap, groundscatter, colorbar,
-                      colorbar_label, zmin, zmax, title, channel):
+                      colorbar_label, zmin, zmax, title, channel, beam,
+                      ball_and_stick, len_factor):
         """
 
         """
@@ -89,4 +94,6 @@ class TestFan:
             pydarn.Fan.plot_fan(data, parameter=parameter, cmap=cmap,
                                 groundscatter=groundscatter, colorbar=colorbar,
                                 colorbar_label=colorbar_label, zmin=zmin,
-                                zmax=zmax, title=title, channel=channel)
+                                zmax=zmax, title=title, channel=channel,
+                                beam=beam, ball_and_stick=ball_and_stick,
+                                len_factor=len_factor)

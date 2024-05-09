@@ -162,7 +162,7 @@ pydarn.Fan.plot_fov(6, datetime(2021, 2, 5, 12, 5), radar_label=True,
 plt.show()
 ```
 
-![](../imgs/fov_8.png_)
+![](../imgs/fov_8.png)
 
 !!! Warning
     You cannot plot AACGM coordinates on a geographic plot as its not correctly transformed.
@@ -194,6 +194,6 @@ plt.show()
 ![](../imgs/fov_4.png)
 
 !!! Note
-    The radar labels will appear at the same longitude, but at -5 degrees of latitude to the position of the radar station. This may cause some to overlap. Users can plot their own labels using `plt.text(*lon psn in radians*, *lat psn in degrees*, *text string*)`
+    The radar label positions have been manually set so that no labels overlap. Users can plot their own labels using `plt.text(*lon psn in radians*, *lat psn in degrees*, *text string*)` if the current position used is not suitable.
 
 
