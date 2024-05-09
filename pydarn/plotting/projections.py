@@ -25,6 +25,7 @@ import aacgmv2
 import enum
 import matplotlib.pyplot as plt
 from matplotlib import axes
+import matplotlib.ticker as mticker
 import numpy as np
 from packaging import version
 
@@ -100,20 +101,21 @@ def convert_geo_coastline_to_mag(geom, date, alt: float = 0.0, mag_lon: bool = F
     [mlats, lon_mag, _] = \
         aacgmv2.convert_latlon_arr(geom.coords.xy[1], geom.coords.xy[0], alt,
                                        date, method_code='G2A')
+
+    # Finds the first not nan value to calculate the mlt shift
+    # Substitutes NaN if not found which results in no data to plot
+    # aacgmv2 will return NaNs as there are some lat/lon combinations that
+    # do not correspond to a geomagnetic position.
+    notnan_lon = next((x for x in lon_mag if x == x), float('NaN'))
+
+    # Shift to MLT
+    shifted_mlts = notnan_lon - \
+                    (aacgmv2.convert_mlt(notnan_lon, date) * 15)
+    shifted_lons = lon_mag - shifted_mlts
+
     if mag_lon:
-        mlons = lon_mag
+        mlons = shifted_lons
     else:
-        # Finds the first not nan value to calculate the mlt shift
-        # Substitutes NaN if not found which results in no data to plot
-        # aacgmv2 will return NaNs for latitudes lower than 30 so unavoidable
-        # for entire globe plotting
-        notnan_lon = next((x for x in lon_mag if x == x), float('NaN'))
-
-        # Shift to MLT
-        shifted_mlts = notnan_lon - \
-                        (aacgmv2.convert_mlt(notnan_lon, date) * 15)
-        shifted_lons = lon_mag - shifted_mlts
-
         mlons = np.radians(shifted_lons)
     # Return geometry object
     return type(geom)(list(zip(mlons, mlats)))
@@ -126,10 +128,48 @@ def axis_geomagnetic(date, ax: axes.Axes = None, lowlat: int = 30,
                     plot_center: list = None,
                     plot_extent: list = None, **kwargs):
     """
+    Sets up the cartopy orthographic plot axis object, for use in
+    various other functions. This plot assumes you are giving geoMAGNETIC
+    values for plotting, so extra additional cartopy functions such as
+    coastlines do not work in this context, you must convert to geomagnetic.
     
     Parameters
     ----------
-    
+        date: datetime object
+            Date of required plot
+        ax: matplotlib.axes.Axes
+            Pre-defined axis object to pass in, must be
+            geological projection
+            Default: Generates a geographical projection for the user
+            with geographic latitude/longitude labels
+        lowlat: int
+            Lower geographic latitude boundary for the geographic plot
+            Default: 30
+        hemisphere: enum
+            Hemisphere of geographic projection. Can be Hemisphere.North or
+            Hemisphere.South for northern and southern hemispheres,
+            respectively
+            Default: Hemisphere.North
+        grid_lines: bool
+            add latitude/longtidue lines with labels to the plot
+            Default: True
+        coastline: bool
+            Set to true to overlay coastlines with cartopy
+        nightshade: int
+            Altitude above surface for calculating regions shadowed from Sun.
+        plot_center: list [float, float]
+            Longitude and Latitude of the desired center of the plot
+            Plot will still plot if data is on the other side of the Earth
+            Remember to include negative latitude for Southern Hemisphere
+            Default: None
+            Example: [-90, 60] will show the Earth centered on Canada
+        plot_extent: list [float, float]
+            Plotting extent in terms of a percentage of Earth shown in
+            the x and y plotting field 
+            Default: None
+            Example: [30, 50] shows a plot centered on the pole or specified
+                     plot_center coord that shows 30% of the Earth in x and 
+                     50% of the Earth in y. See tutorials for plotted example.
     """
     if cartopyInstalled is False:
         raise plot_exceptions.CartopyMissingError()
@@ -178,7 +218,16 @@ def axis_geomagnetic(date, ax: axes.Axes = None, lowlat: int = 30,
                 ax.set_global()
 
     if grid_lines:
-        ax.gridlines(draw_labels=True)
+        # Mag Lon gridlines
+        gl = ax.gridlines(draw_labels=True)
+        # MLT Gridlines
+        # Remove mlon lines and labels
+        # Lines required in MLT
+        MLT_gridlines = [0, 3, 6, 9, 12, 15, 18, 21]
+        mlon_gridlines = aacgmv2.convert_mlt(MLT_gridlines, date, m2a=True)
+        # Put grid lines on the MLT positions
+        gl.xlocator = mticker.FixedLocator(mlon_gridlines)
+        # Make my own MLT lables - unabel to change text in Cartopy
 
     if coastline:
         # Read in the geometry object of the coastlines
@@ -193,18 +242,18 @@ def axis_geomagnetic(date, ax: axes.Axes = None, lowlat: int = 30,
                     geom_mag.append(convert_geo_coastline_to_mag(g, date, mag_lon=True))
             else:
                 geom_mag.append(convert_geo_coastline_to_mag(geom, date, mag_lon=True))
-        cc_mag = cfeature.ShapelyFeature(geom_mag, ccrs.PlateCarree(),
+        cc_mag = cfeature.ShapelyFeature(geom_mag, ccrs.Geodetic(),
                                          color='k', zorder=2.0)
 
         # Plot each geometry object
         for geom in cc_mag.geometries():
-            plt.plot(*geom.coords.xy, *geom.coords.xy, color='k', linewidth=0.5, zorder=2.0, transform = ccrs.PlateCarree())
+            plt.plot(*geom.coords.xy, color='k', linewidth=0.5, zorder=2.0,
+                     transform = ccrs.Geodetic())
 
     if nightshade:
         nightshade_warning()
 
     return ax, ccrs
-
 
 
 def axis_geomagnetic_polar(date, ax: axes.Axes = None, lowlat: int = 30,
