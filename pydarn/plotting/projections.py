@@ -191,7 +191,7 @@ def axis_geomagnetic(date, ax: axes.Axes = None, lowlat: int = 30,
             lat = -abs(lowlat)
         if ax is None:
             proj = ccrs.Orthographic(lon, pole_lat)
-            ax = plt.subplot(111, projection=proj, aspect='auto')
+            ax = plt.axes(projection=proj)
             if plot_extent is not None and len(plot_extent) == 2:
                 # Padding in % of Earth radius
                 padx = (plot_extent[0] / 100) * Re*1000
@@ -200,13 +200,14 @@ def axis_geomagnetic(date, ax: axes.Axes = None, lowlat: int = 30,
             else:
                 extent = abs(proj.transform_point(lon, lat, ccrs.PlateCarree())[1])
                 ax.set_extent(extents=(-extent, extent, -extent, extent), crs=proj)
+
     else:
         # If the center of the plot is given- shift it around
         lon = plot_center[0]
         lat = plot_center[1]
         if ax is None:
             proj = ccrs.Orthographic(lon, lat)
-            ax = plt.subplot(111, projection=proj, aspect='auto')
+            ax = plt.axes(projection=proj)
             if plot_extent is not None and len(plot_extent) == 2:
                 # Padding in % of Earth radius
                 padx = (plot_extent[0] / 100) * Re*1000
@@ -442,7 +443,7 @@ def axis_geographic(date, ax: axes.Axes = None,
             lat = -abs(lowlat)
         if ax is None:
             proj = ccrs.Orthographic(lon, pole_lat)
-            ax = plt.subplot(111, projection=proj, aspect='auto')
+            ax = plt.axes(projection=proj)
             if plot_extent is not None and len(plot_extent) == 2:
                 # Padding in % of Earth radius
                 padx = (plot_extent[0] / 100) * Re*1000
@@ -457,7 +458,7 @@ def axis_geographic(date, ax: axes.Axes = None,
         lat = plot_center[1]
         if ax is None:
             proj = ccrs.Orthographic(lon, lat)
-            ax = plt.subplot(111, projection=proj, aspect='auto')
+            ax = plt.axes(projection=proj)
             if plot_extent is not None and len(plot_extent) == 2:
                 # Padding in % of Earth radius
                 padx = (plot_extent[0] / 100) * Re*1000
