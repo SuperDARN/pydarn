@@ -151,7 +151,7 @@ def axis_geomagnetic(date, ax: axes.Axes = None, lowlat: int = 30,
             respectively
             Default: Hemisphere.North
         grid_lines: bool
-            add latitude/longtidue lines with labels to the plot
+            add latitude/longtitude lines with labels to the plot
             Default: True
         coastline: bool
             Set to true to overlay coastlines with cartopy
@@ -217,17 +217,35 @@ def axis_geomagnetic(date, ax: axes.Axes = None, lowlat: int = 30,
                 # hemisphere centered on plot_center
                 ax.set_global()
 
+    def mlt_ticklabels(x, pos):
+        ''' function for converting mlon to MLT for sole use in tick labels
+            for a FuncFormatter operation
+        '''
+        # Calculate MLT from the mlon values (already shifted)
+        MLT = aacgmv2.convert_mlt(x, date)
+        # Undo the original shift done to the MLT values to get back to 0-23
+        unshiftedMLT = MLT + shift
+        # Make sure it is cyclical from 0-24
+        if unshiftedMLT < 0:
+            unshiftedMLT = unshiftedMLT + 24
+        elif unshiftedMLT >= 24:
+            unshiftedMLT = unshiftedMLT - 24
+        return str(int(np.round(unshiftedMLT))) + ' MLT'
+
     if grid_lines:
         # Mag Lon gridlines
         gl = ax.gridlines(draw_labels=True)
-        # MLT Gridlines
-        # Remove mlon lines and labels
-        # Lines required in MLT
-        MLT_gridlines = [0, 3, 6, 9, 12, 15, 18, 21]
+        # Positions of gridl ines required in MLT
+        MLT = [0, 3, 6, 9, 12, 15, 18, 21]
+        # Shift MLT to plotting position
+        MLT_gridlines = MLT - (MLT[0] - aacgmv2.convert_mlt(MLT[0], date))
+        shift = MLT[0] - aacgmv2.convert_mlt(MLT[0], date)
+        # Convert shifted MLT to mlon
         mlon_gridlines = aacgmv2.convert_mlt(MLT_gridlines, date, m2a=True)
         # Put grid lines on the MLT positions
         gl.xlocator = mticker.FixedLocator(mlon_gridlines)
-        # Make my own MLT lables - unabel to change text in Cartopy
+        # format the labels to show MLT values
+        gl.xformatter = plt.FuncFormatter(mlt_ticklabels)
 
     if coastline:
         # Read in the geometry object of the coastlines
