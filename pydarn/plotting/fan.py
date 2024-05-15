@@ -321,9 +321,11 @@ class Fan:
 
         if ccrs is None:
             transform = ax.transData
-
         else:
-            transform = ccrs.PlateCarree()
+            if ball_and_stick:
+                transform = ccrs.Geodetic()
+            else:
+                transform = ccrs.PlateCarree()
 
         if not ball_and_stick:
             ax.pcolormesh(thetas, rs,
@@ -347,7 +349,7 @@ class Fan:
                         # Stick only needed for velocity data
                         if parameter == 'v':
                             # Get azimuth in correct coord system
-                            if coords != Coords.GEOGRAPHIC:
+                            if projs == Projs.POLAR:
                                 lat = r_center
                                 lon = np.degrees(t_center)
                             else:
@@ -358,12 +360,8 @@ class Fan:
 
                             # Make sure each coordinate is in correct
                             # units again
-                            if projs != Projs.GEO:
-                                thetas_calc = np.radians(lon)
-                                rs_calc = lat
-                            else:
-                                thetas_calc = np.radians(lon)
-                                rs_calc = lat
+                            thetas_calc = np.radians(lon)
+                            rs_calc = lat
 
                             hemisphere = SuperDARNRadars.radars[stid]\
                                                         .hemisphere
@@ -401,8 +399,8 @@ class Fan:
                             end_thetas = np.arctan2(end_pos_y, end_pos_x)
                             end_rs = end_rs * hemisphere.value
 
-                            # Convert to degrees for geo plots
-                            if projs == Projs.GEO:
+                            # Convert to degrees for geo/mag plots
+                            if projs != Projs.POLAR:
                                 end_thetas = np.degrees(end_thetas)
                             # Plot sticks!
                             ax.plot([t_center, end_thetas],
