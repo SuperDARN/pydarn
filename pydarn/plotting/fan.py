@@ -405,7 +405,7 @@ class Fan:
                             if projs == Projs.GEO:
                                 end_thetas = np.degrees(end_thetas)
                             # Plot sticks!
-                            plt.plot([t_center, end_thetas],
+                            ax.plot([t_center, end_thetas],
                                      [r_center, end_rs],
                                      color=col, zorder=3.0, linewidth=0.5,
                                      transform=transform)
