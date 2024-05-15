@@ -9,6 +9,8 @@
 # 2022-06-13 Elliott Day don't create new ax if ax passed in to Projs
 # 2023-02-22 CJM added options for nightshade
 # 2023-08-11 RR added crude check for unmodified axes, handle both hemispheres
+# 2024-05-15 CJM refactored geographic axes to add plot zoom and center, 
+#            and added the geomagnetic version to do the same
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
