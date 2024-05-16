@@ -122,7 +122,8 @@ def convert_geo_coastline_to_mag(geom, date, alt: float = 0.0, mag_lon: bool = F
 def axis_polar(date, ax: axes.Axes = None, lowlat: int = 30,
                hemisphere: Hemisphere = Hemisphere.North,
                coastline: bool = False, cartopy_scale: str = '110m',
-               nightshade: int = 0, **kwargs):
+               nightshade: int = 0, coastline_color: str = 'k',
+               coastline_linewidth: float = 0.5,  **kwargs):
 
     """
     Sets up the polar plot matplotlib axis object, for use in
@@ -153,6 +154,14 @@ def axis_polar(date, ax: axes.Axes = None, lowlat: int = 30,
         nightshade: int
             Altitude above surface for calculating regions shadowed from Sun.
             Not supported for this projection.
+        cartopy_scale: str
+            string corresponding with the scale to plot the coastlines at
+            options: '110m', '50m', '10m'
+        coastline_color: str
+            color of the coastline outline
+        coastline_linewidth: float
+            linewidth of the coastline feature
+            default 0.5
     """
 
     if ax is None:
@@ -191,7 +200,8 @@ def axis_polar(date, ax: axes.Axes = None, lowlat: int = 30,
             # Cartopy not installed, call on the set outlines
             for g, geom in enumerate(coast_outline):
                 [mlat, mlon] = convert_coastline_list_to_mag(geom, date)
-                plt.plot(mlon, mlat, color='k', linewidth=0.5, zorder=2)
+                plt.plot(mlon, mlat, color=coastline_color,
+                         linewidth=coastline_linewidth, zorder=2)
         else:
             # Read in the geometry object of the coastlines
             cc = cfeature.NaturalEarthFeature('physical', 'coastline',
@@ -209,7 +219,8 @@ def axis_polar(date, ax: axes.Axes = None, lowlat: int = 30,
                                              color='k', zorder=2.0)
             # Plot each geometry object
             for geom in cc_mag.geometries():
-                plt.plot(*geom.coords.xy, color='k', linewidth=0.5, zorder=2.0)
+                plt.plot(*geom.coords.xy, color=coastline_color,
+                         linewidth=coastline_linewidth, zorder=2.0)
 
     if nightshade:
         nightshade_warning()
@@ -221,7 +232,8 @@ def axis_geological(date, ax: axes.Axes = None,
                     hemisphere: Hemisphere = Hemisphere.North,
                     lowlat: int = 30, grid_lines: bool = True,
                     coastline: bool = False, nightshade: int = 0,
-                    cartopy_scale: str = '110m', **kwargs):
+                    cartopy_scale: str = '110m', coastline_color: str = 'k',
+                    coastline_linewidth: float = 0.5, **kwargs):
     """
 
     Sets up the cartopy orthographic plot axis object, for use in
@@ -251,6 +263,14 @@ def axis_geological(date, ax: axes.Axes = None,
             Set to true to overlay coastlines with cartopy
         nightshade: int
             Altitude above surface for calculating regions shadowed from Sun.
+        cartopy_scale: str
+            string corresponding with the scale to plot the coastlines at
+            options: '110m', '50m', '10m'
+        coastline_color: str
+            color of the coastline outline
+        coastline_linewidth: float
+            linewidth of the coastline feature
+            default 0.5
     """
     if cartopyInstalled is False:
         raise plot_exceptions.CartopyMissingError()
@@ -278,7 +298,8 @@ def axis_geological(date, ax: axes.Axes = None,
         ax.gridlines(draw_labels=True)
 
     if coastline:
-        ax.coastlines(resolution=cartopy_scale)
+        ax.coastlines(resolution=cartopy_scale, color=coastline_color,
+                      linewidth=coastline_linewidth)
 
     if nightshade:
         refraction_value = -np.degrees(np.arccos(Re / (Re + nightshade)))

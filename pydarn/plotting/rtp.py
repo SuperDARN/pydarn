@@ -774,7 +774,7 @@ class RTP():
 
             lines = ax.plot_date(x, my, fmt=color, tz=None, xdate=True,
                                  ydate=False, linestyle=linestyle,
-                                 linewidth=linewidth)
+                                 linewidth=linewidth, **kwargs)
 
             if round_start:
                 major_locator, _ = plt.xticks()
