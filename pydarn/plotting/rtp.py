@@ -11,6 +11,7 @@
 # 2022-08-04 Carley Martin added elifs for HALF_SLANT options
 # 2023-06-12 Carley Martin added coordinate plotting method
 # 2023-06-28 Carley Martin refactored return values
+# 2023-10-14 Carley Martin added embargoed data method
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
@@ -542,6 +543,7 @@ class RTP():
             cb = colorbar
         if colorbar_label != '':
             cb.set_label(colorbar_label)
+        cls.__determine_embargo(end_time)
         return {'ax': ax,
                 'ccrs': None,
                 'cm': cmap,
@@ -552,7 +554,6 @@ class RTP():
                          'y': y,
                          'z': z_data}
                 }
-
 
     @classmethod
     def plot_time_series(cls, dmap_data: List[dict],
@@ -840,6 +841,7 @@ class RTP():
 
         ax.margins(x=0)
         ax.tick_params(axis='y', which='minor')
+        cls.__determine_embargo(end_time)
 
         return {'ax': ax,
                 'ccrs': None,
@@ -1938,3 +1940,30 @@ class RTP():
         if not end_time:
             end_time = time2datetime(cls.dmap_data[-1])
         return start_time, end_time
+
+    @classmethod
+    def __determine_embargo(cls, end_time: datetime):
+        """
+        Determines if the data is under the embargo period and
+        has negative CPID
+
+        Parameter
+        ---------
+        end_time: datetime
+        """
+        year_ago = datetime.now() - timedelta(days=365)
+        if end_time > year_ago and cls.dmap_data[-1]['cp'] < 0:
+            fig = plt.gcf()
+            vals = []
+            for t in range(0, len(fig.texts)):
+                vals.append(fig.texts[t].get_text())
+            if not any(item == 'EMBARGOED' for item in vals):
+                fig.text(0.5, 0.5, "EMBARGOED", fontsize=70,
+                         color='k', ha='center', va='center',
+                         rotation=-20, alpha=0.5)
+                warnings.warn('The data you are using is under embargo. '
+                              'Please contact the principal investigator '
+                              'of the {} radar for authorization to use '
+                              'the data.'
+                              .format(SuperDARNRadars.radars[
+                                    cls.dmap_data[0]['stid']].name))
