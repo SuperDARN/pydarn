@@ -161,8 +161,10 @@ def axis_geomagnetic(date, ax: axes.Axes = None, lowlat: int = 30,
             Altitude above surface for calculating regions shadowed from Sun.
         plot_center: list [float, float]
             Longitude and Latitude of the desired center of the plot
-            Plot will still plot if data is on the other side of the Earth
+            Plot will still plot even if data is on the other side of the Earth
             Remember to include negative latitude for Southern Hemisphere
+            Setting this option will change the rotation and 12 MLT may no
+            longer be at the bottom of the plot
             Default: None
             Example: [-90, 60] will show the Earth centered on Canada
         plot_extent: list [float, float]
@@ -177,19 +179,17 @@ def axis_geomagnetic(date, ax: axes.Axes = None, lowlat: int = 30,
         raise plot_exceptions.CartopyMissingError()
     if cartopyVersion is False:
         raise plot_exceptions.CartopyVersionError(cartopy.__version__)
-    # no need to shift any coords, let cartopy do that
-    # however, we do need to figure out
-    # how much to rotate the projection
-    deg_from_midnight = (date.hour + date.minute / 60) / 24 * 360
     if plot_center is None:
         # If no center for plotting is given, default to pole
         if hemisphere == Hemisphere.North:
             pole_lat = 90
-            lon = -deg_from_midnight
+            # Keep 12 MLT at the bottom of plot by default
+            lon = 180
             lat = abs(lowlat)
         else:
             pole_lat = -90
-            lon = 360 - deg_from_midnight
+            # Keep 12 MLT at the bottom of plot by default
+            lon = 0
             lat = -abs(lowlat)
         if ax is None:
             proj = ccrs.Orthographic(lon, pole_lat)
