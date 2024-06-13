@@ -287,6 +287,9 @@ def axis_geomagnetic_polar(date, ax: axes.Axes = None, lowlat: int = 30,
     various other functions. Magnetic latitude - magnetic local
     time projection.
 
+    This projection is defunct now MAG exists, however is kept available for
+    compatibility and non-cartopy options. 
+
     Parameters
     -----------
         date: datetime object
@@ -429,19 +432,16 @@ def axis_geographic(date, ax: axes.Axes = None,
         raise plot_exceptions.CartopyMissingError()
     if cartopyVersion is False:
         raise plot_exceptions.CartopyVersionError(cartopy.__version__)
-    # no need to shift any coords, let cartopy do that
-    # however, we do need to figure out
-    # how much to rotate the projection
-    deg_from_midnight = (date.hour + date.minute / 60) / 24 * 360
     if plot_center is None:
-        # If no center for plotting is given, default to pole
+        # If no center for plotting is given, default to pole and rotate for 0
+        # degrees longitude
         if hemisphere == Hemisphere.North:
             pole_lat = 90
-            lon = -deg_from_midnight
+            lon = 0
             lat = abs(lowlat)
         else:
             pole_lat = -90
-            lon = 360 - deg_from_midnight
+            lon = 0
             lat = -abs(lowlat)
         if ax is None:
             proj = ccrs.Orthographic(lon, pole_lat)
