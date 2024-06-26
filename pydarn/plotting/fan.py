@@ -79,7 +79,7 @@ class Fan:
     @staticmethod
     def plot_fan(dmap_data: List[dict], ax=None, ranges=None,
                  scan_index: Union[int, dt.datetime] = 1,
-                 tolerance: dt.timedelta = dt.timedelta(seconds=1),
+                 tolerance: dt.timedelta = dt.timedelta(seconds=60),
                  parameter: str = 'v', cmap: str = None,
                  groundscatter: bool = False, zmin: int = None,
                  zmax: int = None, colorbar: bool = True,
