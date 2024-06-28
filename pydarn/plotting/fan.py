@@ -46,7 +46,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from matplotlib import ticker, cm, colors, axes
-from typing import List, Union
+from typing import List
 
 # Third party libraries
 import aacgmv2
@@ -78,8 +78,9 @@ class Fan:
 
     @staticmethod
     def plot_fan(dmap_data: List[dict], ax=None, ranges=None,
-                 scan_index: Union[int, dt.datetime] = 1,
-                 tolerance: dt.timedelta = dt.timedelta(seconds=1),
+                 scan_index: int = 1,
+                 scan_time: dt.datetime = None,
+                 scan_time_tolerance: dt.timedelta = dt.timedelta(seconds=30),
                  parameter: str = 'v', cmap: str = None,
                  groundscatter: bool = False, zmin: int = None,
                  zmax: int = None, colorbar: bool = True,
@@ -105,14 +106,18 @@ class Fan:
             ranges: List[int]
                 Range bounds to plot, as [lower_bound, upper_bound].
                 Default: Plots all ranges out to max given in hardware file.
-            scan_index: int or datetime
+            scan_index: int
                 Scan number starting from the first record in file with
-                associated channel number or datetime given first record
-                to match the index
+                associated channel number
                 Default: 1
-            tolerance: dt.timedelta
-                Search radius when filtering scan by datetime.
-                Default: 1 second
+            scan_time: dt.datetime
+                Datetime of the scan you would like to plot. Overrides
+                specification of scan_index.
+            scan_time_tolerance: dt.timedelta
+                Search radius when filtering scan by datetime. All records
+                with a timestamp of scan_time +/- scan_time_tolerance will
+                be plotted.
+                Default: 30 seconds
             parameter: str
                 Key name indicating which parameter to plot.
                 Default: v (Velocity). Alternatives: 'p_l', 'w_l', 'elv'
@@ -198,8 +203,10 @@ class Fan:
             if not dmap_data:
                 raise plot_exceptions.NoChannelError(channel, opt_channel)
         # Get the records which match scan_index
-        if isinstance(scan_index, dt.datetime):
-            matching_records = find_records_by_datetime(dmap_data, scan_index, tolerance)
+        if scan_time is not None:
+            matching_records = find_records_by_datetime(dmap_data,
+                                                        scan_time,
+                                                        scan_time_tolerance)
             date = scan_index
         else:
             matching_records = find_records_by_scan(dmap_data, scan_index)
