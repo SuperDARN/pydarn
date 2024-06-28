@@ -44,7 +44,6 @@ Fan plots, mapped to AACGM coordinates in a polar format
 import datetime as dt
 import matplotlib.pyplot as plt
 import numpy as np
-import warnings
 
 from matplotlib import ticker, cm, colors, axes
 from typing import List, Union
@@ -55,7 +54,8 @@ import aacgmv2
 from pydarn import (PyDARNColormaps, partial_record_warning,
                     time2datetime, plot_exceptions, SuperDARNRadars,
                     calculate_azimuth, Projs, Coords,
-                    find_records_by_datetime, find_records_by_scan)
+                    find_records_by_datetime, find_records_by_scan,
+                    determine_embargo, add_embargo)
 
 
 class Fan:
@@ -457,13 +457,17 @@ class Fan:
         else:
             cb = None
 
+        start_time = time2datetime(matching_records[0])
         if title:
-            start_time = time2datetime(matching_records[0])
             end_time = time2datetime(matching_records[-1])
             title = Fan.__add_title__(start_time, end_time)
             ax.set_title(title)
-        # Determine embargo status
-        cls.__determine_embargo(time2datetime(dmap_data[plot_beams[-1][-1]])
+
+        if determine_embargo(start_time,
+                             matching_records[0]['cp'],
+                             matching_records[0]['stid']):
+            add_embargo(plt.gcf())
+
         return {'ax': ax,
                 'ccrs': ccrs,
                 'cm': cmap,
@@ -857,28 +861,4 @@ class Fan:
                           end_second=str(end_timestamp.second).zfill(2))
         return title
 
-    @classmethod
-    def __determine_embargo(cls, end_time: dt.datetime):
-        """
-        Determines if the data is under the embargo period and
-        has negative CPID
 
-        Parameter
-        ---------
-        end_time: datetime
-        """
-        year_ago = dt.datetime.now() - dt.timedelta(days=365)
-        if end_time > year_ago and cls.dmap_data[-1]['cp'] < 0:
-            fig = plt.gcf()
-            vals = []
-            for t in range(0, len(fig.texts)):
-                vals.append(fig.texts[t].get_text())
-            if not any(item == 'EMBARGOED' for item in vals):
-                fig.text(0.5, 0.5, "EMBARGOED", fontsize=70,
-                         color='grey', ha='center', va='center',
-                         rotation=-20, alpha=0.3)
-                warnings.warn('The data you are using is under embargo. '
-                              'Please contact the principal investigator '
-                              'of the {} radar for authorization to use the '
-                              'data'.format(SuperDARNRadars.radars[
-                                cls.dmap_data[0]['stid']].name))
