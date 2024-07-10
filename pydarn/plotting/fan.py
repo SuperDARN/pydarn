@@ -462,8 +462,8 @@ class Fan:
             end_time = time2datetime(matching_records[-1])
             title = Fan.__add_title__(start_time, end_time)
             ax.set_title(title)
-        # Determine embargo status
-        cls.__determine_embargo(time2datetime(dmap_data[plot_beams[-1][-1]])
+        # Determine embargo status - FIX IN ANOTHER PR
+        #cls.__determine_embargo(time2datetime(dmap_data[plot_beams[-1][-1]]))
         return {'ax': ax,
                 'ccrs': ccrs,
                 'cm': cmap,
@@ -858,7 +858,7 @@ class Fan:
         return title
 
     @classmethod
-    def __determine_embargo(cls, end_time: dt.datetime):
+    def __determine_embargo(end_time: dt.datetime):
         """
         Determines if the data is under the embargo period and
         has negative CPID
