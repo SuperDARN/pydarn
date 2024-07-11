@@ -12,6 +12,7 @@
 # 2022-08-15: CJM - Removed plot_FOV call for default uses
 # 2022-12-13: CJM - Limited reference vectors to only velocity use
 # 2023-06-28: CJM - Refactored return values
+# 2024-07-11: CJM - Added potential time series plot
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
