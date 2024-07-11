@@ -463,7 +463,7 @@ class Fan:
             title = Fan.__add_title__(start_time, end_time)
             ax.set_title(title)
         # Determine embargo status
-        cls.__determine_embargo(time2datetime(dmap_data[plot_beams[-1][-1]])
+        cls.__determine_embargo(time2datetime(dmap_data[plot_beams[-1][-1]]))
         return {'ax': ax,
                 'ccrs': ccrs,
                 'cm': cmap,
