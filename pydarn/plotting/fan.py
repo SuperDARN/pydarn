@@ -567,8 +567,8 @@ class Fan:
         else:
             thetas = beam_corners_lons
 
-        scan = data_array
-        grndsct = data_groundscatter
+        scan = np.ma.array(data_array, mask=np.isnan(data_array))
+        grndsct = np.array(data_groundscatter)
 
         # Colour table and max value selection depending on parameter plotted
         # Load defaults if none given
