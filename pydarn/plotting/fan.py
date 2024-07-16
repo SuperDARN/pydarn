@@ -491,7 +491,7 @@ class Fan:
 
         Parameters
         -----------
-            data_array: List[ranges, gates]
+            data_array: List[ranges, beams]
                 Array of data, must be in shape of standard fan plot
             data_datetime: datetime object
                 Time at which data is taken or wanted to be plotted
@@ -554,8 +554,17 @@ class Fan:
         --------
             plot_fov
         """
+        # Checks on data before plotting
+        stid_beams = SuperDARNRadars.radars[stid].hardware_info.beams
+        if stid_beams != len(data_array[0]):
+            warnings.warn('The data you have inputted to the method does not '
+                          'match the expected number of beams for this radar. '
+                          'The data will still plot, but the position of the '
+                          'extra beams may not be as expected.')
+
         beam_corners_lats, beam_corners_lons =\
             coords(stid=stid, rsep=rsep, frang=frang,
+                   beams=len(data_array[0]),
                    gates=[0, len(data_array)], date=data_datetime,
                    **kwargs)
 
