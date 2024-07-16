@@ -183,13 +183,13 @@ def axis_geomagnetic(date, ax: axes.Axes = None, lowlat: int = 30,
         # If no center for plotting is given, default to pole
         if hemisphere == Hemisphere.North:
             pole_lat = 90
-            # Keep 12 MLT at the bottom of plot by default
-            lon = 180
+            # Keep 0 MLT at the bottom of plot by default
+            lon = 0
             lat = abs(lowlat)
         else:
             pole_lat = -90
-            # Keep 12 MLT at the bottom of plot by default
-            lon = 0
+            # Keep 0 MLT at the bottom of plot by default
+            lon = 180
             lat = -abs(lowlat)
         if ax is None:
             proj = ccrs.Orthographic(lon, pole_lat)
