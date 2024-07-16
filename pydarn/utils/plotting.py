@@ -15,10 +15,12 @@
 This module is utility functions that are useful
 for multiple plotting methods
 """
+import datetime as dt
 import enum
+import matplotlib.pyplot as plt
 import numpy as np
+import warnings
 
-from datetime import datetime
 from typing import List
 
 from pydarn import plot_exceptions
@@ -61,7 +63,7 @@ class TimeSeriesParams(enum.Enum):
         CPP = 'pot.drop'     
         
 
-def find_record(dmap_data: List[dict], start_time: datetime, time_delta:int = 1):
+def find_record(dmap_data: List[dict], start_time: dt.datetime, time_delta:int = 1):
     """
     finds the record number that associates to the start time
 
@@ -128,7 +130,7 @@ def check_data_type(dmap_data: List[dict], parameter: str,
                                                            data_type)
 
 
-def time2datetime(dmap_record: dict) -> datetime:
+def time2datetime(dmap_record: dict) -> dt.datetime:
     """
     Converts DMAP time parameter fields into a datetime object
 
@@ -150,8 +152,8 @@ def time2datetime(dmap_record: dict) -> datetime:
         minute = dmap_record['time.mt']
         second = dmap_record['time.sc']
         micro_sec = dmap_record['time.us']
-        return datetime(year=year, month=month, day=day, hour=hour,
-                        minute=minute, second=second, microsecond=micro_sec)
+        return dt.datetime(year=year, month=month, day=day, hour=hour,
+                           minute=minute, second=second, microsecond=micro_sec)
     except KeyError:
         year = dmap_record['start.year']
         month = dmap_record['start.month']
@@ -161,3 +163,46 @@ def time2datetime(dmap_record: dict) -> datetime:
         second = dmap_record['start.second']
         return datetime(year=year, month=month, day=day, hour=hour,
                         minute=minute, second=int(second))
+
+
+def add_embargo(fig: plt.Figure):
+    """
+    Adds a watermark to the figure noting that the data is under
+    embargo
+    Parameter
+    ---------
+    fig: plt.Figure
+    """
+    vals = []
+    for t in range(0, len(fig.texts)):
+        vals.append(fig.texts[t].get_text())
+    if not any(item == 'EMBARGOED' for item in vals):
+        fig.text(0.5, 0.5, "EMBARGOED", fontsize=70,
+                 color='grey', ha='center', va='center',
+                 rotation=-20, alpha=0.7)
+
+
+def determine_embargo(time: dt.datetime, cpid: int, radar: str):
+    """
+    Determines if the data is under embargo
+    Parameter
+    ---------
+    time: dt.datetime
+        Timestamp of the data
+    cpid: int
+        Control program ID
+    radar: str
+        Name of the radar which produced the data
+    Returns
+    -------
+    bool: True if data is embargoed, False otherwise
+    """
+    year_ago = dt.datetime.now() - dt.timedelta(days=365)
+    if time > year_ago and cpid < 0:
+        warnings.warn(f'The data you are using is under embargo. '
+                      f'Please contact the principal investigator '
+                      f'of the {radar} radar for authorization to '
+                      f'use the data')
+        return True
+    else:
+        return False

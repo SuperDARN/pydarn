@@ -52,6 +52,7 @@ from .utils.plotting import TimeSeriesParams
 from .utils.plotting import check_data_type
 from .utils.plotting import time2datetime
 from .utils.plotting import find_record
+from .utils.plotting import determine_embargo, add_embargo
 from .utils.general_utils import GeneralUtils
 from .utils.superdarn_radars import SuperDARNRadars
 from .utils.superdarn_cpid import SuperDARNCpids
