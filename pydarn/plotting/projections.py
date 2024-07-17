@@ -126,6 +126,8 @@ def convert_geo_coastline_to_mag(geom, date, alt: float = 0.0, mag_lon: bool = F
 def axis_geomagnetic(date, ax: axes.Axes = None, lowlat: int = 30,
                     hemisphere: Hemisphere = Hemisphere.North,
                     coastline: bool = False, cartopy_scale: str = '110m',
+                    coastline_color: str = 'k',
+                    coastline_linewidth: float = 0.5,
                     nightshade: int = 0, grid_lines: bool = True,
                     plot_center: list = None,
                     plot_extent: list = None, **kwargs):
@@ -268,7 +270,8 @@ def axis_geomagnetic(date, ax: axes.Axes = None, lowlat: int = 30,
 
         # Plot each geometry object
         for geom in cc_mag.geometries():
-            plt.plot(*geom.coords.xy, color='k', linewidth=0.5, zorder=2.0,
+            plt.plot(*geom.coords.xy, color=coastline_color,
+                     linewidth=coastline_linewidth, zorder=2.0,
                      transform = ccrs.Geodetic())
 
     if nightshade:
@@ -280,6 +283,8 @@ def axis_geomagnetic(date, ax: axes.Axes = None, lowlat: int = 30,
 def axis_geomagnetic_polar(date, ax: axes.Axes = None, lowlat: int = 30,
                     hemisphere: Hemisphere = Hemisphere.North,
                     coastline: bool = False, cartopy_scale: str = '110m',
+                    coastline_color: str = 'k',
+                    coastline_linewidth: float = 0.5,
                     nightshade: int = 0, **kwargs):
     """
     Sets up the polar plot matplotlib axis object, for use in
