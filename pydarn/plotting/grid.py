@@ -184,7 +184,7 @@ class Grid():
             if ccrs is None:
                 transform = ax.transData
             else:
-                transform = ccrs.PlateCarree()
+                transform = ccrs.Geodetic()
 
             for stid in dmap_data[record]['stid']:
                 fan_rtn = Fan.plot_fov(stid, date, ax=ax, ccrs=ccrs,
@@ -220,10 +220,15 @@ class Grid():
                 (aacgmv2.convert_mlt(coord_lons[0, 0], date) * 15)
             shifted_lons = data_lons - shifted_mlts
 
-            if projs != Projs.GEO:
+            if projs == Projs.POLAR:
                 # Convert to radians for polar plots
                 thetas_calc = np.radians(shifted_lons)
                 thetas = np.radians(shifted_lons)
+                rs = data_lats
+                rs_calc = data_lats
+            elif projs == Projs.MAG:
+                thetas_calc = np.radians(shifted_lons)
+                thetas = shifted_lons
                 rs = data_lats
                 rs_calc = data_lats
             else:
@@ -349,7 +354,7 @@ class Grid():
                 end_rs = end_rs * hemisphere.value
 
                 # Plot the vectors
-                if projs != Projs.GEO:
+                if projs == Projs.POLAR:
                     for i in num_pts:
                         ax.plot([thetas[i], end_thetas[i]],
                                  [rs[i], end_rs[i]], c=cmap(norm(data[i])),

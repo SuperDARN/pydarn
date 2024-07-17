@@ -21,9 +21,11 @@
 # 2022-03-23: MTS - added the NotImplementedError for AACGM and GEO projection
 #                   as this has yet to be figured out
 # 2023-02-06: CJM - Added option to plot single beams in a scan or FOV diagram
+# 2023-03-01: CJM - Added ball and stick plotting options
 # 2023-03-01: CJM - Added ball and stick plotting options (merged later in year)
 # 2023-08-16: CJM - Corrected for winding order in geo plots
 # 2023-06-28: CJM - Refactored return values
+# 2023-10-14: CJM - Add embargoed data method
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
@@ -52,7 +54,8 @@ import aacgmv2
 from pydarn import (PyDARNColormaps, partial_record_warning,
                     time2datetime, plot_exceptions, SuperDARNRadars,
                     calculate_azimuth, Projs, Coords,
-                    find_records_by_datetime, find_records_by_scan)
+                    find_records_by_datetime, find_records_by_scan,
+                    determine_embargo, add_embargo)
 
 
 class Fan:
@@ -194,7 +197,6 @@ class Fan:
             # If no records exist, advise user that the channel is not used
             if not dmap_data:
                 raise plot_exceptions.NoChannelError(channel, opt_channel)
-
         # Get the records which match scan_index
         if isinstance(scan_index, dt.datetime):
             matching_records = find_records_by_datetime(dmap_data, scan_index, tolerance)
@@ -244,7 +246,7 @@ class Fan:
         if ranges[0] < ranges[1] - fan_shape[0]:
             ranges[0] = ranges[1] - fan_shape[0] + 1
         rs = beam_corners_lats
-        if projs != Projs.GEO:
+        if projs == Projs.POLAR:
             thetas = np.radians(beam_corners_lons)
         else:
             thetas = beam_corners_lons
@@ -321,9 +323,11 @@ class Fan:
 
         if ccrs is None:
             transform = ax.transData
-
         else:
-            transform = ccrs.PlateCarree()
+            if ball_and_stick:
+                transform = ccrs.Geodetic()
+            else:
+                transform = ccrs.PlateCarree()
 
         if not ball_and_stick:
             ax.pcolormesh(thetas, rs,
@@ -347,7 +351,7 @@ class Fan:
                         # Stick only needed for velocity data
                         if parameter == 'v':
                             # Get azimuth in correct coord system
-                            if coords != Coords.GEOGRAPHIC:
+                            if projs == Projs.POLAR:
                                 lat = r_center
                                 lon = np.degrees(t_center)
                             else:
@@ -358,12 +362,8 @@ class Fan:
 
                             # Make sure each coordinate is in correct
                             # units again
-                            if projs != Projs.GEO:
-                                thetas_calc = np.radians(lon)
-                                rs_calc = lat
-                            else:
-                                thetas_calc = np.radians(lon)
-                                rs_calc = lat
+                            thetas_calc = np.radians(lon)
+                            rs_calc = lat
 
                             hemisphere = SuperDARNRadars.radars[stid]\
                                                         .hemisphere
@@ -401,11 +401,11 @@ class Fan:
                             end_thetas = np.arctan2(end_pos_y, end_pos_x)
                             end_rs = end_rs * hemisphere.value
 
-                            # Convert to degrees for geo plots
-                            if projs == Projs.GEO:
+                            # Convert to degrees for geo/mag plots
+                            if projs != Projs.POLAR:
                                 end_thetas = np.degrees(end_thetas)
                             # Plot sticks!
-                            plt.plot([t_center, end_thetas],
+                            ax.plot([t_center, end_thetas],
                                      [r_center, end_rs],
                                      color=col, zorder=3.0, linewidth=0.5,
                                      transform=transform)
@@ -454,11 +454,18 @@ class Fan:
                 cb.set_label(colorbar_label)
         else:
             cb = None
+
         if title:
             start_time = time2datetime(matching_records[0])
             end_time = time2datetime(matching_records[-1])
             title = Fan.__add_title__(start_time, end_time)
             ax.set_title(title)
+        # Determine embargo status
+        if determine_embargo(start_time,
+                             matching_records[0]['cp'],
+                             matching_records[0]['stid']):
+            add_embargo(plt.gcf())
+
         return {'ax': ax,
                 'ccrs': ccrs,
                 'cm': cmap,
@@ -470,7 +477,7 @@ class Fan:
                          'ground_scatter': grndsct}
                 }
 
-  
+
     @staticmethod
     def plot_fov(stid: int, date: dt.datetime,
                  ax=None, ccrs=None, ranges: List = None, boundary: bool = True,
@@ -814,7 +821,7 @@ class Fan:
             lat, lon = SuperDARNRadars.radars[stid].mag_label
         else:
             lat, lon = SuperDARNRadars.radars[stid].geo_label
-        
+
         # Label text
         label_str = ' ' + SuperDARNRadars.radars[stid]\
                     .hardware_info.abbrev.upper()
@@ -829,7 +836,7 @@ class Fan:
 
         theta_text = lon
         r_text = lat
-        
+
         ax.text(theta_text, r_text, label_str, ha='center',
                 transform=transform, c=line_color)
         return

@@ -11,6 +11,7 @@
 # 2022-08-04 Carley Martin added elifs for HALF_SLANT options
 # 2023-06-12 Carley Martin added coordinate plotting method
 # 2023-06-28 Carley Martin refactored return values
+# 2023-10-14 Carley Martin added embargoed data method
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
@@ -38,12 +39,13 @@ from typing import List
 from pydarn import (RangeEstimation, check_data_type, Coords,
                     time2datetime, rtp_exceptions, plot_exceptions,
                     SuperDARNCpids, SuperDARNRadars,
-                    standard_warning_format, PyDARNColormaps)
+                    standard_warning_format, PyDARNColormaps,
+                    determine_embargo, add_embargo)
 
 warnings.formatwarning = standard_warning_format
 
 
-class RTP():
+class RTP:
     """
     Range-Time Parameter plots SuperDARN data using the following fields:
 
@@ -542,6 +544,11 @@ class RTP():
             cb = colorbar
         if colorbar_label != '':
             cb.set_label(colorbar_label)
+
+        if determine_embargo(end_time, dmap_data[-1]['cp'],
+                             SuperDARNRadars.radars[dmap_data[-1]['stid']].name):
+            add_embargo(plt.gcf())
+
         return {'ax': ax,
                 'ccrs': None,
                 'cm': cmap,
@@ -552,7 +559,6 @@ class RTP():
                          'y': y,
                          'z': z_data}
                 }
-
 
     @classmethod
     def plot_time_series(cls, dmap_data: List[dict],
@@ -840,6 +846,10 @@ class RTP():
 
         ax.margins(x=0)
         ax.tick_params(axis='y', which='minor')
+
+        if determine_embargo(end_time, dmap_data[-1]['cp'],
+                             SuperDARNRadars.radars[dmap_data[-1]['stid']].name):
+            add_embargo(plt.gcf())
 
         return {'ax': ax,
                 'ccrs': None,
