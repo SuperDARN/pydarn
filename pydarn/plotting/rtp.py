@@ -778,9 +778,8 @@ class RTP:
             my = np.ma.array(y)
             my = np.ma.masked_where(np.isnan(my), my)
 
-            lines = ax.plot_date(x, my, fmt=color, tz=None, xdate=True,
-                                 ydate=False, linestyle=linestyle,
-                                 linewidth=linewidth)
+            lines = ax.plot(x, my, color=color, linestyle=linestyle,
+                            linewidth=linewidth)
 
             if round_start:
                 major_locator, _ = plt.xticks()
