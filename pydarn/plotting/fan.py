@@ -44,6 +44,7 @@ Fan plots, mapped to AACGM coordinates in a polar format
 import datetime as dt
 import matplotlib.pyplot as plt
 import numpy as np
+import warnings
 
 from matplotlib import ticker, cm, colors, axes
 from typing import List, Union
