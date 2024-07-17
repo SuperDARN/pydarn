@@ -15,12 +15,15 @@
 This module is utility functions that are useful
 for multiple plotting methods
 """
+import datetime as dt
 import enum
+import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.pyplot as plt
 import datetime as dt
-from typing import List
 import warnings
+
+from typing import List
 
 from pydarn import plot_exceptions
 
@@ -152,7 +155,7 @@ def time2datetime(dmap_record: dict) -> dt.datetime:
         second = dmap_record['time.sc']
         micro_sec = dmap_record['time.us']
         return dt.datetime(year=year, month=month, day=day, hour=hour,
-                        minute=minute, second=second, microsecond=micro_sec)
+                           minute=minute, second=second, microsecond=micro_sec)
     except KeyError:
         year = dmap_record['start.year']
         month = dmap_record['start.month']
@@ -179,7 +182,7 @@ def add_embargo(fig: plt.Figure):
     if not any(item == 'EMBARGOED' for item in vals):
         fig.text(0.5, 0.5, "EMBARGOED", fontsize=70,
                  color='grey', ha='center', va='center',
-                 rotation=-20, alpha=0.3)
+                 rotation=-20, alpha=0.7)
 
 
 def determine_embargo(time: dt.datetime, cpid: int, radar: str):

@@ -846,6 +846,7 @@ class RTP:
 
         ax.margins(x=0)
         ax.tick_params(axis='y', which='minor')
+
         if determine_embargo(end_time, dmap_data[-1]['cp'],
                              SuperDARNRadars.radars[dmap_data[-1]['stid']].name):
             add_embargo(plt.gcf())
@@ -1947,5 +1948,3 @@ class RTP:
         if not end_time:
             end_time = time2datetime(cls.dmap_data[-1])
         return start_time, end_time
-
-
