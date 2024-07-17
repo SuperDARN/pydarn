@@ -44,7 +44,6 @@ Fan plots, mapped to AACGM coordinates in a polar format
 import datetime as dt
 import matplotlib.pyplot as plt
 import numpy as np
-import warnings
 
 from matplotlib import ticker, cm, colors, axes
 from typing import List, Union
@@ -55,7 +54,8 @@ import aacgmv2
 from pydarn import (PyDARNColormaps, partial_record_warning,
                     time2datetime, plot_exceptions, SuperDARNRadars,
                     calculate_azimuth, Projs, Coords,
-                    find_records_by_datetime, find_records_by_scan)
+                    find_records_by_datetime, find_records_by_scan,
+                    determine_embargo, add_embargo)
 
 
 class Fan:
@@ -246,7 +246,7 @@ class Fan:
         if ranges[0] < ranges[1] - fan_shape[0]:
             ranges[0] = ranges[1] - fan_shape[0] + 1
         rs = beam_corners_lats
-        if projs != Projs.GEO:
+        if projs == Projs.POLAR:
             thetas = np.radians(beam_corners_lons)
         else:
             thetas = beam_corners_lons
@@ -323,9 +323,11 @@ class Fan:
 
         if ccrs is None:
             transform = ax.transData
-
         else:
-            transform = ccrs.PlateCarree()
+            if ball_and_stick:
+                transform = ccrs.Geodetic()
+            else:
+                transform = ccrs.PlateCarree()
 
         if not ball_and_stick:
             ax.pcolormesh(thetas, rs,
@@ -349,7 +351,7 @@ class Fan:
                         # Stick only needed for velocity data
                         if parameter == 'v':
                             # Get azimuth in correct coord system
-                            if coords != Coords.GEOGRAPHIC:
+                            if projs == Projs.POLAR:
                                 lat = r_center
                                 lon = np.degrees(t_center)
                             else:
@@ -360,12 +362,8 @@ class Fan:
 
                             # Make sure each coordinate is in correct
                             # units again
-                            if projs != Projs.GEO:
-                                thetas_calc = np.radians(lon)
-                                rs_calc = lat
-                            else:
-                                thetas_calc = np.radians(lon)
-                                rs_calc = lat
+                            thetas_calc = np.radians(lon)
+                            rs_calc = lat
 
                             hemisphere = SuperDARNRadars.radars[stid]\
                                                         .hemisphere
@@ -403,11 +401,11 @@ class Fan:
                             end_thetas = np.arctan2(end_pos_y, end_pos_x)
                             end_rs = end_rs * hemisphere.value
 
-                            # Convert to degrees for geo plots
-                            if projs == Projs.GEO:
+                            # Convert to degrees for geo/mag plots
+                            if projs != Projs.POLAR:
                                 end_thetas = np.degrees(end_thetas)
                             # Plot sticks!
-                            plt.plot([t_center, end_thetas],
+                            ax.plot([t_center, end_thetas],
                                      [r_center, end_rs],
                                      color=col, zorder=3.0, linewidth=0.5,
                                      transform=transform)
@@ -462,8 +460,13 @@ class Fan:
             end_time = time2datetime(matching_records[-1])
             title = Fan.__add_title__(start_time, end_time)
             ax.set_title(title)
-        # Determine embargo status - FIX IN ANOTHER PR
-        #cls.__determine_embargo(time2datetime(dmap_data[plot_beams[-1][-1]]))
+
+        # Determine embargo status
+        if determine_embargo(start_time,
+                             matching_records[0]['cp'],
+                             matching_records[0]['stid']):
+            add_embargo(plt.gcf())
+
         return {'ax': ax,
                 'ccrs': ccrs,
                 'cm': cmap,
@@ -856,29 +859,3 @@ class Fan:
                           zfill(2),
                           end_second=str(end_timestamp.second).zfill(2))
         return title
-
-    @classmethod
-    def __determine_embargo(end_time: dt.datetime):
-        """
-        Determines if the data is under the embargo period and
-        has negative CPID
-
-        Parameter
-        ---------
-        end_time: datetime
-        """
-        year_ago = dt.datetime.now() - dt.timedelta(days=365)
-        if end_time > year_ago and cls.dmap_data[-1]['cp'] < 0:
-            fig = plt.gcf()
-            vals = []
-            for t in range(0, len(fig.texts)):
-                vals.append(fig.texts[t].get_text())
-            if not any(item == 'EMBARGOED' for item in vals):
-                fig.text(0.5, 0.5, "EMBARGOED", fontsize=70,
-                         color='grey', ha='center', va='center',
-                         rotation=-20, alpha=0.3)
-                warnings.warn('The data you are using is under embargo. '
-                              'Please contact the principal investigator '
-                              'of the {} radar for authorization to use the '
-                              'data'.format(SuperDARNRadars.radars[
-                                cls.dmap_data[0]['stid']].name))

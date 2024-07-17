@@ -39,7 +39,7 @@ from .utils.range_estimations import RangeEstimation
 from .utils.virtual_heights import VHModels
 from .utils.conversions import dmap2dict
 from .utils.plotting import (MapParams, TimeSeriesParams, check_data_type,
-    time2datetime, find_record)
+    time2datetime, find_record, determine_embargo, add_embargo)
 from .utils.general_utils import GeneralUtils
 from .utils.superdarn_radars import SuperDARNRadars
 from .utils.superdarn_cpid import SuperDARNCpids
