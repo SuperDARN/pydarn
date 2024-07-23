@@ -13,7 +13,7 @@ Remember to also set the correct coordinate system for your projection, see [Ran
 | hemisphere=(pydarn.Hemisphere) | Hemisphere of the radar (default: Hemisphere.North)                                  |
 | coastline=(bool)               | Uses Cartopy to add outlines to the coastlines                                       |
 | coastline_color=(str)          | Uses Cartopy to colour outlines to the coastlines (default: black)                   |
-| coastline_scale=(str)          | Uses Cartopy to set the resolution of the coastlines (options: '110m', '50m', '10m') |
+| cartopy_scale=(str)          | Uses Cartopy to set the resolution of the coastlines (options: '110m', '50m', '10m') |
 | coastline_linewidth=(float)    | Uses Cartopy to set line width of the coastlines                                     |
 | nightshade=(int)               | Uses the value given to calculate and show where on the plot the Earth is in shadow  |
 
@@ -45,7 +45,7 @@ plt.show()
 | hemisphere=(pydarn.Hemisphere) | Hemisphere of the radar (default: Hemisphere.North)                                  |
 | coastline=(bool)               | Uses Cartopy to add outlines fo the coastlines                                       |
 | coastline_color=(str)          | Uses Cartopy to colour outlines to the coastlines (default: black)                   |
-| coastline_scale=(str)          | Uses Cartopy to set the resolution of the coastlines (options: '110m', '50m', '10m') |
+| cartopy_scale=(str)          | Uses Cartopy to set the resolution of the coastlines (options: '110m', '50m', '10m') |
 | coastline_linewidth=(float)    | Uses Cartopy to set line width of the coastlines                                     |
 | grid_lines=(bool)              | Uses Cartopy to plot grid lines                                                      |
 | nightshade=(int)               | Uses the value given to calculate and show where on the plot the Earth is in shadow  |
@@ -80,7 +80,7 @@ plt.show()
 | hemisphere=(pydarn.Hemisphere) | Hemisphere of the radar (default: Hemisphere.North)                                  |
 | coastline=(bool)               | Uses Cartopy to add outlines fo the coastlines                                       |
 | coastline_color=(str)          | Uses Cartopy to colour outlines to the coastlines (default: black)                   |
-| coastline_scale=(str)          | Uses Cartopy to set the resolution of the coastlines (options: '110m', '50m', '10m') |
+| cartopy_scale=(str)          | Uses Cartopy to set the resolution of the coastlines (options: '110m', '50m', '10m') |
 | coastline_linewidth=(float)    | Uses Cartopy to set line width of the coastlines                                     |
 | grid_lines=(bool)              | Uses Cartopy to plot grid lines                                                      |
 | nightshade=(int)               | Uses the value given to calculate and show where on the plot the Earth is in shadow  |
