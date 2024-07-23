@@ -40,7 +40,7 @@ Fitted velocity vectors are by default only calculated at the same positions of 
 
 ## Basic usage
 
-pyDARN and pyplot need to be imported and the desired MAP file needs to be [read in](https://pydarn.readthedocs.io/en/master/user/SDarnRead/):
+pyDARN and pyplot need to be imported and the desired MAP file needs to be [read in](https://pydarn.readthedocs.io/en/main/user/io/):
 
 ```python
 import matplotlib.pyplot as plt
@@ -130,7 +130,7 @@ plt.show()
 ## Map Time-Series Plots
 Values within a map file can also be plotted using the `plot_time_series` method.
 
-```
+```python
 import pydarn
 import datetime as dt
 import matplotlib.pyplot as plt
@@ -160,3 +160,27 @@ Specific values available to be plotted are:
 | Minimum Latitude              | `TimeSeriesParams.LATMIN`      |
 | Error in model fitting        | `TimeSeriesParams.ERR`         |
 | Cross Polar Cap Potential     | `TimeSeriesParams.CPP`         |
+
+Also available are time-series plots for electric potential `parameter = pydarn.TimeSeriesParams.POT` at a given latitude longitude position. 
+
+```python
+import pydarn
+import datetime as dt
+import matplotlib.pyplot as plt
+
+mapfile = '/Users/carley/Documents/data/maps/20220101.n.map'
+SDarn_read = pydarn.SuperDARNRead(mapfile)
+map_data = SDarn_read.read_map()
+
+# Coordinates of interest, as mlat/mlon pairs. 
+#This example keeps mlon the same but changes mlat, like a keogram
+mlats = 75
+mlons = 110
+
+pydarn.Maps.plot_time_series(map_data,
+                             parameter = pydarn.TimeSeriesParams.POT,
+                             start_time = dt.datetime(2022,1,1,0,0),
+                             end_time = dt.datetime(2022,1,1,6,0),
+                             potential_position = [mlons, mlats])
+plt.show()
+```
