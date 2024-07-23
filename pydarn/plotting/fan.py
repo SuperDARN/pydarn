@@ -455,8 +455,8 @@ class Fan:
         else:
             cb = None
 
+        start_time = time2datetime(matching_records[0])
         if title:
-            start_time = time2datetime(matching_records[0])
             end_time = time2datetime(matching_records[-1])
             title = Fan.__add_title__(start_time, end_time)
             ax.set_title(title)
