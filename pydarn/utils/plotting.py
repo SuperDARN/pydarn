@@ -161,7 +161,7 @@ def time2datetime(dmap_record: dict) -> dt.datetime:
         hour = dmap_record['start.hour']
         minute = dmap_record['start.minute']
         second = dmap_record['start.second']
-        return datetime(year=year, month=month, day=day, hour=hour,
+        return dt.datetime(year=year, month=month, day=day, hour=hour,
                         minute=minute, second=int(second))
 
 
