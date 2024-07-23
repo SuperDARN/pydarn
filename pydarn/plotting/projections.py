@@ -126,6 +126,8 @@ def convert_geo_coastline_to_mag(geom, date, alt: float = 0.0, mag_lon: bool = F
 def axis_geomagnetic(date, ax: axes.Axes = None, lowlat: int = 30,
                     hemisphere: Hemisphere = Hemisphere.North,
                     coastline: bool = False, cartopy_scale: str = '110m',
+                    coastline_color: str = 'k',
+                    coastline_linewidth: float = 0.5,
                     nightshade: int = 0, grid_lines: bool = True,
                     plot_center: list = None,
                     plot_extent: list = None, **kwargs):
@@ -268,7 +270,8 @@ def axis_geomagnetic(date, ax: axes.Axes = None, lowlat: int = 30,
 
         # Plot each geometry object
         for geom in cc_mag.geometries():
-            plt.plot(*geom.coords.xy, color='k', linewidth=0.5, zorder=2.0,
+            plt.plot(*geom.coords.xy, color=coastline_color,
+                     linewidth=coastline_linewidth, zorder=2.0,
                      transform = ccrs.Geodetic())
 
     if nightshade:
@@ -280,8 +283,9 @@ def axis_geomagnetic(date, ax: axes.Axes = None, lowlat: int = 30,
 def axis_geomagnetic_polar(date, ax: axes.Axes = None, lowlat: int = 30,
                     hemisphere: Hemisphere = Hemisphere.North,
                     coastline: bool = False, cartopy_scale: str = '110m',
+                    coastline_color: str = 'k',
+                    coastline_linewidth: float = 0.5,
                     nightshade: int = 0, **kwargs):
-
     """
     Sets up the polar plot matplotlib axis object, for use in
     various other functions. Magnetic latitude - magnetic local
@@ -314,6 +318,14 @@ def axis_geomagnetic_polar(date, ax: axes.Axes = None, lowlat: int = 30,
         nightshade: int
             Altitude above surface for calculating regions shadowed from Sun.
             Not supported for this projection.
+        cartopy_scale: str
+            string corresponding with the scale to plot the coastlines at
+            options: '110m', '50m', '10m'
+        coastline_color: str
+            color of the coastline outline
+        coastline_linewidth: float
+            linewidth of the coastline feature
+            default 0.5
     """
 
     if ax is None:
@@ -352,7 +364,8 @@ def axis_geomagnetic_polar(date, ax: axes.Axes = None, lowlat: int = 30,
             # Cartopy not installed, call on the set outlines
             for g, geom in enumerate(coast_outline):
                 [mlat, mlon] = convert_coastline_list_to_mag(geom, date)
-                plt.plot(mlon, mlat, color='k', linewidth=0.5, zorder=2)
+                plt.plot(mlon, mlat, color=coastline_color,
+                         linewidth=coastline_linewidth, zorder=2)
         else:
             # Read in the geometry object of the coastlines
             cc = cfeature.NaturalEarthFeature('physical', 'coastline',
@@ -370,7 +383,8 @@ def axis_geomagnetic_polar(date, ax: axes.Axes = None, lowlat: int = 30,
                                              color='k', zorder=2.0)
             # Plot each geometry object
             for geom in cc_mag.geometries():
-                plt.plot(*geom.coords.xy, color='k', linewidth=0.5, zorder=2.0)
+                plt.plot(*geom.coords.xy, color=coastline_color,
+                         linewidth=coastline_linewidth, zorder=2.0)
 
     if nightshade:
         nightshade_warning()
@@ -382,9 +396,11 @@ def axis_geographic(date, ax: axes.Axes = None,
                     hemisphere: Hemisphere = Hemisphere.North,
                     lowlat: int = 30, grid_lines: bool = True,
                     coastline: bool = False, nightshade: int = 0,
-                    cartopy_scale: str = '110m',
+                    cartopy_scale: str = '110m', coastline_color: str = 'k',
+                    coastline_linewidth: float = 0.5,
                     plot_center: list = None,
                     plot_extent: list = None, **kwargs):
+
     """
 
     Sets up the cartopy orthographic plot axis object, for use in
@@ -414,6 +430,15 @@ def axis_geographic(date, ax: axes.Axes = None,
             Set to true to overlay coastlines with cartopy
         nightshade: int
             Altitude above surface for calculating regions shadowed from Sun.
+
+        cartopy_scale: str
+            string corresponding with the scale to plot the coastlines at
+            options: '110m', '50m', '10m'
+        coastline_color: str
+            color of the coastline outline
+        coastline_linewidth: float
+            linewidth of the coastline feature
+            default 0.5
         plot_center: list [float, float]
             Longitude and Latitude of the desired center of the plot
             Plot will still plot if data is on the other side of the Earth
@@ -475,7 +500,8 @@ def axis_geographic(date, ax: axes.Axes = None,
         ax.gridlines(draw_labels=True)
 
     if coastline:
-        ax.coastlines(resolution=cartopy_scale)
+        ax.coastlines(resolution=cartopy_scale, color=coastline_color,
+                      linewidth=coastline_linewidth)
 
     if nightshade:
         refraction_value = -np.degrees(np.arccos(Re / (Re + nightshade)))
