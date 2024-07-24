@@ -207,7 +207,7 @@ class Fan:
             matching_records = find_records_by_datetime(dmap_data,
                                                         scan_time,
                                                         scan_time_tolerance)
-            date = scan_index
+            date = scan_time
         else:
             matching_records = find_records_by_scan(dmap_data, scan_index)
             date = time2datetime(matching_records[0])
