@@ -19,6 +19,8 @@ import datetime as dt
 import enum
 import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib.pyplot as plt
+import datetime as dt
 import warnings
 
 from typing import List
@@ -169,6 +171,7 @@ def add_embargo(fig: plt.Figure):
     """
     Adds a watermark to the figure noting that the data is under
     embargo
+
     Parameter
     ---------
     fig: plt.Figure
@@ -185,6 +188,7 @@ def add_embargo(fig: plt.Figure):
 def determine_embargo(time: dt.datetime, cpid: int, radar: str):
     """
     Determines if the data is under embargo
+
     Parameter
     ---------
     time: dt.datetime
@@ -193,6 +197,7 @@ def determine_embargo(time: dt.datetime, cpid: int, radar: str):
         Control program ID
     radar: str
         Name of the radar which produced the data
+
     Returns
     -------
     bool: True if data is embargoed, False otherwise

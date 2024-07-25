@@ -63,7 +63,7 @@ def build_scan(dmap_data: List[dict]):
 
 
 def find_records_by_datetime(dmap_data: List[dict], search: datetime.datetime,
-                             tolerance: datetime.timedelta = datetime.timedelta(seconds=1)):
+                             tolerance: datetime.timedelta):
     """
     Returns the records which are within a certain timeframe relative to a search time.
 
