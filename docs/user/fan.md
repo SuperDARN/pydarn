@@ -44,28 +44,30 @@ plt.show()
 In this example, the 27th scan was plotted with the defaulted parameter being line-of-sight velocity:
 ![](../imgs/fan_1.png)
 
-You can also provide a `datetime` object to obtain a scan at a specific time: 
+You can also provide a `datetime` object to obtain a scan at a specific time using the `scan_time` key word: 
 ```python
-pydarn.Fan.plot_fan(fitacf_data, scan_index=datetime(2015, 3, 8, 15, 26),
+pydarn.Fan.plot_fan(fitacf_data, scan_time=datetime(2015, 3, 8, 15, 26),
                      colorbar_label='Velocity [m/s]')
 plt.show()
 ```
 
 ![](../imgs/fan_1.b.png)
 
-!!! Warning
-    Do not include seconds in the datetime object, typically scans are 1 or 2 minutes long, so seconds may end in a error with no data. 
-
 
 ### Tolerance
 
-You can also set a tolerance time as a timedelta object to plot only data around a specific number of seconds around a datetime given.
+You can also set a tolerance time as a timedelta object to plot only data a specific number of seconds around a datetime given.
 This is helpful to plot non-traditional scans and newer fast scans with a larger amount of data to separate.
 
-If using `scan_time`, the user can also specify `scan_time_tolerance` as a datetime.timedelta object.
+If using `scan_time`, the user can also specify `scan_time_tolerance` as a datetime.timedelta object. The example code below will plot
+any data that is +/- 20 seconds around the time 2020-01-01 00:05:00 on a fan plot.
 
-UNFINISHED PR, WILL AMEND HERE WHEN MERGED.
-
+```python
+rtn = pydarn.Fan.plot_fan(fitacf_data,
+                          scan_time=dt.datetime(2020,1,1,0,5),
+                          scan_time_tolerance=dt.timedelta(seconds=20))
+plt.show()
+```
 
 ### Groundscatter
 
@@ -115,7 +117,9 @@ Here is a list of all the current options than can be used with `plot_fan`
 | Option                        | Action                                                                                                  |
 | ----------------------------- | ------------------------------------------------------------------------------------------------------- |
 | ax=(Axes Object)              | Matplotlib axes object than can be used for cartopy additions                                           |
-| scan_index=(int or  datetime) | Scan number or datetime, from start of records in file corresponding to channel if given                |
+| scan_index=(int)              | Scan number, from start of records in file corresponding to channel if given                            |
+| scan_time=(datetime)          | Time of the scan required to plot (default uses scan_index=1)                                           |
+| scan_time_tolerance_=(timedelta)      | Time difference around scan where data will need to be plotted (default 30 seconds)             |
 | channel=(int or 'all')        | Specify channel number or choose 'all' (default = 'all')                                                |
 | parameter=(string)            | See above table for options                                                                             |
 | groundscatter=(bool)          | True or false to showing ground scatter as grey                                                         |
@@ -166,11 +170,11 @@ pyk_file = 'data/20150308.1401.00.pyk.fitacf'
 pyk_data = pydarn.SuperDARNRead().read_dmap(pyk_file)
 cly_data = pydarn.SuperDARNRead().read_dmap(cly_file)
 
-fan_rtn = pydarn.Fan.plot_fan(cly_data, scan_index=datetime(2015, 3, 8, 14, 4),
+fan_rtn = pydarn.Fan.plot_fan(cly_data, scan_time=datetime(2015, 3, 8, 14, 4),
                     colorbar=False, fov_color='grey', line_color='blue',
                     radar_label=True)
 
-pydarn.Fan.plot_fan(pyk_data, scan_index=datetime(2015, 3, 8, 14, 4), 
+pydarn.Fan.plot_fan(pyk_data, scan_time=datetime(2015, 3, 8, 14, 4), 
                     colorbar_label='Velocity [m/s]', fov_color='grey',
                     line_color='red', radar_label=True, ax=fan_rtn['ax'])
 
