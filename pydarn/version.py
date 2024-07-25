@@ -17,4 +17,4 @@
 This file contains the version number of pydarn
 """
 
-__version__='4.0'
+__version__='4.1'
