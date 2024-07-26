@@ -872,7 +872,9 @@ class RTP:
                      range_estimation: object =
                      RangeEstimation.SLANT_RANGE,
                      latlon: str = None, coords: object = Coords.AACGM,
-                      **kwargs):
+                     vector_parameters: list = [('p_l'), ('v'),
+                                                ('w_l'), ('elv')],
+                     **kwargs):
         """
         Plots the summary of several SuperDARN parameters using time-series and
         range-time plots. Please see Notes for further description
@@ -1037,32 +1039,40 @@ class RTP:
         # [noise, tfreq, cp, snr, vel, spect, elv]
         # Check if the radar has elevation information if not
         # do not plot elevation
+        scalar_parameters = [('noise.sky', 'noise.search'), ('tfreq', 'nave'),
+                             ('cp')]
+
         try:
             # need to use any because some records at the start
             # can be partial which doesn't mean there is no elv
             # data
-            if any('elv' in d for d in dmap_data) and plot_elv:
-                num_plots = 7
+            if any('elv' in d for d in dmap_data) and plot_elv\
+                    and ('elv' in vector_parameters):
+                num_plots = len(scalar_parameters) + len(vector_parameters)
+            elif 'elv' not in vector_parameters:
+                num_plots = len(scalar_parameters) + len(vector_parameters)
             else:
-                num_plots = 6
+                num_plots = len(scalar_parameters) + len(vector_parameters) - 1
+                vector_parameters.remove('elv')
         except KeyError:
-            num_plots = 6
+            num_plots = len(scalar_parameters) + len(vector_parameters) - 1
+            vector_parameters.remove('elv')
         axes = []
+
         # List of parameters plotted in the summary plot, tuples are used
         # for shared plot parameters like noise.search and noise.sky
-        # Removing search noise from the summary plot due to too much
-        # overlapping, however, if confirmed as undesired parameter to
-        # plot, will remove it from the code.
-        # TODO: remove search noise completely if not wanted in summary plot
-        axes_parameters = [('noise.sky', 'noise.search'), ('tfreq', 'nave'),
-                           ('cp'), ('p_l'), ('v'), ('w_l'), ('elv')]
-        # labels to show on the summary plot for each parameter
-        labels = [('Sky \n Noise', 'Search\n Noise'),
-                  ('Freq\n ($MHz$)', 'Nave'), ('CP ID'), ('SNR ($dB$)'),
-                  ('Velocity\n ($m\ s^{-1}$)'),
-                  ('Spectral Width\n ($m\ s^{-1}$)'),
-                  ('Elevation\n ($\degree$)')]
+        axes_parameters = scalar_parameters + vector_parameters
 
+        # labels to show on the summary plot for each parameter
+        labels = {'noise.sky': 'Sky \n Noise', 
+                  'noise.search': 'Search\n Noise',
+                  'tfreq': 'Freq\n ($MHz$)',
+                  'nave': 'Nave',
+                  'cp': 'CP ID',
+                  'p_l': 'SNR ($dB$)',
+                  'v': 'Velocity\n ($m\ s^{-1}$)',
+                  'w_l': 'Spectral Width\n ($m\ s^{-1}$)',
+                  'elv': 'Elevation\n ($\degree$)'}
         for i in range(num_plots):
             # time-series plots
             # position: [left, bottom, width, height]
@@ -1096,8 +1106,11 @@ class RTP:
                                              ax=axes[i],
                                              linestyle=line[
                                                  axes_parameters[i][0]],
-                                             label=labels[i][0], **kwargs)
-                    axes[i].set_ylabel(labels[i][0], rotation=0, labelpad=30)
+                                             label=labels[
+                                                 axes_parameters[i][0]],
+                                                 **kwargs)
+                    axes[i].set_ylabel(labels[axes_parameters[i][0]],
+                                       rotation=0, labelpad=30)
                     axes[i].\
                         axhline(y=boundary_ranges[axes_parameters[i][0]][0] +
                                 0.8, xmin=-0.11, xmax=-0.05, clip_on=False,
@@ -1132,7 +1145,8 @@ class RTP:
                                                      axes_parameters[i][1]],
                                                  **kwargs)
                         second_ax.set_xticklabels([])
-                        second_ax.set_ylabel(labels[i][1], rotation=0,
+                        second_ax.set_ylabel(labels[axes_parameters[i][1]],
+                                             rotation=0,
                                              labelpad=25, color=color[
                                                 axes_parameters[i][1]])
                         second_ax.\
@@ -1192,7 +1206,8 @@ class RTP:
                     if latlon is None:
                         rt_rtn =\
                             cls.plot_range_time(dmap_data, beam_num=beam_num,
-                                            colorbar_label=labels[i],
+                                            colorbar_label=labels[
+                                                axes_parameters[i]],
                                             channel=channel,
                                             parameter=axes_parameters[i],
                                             ax=axes[i], groundscatter=grndflg,
@@ -1208,7 +1223,8 @@ class RTP:
                     else:
                         rt_rtn =\
                             cls.plot_coord_time(dmap_data, beam_num=beam_num,
-                                            colorbar_label=labels[i],
+                                            colorbar_label=labels[
+                                                axes_parameters[i]],
                                             channel=channel,
                                             parameter=axes_parameters[i],
                                             ax=axes[i], groundscatter=grndflg,
