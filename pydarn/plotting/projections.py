@@ -135,10 +135,6 @@ def axis_geomagnetic(date, ax: axes.Axes = None, lowlat: int = 30,
                      plot_center coord that shows 30% of the Earth in x and 
                      50% of the Earth in y. See tutorials for plotted example.
     """
-    if cartopyInstalled is False:
-        raise plot_exceptions.CartopyMissingError()
-    if cartopyVersion is False:
-        raise plot_exceptions.CartopyVersionError(cartopy.__version__)
     if plot_center is None:
         # If no center for plotting is given, default to pole
         if hemisphere == Hemisphere.North:
