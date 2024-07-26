@@ -1064,9 +1064,26 @@ class RTP:
         axes = []
 
         # Check integrity of vector_parameters before committing to plotting
-        allowed_parameters = ['elv', 'v', 'w_l', 'p_l']
         if not isinstance(vector_parameters, list):
-            vector_parameters = [vector_parameters]
+            raise Exception('The summary plot needs a formatted list of vector '
+                            'parameters to plot. E.G. ["v", "p_l"]. '
+                            'Summary plots allow plotting of the following '
+                            'vector parameters: v (velocity), '
+                            'p_l (Signal to noise ratio), '
+                            'w_l (spectral width), '
+                            'elv (elevation).')
+        # Test for elevation data being removed
+        if not vector_parameters or len(vector_parameters) == 0:
+            raise Exception('The summary plot needs a list of vector '
+                            'parameters to plot. The file you have chosen to '
+                            'plot may not have elevation data. '
+                            'Summary plots allow plotting of the following '
+                            'vector parameters: v (velocity), '
+                            'p_l (Signal to noise ratio), '
+                            'w_l (spectral width), '
+                            'elv (elevation).')
+        # Test for non standard parameters
+        allowed_parameters = ['elv', 'v', 'w_l', 'p_l']
         test_list = [i for i in vector_parameters if i not in allowed_parameters]
         if len(test_list) > 0 :
             raise Exception('Summary plots allow plotting of the following '
@@ -1089,14 +1106,27 @@ class RTP:
                   'v': 'Velocity\n ($m\ s^{-1}$)',
                   'w_l': 'Spectral Width\n ($m\ s^{-1}$)',
                   'elv': 'Elevation\n ($\degree$)'}
+
+
+        # TODO: We need a cleaner solution to this and still allow user input
+        # for figure size. For now it 'works'. Thanks to P. Pitzer for current
+        # solution.
+        start_pos = [0,0,0, 0.60, 0.75, 0.80, 0.84, 0.87, 0.90, 0.92]
         for i in range(num_plots):
             # time-series plots
             # position: [left, bottom, width, height]
             if i < 3:
-                axes.append(fig.add_axes([0.1, 0.88 - (i*0.08), 0.76, 0.06]))
+                axes.append(fig.add_axes([0.1,
+                                          (start_pos[num_plots]) -
+                                          (i / num_plots * .5),
+                                          0.76,
+                                          0.06 * (7 / num_plots)]))
             # range-time plots
             else:
-                axes.append(fig.add_axes([0.1, 1.04 - (i*0.16), 0.95, 0.14]))
+                axes.append(fig.add_axes([0.1,
+                                          1.04 - (i / num_plots * 1.1),
+                                          0.95,
+                                          0.14 * (7 / num_plots)]))
 
         for i in range(num_plots):
             # plot time-series
