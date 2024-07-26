@@ -62,7 +62,8 @@ class TimeSeriesParams(enum.Enum):
         KP = 'IMF.Kp'
         LATMINN = 'latmin'
         ERR = 'chi.sqr.dat'
-        CPP = 'pot.drop'     
+        CPP = 'pot.drop'
+        POT = 'pot.pos'
         
 
 def find_record(dmap_data: List[dict], start_time: dt.datetime, time_delta:int = 1):
