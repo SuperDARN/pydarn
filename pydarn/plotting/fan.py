@@ -507,6 +507,12 @@ class Fan:
                 with MLT/latitude labels
             data_groundscatter: list[beams, ranges]
                 Boolean array of same size which denotes groundscatter
+            rsep: int
+                Separation between range gates, in kilometers.
+                Default: 45
+            frang: int
+                Kilometers to first range.
+                Default: 180
             stid: int
                 StationID of the radar of interest
             data_parameter: str
