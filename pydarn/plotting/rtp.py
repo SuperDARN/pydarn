@@ -958,6 +958,10 @@ class RTP:
         latlon: str
             set which coordinate you want to plot with
             default: None
+        vector_parameters: list 
+            Required parameters for plotting in the summary plot
+            Must be a subset of the default list below
+            default:[('p_l'), ('v'), ('w_l'), ('elv')]
         kwargs:
             reflection_height for ground_scatter_mapped method
             background
@@ -1058,6 +1062,18 @@ class RTP:
             num_plots = len(scalar_parameters) + len(vector_parameters) - 1
             vector_parameters.remove('elv')
         axes = []
+
+        # Check integrity of vector_parameters before committing to plotting
+        allowed_parameters = ['elv', 'v', 'w_l', 'p_l']
+        if not isinstance(vector_parameters, list):
+            vector_parameters = [vector_parameters]
+        test_list = [i for i in vector_parameters if i not in allowed_parameters]
+        if len(test_list) > 0 :
+            raise Exception('Summary plots allow plotting of the following '
+                            'vector parameters only: v (velocity), '
+                            'p_l (Signal to noise ratio), '
+                            'w_l (spectral width), '
+                            'elv (elevation).')
 
         # List of parameters plotted in the summary plot, tuples are used
         # for shared plot parameters like noise.search and noise.sky
