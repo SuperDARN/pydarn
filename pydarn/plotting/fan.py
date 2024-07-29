@@ -584,10 +584,8 @@ class Fan:
                    gates=[0, len(data_array)], date=data_datetime,
                    **kwargs)
 
-        fan_shape = beam_corners_lons.shape
-
         rs = beam_corners_lats
-        if projs != Projs.GEO:
+        if projs == Projs.POLAR:
             thetas = np.radians(beam_corners_lons)
         else:
             thetas = beam_corners_lons
@@ -670,8 +668,6 @@ class Fan:
         else:
             cb = None
 
-        # Determine embargo status
-        #cls.__determine_embargo(time2datetime(dmap_data[plot_beams[-1][-1]])
         return {'ax': ax,
                 'ccrs': ccrs,
                 'cm': cmap,
