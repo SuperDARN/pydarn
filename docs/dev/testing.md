@@ -51,9 +51,9 @@ A pull request is when that developer has finished and wants the code to be incl
         You can check the installation of pyDARN if it appears in the list produced by `pip list`. This can also be used to check the version number of pyDARN and the required dependencies too.
   
     !!! Note 
-        The <branchname> can be found at the top of the page below the Pull Request title and number shows the branch name and which branch it will be merged into. 
+        The branchname can be found at the top of the page below the Pull Request title and number shows the branch name and which branch it will be merged into. 
 
-3. Now you are ready ot test the code. The developer who made the Pull Request should have written up a piece of test code and described the desired output (if they haven't, comment and ask for it!).
+3. Now you are ready tu test the code. The developer who made the Pull Request should have written up a piece of test code and described the desired output (if they haven't, comment and ask for it!).
 You will need to make a new Python file `test_code.py`, that includes the code, and will need to source any [data](https://pydarn.readthedocs.io/en/main/user/superdarn_data/) that you might need to use. 
 
 4. Then run the file and interpret the outcome `python3 test_code.py`. It is always useful for the tester to make changes to the test code, use different key words, and different data to test for edge cases and all around usability of the new changes. 
@@ -67,7 +67,7 @@ You will need to make a new Python file `test_code.py`, that includes the code, 
     f) Include suggestions if you are able and are doing a [code review](https://pydarn.readthedocs.io/en/main/dev/code_review/).  
     g) If you are unsure, include as much information as possible for the developer to follow and recreate what you have done.  
 
-7. If everything worked as expected and you are happy with the code, you can **approve** the code officially if you are already part of the pyDARN development team by clicking `Files Changed` then clicking `Review Changes` and select *Approve*..
+7. If everything worked as expected and you are happy with the code, you can **approve** the code officially if you are already part of the pyDARN development team by clicking `Files Changed` then clicking `Review Changes` and select *Approve*.
 If you are not a member, please make a clear statement at the end of the comment saying if you require further changes, or you approve and think the pull request should be merged. 
 
 !!! Note
