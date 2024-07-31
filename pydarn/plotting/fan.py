@@ -272,6 +272,8 @@ class Fan:
                     'w_l': PyDARNColormaps.PYDARN_VIRIDIS,
                     'elv': PyDARNColormaps.PYDARN_INFERNO}
             cmap = cmap[parameter]
+        else:
+            cmap = cm.get_cmap(cmap)
 
         # Set background to transparent - avoids carry over
         # does not interfere with the fov color if chosen
@@ -601,6 +603,8 @@ class Fan:
                     'w_l': PyDARNColormaps.PYDARN_VIRIDIS,
                     'elv': PyDARNColormaps.PYDARN_INFERNO}
             cmap = cmap[data_parameter]
+        else:
+            cmap = cm.get_cmap(cmap)
 
         # Set background to transparent - avoids carry over
         # does not interfere with the fov color if chosen
