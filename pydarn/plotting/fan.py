@@ -473,7 +473,8 @@ class Fan:
 
         if determine_embargo(start_time,
                              matching_records[0]['cp'],
-                             matching_records[0]['stid']):
+                             SuperDARNRadars.radars[
+                                matching_records[0]['stid']].name):
             add_embargo(plt.gcf())
 
         return {'ax': ax,
