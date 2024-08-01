@@ -28,7 +28,6 @@
 Grid plots, mapped to AACGM coordinates in a polar format
 """
 
-import cartopy.crs as ccrs
 import datetime as dt
 import matplotlib.pyplot as plt
 import numpy as np
@@ -579,7 +578,7 @@ class Maps():
                 }
 
     @classmethod
-    def index_legendre(cls, l: int, m: int):
+    def index_legendre(cls, el: int, m: int):
         """
         not a 100% how this works some black magic
 
@@ -594,8 +593,8 @@ class Maps():
         ------
             legendre index?
         """
-        return (m == 0 and l**2) or ((l != 0)
-                                     and (m != 0) and l**2 + 2 * m - 1) or 0
+        return (m == 0 and el**2) or ((el != 0)
+                                      and (m != 0) and el**2 + 2 * m - 1) or 0
 
     @classmethod
     def calculated_fitted_velocities(cls, mlats: np.array, mlons: np.array,
@@ -673,14 +672,14 @@ class Maps():
         # coefficients for elec. Field
         fit_coefficient_flat = fit_coefficient.flatten()
         for m in range(fit_order + 1):
-            for l in range(m, fit_order + 1):
-                k3 = cls.index_legendre(l, m)
-                k4 = cls.index_legendre(l, m)
+            for el in range(m, fit_order + 1):
+                k3 = cls.index_legendre(el, m)
+                k4 = cls.index_legendre(el, m)
 
                 if k3 >= 0:
                     thetas_ecoeffs[k4, q_prime] =\
                             thetas_ecoeffs[k4, q_prime] -\
-                            fit_coefficient_flat[k3] * alpha * l *\
+                            fit_coefficient_flat[k3] * alpha * el *\
                             np.cos(thetas_prime[q_prime]) / \
                             np.sin(thetas_prime[q_prime]) / Re_meters
                     phi_ecoeffs[k4, q] = phi_ecoeffs[k4, q] - \
@@ -690,17 +689,17 @@ class Maps():
                         fit_coefficient_flat[k3] * m /\
                         np.sin(thetas[q]) / Re_meters
 
-                if l < fit_order:
-                    k1 = cls.index_legendre(l+1, m)
+                if el < fit_order:
+                    k1 = cls.index_legendre(el+1, m)
                 else:
                     k1 = -1
 
-                k2 = cls.index_legendre(l, m)
+                k2 = cls.index_legendre(el, m)
 
                 if k1 >= 0:
                     thetas_ecoeffs[k2, q_prime] =\
                         thetas_ecoeffs[k2, q_prime] + \
-                        fit_coefficient_flat[k1] * alpha * (l + 1 + m) / \
+                        fit_coefficient_flat[k1] * alpha * (el + 1 + m) / \
                         np.sin(thetas_prime[q_prime]) / Re_meters
 
                 if m > 0:
@@ -715,7 +714,7 @@ class Maps():
                     if k3 >= 0:
                         thetas_ecoeffs[k4, q_prime] =\
                                 thetas_ecoeffs[k4, q_prime] \
-                                - fit_coefficient_flat[k3] * alpha * l * \
+                                - fit_coefficient_flat[k3] * alpha * el * \
                                 np.cos(thetas_prime[q_prime]) / \
                                 np.sin(thetas_prime[q_prime]) / Re_meters
 
@@ -723,7 +722,7 @@ class Maps():
                         thetas_ecoeffs[k2, q_prime] = \
                             thetas_ecoeffs[k2, q_prime] \
                             + fit_coefficient_flat[k1] * alpha *\
-                            (l + 1 + m) / np.sin(thetas_prime[q_prime]) /\
+                            (el + 1 + m) / np.sin(thetas_prime[q_prime]) /\
                             Re_meters
 
         # Calculate the Electric field positions
@@ -731,8 +730,8 @@ class Maps():
         phi_ecomp = np.zeros(thetas.shape)
 
         for m in range(fit_order + 1):
-            for l in range(m, fit_order + 1):
-                k = cls.index_legendre(l, m)
+            for el in range(m, fit_order + 1):
+                k = cls.index_legendre(el, m)
                 # Now in the IDL code we use
                 # legendre_poly[:,l,m] instead of
                 # legendre_poly[:,m,l] like here, this is
@@ -742,17 +741,17 @@ class Maps():
                 # stores values in arrays...
                 if m == 0:
                     thetas_ecomp = thetas_ecomp + thetas_ecoeffs[k, :] * \
-                            legendre_poly[:, m, l]
+                            legendre_poly[:, m, el]
                     phi_ecomp = phi_ecomp + phi_ecoeffs[k, :] * \
-                        legendre_poly[:, m, l]
+                        legendre_poly[:, m, el]
                 else:
                     thetas_ecomp = thetas_ecomp + thetas_ecoeffs[k, :] * \
-                        legendre_poly[:, m, l] * np.cos(m * phi) + \
-                        thetas_ecoeffs[k+1, :] * legendre_poly[:, m, l] * \
+                        legendre_poly[:, m, el] * np.cos(m * phi) + \
+                        thetas_ecoeffs[k+1, :] * legendre_poly[:, m, el] * \
                         np.sin(m * phi)
                     phi_ecomp = phi_ecomp + phi_ecoeffs[k, :] * \
-                        legendre_poly[:, m, l] * np.cos(m * phi) + \
-                        phi_ecoeffs[k+1, :] * legendre_poly[:, m, l] * \
+                        legendre_poly[:, m, el] * np.cos(m * phi) + \
+                        phi_ecoeffs[k+1, :] * legendre_poly[:, m, el] * \
                         np.sin(m * phi)
 
         # Store the two components of Efield into a single array
@@ -990,14 +989,14 @@ class Maps():
 
         coeff_fit_flat = fit_coefficient.flatten()
         for m in range(lmax):
-            for l in range(m, lmax):
-                k = cls.index_legendre(l, m)
+            for el in range(m, lmax):
+                k = cls.index_legendre(el, m)
                 if m == 0:
-                    v = v + coeff_fit_flat[k] * plm_fit[:, 0, l]
+                    v = v + coeff_fit_flat[k] * plm_fit[:, 0, el]
                 else:
                     v = v + coeff_fit_flat[k] * np.cos(m * phi) \
-                          * plm_fit[:, m, l] + coeff_fit_flat[k+1] \
-                          * np.sin(m * phi) * plm_fit[:, m, l]
+                          * plm_fit[:, m, el] + coeff_fit_flat[k+1] \
+                          * np.sin(m * phi) * plm_fit[:, m, el]
 
         pot_arr = np.zeros((num_lons, num_lats))
         pot_arr = np.reshape(v, pot_arr.shape) / 1000.0
@@ -1092,14 +1091,14 @@ class Maps():
 
         coeff_fit_flat = fit_coefficient.flatten()
         for m in range(lmax):
-            for l in range(m, lmax):
-                k = cls.index_legendre(l, m)
+            for el in range(m, lmax):
+                k = cls.index_legendre(el, m)
                 if m == 0:
-                    v = v + coeff_fit_flat[k] * plm_fit[:, 0, l]
+                    v = v + coeff_fit_flat[k] * plm_fit[:, 0, el]
                 else:
                     v = v + coeff_fit_flat[k] * np.cos(m * phi) \
-                        * plm_fit[:, m, l] + coeff_fit_flat[k + 1] \
-                        * np.sin(m * phi) * plm_fit[:, m, l]
+                        * plm_fit[:, m, el] + coeff_fit_flat[k + 1] \
+                        * np.sin(m * phi) * plm_fit[:, m, el]
 
         # Convert from V to kV
         v /= 1000
