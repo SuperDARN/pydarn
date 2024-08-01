@@ -12,6 +12,7 @@
 # 2022-08-15: CJM - Removed plot_FOV call for default uses
 # 2022-12-13: CJM - Limited reference vectors to only velocity use
 # 2023-06-28: CJM - Refactored return values
+# 2024-07-11: CJM - Added potential time series plot
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
@@ -71,7 +72,7 @@ class Maps():
                      record: int = 0, start_time: dt.datetime = None,
                      time_delta: float = 1,  alpha: float = 1.0,
                      len_factor: float = 150, color_vectors: bool = True,
-                     cmap: str = None, colorbar: bool = True, 
+                     cmap: str = None, colorbar: bool = True,
                      contour_colorbar: bool = True,
                      colorbar_label: str = '', title: str = '',
                      zmin: float = None, zmax: float = None,
@@ -1349,7 +1350,9 @@ class Maps():
                          parameter: Enum = TimeSeriesParams.NUM_VECTORS,
                          start_record: int = 0, end_record: int = 1,
                          start_time: dt.datetime = None,
-                         end_time: dt.datetime = None, ax=None, **kwargs):
+                         end_time: dt.datetime = None,
+                         potential_position: list = [],
+                         ax=None, **kwargs):
         '''
         Plot time series of various map parameters
 
@@ -1365,6 +1368,8 @@ class Maps():
             Start time of the data
         end_time: dt.datetime
             End time of the data
+        potential_position: list [mlon, mlat]
+            Position at which the potential is to be calculated and plotted
         ax:
             matplotlib axis
         kwargs:
@@ -1391,7 +1396,11 @@ class Maps():
             for records in range(start_record, end_record):
                 # append the dimension of numv for each record
                 # we can just uexse any of the keys with dimensionality numv
-                datalist.append(len(dmap_data[records]['vector.mlat']))
+                # Try loop for partial records
+                try:
+                    datalist.append(len(dmap_data[records]['vector.mlat']))
+                except KeyError:
+                    datalist.append(np.nan)
                 # now get the associated time data point per record
                 timelist.append(time2datetime(dmap_data[records]))
             plt.plot(timelist, datalist, **kwargs)
@@ -1399,6 +1408,45 @@ class Maps():
             plt.xlabel('Time (UTC)')
             plt.title("Number of Vectors for " + str(start_time)
                       + " to " + str(end_time))
+        elif parameter == TimeSeriesParams.POT:
+            # This requires a position input in [mlat, mlon]
+            if len(potential_position) != 2:
+                warnings.warn("A valid magnetic position with format "
+                              "[mlon, mlat] "
+                              "is required to plot the potential "
+                              "at a given location. E.G. "
+                              "potential_position = [-110, 78]")
+            elif (potential_position[0] <= -180 or
+                  potential_position[0] >= 180 or
+                  potential_position[1] <= -90 or
+                  potential_position[1] >= 90):
+                warnings.warn("A valid magnetic position with format "
+                              "[mlon, mlat] "
+                              "is required to plot the potential "
+                              "at a given location. E.G. "
+                              "potential_position = [-110, 78]")
+            else:
+                datalist = []
+                timelist = []
+                for records in range(start_record, end_record):
+                    # Calculate potential
+                    pot = cls.calculate_potentials_pos(
+                            potential_position[1],
+                            potential_position[0],
+                            dmap_data[records]['N+2'],
+                            dmap_data[records]['latmin'],
+                            dmap_data[records]['lat.shft'],
+                            dmap_data[records]['lon.shft'],
+                            dmap_data[records]['fit.order'],
+                            Hemisphere(dmap_data[records]['hemisphere']))
+                    datalist.append(pot)
+                    timelist.append(time2datetime(dmap_data[records]))
+                plt.plot(timelist, datalist, **kwargs)
+                plt.ylabel('Potential (kV)')
+                plt.xlabel('Time (UTC)')
+                plt.title('Potential at ' + str(potential_position) +
+                          ' for ' + str(start_time) + " to " +
+                          str(end_time))
         elif parameter is not None:
             datalist = []
             timelist = []

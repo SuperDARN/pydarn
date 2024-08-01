@@ -16,9 +16,12 @@ the additional permissions listed below.
 ---
 
 pyDARN uses several different measurement and plotting systems to easily allow the user to customise their plots, this page aims to describe their uses: 
+
 - Range Estimation: the estimate of how far the target (echo) is from the radar
-- Coordinate systems: determines the unique position using a set of points - primarily we use geographic and magnetic coordinate systems for Earth
-- Projections: used primarily on spatial plots (FOV, Fan, Grid...) projection choices allow the user to choose what type of projection the plot appears in
+
+- Coordinate systems: determines the unique position using a set of points, primarily we use geographic and AACGMv2 magnetic coordinate systems for Earth
+
+- Projections: used primarily on spatial plots (FOV, Fan, Grid...) projection choices allow the user to choose what type of projection the plot appears in (see also [Axes Setup](https://pydarn.readthedocs.io/en/main/user/axis/))
 
 ## RangeEstimation
 
@@ -37,17 +40,17 @@ pyDARN uses several different measurement and plotting systems to easily allow t
 !!! Note
     Slant range is calculated from the value of `frang`, the distance to the first range gate. In pyDARN, we assume 
     that this value is the distance to the *inner edge* of the first range gate. We are aware that not all radars use this 
-    exact definition, this is *outside the remit of pyDARN and should be addressed at a higher level*.
+    exact definition, this is **outside the remit of pyDARN and should be addressed at a higher level***.
     The value `rxrise` is also used in the definition of slant range. This is the receiver rise time of the radar, however, 
-    due to discussion *outside of pyDARN's remit* the value of `rxrise` is adjusted in FITACF files and may not match 
+    due to discussion **outside of pyDARN's remit** the value of `rxrise` is adjusted in FITACF files and may not match 
     the value given in hardware files. Currently, pyDARN has decided to use the values for `rxrise` given in the 
     hardware files. We will amend or reconsider this approach as and when a solution to the differing values is found.
-    In some plots, the user can change the `frang` value to fit their needs.
+    In some plots, the user can change these values to fit their needs.
 
 ## Coords: Coordinate System
 
 This function is used to determine the position of data in spatial plots: fan, grid and convection map plots. 
-Range time plots now allow for `Coords` use. The y-axis can be converted to latitude or longitude using a the `coords` keyword.
+Range time plots now also allow for `Coords` use. The y-axis can be converted to latitude or longitude using a the `coords` keyword.
 E.G. using `coords=Coords.GEOGRAPHIC` and `latlon='lon'` in the method call, will convert the chosen range estimate (see above) into geographic longitudes.
 
 **Geographic**: `Coords.GEOGRAPHIC` is the standard geographical coordinate system for latitude and longitude (degrees)
@@ -60,22 +63,25 @@ E.G. using `coords=Coords.GEOGRAPHIC` and `latlon='lon'` in the method call, wil
 
 ## Projs: Projections
 
-Spatial plots have two options for projections. See also [Axes Setup](axis.md) tutorial.
+Spatial plots have three options for projections. See also [Axes Setup](axis.md) tutorial.
 
 **Polar**: `Projs.POLAR` sets up the axis of the spatial plot in polar coordinates common in studies that show data over the poles.
 
 **Geographic**: `Projs.GEO` sets up the axes of the spatial plots in geographic coordinates using Cartopy.
 
+**Geomagnetic**: `Projs.MAG` sets up the axes of the spatial plots in geographic coordinates using Cartopy.
+
 !!! Note
-    The 'look-direction' of the two projections are different for the Southern hemisphere. 
+    The 'look-direction' of the projections may be different for the Southern hemisphere. 
     Polar projections show a view of the south pole as if looking down through the planet from above the north pole, 
-    geographic projections show a view of the south pole as if looking from above the south pole.
+    geographic and geomagnetic projections show a view of the south pole as if looking from above the south pole.
 
 !!! Note
     Some combinations of Projs/Coords/RangeEstimates are not designed to work. 
     For example, you cannot plot a fan plot using range gates; spatial plots require a value in kilometers. 
-    At the moment, AACGM Coordinates do not plot on Geographic projections as it has not been developed yet. 
-    Convection maps only support polar projections due to lack of interest in requiring geographic projections.
+    AACGM Coordinates do not plot on Geographic projections. Geographic coordinates are not supported on POLAR or MAG projections.
+    Convection maps only support polar projections for now.
+
 
 # Including a Terminator
 
@@ -86,7 +92,7 @@ great circle distance to the terminator in geographic coordinates:
 ```python
 antisolarpsn, arc_length, angle_of_terminator = pydarn.terminator(date, nightshade)
 ```
-The `antisolarpsn` is given in degrees lon, lat. The `arc_length` is in kilometers and the `angle_of_terminator` is the angle from the subsolar point to the terminator (i.e. is 90 degrees at ground level).
+The `antisolarpsn` is given in geographic degrees lon, lat. The `arc_length` is in kilometers and the `angle_of_terminator` is the angle from the subsolar point to the terminator (i.e. is 90 degrees at ground level).
 The terminator position can be calculated using `(lat, lon) = new_coordinate(lat, lon, arc_length, bearing, R=Re)` for any bearing from the antisolar position. This can be converted to magnetic coordinates using the
 AACGMv2 library. Unfortunately, Matplotlib is unable to plot the terminator using `fill` consistently, hence we leave this option up to the user.
 An example of this is shown below:

@@ -11,6 +11,7 @@
 # 2023-08-11 RR added crude check for unmodified axes, handle both hemispheres
 # 2024-05-15 CJM refactored geographic axes to add plot zoom and center, 
 #            and added the geomagnetic version to do the same
+# 2024-07-10 CJM removed cartopy logic to allow full dependency
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
@@ -24,6 +25,10 @@
 Code which generates axis objects for use in plotting functions
 """
 import aacgmv2
+import cartopy
+import cartopy.crs as ccrs
+import cartopy.feature as cfeature
+from cartopy.feature.nightshade import Nightshade
 import enum
 import matplotlib.pyplot as plt
 from matplotlib import axes
@@ -32,54 +37,7 @@ import numpy as np
 from packaging import version
 
 from pydarn import (Hemisphere, plot_exceptions, Re,
-                    nightshade_warning, coast_outline)
-
-try:
-    import cartopy
-    import cartopy.crs as ccrs
-    import cartopy.feature as cfeature
-    from cartopy.feature.nightshade import Nightshade
-    cartopyInstalled = True
-    if version.parse(cartopy.__version__) < version.parse("0.19"):
-        cartopyVersion = False
-    else:
-        cartopyVersion = True
-except Exception:
-    cartopyInstalled = False
-
-
-def convert_coastline_list_to_mag(geom, date, alt: float = 0.0, mag_lon: bool = False):
-    '''
-    Takes a list of coastlines and converts
-    the coordinates into AACGM_MLT
-    Parameters
-    ----------
-    geom: list
-        A list/collection of lat lon positions
-    date: datetime object
-        Date of required plot
-    alt: float
-        Altitude in km
-        Default 0 (sea level) for coastlines
-    mag_lon: bool
-        Set true to return magnetic longitude, not MLT
-    '''
-    [mlat, lon_mag, _] = \
-        aacgmv2.convert_latlon_arr(geom['lat'], geom['lon'], alt, date,
-                                   method_code='G2A')
-    # Clean Nans (effects plotting)
-    mlat = mlat[np.logical_not(np.isnan(mlat))]
-    lon_mag = lon_mag[np.logical_not(np.isnan(lon_mag))]
-
-    if mag_lon:
-        mlon = np.radians(lon_mag)
-        return [mlat, mlon]
-    else:
-        # Shift to MLT
-        shifted_mlts = lon_mag[0] - (aacgmv2.convert_mlt(lon_mag[0], date) * 15)
-        shifted_lons = lon_mag - shifted_mlts
-        mlon = np.radians(shifted_lons)
-        return [mlat, mlon]
+                    nightshade_warning)
 
 
 def convert_geo_coastline_to_mag(geom, date, alt: float = 0.0, mag_lon: bool = False):
@@ -177,10 +135,6 @@ def axis_geomagnetic(date, ax: axes.Axes = None, lowlat: int = 30,
                      plot_center coord that shows 30% of the Earth in x and 
                      50% of the Earth in y. See tutorials for plotted example.
     """
-    if cartopyInstalled is False:
-        raise plot_exceptions.CartopyMissingError()
-    if cartopyVersion is False:
-        raise plot_exceptions.CartopyVersionError(cartopy.__version__)
     if plot_center is None:
         # If no center for plotting is given, default to pole
         if hemisphere == Hemisphere.North:
@@ -360,31 +314,24 @@ def axis_geomagnetic_polar(date, ax: axes.Axes = None, lowlat: int = 30,
                 ax.set_yticks(np.arange(-abs(lowlat), -90, -10))
 
     if coastline:
-        if not cartopyInstalled or not cartopyVersion:
-            # Cartopy not installed, call on the set outlines
-            for g, geom in enumerate(coast_outline):
-                [mlat, mlon] = convert_coastline_list_to_mag(geom, date)
-                plt.plot(mlon, mlat, color=coastline_color,
-                         linewidth=coastline_linewidth, zorder=2)
-        else:
-            # Read in the geometry object of the coastlines
-            cc = cfeature.NaturalEarthFeature('physical', 'coastline',
-                                              cartopy_scale, color='k',
-                                              zorder=2.0)
-            # Convert geometry object coordinates to MLT
-            geom_mag = []
-            for geom in cc.geometries():
-                if geom.__class__.__name__ == 'MultiLineString':
-                    for g in geom.geoms:
-                        geom_mag.append(convert_geo_coastline_to_mag(g, date))
-                else:
-                    geom_mag.append(convert_geo_coastline_to_mag(geom, date))
-            cc_mag = cfeature.ShapelyFeature(geom_mag, ccrs.PlateCarree(),
-                                             color='k', zorder=2.0)
-            # Plot each geometry object
-            for geom in cc_mag.geometries():
-                plt.plot(*geom.coords.xy, color=coastline_color,
-                         linewidth=coastline_linewidth, zorder=2.0)
+        # Read in the geometry object of the coastlines
+        cc = cfeature.NaturalEarthFeature('physical', 'coastline',
+                                          cartopy_scale, color='k',
+                                          zorder=2.0)
+        # Convert geometry object coordinates to MLT
+        geom_mag = []
+        for geom in cc.geometries():
+            if geom.__class__.__name__ == 'MultiLineString':
+                for g in geom.geoms:
+                    geom_mag.append(convert_geo_coastline_to_mag(g, date))
+            else:
+                geom_mag.append(convert_geo_coastline_to_mag(geom, date))
+        cc_mag = cfeature.ShapelyFeature(geom_mag, ccrs.PlateCarree(),
+                                         color='k', zorder=2.0)
+        # Plot each geometry object
+        for geom in cc_mag.geometries():
+            plt.plot(*geom.coords.xy, color=coastline_color,
+                     linewidth=coastline_linewidth, zorder=2.0)
 
     if nightshade:
         nightshade_warning()
@@ -453,10 +400,6 @@ def axis_geographic(date, ax: axes.Axes = None,
                      plot_center coord that shows 30% of the Earth in x and 
                      50% of the Earth in y. See tutorials for plotted example.
     """
-    if cartopyInstalled is False:
-        raise plot_exceptions.CartopyMissingError()
-    if cartopyVersion is False:
-        raise plot_exceptions.CartopyVersionError(cartopy.__version__)
     if plot_center is None:
         # If no center for plotting is given, default to pole and rotate for 0
         # degrees longitude

@@ -12,33 +12,32 @@ nav:
     - SuperDARN Data Access: user/superdarn_data.md 
     - Citing: user/citing.md
     - Tutorials:
-            - Reading Files: user/io.md
-            - Radar and Hardware Information: user/hardware.md 
-            - Axes Setup: user/axis.md
-            - Ranges, Coords and Projs: user/coordinates.md
-            - Range-Time plots: user/range_time.md
-            - Coordinate-Time plots: user/coord_time.md 
-            - Time-Series plots: user/time_series.md 
-            - Summary plots: user/summary.md
-            - FOV plots: user/fov.md
-            - Fan plots: user/fan.md
-            - Grid plots: user/grid.md
-            - Convection Map plots: user/map.md
-            - Power plots: user/power.md
-            - ACF plots: user/acf.md
-            - IQ Plots: user/iq.md
-            - Filtering Data: user/filters.md
-            - Logging: user/logging.md
-    - pyDARN Team: dev/team.md
-    - Communication: dev/communication.md 
-    - Copyright and Licensing: dev/copyright_license.md
+        - Reading Files: user/io.md
+        - Radar and Hardware Information: user/hardware.md 
+        - Axes Setup: user/axis.md
+        - Ranges, Coords and Projs: user/coordinates.md
+        - Range-Time plots: user/range_time.md
+        - Coordinate-Time plots: user/coord_time.md 
+        - Time-Series plots: user/time_series.md 
+        - Summary plots: user/summary.md
+        - FOV plots: user/fov.md
+        - Fan plots: user/fan.md
+        - Grid plots: user/grid.md
+        - Convection Map plots: user/map.md
+        - Power plots: user/power.md
+        - ACF plots: user/acf.md
+        - IQ Plots: user/iq.md
+        - Filtering Data: user/filters.md
     - Workflow:
-                - Issues: dev/issues.md
-                - Branches: dev/branching.md
-                - Developing: dev/developing.md
-                - Unit Testing: dev/pytest.md
-                - Pull Requests: dev/PR.md 
-                - Testing: dev/testing.md
-                - Code Reviews: dev/code_review.md
-    - Release Guidelines: dev/releases.md
+        - Issues: dev/issues.md
+        - Branches: dev/branching.md
+        - Developing: dev/developing.md
+        - Unit Testing: dev/pytest.md
+        - Pull Requests: dev/PR.md 
+        - Testing: dev/testing.md
+        - Code Reviews: dev/code_review.md
+        - Release Guidelines: dev/releases.md
+        - pyDARN Team: dev/team.md
+        - Communication: dev/communication.md 
+        - Copyright and Licensing: dev/copyright_license.md
 
