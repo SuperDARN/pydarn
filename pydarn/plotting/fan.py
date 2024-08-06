@@ -457,7 +457,7 @@ class Fan:
                 extend = 'both'
 
             if cax is None:
-                cax = ax.inset_axes([1.04, 0.0, 0.05, 1.0])
+                cax = ax.inset_axes([1.1, 0.0, 0.05, 1.0])
             cb = ax.figure.colorbar(mappable, ax=ax, cax=cax, extend=extend,
                                     ticks=ticks)
 
@@ -666,7 +666,7 @@ class Fan:
                 extend = 'both'
 
             if cax is None:
-                cax = ax.inset_axes([1.04, 0.0, 0.05, 1.0])
+                cax = ax.inset_axes([1.1, 0.0, 0.05, 1.0])
             cb = ax.figure.colorbar(mappable, ax=ax, cax=cax, extend=extend,
                                     ticks=ticks)
 
