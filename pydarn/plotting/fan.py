@@ -427,10 +427,11 @@ class Fan:
 
         # plot the groundscatter as grey fill
         if groundscatter and not ball_and_stick:
+            gs_color = colors.ListedColormap(['grey'])
             ax.pcolormesh(thetas, rs,
                           np.ma.masked_array(grndsct,
                                              ~grndsct.astype(bool)),
-                          norm=norm, cmap='Greys',
+                          cmap=gs_color,
                           transform=transform, zorder=3)
         if ccrs is None:
             azm = np.linspace(0, 2 * np.pi, 100)
@@ -635,10 +636,11 @@ class Fan:
                       zorder=2)
         # Plot the groundscatter as grey fill
         if data_groundscatter != []:
+            gs_color = colors.ListedColormap(['grey'])
             ax.pcolormesh(thetas, rs,
                           np.ma.masked_array(grndsct,
                                              ~grndsct.astype(bool)),
-                          norm=norm, cmap='Greys',
+                          cmap=gs_color,
                           transform=transform, zorder=3)
         if ccrs is None:
             azm = np.linspace(0, 2 * np.pi, 100)
