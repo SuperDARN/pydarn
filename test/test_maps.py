@@ -20,7 +20,7 @@ import warnings
 import pydarn
 
 
-data = pydarn.SuperDARNRead('test/data/test.north.mp').read_map()
+data = pydarn.read_map('test/data/test.north.mp')
 
 
 class TestMap_defaults:
