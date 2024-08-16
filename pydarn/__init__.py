@@ -25,7 +25,16 @@ import os
 from .version import __version__
 
 # Import io for pyDARN
-from .io.superdarn_io import SuperDARNRead
+from .io.superdarn_io import read_borealis
+from pydarnio import (
+    read_iqdat,
+    read_rawacf,
+    read_fitacf,
+    read_grid,
+    read_map,
+    read_snd,
+    read_dmap,
+)
 
 # Importing pydarn exception classes
 from .exceptions import rtp_exceptions, plot_exceptions, radar_exceptions

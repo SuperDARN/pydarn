@@ -30,8 +30,7 @@ import matplotlib.pyplot as plt
 import pydarn
 
 fitacf_file = "20190831.C0.cly.fitacf"
-sdarn_read = pydarn.SuperDARNRead(fitacf_file)
-fitacf_data = sdarn_read.read_fitacf()
+fitacf_data = pydarn.read_fitacf(fitacf_file)
 
 ```
 
@@ -61,8 +60,7 @@ import matplotlib.pyplot as plt
 import pydarn
 
 fitacf_file = "20190831.C0.cly.fitacf"
-sdarn_read = pydarn.SuperDARNRead(fitacf_file)
-fitacf_data = sdarn_read.read_fitacf()
+fitacf_data = pydarn.read_fitacf(fitacf_file)
 
 pydarn.RTP.plot_range_time(fitacf_data, beam_num=fitacf_data[0]['bmnum'], range_estimation=pydarn.RangeEstimation.RANGE_GATE)
 plt.title("Radar {:d}, Beam {:d}".format(fitacf_data[0]['stid'], fitacf_data[0]['bmnum']))  
@@ -207,7 +205,7 @@ import matplotlib.pyplot as plt
 from matplotlib import colors
 
 rawacf_file = './data/20180404.0601.00.inv.rawacf'
-rawacf_data = pydarn.SuperDARNRead().read_dmap(rawacf_file)
+rawacf_data = pydarn.read_dmap(rawacf_file)
 lognorm=colors.LogNorm
 
 pydarn.RTP.plot_range_time(rawacf_data, beam_num=0, parameter='pwr0',

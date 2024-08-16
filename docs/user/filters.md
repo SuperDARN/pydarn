@@ -35,8 +35,7 @@ available by evoking the `Boxcar` instance after reading a file.
 import pydarn
 
 fitacf_file = "datafilename.fitacf"
-darn_read = pydarn.SuperDARNRead(fitacf_file)
-fitacf_data = darn_read.read_fitacf()
+fitacf_data = pydarn.read_fitacf(fitacf_file)
 
 # Evoke filter on data
 bx = pydarn.Boxcar(
@@ -52,13 +51,10 @@ the code below produces comparisons between summary plots and fan plots for the 
 time frame. 
 
 ```python
-import bz2
 import matplotlib.pyplot as plt
 import pydarn
 
-with bz2.open('fitacffilename.fitacf.bz2') as fp:
-    fitacf_stream = fp.read()
-fitacf_data = pydarn.SuperDARNRead(fitacf_stream, True).read_fitacf()
+fitacf_data = pydarn.read_fitacf('fitacffilename.fitacf.bz2')
 
 # Before filtering:
 pydarn.RTP.plot_summary(fitacf_data, beam_num=7,
