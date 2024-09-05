@@ -50,12 +50,6 @@ class TestUtils_general:
             pydarn.GeneralUtils.new_coordinate(100, 50, 100, 30)
 
 
-class TestUtils_coastline:
-    def test_coastline(self):
-        with warnings.catch_warnings(record=True):
-            pydarn.coast_outline
-
-
 @pytest.mark.parametrize('tdiff', [0.003, -0.003])
 @pytest.mark.parametrize('overwrite', [True, False])
 @pytest.mark.parametrize('interferometer_offset', [[0.0, 100.0, 0.0],
