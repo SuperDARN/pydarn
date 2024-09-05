@@ -25,7 +25,6 @@
 Code which generates axis objects for use in plotting functions
 """
 import aacgmv2
-import cartopy
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 from cartopy.feature.nightshade import Nightshade
@@ -34,10 +33,8 @@ import matplotlib.pyplot as plt
 from matplotlib import axes
 import matplotlib.ticker as mticker
 import numpy as np
-from packaging import version
 
-from pydarn import (Hemisphere, plot_exceptions, Re,
-                    nightshade_warning)
+from pydarn import (Hemisphere, Re, nightshade_warning)
 
 
 def convert_geo_coastline_to_mag(geom, date, alt: float = 0.0, mag_lon: bool = False):

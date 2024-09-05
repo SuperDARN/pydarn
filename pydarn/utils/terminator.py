@@ -16,11 +16,8 @@
 # Modification:
 # 
 
-import aacgmv2
-
 import numpy as np
 import datetime as dt
-import matplotlib.pyplot as plt
 
 from pydarn import Re
 
@@ -151,11 +148,11 @@ def solar_geometric_mean_longitude(centuries):
     """
     # Mean longitude of sun at base julian date = 280.46646 degrees
     # Corrections from J.Meeus Astronomical Algorithms book
-    l = (280.46646 + centuries * (36000.76983 + centuries * 0.0003032)) % 360
+    el = (280.46646 + centuries * (36000.76983 + centuries * 0.0003032)) % 360
     # Give value between 0 and 360
-    if l < 0:
-        l = l + 360
-    mean_long = np.radians(l)
+    if el < 0:
+        el = el + 360
+    mean_long = np.radians(el)
     return mean_long
 
 
@@ -234,11 +231,11 @@ def equation_of_time(centuries):
     # http://www.esrl.noaa.gov/gmd/grad/solcalc/
     e = eccentricity_earths_orbit(centuries)
     m = solar_geometric_mean_anomaly(centuries)
-    l = solar_geometric_mean_longitude(centuries)
+    el = solar_geometric_mean_longitude(centuries)
     y = np.tan(obliquity_correction(centuries) /2)
-    time_eq = y * np.sin(2 * l) - 2 * e * np.sin(m) + 4 * e * y * np.sin(m)\
-              * np.cos(2 * l) - 0.5 * y * y * np.sin(4 * l)\
-              - 1.25 * e * e * np.sin(2 * m);
+    time_eq = y * np.sin(2 * el) - 2 * e * np.sin(m) + 4 * e * y * np.sin(m)\
+              * np.cos(2 * el) - 0.5 * y * y * np.sin(4 * el)\
+              - 1.25 * e * e * np.sin(2 * m)
     return time_eq
 
 

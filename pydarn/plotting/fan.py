@@ -272,6 +272,8 @@ class Fan:
                     'w_l': PyDARNColormaps.PYDARN_VIRIDIS,
                     'elv': PyDARNColormaps.PYDARN_INFERNO}
             cmap = cmap[parameter]
+        else:
+            cmap = cm.get_cmap(cmap)
 
         # Set background to transparent - avoids carry over
         # does not interfere with the fov color if chosen
@@ -425,10 +427,11 @@ class Fan:
 
         # plot the groundscatter as grey fill
         if groundscatter and not ball_and_stick:
+            gs_color = colors.ListedColormap(['grey'])
             ax.pcolormesh(thetas, rs,
                           np.ma.masked_array(grndsct,
                                              ~grndsct.astype(bool)),
-                          norm=norm, cmap='Greys',
+                          cmap=gs_color,
                           transform=transform, zorder=3)
         if ccrs is None:
             azm = np.linspace(0, 2 * np.pi, 100)
@@ -454,7 +457,7 @@ class Fan:
                 extend = 'both'
 
             if cax is None:
-                cax = ax.inset_axes([1.04, 0.0, 0.05, 1.0])
+                cax = ax.inset_axes([1.1, 0.0, 0.05, 1.0])
             cb = ax.figure.colorbar(mappable, ax=ax, cax=cax, extend=extend,
                                     ticks=ticks)
 
@@ -471,7 +474,8 @@ class Fan:
 
         if determine_embargo(start_time,
                              matching_records[0]['cp'],
-                             matching_records[0]['stid']):
+                             SuperDARNRadars.radars[
+                                matching_records[0]['stid']].name):
             add_embargo(plt.gcf())
 
         return {'ax': ax,
@@ -584,10 +588,8 @@ class Fan:
                    gates=[0, len(data_array)], date=data_datetime,
                    **kwargs)
 
-        fan_shape = beam_corners_lons.shape
-
         rs = beam_corners_lats
-        if projs != Projs.GEO:
+        if projs == Projs.POLAR:
             thetas = np.radians(beam_corners_lons)
         else:
             thetas = beam_corners_lons
@@ -603,6 +605,8 @@ class Fan:
                     'w_l': PyDARNColormaps.PYDARN_VIRIDIS,
                     'elv': PyDARNColormaps.PYDARN_INFERNO}
             cmap = cmap[data_parameter]
+        else:
+            cmap = cm.get_cmap(cmap)
 
         # Set background to transparent - avoids carry over
         # does not interfere with the fov color if chosen
@@ -632,10 +636,11 @@ class Fan:
                       zorder=2)
         # Plot the groundscatter as grey fill
         if data_groundscatter != []:
+            gs_color = colors.ListedColormap(['grey'])
             ax.pcolormesh(thetas, rs,
                           np.ma.masked_array(grndsct,
                                              ~grndsct.astype(bool)),
-                          norm=norm, cmap='Greys',
+                          cmap=gs_color,
                           transform=transform, zorder=3)
         if ccrs is None:
             azm = np.linspace(0, 2 * np.pi, 100)
@@ -661,7 +666,7 @@ class Fan:
                 extend = 'both'
 
             if cax is None:
-                cax = ax.inset_axes([1.04, 0.0, 0.05, 1.0])
+                cax = ax.inset_axes([1.1, 0.0, 0.05, 1.0])
             cb = ax.figure.colorbar(mappable, ax=ax, cax=cax, extend=extend,
                                     ticks=ticks)
 
@@ -670,8 +675,6 @@ class Fan:
         else:
             cb = None
 
-        # Determine embargo status
-        #cls.__determine_embargo(time2datetime(dmap_data[plot_beams[-1][-1]])
         return {'ax': ax,
                 'ccrs': ccrs,
                 'cm': cmap,
@@ -783,7 +786,7 @@ class Fan:
         # This section corrects winding order for cartopy plots on a sphere
         # so that the outline is always anti-clockwise and will fill inside
         bmsep = SuperDARNRadars.radars[stid].hardware_info.beam_separation
-        if projs == Projs.GEO and bmsep < 0:
+        if projs != Projs.POLAR and bmsep < 0:
             beam_corners_lons = beam_corners_lons[::-1]
             beam_corners_lats = beam_corners_lats[::-1]
 
