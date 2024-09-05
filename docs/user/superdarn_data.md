@@ -15,10 +15,17 @@ the additional permissions listed below.
 
 pyDARN does not provide an interface for downloading data. However, there are other means of getting access to the data. 
 
-The [Data Distribution Working Group (DDWG)](https://github.com/SuperDARN/DDWG) manages the checking and distribution of data. If you have any inquiries, please contact the chair Kevin Krieger at superdarn@usask.ca or submit an [issue on DDWG repo](https://github.com/SuperDARN/DDWG/issues)
+The [Data Distribution Working Group (DDWG)](https://github.com/SuperDARN/DDWG) manages the checking and distribution of data. If you have any inquiries, please contact the chair or submit an [issue on DDWG repo](https://github.com/SuperDARN/DDWG/issues)
+
 
 ## Data Mirrors
-To get access to the data, there are two possible data servers: one utilizes *Globus*, and one uses `rsync`, `sftp` and `scp`: 
+To get access to rawacf, fitacf and sometimes higher lever data, there are three possible data servers: one utilizes *Globus*, others use `rsync`, `sftp` and `scp`:
 
   - [SuperDARN Canada](https://superdarn.ca/): uses [Globus](https://github.com/SuperDARNCanada/globus) to allow access to the SuperDARN data. 
   - [BAS](https://www.bas.ac.uk/project/superdarn/#about): information on data access can be found [here](https://www.bas.ac.uk/project/superdarn/#data)
+  - [NSSC](https://www.nssdc.ac.cn/nssdc_en/html/task/sdarn.html): please contact NSSC for access.
+
+
+## RAWACF Data
+Raw data with DOI's can be accessed on [FRDR](https://www.frdr-dfdr.ca/repo/collection/superdarn).
+These data are published once all gaps are checked and PIs are happy with the collection for each year and no data is under embargo. This process can take up to two years, recent rawacf data can be supplied by the mirrors above. 

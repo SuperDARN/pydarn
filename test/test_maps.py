@@ -12,7 +12,6 @@
 # and conditions of version 3 of the GNU General Public License,
 # supplemented by the additional permissions listed below.
 
-import datetime as dt
 import matplotlib.pyplot as plt
 import pytest
 import warnings

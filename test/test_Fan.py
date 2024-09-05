@@ -74,7 +74,7 @@ class TestFov:
 @pytest.mark.parametrize('cmap', [plt.get_cmap('rainbow')])
 @pytest.mark.parametrize('groundscatter', [True])
 @pytest.mark.parametrize('colorbar', [False])
-@pytest.mark.parametrize('colorbar_label', 'green')
+@pytest.mark.parametrize('colorbar_label', ['stringhere'])
 @pytest.mark.parametrize('zmin', [0])
 @pytest.mark.parametrize('zmax', [100])
 @pytest.mark.parametrize('title', [False])

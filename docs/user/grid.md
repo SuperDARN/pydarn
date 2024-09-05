@@ -17,19 +17,10 @@ the additional permissions listed below.
 
 Grid plots are a way to visualise data from a GRID file of a SuperDARN radar(s). Please read RST documentation on how to process [GRID files and GRD files](https://radar-software-toolkit-rst.readthedocs.io/en/latest/user_guide/make_grid/) from FITACF files.    
 
-Gridded [parameters](https://radar-software-toolkit-rst.readthedocs.io/en/latest/references/general/grid/) given in a grid file are:
-
-| Name                    | parameter name |
-| ----------------------- | -------------- |
-| Line-of-sight Velocity | `vec`          |
-| Power                   | `pwr`          |
-| Spectral Width          | `wdt`          |
-
-and a time or record number projected onto a polar format plot in [AACGMv2](http://superdarn.thayer.dartmouth.edu/aacgm.html) coordinates. 
 
 ### Basic usage
 
-pyDARN and pyplot need to be imported and the desired GRID file needs to be [read in](https://pydarn.readthedocs.io/en/latest/user/SDarnRead/):
+Read in the desired [GRID file](https://pydarn.readthedocs.io/en/main/user/io/).:
 
 ```python
 import matplotlib.pyplot as plt
