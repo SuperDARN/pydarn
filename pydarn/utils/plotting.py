@@ -31,6 +31,7 @@ class MapParams(enum.Enum):
     FITTED_VELOCITY = "fitted"
     MODEL_VELOCITY = "model.vel.median"
     RAW_VELOCITY = "vector.vel.median"
+    TRUE_VELOCITY = "true"
     POWER = "vector.pwr.median"
     SPECTRAL_WIDTH = "vector.wdt.median"
 
