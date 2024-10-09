@@ -959,7 +959,7 @@ class Fan:
                             markersize: int = 5,
                             **kwargs):
         """
-        plots only a dot at the position of a given radar station ID (stid)
+        Plots a symbol at the position of a given radar station ID (stid)
 
         Parameters
         -----------
@@ -974,10 +974,10 @@ class Fan:
             coords: Coords object
             projs: Projs object
             line_color: str
-                Color of the dot
+                Color of the symbol
                 Default: black
             marker: str
-                Controls the symbol plotted.
+                Controls which symbol is plotted.
                 Default: "."
                 See https://matplotlib.org/stable/api/markers_api.html#module-matplotlib.markers for options
             markersize: int
