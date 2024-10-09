@@ -52,7 +52,6 @@ from typing import List
 # Third party libraries
 import aacgmv2
 
-import pydarn
 from pydarn import (PyDARNColormaps, partial_record_warning,
                     time2datetime, plot_exceptions, SuperDARNRadars, RadarID,
                     calculate_azimuth, Projs, Coords,
