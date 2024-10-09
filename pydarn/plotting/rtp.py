@@ -324,7 +324,7 @@ class RTP:
                     x.append(x[-1] + timedelta(0, 120))
                     i = len(x) - 1  # offset since we start at 0 not 1
                     if i > 0:
-                        z = np.insert(z, len(z), np.zeros(1, y_max) * np.nan,
+                        z = np.insert(z, len(z), np.zeros([1, y_max]) * np.nan,
                                       axis=0)
             # Get data for the provided beam number
             if (beam_num == 'all' or dmap_record['bmnum'] == beam_num) and\
@@ -341,7 +341,7 @@ class RTP:
 
                     # insert a new column into the z_data
                     if i > 0:
-                        z = np.insert(z, len(z), np.zeros(1, y_max) * np.nan,
+                        z = np.insert(z, len(z), np.zeros([1, y_max]) * np.nan,
                                       axis=0)
                     try:
                         if len(dmap_record[parameter]) == dmap_record['nrang']:
@@ -1709,7 +1709,7 @@ class RTP:
                     x.append(x[-1] + timedelta(0, 120))
                     i = len(x) - 1  # offset since we start at 0 not 1
                     if i > 0:
-                        z = np.insert(z, len(z), np.zeros(1, y_max) * np.nan,
+                        z = np.insert(z, len(z), np.zeros([1, y_max]) * np.nan,
                                       axis=0)
             # Get data for the provided beam number
             if (beam_num == 'all' or dmap_record['bmnum'] == beam_num) and\
@@ -1726,7 +1726,7 @@ class RTP:
 
                     # insert a new column into the z_data
                     if i > 0:
-                        z = np.insert(z, len(z), np.zeros(1, y_max) * np.nan,
+                        z = np.insert(z, len(z), np.zeros([1, y_max]) * np.nan,
                                       axis=0)
                     try:
                         if len(dmap_record[parameter]) == dmap_record['nrang']:
