@@ -52,8 +52,9 @@ from typing import List
 # Third party libraries
 import aacgmv2
 
+import pydarn
 from pydarn import (PyDARNColormaps, partial_record_warning,
-                    time2datetime, plot_exceptions, SuperDARNRadars,
+                    time2datetime, plot_exceptions, SuperDARNRadars, RadarID,
                     calculate_azimuth, Projs, Coords,
                     find_records_by_datetime, find_records_by_scan,
                     determine_embargo, add_embargo)
@@ -491,14 +492,14 @@ class Fan:
 
 
     @staticmethod
-    def plot_fan_input(data_array: list = [], data_datetime: dt.datetime = [], 
-                 ax: object = None, stid: int = None, data_groundscatter: list = [], 
-                 rsep: int = 45, frang: int = 180,
-                 data_parameter: str = 'v', cmap: str = None, zmin: int = None,
-                 zmax: int = None, colorbar: bool = True,
-                 colorbar_label: str = '', cax=None, boundary: bool = True,
-                 projs: Projs = Projs.POLAR,
-                 coords: Coords = Coords.AACGM_MLT, **kwargs):
+    def plot_fan_input(data_array: list = [], data_datetime: dt.datetime = [],
+                       ax: object = None, stid: RadarID = None, data_groundscatter: list = [],
+                       rsep: int = 45, frang: int = 180,
+                       data_parameter: str = 'v', cmap: str = None, zmin: int = None,
+                       zmax: int = None, colorbar: bool = True,
+                       colorbar_label: str = '', cax=None, boundary: bool = True,
+                       projs: Projs = Projs.POLAR,
+                       coords: Coords = Coords.AACGM_MLT, **kwargs):
         """
         Plots a radar's Field Of View (FOV) fan plot for the given data and
         scan number
@@ -522,7 +523,7 @@ class Fan:
             frang: int
                 Kilometers to first range.
                 Default: 180
-            stid: int
+            stid: RadarID
                 StationID of the radar of interest
             data_parameter: str
                 Key name indicating which parameter to plot.
@@ -687,7 +688,7 @@ class Fan:
                 }
 
     @staticmethod
-    def plot_fov(stid: int, date: dt.datetime,
+    def plot_fov(stid: RadarID, date: dt.datetime,
                  ax=None, ccrs=None, ranges: List = None, boundary: bool = True,
                  rsep: int = 45, frang: int = 180,
                  projs: Projs = Projs.POLAR,
@@ -702,7 +703,7 @@ class Fan:
 
         Parameters
         -----------
-            stid: int
+            stid: RadarID
                 Radar station ID
             ax: matplotlib.axes.Axes
                 Pre-defined axis object to pass in.
@@ -907,7 +908,7 @@ class Fan:
                 }
 
     @staticmethod
-    def get_gate_azm(theta: float, r: float, stid: int, coords, date):
+    def get_gate_azm(theta: float, r: float, stid: RadarID, coords, date):
         """
         gets the azimuth of the gate, requires some changes depending on
         coordinates before using calculate_azimuth
@@ -918,7 +919,7 @@ class Fan:
                 longitude
             r: float
                 latitude
-            stid: int
+            stid: RadarID
                 station id of radar
             coords: Enum
                 enumeration of coordinate system
@@ -948,7 +949,7 @@ class Fan:
         return azm
 
     @staticmethod
-    def plot_radar_position(stid: int, ax: axes.Axes,
+    def plot_radar_position(stid: RadarID, ax: axes.Axes,
                             date: dt.datetime,
                             transform: object = None,
                             coords: Coords = Coords.AACGM_MLT,
@@ -959,7 +960,7 @@ class Fan:
 
         Parameters
         -----------
-            stid: int
+            stid: RadarID
                 Radar station ID
             ax: matplotlib.axes.Axes
                 Pre-defined axis object to plot on.
@@ -996,7 +997,7 @@ class Fan:
         return
 
     @staticmethod
-    def plot_radar_label(stid: int, ax: axes.Axes,
+    def plot_radar_label(stid: RadarID, ax: axes.Axes,
                          date: dt.datetime,
                          coords: Coords = Coords.AACGM_MLT,
                          projs: Projs = Projs.POLAR,
@@ -1007,7 +1008,7 @@ class Fan:
 
         Parameters
         -----------
-            stid: int
+            stid: RadarID
                 Radar station ID
             ax: matplotlib.axes.Axes
                 Pre-defined axis object to plot on.
