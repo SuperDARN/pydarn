@@ -26,6 +26,7 @@
 # 2023-08-16: CJM - Corrected for winding order in geo plots
 # 2023-06-28: CJM - Refactored return values
 # 2023-10-14: CJM - Add embargoed data method
+# 2024-10-09: DDB - Control marker and its size in plot_radar_position()
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
@@ -953,7 +954,10 @@ class Fan:
                             transform: object = None,
                             coords: Coords = Coords.AACGM_MLT,
                             projs: Projs = Projs.POLAR,
-                            line_color: str = 'black', **kwargs):
+                            line_color: str = 'black',
+                            marker: str = '.',
+                            markersize: int = 5,
+                            **kwargs):
         """
         plots only a dot at the position of a given radar station ID (stid)
 
@@ -964,14 +968,21 @@ class Fan:
             ax: matplotlib.axes.Axes
                 Pre-defined axis object to plot on.
             date: datetime.datetime
-                sets the datetime used to find the coordinates of the
+                Sets the datetime used to find the coordinates of the
                 FOV
             transform:
             coords: Coords object
             projs: Projs object
             line_color: str
-                color of the dot
-                default: black
+                Color of the dot
+                Default: black
+            marker: str
+                Controls the symbol plotted.
+                Default: "."
+                See https://matplotlib.org/stable/api/markers_api.html#module-matplotlib.markers for options
+            markersize: int
+                Controls the size of the symbol plotted, "s" passed to ax.scatter().
+                Default: 5
 
         Returns
         -------
@@ -992,7 +1003,7 @@ class Fan:
         if projs == Projs.POLAR:
             lon = np.radians(lon)
         # Plot a dot at the radar site
-        ax.scatter(lon, lat, c=line_color, s=5, transform=transform)
+        ax.scatter(lon, lat, c=line_color, s=markersize, transform=transform, marker=marker)
         return
 
     @staticmethod
