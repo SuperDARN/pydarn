@@ -227,12 +227,11 @@ data_groundscatter = [(np.zeros(16)).tolist() for x in range(75)]
 for i in range(30,40):
     data_groundscatter[i] = (np.ones(16)).tolist()
 
-stid = 5
 data_datetime = dt.datetime(2024,1,1,0,0)
 
 pydarn.Fan.plot_fan_input(data_array=data_array,
                           data_datetime=data_datetime,
-                          stid=stid,
+                          stid=pydarn.RadarID.SAS,
                           data_groundscatter = data_groundscatter,
                           data_parameter='v',
                           zmin=-400,zmax=400, lowlat=50, coastline=True)
