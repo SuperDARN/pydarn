@@ -28,6 +28,9 @@
 Range-Time Parameter (aka Intensity) plots
 """
 import copy
+
+import cartopy.geodesic
+import matplotlib.cm
 import matplotlib.pyplot as plt
 import numpy as np
 import warnings
@@ -40,7 +43,8 @@ from pydarn import (RangeEstimation, check_data_type, Coords,
                     time2datetime, rtp_exceptions, plot_exceptions,
                     SuperDARNCpids, SuperDARNRadars,
                     standard_warning_format, PyDARNColormaps,
-                    determine_embargo, add_embargo)
+                    determine_embargo, add_embargo, terminator as calc_terminator)
+from pydarn.utils.coordinates import gate2geographic_location
 
 warnings.formatwarning = standard_warning_format
 
@@ -88,7 +92,9 @@ class RTP:
                         norm=colors.Normalize, cmap: str = None,
                         filter_settings: dict = {},
                         date_fmt: str = '%y/%m/%d\n %H:%M',
-                        round_start: bool = True, **kwargs):
+                        round_start: bool = True,
+                        terminator: bool = False,
+                        **kwargs):
         """
         Plots a range-time parameter plot of the given
         field name in the dmap_data
@@ -195,6 +201,8 @@ class RTP:
                 option to round the start time to give tick at start of xaxis
                 Set True to round, set False to plot from start of data.
                 Default: True
+        terminator: bool=False
+                Flag to include the terminator (day/night boundary) and shade the night-side
         kwargs:
             used for other methods in pyDARN
                 - reflection_height
@@ -341,7 +349,7 @@ class RTP:
 
                     # insert a new column into the z_data
                     if i > 0:
-                        z = np.insert(z, len(z), np.zeros(1, y_max) * np.nan,
+                        z = np.insert(z, len(z), np.zeros((1, y_max)) * np.nan,
                                       axis=0)
                     try:
                         if len(dmap_record[parameter]) == dmap_record['nrang']:
@@ -446,6 +454,27 @@ class RTP:
             gs_color = colors.ListedColormap(['grey'])
             ax.pcolormesh(time_axis, y_axis, ground_scatter, lw=0.01,
                           cmap=gs_color, norm=norm, **kwargs)
+
+        if terminator:
+            height = 300  # km
+
+            # [num_ranges, 2] holding the [lat, lon] for each range gate
+            geographic_points = np.array([
+                gate2geographic_location(cls.dmap_data[0]["stid"], beam_num, height, center=True, range_gate=rg)
+                for rg in y
+            ])
+            # switch to [lon, lat] for compatibility with cartopy geodesic calculations
+            geographic_points = np.flip(geographic_points, axis=1)
+
+            # [num_times, num_ranges] indicating if the cell is in darkness at that time
+            is_night = np.zeros((y.shape[0], len(x)), dtype=bool)
+            geodesic = cartopy.geodesic.Geodesic()
+            for i, t in enumerate(x):
+                anti_point, arc_ang, _ = calc_terminator(t, height)
+                distance_to_antisolar_point = geodesic.inverse(anti_point, geographic_points)[:, 0] / 1000.0  # convert to km
+                is_night[:, i] = distance_to_antisolar_point < arc_ang
+
+            ax.pcolormesh(time_axis, y_axis, is_night, cmap=matplotlib.cm.get_cmap('binary'), zorder=0, alpha=0.5)
 
         # setup some standard axis information
         if ymax is None:
