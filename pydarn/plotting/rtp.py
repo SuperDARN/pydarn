@@ -80,7 +80,7 @@ class RTP:
     @classmethod
     def plot_range_time(cls, dmap_data: List[dict], parameter: str = 'v',
                         beam_num: int = 0, channel: int = 'all', ax=None,
-                        background: str = 'w', background_alpha: float = 1.0,
+                        background: str = 'w', background_alpha: float = 0.0,
                         groundscatter: bool = False,
                         zmin: int = None, zmax: int = None,
                         start_time: datetime = None, end_time: datetime = None,
@@ -130,7 +130,7 @@ class RTP:
             default: white
         background_alpha : float
             alpha (transparency) of the background in the plot
-            default: 1.0 (opaque)
+            default: 0.0 (transparent)
         zmin: int
             Minimum normalized value
             Default: minimum parameter value in the data set
@@ -467,14 +467,18 @@ class RTP:
             geographic_points = np.flip(geographic_points, axis=1)
 
             # [num_times, num_ranges] indicating if the cell is in darkness at that time
-            is_night = np.zeros((y.shape[0], len(x)), dtype=bool)
+            is_night = np.zeros_like(time_axis, dtype=np.int8)
             geodesic = cartopy.geodesic.Geodesic()
             for i, t in enumerate(x):
                 anti_point, arc_ang, _ = calc_terminator(t, height)
                 distance_to_antisolar_point = geodesic.inverse(anti_point, geographic_points)[:, 0] / 1000.0  # convert to km
                 is_night[:, i] = distance_to_antisolar_point < arc_ang
-
-            ax.pcolormesh(time_axis, y_axis, is_night, cmap=matplotlib.cm.get_cmap('binary'), zorder=0, alpha=0.5)
+            ax.pcolormesh(time_axis, y_axis, is_night,
+                          cmap=colors.ListedColormap(['white', 'gray']),
+                          zorder=0.5,
+                          vmin=0,
+                          vmax=1,
+                          alpha=0.7)
 
         # setup some standard axis information
         if ymax is None:
@@ -903,6 +907,7 @@ class RTP:
                      latlon: str = None, coords: object = Coords.AACGM,
                      vector_parameters: list = [('p_l'), ('v'),
                                                 ('w_l'), ('elv')],
+                     terminator: bool = False,
                      **kwargs):
         """
         Plots the summary of several SuperDARN parameters using time-series and
@@ -991,6 +996,8 @@ class RTP:
             Required parameters for plotting in the summary plot
             Must be a subset of the default list below
             default:[('p_l'), ('v'), ('w_l'), ('elv')]
+        terminator: bool=False
+            Flag to include the terminator (day/night boundary) and shade the night-side
         kwargs:
             reflection_height for ground_scatter_mapped method
             background
@@ -1294,6 +1301,7 @@ class RTP:
                                             yspacing=500,
                                             background=background,
                                             range_estimation=range_estimation,
+                                            terminator=terminator,
                                             **kwargs)
                     else:
                         rt_rtn =\
