@@ -30,7 +30,6 @@ Range-Time Parameter (aka Intensity) plots
 import copy
 
 import cartopy.geodesic
-import matplotlib.cm
 import matplotlib.pyplot as plt
 import numpy as np
 import warnings
