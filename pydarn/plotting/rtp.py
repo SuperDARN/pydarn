@@ -1832,8 +1832,9 @@ class RTP:
         # The dropped gates are always at the start of the array, so we drop down our `z` and
         # `range_gates` arrays to match
         num_gates = len(lats) - 1
-        z = z[:, -num_gates-1:-1]
-        range_gates = range_gates[-num_gates-1:-1]
+        if num_gates != len(range_gates):
+            z = z[:, -(num_gates + 1):-1]
+            range_gates = range_gates[-(num_gates+1):-1]
 
         if latlon == 'lat':
             y = lats[:, beam_num]
@@ -1937,7 +1938,7 @@ class RTP:
             geographic_points = np.flip(geographic_points, axis=1)
 
             # [num_times, num_ranges] indicating if the cell is in darkness at that time
-            is_night = np.zeros((len(range_gates), time_axis.shape[1]), dtype=np.int8)
+            is_night = np.zeros((len(range_gates), time_axis.shape[1]), dtype=bool)
             geodesic = cartopy.geodesic.Geodesic()
             for i, t in enumerate(x):
                 anti_point, arc_ang, _ = calc_terminator(t, height)
@@ -1945,11 +1946,12 @@ class RTP:
                 is_night[:, i] = distance_to_antisolar_point < arc_ang
             ax.pcolormesh(time_axis, y_axis, is_night[:, :-1],
                           cmap=colors.ListedColormap(['white', 'gray']),
-                          shading='flat',
+                          shading='auto',
                           zorder=0.5,
                           vmin=0,
                           vmax=1,
-                          alpha=0.7)
+                          alpha=0.5
+                          )
 
         # setup some standard axis information
         if ymax is None:
