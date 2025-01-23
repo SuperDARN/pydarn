@@ -9,21 +9,13 @@ Python data visualization library for the Super Dual Auroral Radar Network (Supe
 
 ## Changelog
 
-## Version 4.1 - Minor Release!
+## Version 4.1.1 - Patch Release!
 
-This minor release includes: 
-- **NEW** MAG projection
-- **NEW** 'Zooming-in' on GEO and MAG projections
-- **NEW** NSSC Radars Included
-- **NEW** Calculation of Potential at Lat/Lon Position from Map Files
-- **NEW** Map Potential Time-Series Plots at Lat/Lon Position
-- **NEW** User Input Fan Plots
-- Cartopy now a full dependency
-- Updates to fan plots for usability including `scan_time` and `scan_time_tolerance` keywords
-- Embargo warning for -CPID data that is less than a year old
-- Coordinates converted to magnetic coordinates more efficiently
-- **Bug fix** Map plots `lowlat` default discrepancy fixed
-
+This patch release includes:
+- matplotlib v3.10 support (fixed incompatibility)
+- scipy dependency capped at v1.14.1
+- **NEW** `marker` and `markersize` kwargs for `pydarn.Fan.plot_radar_position()`
+- **NEW** `pydarn.RadarID` enum abstracting away the station ID numbers of each radar
 
 ## Documentation
 
