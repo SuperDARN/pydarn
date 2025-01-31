@@ -44,7 +44,7 @@ from typing import List
 # Third party libraries
 import aacgmv2
 
-from pydarn import (PyDARNColormaps, plot_exceptions,
+from pydarn import (PyDARNColormaps, plot_exceptions, RadarID,
                     standard_warning_format, Re, Hemisphere,
                     time2datetime, find_record, Fan, Projs,
                     MapParams, TimeSeriesParams)
@@ -208,14 +208,14 @@ class Maps:
             # Needs to find the positions for each
             # Else just call the axis maker: proj
             if boundary or radar_location:
-                fan_rtn = Fan.plot_fov(dmap_data[record]['stid'][0], date, 
+                fan_rtn = Fan.plot_fov(RadarID(dmap_data[record]['stid'][0]), date,
                                        ax=ax, boundary=boundary,
                                        radar_location=radar_location,
                                        **kwargs)
                 ax = fan_rtn['ax']
                 ccrs = fan_rtn['ccrs']
                 for stid in dmap_data[record]['stid'][1:]:
-                    fan_rtn = Fan.plot_fov(stid, date, ax=ax,
+                    fan_rtn = Fan.plot_fov(RadarID(stid), date, ax=ax,
                                            boundary=boundary, ccrs=ccrs,
                                            radar_location=radar_location,
                                            **kwargs)

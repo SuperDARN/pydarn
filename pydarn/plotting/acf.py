@@ -31,7 +31,7 @@ from typing import List
 
 from pydarn import (plot_exceptions, SuperDARNRadars,
                     standard_warning_format, time2datetime,
-                    check_data_type)
+                    check_data_type, RadarID)
 
 warnings.formatwarning = standard_warning_format
 
@@ -344,7 +344,7 @@ class ACF:
             plt.subplots_adjust(right=0.8)
 
         # Set title of Plot
-        radar_name = SuperDARNRadars.radars[dmap_data[0]['stid']].name
+        radar_name = SuperDARNRadars.radars[RadarID(dmap_data[0]['stid'])].name
         title = "{date} UT {radar} Beam {beam}, Gate {gate}, Control "\
                 "Program: {cpid}"\
                 "".format(radar=radar_name, beam=beam_num, gate=gate_num,
