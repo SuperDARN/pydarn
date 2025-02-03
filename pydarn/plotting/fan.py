@@ -693,11 +693,11 @@ class Fan:
                  rsep: int = 45, frang: int = 180,
                  projs: Projs = Projs.POLAR,
                  coords: Coords = Coords.AACGM_MLT,
-                 fov_color: str = None, alpha: int = 0.5,
+                 fov_color: str = None, alpha: float = 0.5,
                  radar_location: bool = True, radar_label: bool = False,
                  line_color: str = 'black',
                  grid: bool = False, beam: int = None,
-                 line_alpha: int = 0.5, **kwargs):
+                 line_alpha: float = 0.5, **kwargs):
         """
         plots only the field of view (FOV) for a given radar station ID (stid)
 
