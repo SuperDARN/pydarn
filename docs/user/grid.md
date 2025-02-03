@@ -65,7 +65,7 @@ In addition to the gridded line-of-sight velocity, you can choose one of two oth
 Here is a list of all the current options than can be used with `plot_grid`
 
 | Option                         | Action                                                                                |
-| ------------------------------ | ------------------------------------------------------------------------------------- |
+|--------------------------------| ------------------------------------------------------------------------------------- |
 | record=(int)                   | Record number to plot                                                                 |
 | start_time=(datetime.datetime) | The start time of the record to plot                                                  |
 | time_delta=(int)               | How close to the start time to be to the start time of the record                     |
@@ -77,12 +77,12 @@ Here is a list of all the current options than can be used with `plot_grid`
 | colorbar=(bool)                | Set true to plot a colorbar (default: True)                                           |
 | colorbar_label=(string)        | Label for the colour bar (requires colorbar to be true)                               |
 | title=(str)                    | To add a title to the plot                                                            |
-| radar_label=(str)        | To include a dot at radar location and label of 3 letter code |
-| fov_color=(str)           | Fill color of fov                                                         |
-| line_color=(str)      | Fill color of fov lines                                                                          |
+| radar_label=(str)              | To include a dot at radar location and label of 3 letter code |
+| fov_color=(str)                | Fill color of fov                                                         |
+| line_color=(str)               | Fill color of fov lines                                                                          |
 | coastline=(bool)               | Plots outlines of coastlines below grid data      |
-| coords=(Coords)               | [Coordinates](coordinates.md) for the data to be plotted in                                             |
-| projs=(Projs)                 | Projections to plot the data on top of                                                                  |
+| coords=(Coords)                | [Coordinates](coordinates.md) for the data to be plotted in                                             |
+| projs=(Projs)                  | Projections to plot the data on top of                                                                  |
 
 As an example, the following code plots multiple radar Grid plot:
 ```python

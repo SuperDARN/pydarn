@@ -26,6 +26,7 @@
 # 2023-08-16: CJM - Corrected for winding order in geo plots
 # 2023-06-28: CJM - Refactored return values
 # 2023-10-14: CJM - Add embargoed data method
+# 2024-10-09: DDB - Control marker and its size in plot_radar_position()
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
@@ -53,7 +54,7 @@ from typing import List
 import aacgmv2
 
 from pydarn import (PyDARNColormaps, partial_record_warning,
-                    time2datetime, plot_exceptions, SuperDARNRadars,
+                    time2datetime, plot_exceptions, SuperDARNRadars, RadarID,
                     calculate_azimuth, Projs, Coords,
                     find_records_by_datetime, find_records_by_scan,
                     determine_embargo, add_embargo)
@@ -214,7 +215,7 @@ class Fan:
             date = time2datetime(matching_records[0])
 
         # Plot FOV outline
-        stid = dmap_data[0]['stid']
+        stid = RadarID(dmap_data[0]['stid'])
         if ranges == [] or ranges is None:
             try:
                 # If not given, get ranges from data file
@@ -247,7 +248,7 @@ class Fan:
                                                  "/SuperDARN/pyDARN")
 
         beam_corners_lats, beam_corners_lons =\
-            coords(stid=dmap_data[0]['stid'], rsep=rsep, frang=frang,
+            coords(stid=RadarID(dmap_data[0]['stid']), rsep=rsep, frang=frang,
                    gates=ranges, date=date, **kwargs)
 
         fan_shape = beam_corners_lons.shape
@@ -326,7 +327,7 @@ class Fan:
             grndsct = grndsct[0:ranges[1]-ranges[0]]
 
         # Set up axes in correct hemisphere
-        stid = dmap_data[0]['stid']
+        stid = RadarID(dmap_data[0]['stid'])
         kwargs['hemisphere'] = SuperDARNRadars.radars[stid].hemisphere
 
         ax, ccrs = projs(date=date, ax=ax, **kwargs)
@@ -440,7 +441,7 @@ class Fan:
             ax.grid(True)
 
         if boundary:
-            Fan.plot_fov(stid=dmap_data[0]['stid'], date=date, ax=ax,
+            Fan.plot_fov(stid=RadarID(dmap_data[0]['stid']), date=date, ax=ax,
                          ccrs=ccrs, coords=coords, projs=projs, rsep=rsep,
                          frang=frang, ranges=ranges, beam=beam, **kwargs)
 
@@ -475,7 +476,7 @@ class Fan:
         if determine_embargo(start_time,
                              matching_records[0]['cp'],
                              SuperDARNRadars.radars[
-                                matching_records[0]['stid']].name):
+                                RadarID(matching_records[0]['stid'])].name):
             add_embargo(plt.gcf())
 
         return {'ax': ax,
@@ -491,14 +492,14 @@ class Fan:
 
 
     @staticmethod
-    def plot_fan_input(data_array: list = [], data_datetime: dt.datetime = [], 
-                 ax: object = None, stid: int = None, data_groundscatter: list = [], 
-                 rsep: int = 45, frang: int = 180,
-                 data_parameter: str = 'v', cmap: str = None, zmin: int = None,
-                 zmax: int = None, colorbar: bool = True,
-                 colorbar_label: str = '', cax=None, boundary: bool = True,
-                 projs: Projs = Projs.POLAR,
-                 coords: Coords = Coords.AACGM_MLT, **kwargs):
+    def plot_fan_input(data_array: list = [], data_datetime: dt.datetime = [],
+                       ax: object = None, stid: RadarID = None, data_groundscatter: list = [],
+                       rsep: int = 45, frang: int = 180,
+                       data_parameter: str = 'v', cmap: str = None, zmin: int = None,
+                       zmax: int = None, colorbar: bool = True,
+                       colorbar_label: str = '', cax=None, boundary: bool = True,
+                       projs: Projs = Projs.POLAR,
+                       coords: Coords = Coords.AACGM_MLT, **kwargs):
         """
         Plots a radar's Field Of View (FOV) fan plot for the given data and
         scan number
@@ -522,7 +523,7 @@ class Fan:
             frang: int
                 Kilometers to first range.
                 Default: 180
-            stid: int
+            stid: RadarID
                 StationID of the radar of interest
             data_parameter: str
                 Key name indicating which parameter to plot.
@@ -687,22 +688,22 @@ class Fan:
                 }
 
     @staticmethod
-    def plot_fov(stid: int, date: dt.datetime,
+    def plot_fov(stid: RadarID, date: dt.datetime,
                  ax=None, ccrs=None, ranges: List = None, boundary: bool = True,
                  rsep: int = 45, frang: int = 180,
                  projs: Projs = Projs.POLAR,
                  coords: Coords = Coords.AACGM_MLT,
-                 fov_color: str = None, alpha: int = 0.5,
+                 fov_color: str = None, alpha: float = 0.5,
                  radar_location: bool = True, radar_label: bool = False,
                  line_color: str = 'black',
                  grid: bool = False, beam: int = None,
-                 line_alpha: int = 0.5, **kwargs):
+                 line_alpha: float = 0.5, **kwargs):
         """
         plots only the field of view (FOV) for a given radar station ID (stid)
 
         Parameters
         -----------
-            stid: int
+            stid: RadarID
                 Radar station ID
             ax: matplotlib.axes.Axes
                 Pre-defined axis object to pass in.
@@ -907,7 +908,7 @@ class Fan:
                 }
 
     @staticmethod
-    def get_gate_azm(theta: float, r: float, stid: int, coords, date):
+    def get_gate_azm(theta: float, r: float, stid: RadarID, coords, date):
         """
         gets the azimuth of the gate, requires some changes depending on
         coordinates before using calculate_azimuth
@@ -918,7 +919,7 @@ class Fan:
                 longitude
             r: float
                 latitude
-            stid: int
+            stid: RadarID
                 station id of radar
             coords: Enum
                 enumeration of coordinate system
@@ -948,30 +949,40 @@ class Fan:
         return azm
 
     @staticmethod
-    def plot_radar_position(stid: int, ax: axes.Axes,
+    def plot_radar_position(stid: RadarID, ax: axes.Axes,
                             date: dt.datetime,
                             transform: object = None,
                             coords: Coords = Coords.AACGM_MLT,
                             projs: Projs = Projs.POLAR,
-                            line_color: str = 'black', **kwargs):
+                            line_color: str = 'black',
+                            marker: str = '.',
+                            markersize: int = 5,
+                            **kwargs):
         """
-        plots only a dot at the position of a given radar station ID (stid)
+        Plots a symbol at the position of a given radar station ID (stid)
 
         Parameters
         -----------
-            stid: int
+            stid: RadarID
                 Radar station ID
             ax: matplotlib.axes.Axes
                 Pre-defined axis object to plot on.
             date: datetime.datetime
-                sets the datetime used to find the coordinates of the
+                Sets the datetime used to find the coordinates of the
                 FOV
             transform:
             coords: Coords object
             projs: Projs object
             line_color: str
-                color of the dot
-                default: black
+                Color of the symbol
+                Default: black
+            marker: str
+                Controls which symbol is plotted.
+                Default: "."
+                See https://matplotlib.org/stable/api/markers_api.html#module-matplotlib.markers for options
+            markersize: int
+                Controls the size of the symbol plotted, "s" passed to ax.scatter().
+                Default: 5
 
         Returns
         -------
@@ -992,11 +1003,11 @@ class Fan:
         if projs == Projs.POLAR:
             lon = np.radians(lon)
         # Plot a dot at the radar site
-        ax.scatter(lon, lat, c=line_color, s=5, transform=transform)
+        ax.scatter(lon, lat, c=line_color, s=markersize, transform=transform, marker=marker)
         return
 
     @staticmethod
-    def plot_radar_label(stid: int, ax: axes.Axes,
+    def plot_radar_label(stid: RadarID, ax: axes.Axes,
                          date: dt.datetime,
                          coords: Coords = Coords.AACGM_MLT,
                          projs: Projs = Projs.POLAR,
@@ -1007,7 +1018,7 @@ class Fan:
 
         Parameters
         -----------
-            stid: int
+            stid: RadarID
                 Radar station ID
             ax: matplotlib.axes.Axes
                 Pre-defined axis object to plot on.

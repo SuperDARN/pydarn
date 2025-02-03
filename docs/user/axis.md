@@ -26,7 +26,7 @@ import pydarn
 import datetime as dt
 import matplotlib.pyplot as plt
 
-pydarn.Fan.plot_fov(stid=65, date=dt.datetime(2024,7,23,0,0),
+pydarn.Fan.plot_fov(stid=pydarn.RadarID.RKN, date=dt.datetime(2024,7,23,0,0),
                     radar_label=True, fov_color='green',
                     line_color='green', alpha=0.8, lowlat=60, coastline=True,
                     projs=pydarn.Projs.POLAR, coords=pydarn.Coords.AACGM_MLT)
@@ -60,7 +60,7 @@ import pydarn
 import datetime as dt
 import matplotlib.pyplot as plt
 
-pydarn.Fan.plot_fov(stid=65, date=dt.datetime(2024,7,23,0,0),
+pydarn.Fan.plot_fov(stid=pydarn.RadarID.RKN, date=dt.datetime(2024,7,23,0,0),
                     radar_label=True, fov_color='green',
                     line_color='green', alpha=0.8, plot_extent=[80,50],
                     coastline=True, projs=pydarn.Projs.GEO,
@@ -96,7 +96,7 @@ import pydarn
 import datetime as dt
 import matplotlib.pyplot as plt
 
-pydarn.Fan.plot_fov(stid=65, date=dt.datetime(2024,7,23,0,0),
+pydarn.Fan.plot_fov(stid=pydarn.RadarID.RKN, date=dt.datetime(2024,7,23,0,0),
                     radar_label=True, fov_color='green',
                     line_color='green', alpha=0.8, plot_extent=[80,50],
                     coastline=True, projs=pydarn.Projs.MAG,
@@ -132,7 +132,7 @@ ax1.set_xticks([0, np.radians(45), np.radians(90), np.radians(135),
                        np.radians(315)])
 ax1.set_xticklabels(['00', '', '06', '', '12', '', '18', ''])
 ax1.set_theta_zero_location("S")
-pydarn.Fan.plot_fov(stid=65, date=date, ax=ax1)
+pydarn.Fan.plot_fov(stid=pydarn.RadarID.RKN, date=date, ax=ax1)
 
 # Geo plot
 deg_from_midnight = (date.hour + date.minute / 60) / 24 * 360
@@ -144,7 +144,7 @@ ax2 = fig.add_subplot(122, projection=proj, aspect='auto')
 ax2.gridlines(draw_labels=True)
 extent = min(45e5,(abs(proj.transform_point(noon, 30, ccrs.PlateCarree())[1])))
 ax2.set_extent(extents=(-extent, extent, -extent, extent), crs=proj)
-pydarn.Fan.plot_fov(stid=65, date=date, ax=ax2, ccrs=ccrs, coords=pydarn.Coords.GEOGRAPHIC, projs=pydarn.Projs.GEO)
+pydarn.Fan.plot_fov(stid=pydarn.RadarID.RKN, date=date, ax=ax2, ccrs=ccrs, coords=pydarn.Coords.GEOGRAPHIC, projs=pydarn.Projs.GEO)
 plt.tight_layout()
 plt.show()
 ```
