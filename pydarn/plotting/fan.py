@@ -215,7 +215,7 @@ class Fan:
             date = time2datetime(matching_records[0])
 
         # Plot FOV outline
-        stid = dmap_data[0]['stid']
+        stid = RadarID(dmap_data[0]['stid'])
         if ranges == [] or ranges is None:
             try:
                 # If not given, get ranges from data file
@@ -248,7 +248,7 @@ class Fan:
                                                  "/SuperDARN/pyDARN")
 
         beam_corners_lats, beam_corners_lons =\
-            coords(stid=dmap_data[0]['stid'], rsep=rsep, frang=frang,
+            coords(stid=RadarID(dmap_data[0]['stid']), rsep=rsep, frang=frang,
                    gates=ranges, date=date, **kwargs)
 
         fan_shape = beam_corners_lons.shape
@@ -327,7 +327,7 @@ class Fan:
             grndsct = grndsct[0:ranges[1]-ranges[0]]
 
         # Set up axes in correct hemisphere
-        stid = dmap_data[0]['stid']
+        stid = RadarID(dmap_data[0]['stid'])
         kwargs['hemisphere'] = SuperDARNRadars.radars[stid].hemisphere
 
         ax, ccrs = projs(date=date, ax=ax, **kwargs)
@@ -441,7 +441,7 @@ class Fan:
             ax.grid(True)
 
         if boundary:
-            Fan.plot_fov(stid=dmap_data[0]['stid'], date=date, ax=ax,
+            Fan.plot_fov(stid=RadarID(dmap_data[0]['stid']), date=date, ax=ax,
                          ccrs=ccrs, coords=coords, projs=projs, rsep=rsep,
                          frang=frang, ranges=ranges, beam=beam, **kwargs)
 
@@ -476,7 +476,7 @@ class Fan:
         if determine_embargo(start_time,
                              matching_records[0]['cp'],
                              SuperDARNRadars.radars[
-                                matching_records[0]['stid']].name):
+                                RadarID(matching_records[0]['stid'])].name):
             add_embargo(plt.gcf())
 
         return {'ax': ax,
@@ -693,11 +693,11 @@ class Fan:
                  rsep: int = 45, frang: int = 180,
                  projs: Projs = Projs.POLAR,
                  coords: Coords = Coords.AACGM_MLT,
-                 fov_color: str = None, alpha: int = 0.5,
+                 fov_color: str = None, alpha: float = 0.5,
                  radar_location: bool = True, radar_label: bool = False,
                  line_color: str = 'black',
                  grid: bool = False, beam: int = None,
-                 line_alpha: int = 0.5, **kwargs):
+                 line_alpha: float = 0.5, **kwargs):
         """
         plots only the field of view (FOV) for a given radar station ID (stid)
 
