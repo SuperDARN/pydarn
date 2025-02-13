@@ -49,8 +49,6 @@ FORMAT_CONVERSION = {np.int8: 'c',  # RST defines char as an int8 in rtypes.h
                      np.float32: 'f',
                      np.float64: 'd',
                      str: 's',
-                     str: 's',
-                     str: 's',
                      np.int64: 'q',
                      np.uint8: 'B',
                      np.uint16: 'H',

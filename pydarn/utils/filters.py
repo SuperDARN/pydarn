@@ -434,7 +434,7 @@ class Boxcar(object):
                 beam.copy(b)
 
                 for key in beam.__dict__.keys():
-                    if type(getattr(beam, key)) == np.ndarray:
+                    if type(getattr(beam, key)) is np.ndarray:
                         setattr(beam, key, [])
 
                 for r in range(0, b.nrang):

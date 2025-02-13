@@ -18,8 +18,7 @@ Init file to setup the logging configuration and linking pyDARN's
 module, classes, and functions.
 """
 # KEEP THIS FILE AS MINIMAL AS POSSIBLE!
-
-import os
+# ruff: noqa: F401
 
 # version file
 from .version import __version__

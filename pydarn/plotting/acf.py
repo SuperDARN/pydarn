@@ -20,7 +20,6 @@
 # supplemented by the additional permissions listed below.
 
 
-import copy
 
 import matplotlib.markers
 import matplotlib.pyplot as plt

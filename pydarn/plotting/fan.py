@@ -584,8 +584,6 @@ class Fan:
                    gates=[0, len(data_array)], date=data_datetime,
                    **kwargs)
 
-        fan_shape = beam_corners_lons.shape
-
         rs = beam_corners_lats
         if projs != Projs.GEO:
             thetas = np.radians(beam_corners_lons)
