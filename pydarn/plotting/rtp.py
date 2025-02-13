@@ -38,7 +38,7 @@ from typing import List
 
 from pydarn import (RangeEstimation, check_data_type, Coords,
                     time2datetime, rtp_exceptions, plot_exceptions,
-                    SuperDARNCpids, SuperDARNRadars,
+                    SuperDARNCpids, SuperDARNRadars, RadarID,
                     standard_warning_format, PyDARNColormaps,
                     determine_embargo, add_embargo)
 
@@ -324,7 +324,7 @@ class RTP:
                     x.append(x[-1] + timedelta(0, 120))
                     i = len(x) - 1  # offset since we start at 0 not 1
                     if i > 0:
-                        z = np.insert(z, len(z), np.zeros(1, y_max) * np.nan,
+                        z = np.insert(z, len(z), np.zeros([1, y_max]) * np.nan,
                                       axis=0)
             # Get data for the provided beam number
             if (beam_num == 'all' or dmap_record['bmnum'] == beam_num) and\
@@ -341,7 +341,7 @@ class RTP:
 
                     # insert a new column into the z_data
                     if i > 0:
-                        z = np.insert(z, len(z), np.zeros(1, y_max) * np.nan,
+                        z = np.insert(z, len(z), np.zeros([1, y_max]) * np.nan,
                                       axis=0)
                     try:
                         if len(dmap_record[parameter]) == dmap_record['nrang']:
@@ -386,7 +386,7 @@ class RTP:
                                      opt_beam_num=cls.dmap_data[0]['bmnum'])
         if range_estimation != RangeEstimation.RANGE_GATE:
             # Get rxrise from hardware files (consistent with RST)
-            rxrise = SuperDARNRadars.radars[cls.dmap_data[0]['stid']]\
+            rxrise = SuperDARNRadars.radars[RadarID(cls.dmap_data[0]['stid'])]\
                                     .hardware_info.rx_rise_time
             frang = int(cls.dmap_data[0]['frang'])
             rsep = int(cls.dmap_data[0]['rsep'])
@@ -546,7 +546,7 @@ class RTP:
             cb.set_label(colorbar_label)
 
         if determine_embargo(end_time, dmap_data[-1]['cp'],
-                             SuperDARNRadars.radars[dmap_data[-1]['stid']].name):
+                             SuperDARNRadars.radars[RadarID(dmap_data[-1]['stid'])].name):
             add_embargo(plt.gcf())
 
         return {'ax': ax,
@@ -847,7 +847,7 @@ class RTP:
         ax.tick_params(axis='y', which='minor')
 
         if determine_embargo(end_time, dmap_data[-1]['cp'],
-                             SuperDARNRadars.radars[dmap_data[-1]['stid']].name):
+                             SuperDARNRadars.radars[RadarID(dmap_data[-1]['stid'])].name):
             add_embargo(plt.gcf())
 
         return {'ax': ax,
@@ -1365,7 +1365,7 @@ class RTP:
             # systems and not sure how to decipher between them. If something
             # changes in the file structure, then I can add it here.
             radar_system = ""
-        radar_name = SuperDARNRadars.radars[cls.dmap_data[0]['stid']].name
+        radar_name = SuperDARNRadars.radars[RadarID(cls.dmap_data[0]['stid'])].name
         # Date time formats:
         #   %Y - year
         #   %b - month abbreviation
@@ -1709,7 +1709,7 @@ class RTP:
                     x.append(x[-1] + timedelta(0, 120))
                     i = len(x) - 1  # offset since we start at 0 not 1
                     if i > 0:
-                        z = np.insert(z, len(z), np.zeros(1, y_max) * np.nan,
+                        z = np.insert(z, len(z), np.zeros([1, y_max]) * np.nan,
                                       axis=0)
             # Get data for the provided beam number
             if (beam_num == 'all' or dmap_record['bmnum'] == beam_num) and\
@@ -1726,7 +1726,7 @@ class RTP:
 
                     # insert a new column into the z_data
                     if i > 0:
-                        z = np.insert(z, len(z), np.zeros(1, y_max) * np.nan,
+                        z = np.insert(z, len(z), np.zeros([1, y_max]) * np.nan,
                                       axis=0)
                     try:
                         if len(dmap_record[parameter]) == dmap_record['nrang']:
@@ -1778,7 +1778,7 @@ class RTP:
             raise Exception("Error: MLT cannot be used in coord-time plots. "
                             "Please choose Coords from AACGM or GEOGRAPHIC.")
         # Get position of the range gates in lat lon
-        lats,lons = coords(stid=dmap_data[0]['stid'], rsep=rsep, frang=frang,
+        lats,lons = coords(stid=RadarID(dmap_data[0]['stid']), rsep=rsep, frang=frang,
                            date=start_time, center=False,
                            gates=[0, dmap_data[0]['nrang']],
                            range_estimation=range_estimation, **kwargs)

@@ -9,38 +9,26 @@ Python data visualization library for the Super Dual Auroral Radar Network (Supe
 
 ## Changelog
 
-## Version 4.0 - Major Release!
+## Version 4.1.1 - Patch Release!
 
-This major release includes: 
-- **NEW** IQ level data plotting
-- **NEW** Latitude and longitude y-axis in RTP
-- **NEW** Ball and stick plots
-- **NEW** Map file variable time series plotting
-- **NEW** Terminator plotting
-- Coastlines available in magnetic coordinate spatial plots without Cartopy
-- More flexibility in fan plots - single beams/ range gate range options
-- TDiff correction for elevation data available
-- Boxcar filtering available for data before plotting
-- Corrections to geolocation algorithms
-- Standardized plot return values across all plots
-- **Bug fix** Radar position labels no longer overlap
-- **Bug fix** Warning use refactored
-- **Bug fix** Multiple bug fixes for data handling and plotting in grid plots
-- **Bug fix** Multiple bug fixes for the aesthetics of convection maps
-
+This patch release includes:
+- matplotlib v3.10 support (fixed incompatibility)
+- scipy dependency capped at v1.14.1
+- **NEW** `marker` and `markersize` kwargs for `pydarn.Fan.plot_radar_position()`
+- **NEW** `pydarn.RadarID` enum abstracting away the station ID numbers of each radar
 
 ## Documentation
 
-pyDARN's documentation can be found [here](https://pydarn.readthedocs.io/en/latest/index.html)
+pyDARN's documentation can be found [here](https://pydarn.readthedocs.io/en/main/)
 
 ## Getting Started
 
 `pip install pydarn`
 
-Or read the [installation guide](https://pydarn.readthedocs.io/en/latest/user/install.html).
+Or read the [installation guide](https://pydarn.readthedocs.io/en/main/user/install/).
 
-If wish to get access to SuperDARN data please read the [SuperDARN data access documentation](https://pydarn.readthedocs.io/en/latest/user/superdarn_data.html).
-Please make sure to also read the documentation on [**citing superDARN and pydarn**](https://pydarn.readthedocs.io/en/latest/user/citing.html). 
+If wish to get access to SuperDARN data please read the [SuperDARN data access documentation](https://pydarn.readthedocs.io/en/main/user/superdarn_data/).
+Please make sure to also read the documentation on [**citing superDARN and pydarn**](https://pydarn.readthedocs.io/en/main/user/citing/). 
 
 As a quick tutorial on using pydarn to read a non-compressed file: 
 
@@ -62,7 +50,7 @@ plt.show()
 
 [summary plot](docs/imgs/summary_clyb2.png)
 
-For more information and tutorials on pyDARN please see the [tutorial section](https://pydarn.readthedocs.io/en/latest/index.html).
+For more information and tutorials on pyDARN please see the [tutorial section](https://pydarn.readthedocs.io/en/main/).
 
 We also have a [Jupyter notebook](https://zenodo.org/record/7005203) with many examples to support our recent [publication](https://doi.org/10.3389/fspas.2022.1022690).
 

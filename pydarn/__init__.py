@@ -49,7 +49,7 @@ from .utils.conversions import dmap2dict
 from .utils.plotting import (MapParams, TimeSeriesParams, check_data_type,
     time2datetime, find_record, determine_embargo, add_embargo)
 from .utils.general_utils import GeneralUtils
-from .utils.superdarn_radars import SuperDARNRadars
+from .utils.superdarn_radars import RadarID, SuperDARNRadars
 from .utils.superdarn_cpid import SuperDARNCpids
 from .utils.superdarn_radars import Hemisphere, read_hdw_file, get_hdw_files
 from .utils.scan import find_records_by_datetime, find_records_by_scan

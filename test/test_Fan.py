@@ -32,10 +32,10 @@ class TestFan_defaults:
     def test_fov_series(self):
         """ """
         with warnings.catch_warnings(record=True):
-            pydarn.Fan.plot_fov(6, dt.datetime(2020, 4, 4, 6, 2))
+            pydarn.Fan.plot_fov(pydarn.RadarID.PGR, dt.datetime(2020, 4, 4, 6, 2))
 
 
-@pytest.mark.parametrize('stid', [5, 97])
+@pytest.mark.parametrize('stid', [pydarn.RadarID.SAS, pydarn.RadarID.DCN])
 @pytest.mark.parametrize('ranges', [(5,70)])
 @pytest.mark.parametrize('boundary', [False])
 @pytest.mark.parametrize('rsep', [15])

@@ -199,7 +199,7 @@ plt.show()
 
 Range-time plots also allow users to plot `pwr0` parameters in RAWACF files:
 
-``` python
+```python
 import pydarn
 import matplotlib.pyplot as plt 
 from matplotlib import colors

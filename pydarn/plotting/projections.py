@@ -34,8 +34,7 @@ from matplotlib import axes
 import matplotlib.ticker as mticker
 import numpy as np
 
-from pydarn import (Hemisphere, Re,
-                    nightshade_warning)
+from pydarn import (Hemisphere, Re, nightshade_warning)
 
 
 def convert_geo_coastline_to_mag(geom, date, alt: float = 0.0, mag_lon: bool = False):
