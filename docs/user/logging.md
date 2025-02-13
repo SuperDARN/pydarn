@@ -37,8 +37,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 #Load in dmap file
 file = "20170410.1801.00.sas.fitacf_30"
-SDarn_read = pydarn.SuperDARNRead(file)
-fitacf_data = SDarn_read.read_fitacf()
+fitacf_data = pydarn.read_fitacf(file)
 ```
 
 Will yield the output:

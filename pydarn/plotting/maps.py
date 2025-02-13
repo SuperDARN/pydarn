@@ -86,7 +86,7 @@ class Maps:
         Parameters
         ----------
             dmap_data : dict[List]
-                DMAP data returned from pyDARN.SuperDARNRead or pyDARNio
+                DMAP data
             ax: object
                 matplotlib axis object
             parameters: enum
