@@ -49,6 +49,9 @@ def get_hdw_files(force: bool = True, version: str = None):
     # Path should the path where pydarn is installed
     hdw_path = "{}/hdw/".format(os.path.dirname(pydarn.utils.__file__))
 
+    if not os.path.exists(hdw_path):
+        os.makedirs(hdw_path)
+
     # TODO: implement when DSWG starts versioning hardware files
     if version is not None:
         raise Exception("This feature is not implemented yet")
