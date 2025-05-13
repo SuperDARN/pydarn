@@ -6,6 +6,7 @@
 import pydarnio
 import os
 
+
 def read_borealis(filename: str, slice_id: int = None):
     """
     Reads RAWACF or BFIQ borealis files and converts them to
