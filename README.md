@@ -9,13 +9,10 @@ Python data visualization library for the Super Dual Auroral Radar Network (Supe
 
 ## Changelog
 
-## Version 4.1.1 - Patch Release!
+## Version 4.1.2 - Patch Release!
 
-This patch release includes:
-- matplotlib v3.10 support (fixed incompatibility)
-- scipy dependency capped at v1.14.1
-- **NEW** `marker` and `markersize` kwargs for `pydarn.Fan.plot_radar_position()`
-- **NEW** `pydarn.RadarID` enum abstracting away the station ID numbers of each radar
+This patch release fixes a bug installing when from PyPI, and corrects the ownership of ADE, ADW, KOD, KSR, MCM, and SPS
+to Penn State.
 
 ## Documentation
 

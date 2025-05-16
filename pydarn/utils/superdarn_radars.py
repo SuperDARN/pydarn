@@ -49,6 +49,9 @@ def get_hdw_files(force: bool = True, version: str = None):
     # Path should the path where pydarn is installed
     hdw_path = "{}/hdw/".format(os.path.dirname(pydarn.utils.__file__))
 
+    if not os.path.exists(hdw_path):
+        os.makedirs(hdw_path)
+
     # TODO: implement when DSWG starts versioning hardware files
     if version is not None:
         raise Exception("This feature is not implemented yet")
@@ -529,9 +532,9 @@ class SuperDARNRadars():
         read_hdw_file : function to read hardware information for a given radar
     """
     radars = {RadarID.ADE: _Radar('Adak Island East',
-                          'University of Alaska Fairbanks', Hemisphere.North,
+                          'Penn State University', Hemisphere.North,
                                   75, [47, -172], [42, -106], read_hdw_file('ade')),
-              RadarID.ADW: _Radar('Adak Island West', 'University of Alaska Fairbanks',
+              RadarID.ADW: _Radar('Adak Island West', 'Penn State University',
                                   Hemisphere.North, 75, [47, 178], [42, -116],
                                   read_hdw_file('adw')),
               RadarID.BKS: _Radar('Blackstone', 'Virginia Tech', Hemisphere.North,
@@ -587,10 +590,9 @@ class SuperDARNRadars():
               RadarID.KAP: _Radar('Kapuskasing', 'Virginia Tech', Hemisphere.North,
                                   75, [44, -82], [54, -7], read_hdw_file('kap')),
               RadarID.KSR: _Radar('King Salmon',
-                         'National Institute of Information and'
-                         ' Communications Technology', Hemisphere.North,
+                                  'Penn State University', Hemisphere.North,
                                   75, [54, -162], [52, -99], read_hdw_file('ksr')),
-              RadarID.KOD: _Radar('Kodiak', 'University of Alaska Fairbanks',
+              RadarID.KOD: _Radar('Kodiak', 'Penn State University',
                                   Hemisphere.North, 110, [53, -152], [52, -92],
                                   read_hdw_file('kod')),
               RadarID.LJE: _Radar('Longjing East',
@@ -655,14 +657,14 @@ class SuperDARNRadars():
                                   read_hdw_file('hal')),
               RadarID.KER: _Radar('Kerguelen', 'IRAP/CNRS/IPEV', Hemisphere.South,
                                   75, [-44, 70], [-53, 124], read_hdw_file('ker')),
-              RadarID.MCM: _Radar('McMurdo', 'University of Alaska, Fairbanks',
+              RadarID.MCM: _Radar('McMurdo', 'Penn State University',
                                   Hemisphere.South, 75, [-78, 187], [-75, -36],
                                   read_hdw_file('mcm')),
               RadarID.SAN: _Radar('SANAE', 'South African National Space Agency',
                                   Hemisphere.South, 110, [-67, -3], [-60, 45],
                                   read_hdw_file('san')),
               RadarID.SPS: _Radar('South Pole Station',
-                         'University of Alaska, Fairbanks', Hemisphere.South,
+                         'Penn State University', Hemisphere.South,
                                   75, [-87, 12], [-74, 25], read_hdw_file('sps')),
               RadarID.SYE: _Radar('Syowa East', 'National Institute of Polar Research',
                                   Hemisphere.South, 75, [-64, 45], [-62, 82],
