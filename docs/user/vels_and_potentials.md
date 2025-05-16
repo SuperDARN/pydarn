@@ -43,10 +43,10 @@ Note that for deriving the velocity and electric potential, we need some paramat
 
 ### Convection map velocities
 
-To get the velocities, we'll use the inbuilt pyDARN function `calculated_fitted_velocities()`, using list comprehension to loop through the fitting parameters required for input:
+To get the velocity magnitude and azimuth (angle from north), we'll use the inbuilt pyDARN function `calculated_fitted_velocities()`, using list comprehension to loop through the fitting parameters required for input:
 
 ```python
-velocity, azm = zip(*[pydarn.Maps.calculated_fitted_velocities(mlats,
+velocity, azm = zip(*[pydarn.Maps.calculated_fitted_velocities(mlats, # We zip it like this to pull out the velocity and azimuth arrays separately
                                                                mlons,
                                                                map_data[rec]['N+2'],
                                                                pydarn.Hemisphere(map_data[rec]['hemisphere']),
@@ -71,4 +71,27 @@ As an optional step, you can derive the velocity in terms of east-west (zonal) a
 v_n = velocity * np.cos(azm) # Northward velocity
 v_e = velocity * np.sin(azm) # Eastward velocity
 ```
+
+### Convection map potentials
+
+Deriving the electroc potentials at a specific coordiate is very similar to deriving the velocity. We use the `calculate_potentials_pos()` function:
+```python
+potential = ([pydarn.Maps.calculate_potentials_pos(mlats, # No zipping required as the potential is a scalar
+                                                   mlons,
+                                                   map_data[rec]['N+2'],
+                                                   map_data[rec]['latmin'],
+                                                   map_data[rec]['lat.shft'],
+                                                   map_data[rec]['lon.shft'],
+                                                   map_data[rec]['fit.order'],
+                                                   pydarn.Hemisphere(map_data[rec]['hemisphere']))[0]
+                  for rec in rec_indexes])
+```
+Don't forget to set potentials below the minimum latitude to zero, like the velocities:
+```python
+for counter, rec in enumerate(rec_indexes):
+    rec_pots = potential[counter]
+    rec_pots[np.where(mlats < map_data[rec]['latmin'])] = 0
+    potential[counter] = rec_pots
+```
+
 
