@@ -11,7 +11,8 @@ Python data visualization library for the Super Dual Auroral Radar Network (Supe
 
 ## Version 4.1.2 - Patch Release!
 
-This patch release fixes a bug installing when from PyPI.
+This patch release fixes a bug installing when from PyPI, and corrects the ownership of ADE, ADW, KOD, KSR, MCM, and SPS
+to Penn State.
 
 ## Documentation
 
