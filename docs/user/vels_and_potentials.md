@@ -36,10 +36,10 @@ rec_indexes = np.where((record_times >= start_time) & (record_times <= end_time)
 Finally, choose the magnetic latitude(s) and longitude(s) you want to get values for:
 ```python
 mlats = [75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85]
-mlons = np.radians([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]) # Make sure you use radians! It doesn't matter in this case as I'm using zero longitude.
+mlons = np.radians([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]) # Make sure you use radians! It doesn't matter in this case, as I'm using zero longitude
 ```
 
-Note that for deriving the velocity and electric potential, we need some paramaters of the convection map fit itself. This includes the spherical harmonic coefficients, fit order, latitude and longitude shift, minimum latitude, and hemisphere. For more detail on these parameters, see [the RST documentation](https://radar-software-toolkit-rst.readthedocs.io/en/develop/references/general/map/).
+Note that for deriving the velocity and electric potential, we need some parameters of the convection map fit itself. This includes the spherical harmonic coefficients, fit order, latitude and longitude shift, minimum latitude, and hemisphere. For more details on these parameters, see [the RST documentation](https://radar-software-toolkit-rst.readthedocs.io/en/develop/references/general/map/).
 
 ### Convection map velocities
 
@@ -56,7 +56,7 @@ velocity, azm = zip(*[pydarn.Maps.calculated_fitted_velocities(mlats, # We zip i
 velocity, azm = np.array(velocity), np.array(azm)
 
 ```
-Note that the `velocity` and `azm` variables produced here are 31x11 arrays, because we've gotten velocities for 31 records at 11 different positions. Your array sizes will vary based on your needs, or will just be single values or lists if you have one coordinate of interest.
+Note that the `velocity` and `azm` variables produced here are 31x11 arrays, because we've gotten velocities for 31 records at 11 different positions. Your array sizes will vary based on your needs, or will be single values or lists if you have one coordinate of interest.
 
 As a final step, it's important to set all velocities below the minimum of the map to zero (the spherical harmonic fit is cyclic with latitude, so we want to limit derived velocities to above the Heppner-Maynard boundary):
 ```python
@@ -74,7 +74,7 @@ v_e = velocity * np.sin(azm) # Eastward velocity
 
 ### Convection map potentials
 
-Deriving the electroc potentials at a specific coordiate is very similar to deriving the velocity. We use the `calculate_potentials_pos()` function:
+Deriving the electric potentials at a specific coordinate is similar to deriving the velocity. We use the `calculate_potentials_pos()` function:
 ```python
 potential = ([pydarn.Maps.calculate_potentials_pos(mlats, # No zipping required as the potential is a scalar
                                                    mlons,
