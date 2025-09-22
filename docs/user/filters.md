@@ -35,7 +35,7 @@ available by evoking the `Boxcar` instance after reading a file.
 import pydarn
 
 fitacf_file = "datafilename.fitacf"
-fitacf_data = pydarn.read_fitacf(fitacf_file)
+fitacf_data, _ = pydarn.read_fitacf(fitacf_file)
 
 # Evoke filter on data
 bx = pydarn.Boxcar(
@@ -54,7 +54,7 @@ time frame.
 import matplotlib.pyplot as plt
 import pydarn
 
-fitacf_data = pydarn.read_fitacf('fitacffilename.fitacf.bz2')
+fitacf_data, _ = pydarn.read_fitacf('fitacffilename.fitacf.bz2')
 
 # Before filtering:
 pydarn.RTP.plot_summary(fitacf_data, beam_num=7,

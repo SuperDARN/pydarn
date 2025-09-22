@@ -37,18 +37,21 @@ The basic code to read in a DMap structured file is as follows:
 import pydarn
 
 file = "path/to/file"
-data = pydarn.read_dmap(file)
+data, corruption_start = pydarn.read_dmap(file)
 ```
-which puts the file contents into a list of dictionaries, with each dictionary containing one DMap record.
+which puts the file contents into a list of dictionaries, with each dictionary containing one DMap record. If the input file
+is corrupted, the second return value will be the byte where the corrupted records start. If the file is not corrupted, it will
+be `None`.
+
 The function `read_dmap()` is able to read any DMap file type, but will not check to ensure that all fields for a given
 DMap file type are there. There are specific I/O functions that will conduct these checks:
 ```python
-iqdat_data = pydarn.read_iqdat(iqdat_file)
-rawacf_data = pydarn.read_rawacf(rawacf_file)
-fitacf_data = pydarn.read_fitacf(fitacf_file)
-grid_data = pydarn.read_grid(grid_file)
-map_data = pydarn.read_map(map_file)
-snd_data = pydarn.read_snd(snd_file)
+iqdat_data, _ = pydarn.read_iqdat(iqdat_file)
+rawacf_data, _ = pydarn.read_rawacf(rawacf_file)
+fitacf_data, _ = pydarn.read_fitacf(fitacf_file)
+grid_data, _ = pydarn.read_grid(grid_file)
+map_data, _ = pydarn.read_map(map_file)
+snd_data, _ = pydarn.read_snd(snd_file)
 ```
 Note that if you pass a file of the incorrect type into one of these functions, it will raise an exception.
 Another thing to note is that whether you read a file in using `read_dmap()` or one of the specific functions
@@ -57,12 +60,11 @@ like `read_rawacf()`, you will get the same data either way.
 ## Reading a compressed file
 
 pyDARN can seamlessly read a compressed file like **bz2** (commonly used for SuperDARN data products). 
-The I/O functions in the section above will detect `.bz2` compression from the file extension, and handle
-decompression automatically. 
+The I/O functions in the section above will detect `.bz2` compression, and handle decompression automatically. 
 ```python
 import pydarn
 fitacf_file = "path/to/file.bz2"
-records = pydarn.read_fitacf(fitacf_file)
+records, _ = pydarn.read_fitacf(fitacf_file)
 ```
 
 ## Accessing data fields
@@ -75,7 +77,7 @@ which will tell you all the variables in the first [0th] record.
 Let's say you loaded in a MAP file, and wanted to grab the cross polar-cap potentials for each record:
 ```python
 file = "20150302.n.map"
-map_data = pydarn.read_map(file)
+map_data, _ = pydarn.read_map(file)
 
 cpcps=[i['pot.drop'] for i in map_data]
 ```
@@ -111,7 +113,7 @@ data = list()
 fitacf_files.sort()
 print("Reading in fitacf files")
 for fitacf_file in fitacf_files:
-    records = pydarn.read_fitacf(fitacf_file)
+    records, _ = pydarn.read_fitacf(fitacf_file)
     data += records
 print("Reading complete...")
 ``` 

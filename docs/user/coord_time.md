@@ -25,7 +25,7 @@ For example, if `range_estimate=RangeEstimate.SLANT_RANGE`, `coords=Coords.AACGM
 import pydarn
 import matplotlib.pyplot as plt
 
-fitacf_data = pydarn.read_fitacf('file/name.fitacf')
+fitacf_data, _ = pydarn.read_fitacf('file/name.fitacf')
 pydarn.RTP.plot_coord_time(fitacf_data, beam_num=0,
                         range_estimation=pydarn.RangeEstimation.SLANT_RANGE,
                         latlon='lat', coords=pydarn.Coords.AACGM)

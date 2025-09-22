@@ -31,7 +31,7 @@ import pydarn
 
 #Read in fitACF file using SuperDARDRead, then read_fitacf
 file = "path/to/fitacf/file"
-fitacf_data = pydarn.read_fitacf(file)
+fitacf_data, _ = pydarn.read_fitacf(file)
 
 ```
 With the FITACF data loaded as a list of dictionaries (`fitacf_data` variable in above example), you may now call the `plot_fan` method. Make sure you tell it which scan (numbered from first recorded scan in file, counting from 1 or give it a `datetime` object for the scan at that time) you want using `scan_index`:
@@ -166,8 +166,8 @@ import matplotlib.pyplot as plt
 cly_file = 'data/20150308.1400.03.cly.fitacf'
 pyk_file = 'data/20150308.1401.00.pyk.fitacf'
 
-pyk_data = pydarn.read_dmap(pyk_file)
-cly_data = pydarn.read_dmap(cly_file)
+pyk_data, _ = pydarn.read_dmap(pyk_file)
+cly_data, _ = pydarn.read_dmap(cly_file)
 
 fan_rtn = pydarn.Fan.plot_fan(cly_data, scan_time=datetime(2015, 3, 8, 14, 4),
                     colorbar=False, fov_color='grey', line_color='blue',

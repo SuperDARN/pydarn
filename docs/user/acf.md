@@ -22,7 +22,7 @@ import pydarn
 import matplotlib.pyplot as plt 
 from datetime import datetime
 
-rawacf_data = pydarn.read_rawacf("data/20140105.1208.03.rkn.rawacf")
+rawacf_data, _ = pydarn.read_rawacf("data/20140105.1208.03.rkn.rawacf")
 plt.figure(figsize=(12, 7))
 pydarn.ACF.plot_acfs(rawacf_data, beam_num=7, gate_num=44,
                      start_time=datetime(2014, 1, 5, 12, 8))
@@ -65,7 +65,7 @@ import matplotlib.pyplot as plt
 from datetime import datetime
 
 rawacf_file = 'data/20140105.1200.03.cly.rawacf'
-rawacf_data = pydarn.read_rawacf(rawacf_file)
+rawacf_data, _ = pydarn.read_rawacf(rawacf_file)
 pydarn.ACF.plot_acfs(rawacf_data, beam_num=15, gate_num=16,
                      start_time=datetime(2014, 1, 5, 13, 30),
                      pwr_and_phs=False)

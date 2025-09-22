@@ -13,10 +13,7 @@
 # Modifications:
 # 2022-03-10 MTS - removed radar_fov from the __init__ file
 # 2023-06-20 PXP - added TimeSeriesParams to the __init__ file
-"""
-Init file to setup the logging configuration and linking pyDARN's
-module, classes, and functions.
-"""
+
 # KEEP THIS FILE AS MINIMAL AS POSSIBLE!
 # ruff: noqa: F401
 

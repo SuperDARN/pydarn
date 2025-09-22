@@ -19,7 +19,7 @@ the additional permissions listed below.
 ```python
 import pydarn
 iq_file = 'path/to/file/iqdata.iqdat'
-iq_data = pydarn.read_iqdat(iq_file)
+iq_data, _ = pydarn.read_iqdat(iq_file)
 ```
 
 !!! Note

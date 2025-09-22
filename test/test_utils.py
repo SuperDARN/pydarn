@@ -19,7 +19,7 @@ import warnings
 import pydarn
 
 
-data = pydarn.read_fitacf('test/data/test.fitacf.bz2')
+data, _ = pydarn.read_fitacf('test/data/test.fitacf.bz2')
 
 
 class TestUtils_citations:

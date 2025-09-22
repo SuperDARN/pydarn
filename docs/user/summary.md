@@ -36,11 +36,10 @@ Summary plots in SuperDARN are a collection of set parameter plots from a FITACF
 With pyDARN and matplotlib imported, read in a FITACF with `pydarn.read_fitacf()`, then call `plot_summary` with a chosen beam number. Here, we've loaded in some data from Clyde River and chosen beam 2:
 ```python
 import matplotlib.pyplot as plt
-
 import pydarn
 
 fitacf_file = "20190831.C0.cly.fitacf"
-fitacf_data = pydarn.read_fitacf(fitacf_file)
+fitacf_data, _ = pydarn.read_fitacf(fitacf_file)
 
 pydarn.RTP.plot_summary(fitacf_data, beam_num=2,
                         range_estimation=pydarn.RangeEstimation.RANGE_GATE)

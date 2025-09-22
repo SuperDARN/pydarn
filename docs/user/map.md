@@ -47,7 +47,7 @@ import matplotlib.pyplot as plt
 import pydarn
 
 file = "path/to/grid/file"
-map_data = pydarn.read_map(file)
+map_data, _ = pydarn.read_map(file)
 
 ```
 With the map data loaded as a list of dictionaries (`map_data` variable in above example), you may now call the `plot_mapdata` method. Make sure you tell the method what time, in `datetime` format, or record number (numbered from first recorded in file, counting from 0):
@@ -109,7 +109,7 @@ import matplotlib.pyplot as plt
 import pydarn
 
 map_file = "20150310.n.map"
-map_data = pydarn.read_dmap(map_file)
+map_data, _ = pydarn.read_dmap(map_file)
  
 pydarn.Maps.plot_mapdata(map_data, record=150, 
                          parameter=pydarn.MapParams.FITTED_VELOCITY,
@@ -134,7 +134,7 @@ import datetime as dt
 import matplotlib.pyplot as plt
 
 file_path = "path/to/map/file.map"
-data = pydarn.read_dmap(file_path)
+data, _ = pydarn.read_dmap(file_path)
 start_time = dt.datetime(2019,4,21,11,0)
 end_time = dt.datetime(2019,4,21,13,0)
 pydarn.Maps.plot_time_series(data, parameter=pydarn.TimeSeriesParams.IMF_BY,
@@ -167,7 +167,7 @@ import datetime as dt
 import matplotlib.pyplot as plt
 
 mapfile = '/Users/carley/Documents/data/maps/20220101.n.map'
-map_data = pydarn.read_map(mapfile)
+map_data, _ = pydarn.read_map(mapfile)
 
 # Coordinates of interest, as mlat/mlon pairs. 
 #This example keeps mlon the same but changes mlat, like a keogram
