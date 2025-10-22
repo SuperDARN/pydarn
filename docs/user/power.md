@@ -31,8 +31,7 @@ import matplotlib.pyplot as plt
 import pydarn
 
 file = "20180101.0000.01.rkn.rawacf"
-sdarn_read = pydarn.SuperDARNRead(file)
-rawacf_data = sdarn_read.read_rawacf()
+rawacf_data, _ = pydarn.read_rawacf(file)
 
 pydarn.Power.plot_pwr0_statistic(rawacf_data)
 plt.show()
@@ -58,7 +57,7 @@ import pydarn
 import matplotlib.pyplot as plt 
 
 rawacf_file = '20201001.0200.00.sas.0.rawacf.hdf5'
-rawacf_data = pydarn.SuperDARNRead().read_borealis(rawacf_file)
+rawacf_data, _ = pydarn.read_borealis(rawacf_file)
 pydarn.Power.plot_pwr0_statistic(rawacf_data, beam_num=3, min_frequency=10500, max_frequency=10500)
 plt.show()
 ```    
@@ -76,7 +75,7 @@ import pydarn
 import matplotlib.pyplot as plt 
 
 rawacf_file = 'data/20180404.0601.00.lyr.rawacf'
-rawacf_data = pydarn.SuperDARNRead(rawacf_file).read_rawacf()
+rawacf_data, _ = pydarn.read_rawacf(rawacf_file)
 pydarn.Power.plot_pwr0_statistic(rawacf_data, beam_num=15, split_frequency=11000, max_frequency=12000)
 plt.show()
 ```

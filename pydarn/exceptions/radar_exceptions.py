@@ -1,10 +1,7 @@
 # Copyright (C) 2020 SuperDARN Canada, University of Saskatchewan
 # Author(s): Marina Schmidt
-import logging
 import pydarn
 import os
-
-pydarn_log = logging.getLogger('pydarn')
 
 
 class HardwareFileNotFoundError(Exception):
@@ -26,7 +23,6 @@ class HardwareFileNotFoundError(Exception):
             " Please note hardware files are not obtained by RST."\
             "".format(abv=self.abbreviation, path=self.path)
         super().__init__(self.message)
-        pydarn_log.error(self.message)
 
 
 class RangeEstimationError(Exception):
@@ -37,5 +33,3 @@ class RangeEstimationError(Exception):
     def __init__(self, msg):
         self.message = msg
         super().__init__(self.message)
-        pydarn_log.error(self.message)
-

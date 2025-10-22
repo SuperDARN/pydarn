@@ -20,7 +20,7 @@ import warnings
 import pydarn
 
 
-data = pydarn.SuperDARNRead('test/data/test.grd').read_grid()
+data, _ = pydarn.read_grid('test/data/test.grd')
 
 
 class TestGrid_defaults:

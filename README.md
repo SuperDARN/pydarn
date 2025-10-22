@@ -42,7 +42,7 @@ import pydarn
 fitacf_file = '20190831.C0.cly.fitacf'
 
 # pyDARN functions to read a fitacf file
-fitacf_data = pydarn.SuperDARNRead(fitacf_file).read_fitacf()
+fitacf_data, _ = pydarn.read_fitacf(fitacf_file)
 
 pydarn.RTP.plot_summary(fitacf_data, beam_num=2)
 plt.show()
