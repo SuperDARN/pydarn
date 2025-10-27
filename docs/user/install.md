@@ -58,31 +58,25 @@ You can check your python version using
 
 On installation, pyDARN will download the following dependencies: 
 
-- [Git](https://git-scm.com/) (For developers)
-- [pip3](https://help.dreamhost.com/hc/en-us/articles/115000699011-Using-pip3-to-install-Python3-modules)
 - [NumPy](https://numpy.org/)
 - [matplotlib 3.3.4+](https://matplotlib.org/) 
 - [PyYAML](https://pyyaml.org/wiki/PyYAMLDocumentation)
 - [pyDARNio](https://pydarnio.readthedocs.io/en/latest/user/install/)
 - [AACGMv2](https://pypi.org/project/aacgmv2/) 
+- [Cartopy 0.22.0+](https://scitools.org.uk/cartopy/docs/latest/)
 
-!!! Note
-    If you wish to plot coastlines or geographic projections you will need to install cartopy>=0.19 separately, see below.
+and dependencies of the above.
 
-### Cartopy 
-[Cartopy](https://scitools.org.uk/cartopy/docs/latest/) is a Python package designed for geospatial data processing in order to produce maps and other geospatial data analyses. This library is used when invoking a projection system needing overlapped coastline maps in Fan, Grid and Map plots. 
 
-For installing cartopy please follow the [installation](https://scitools.org.uk/cartopy/docs/latest/installing.html) instructions. For ubuntu here is good installation [walkthrough](https://techoverflow.net/2021/07/11/how-to-install-cartopy-on-ubuntu/).
+### Cartopy
+Updates to the Cartopy library mean that new versions can be installed as dependencies easily, unlike earlier versions which required an installation process.
+If you have any issues with the installation, you can try to pre-install Cartopy before pyDARN:
 
-!!! Note
-    pyDARN requires cartopy version 0.19 or higher.
-    cartopy can be a challenging package to install, please provide any information on troubleshooting or solutions in an issue on the [pyDARN github](https://github.com/SuperDARN/pydarn) page. 
+To install cartopy please follow the [official installation](https://scitools.org.uk/cartopy/docs/latest/installing.html) instructions.
 
 
 ## Virtual Environments
-It is recommended to install pyDARN in one of the suggested virtual environments if you have multiple python versions on your computer, or do not want to affect the main system's python libraries. 
-
-The following virtual environments have been tested by pyDARN developers:
+It is recommended to install pyDARN in one of the suggested virtual environments if you have multiple python versions on your computer, or do not want to affect the main systems python libraries. 
 
 ### pip Virtual Environment
 Instructions can be found here [virtual environment](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/)
@@ -95,7 +89,7 @@ Option 1:
 * `$ pip3 install pydarn` (Install pyDARN)
 
 !!! Note
-    In newer python version, `virtualenv` is now `venv`.
+    In newer python versions, `virtualenv` is now `venv`.
 
 ### Anaconda Virtual Environment
 Instructions can be found here [conda environment](https://uoa-eresearch.github.io/eresearch-cookbook/recipe/2014/11/20/conda/) and installing [anaconda](https://docs.anaconda.com/anaconda/install/)
@@ -122,8 +116,11 @@ pyDARN's default github branch is `develop` for quicker and easer development.
 `git clone https://github.com/SuperDARN/pydarn.git`
 
 To install a specific branch to develop or test: 
+
 `cd pydarn`
+
 `git checkout branch_name`
+
 `pip3 install .`
 
 You can alternatively install a specific branch using the following installation, this is most useful for testing new branches:

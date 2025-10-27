@@ -25,7 +25,7 @@ import numpy as np
 from typing import List
 from copy import deepcopy
 
-from pydarn import (SuperDARNRadars, C)
+from pydarn import (SuperDARNRadars, C, RadarID)
 
 
 def recalculate_elevation(dmap_data: List[dict], tdiff: float,
@@ -64,7 +64,7 @@ def recalculate_elevation(dmap_data: List[dict], tdiff: float,
 
     # Hardware config for radar
     # Doesn't have to be in the loop, since we're accessing only the first rec
-    radar_hdw = SuperDARNRadars.radars[dmap_data[0]['stid']].hardware_info
+    radar_hdw = SuperDARNRadars.radars[RadarID(dmap_data[0]['stid'])].hardware_info
     if interferometer_offset is not None:
         int_pos = interferometer_offset
     else:

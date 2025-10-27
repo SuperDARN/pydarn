@@ -24,7 +24,7 @@ import pydarn
 from datetime import datetime
 import matplotlib.pyplot as plt 
 
-pydarn.Fan.plot_fov(66, datetime(2015, 3, 8, 15, 0), radar_label=True)
+pydarn.Fan.plot_fov(pydarn.RadarID.CLY, datetime(2015, 3, 8, 15, 0), radar_label=True)
 plt.show()
 ```
 
@@ -37,8 +37,8 @@ A `datetime` object of the date is required to convert to `Coords.AACGM_MLT` (de
 Here is a list of all the current options than can be used with `plot_fov`
 
 | Option                  | Action                                                                                                  |
-| ----------------------- | ------------------------------------------------------------------------------------------------------- |
-| stid=(int)              | Station id of the radar. Can be found using [SuperDARNRadars](hardware.md)                              |
+|-------------------------|---------------------------------------------------------------------------------------------------------|
+| stid=pydarn.RadarID     | Station id of the radar.                                                                                |
 | date=(datetime)         | `datetime` object to determine the position the radar fov AACGM or AACGM MLT coordinates                |
 | ranges=(list)           | Two element list giving the lower and upper ranges to plot, grabs ranges from hardware file (default [] |
 | ax=(Axes Object)        | Matplotlib axes object than can be used for cartopy additions                                           |
@@ -62,62 +62,71 @@ Here is a list of all the current options than can be used with `plot_fov`
 | beam=(int)              | Only plots outline/fill of specified beam (default: None)                                               |
 | kwargs **               | Axis Polar settings. See [polar axis](axis.md)                                                          |
 
+
+### Examples
+
 To plot based on hemisphere or selection of radars, here is an example plotting North hemisphere radars with selected SuperDARN Canada radars colored as green, note that the axes object (ax) needs to be updated inside to loop to plot multiple FOV:
 
 ```python
 import pydarn
 from datetime import datetime
-import matplotlib.pyplot as plt 
+import matplotlib.pyplot as plt
 
-fov_rtn={}
+fov_rtn = {}
 fov_rtn['ax'] = None
-for stid in pydarn.SuperDARNRadars.radars.keys():
+for stid in pydarn.RadarID:
     if pydarn.SuperDARNRadars.radars[stid].hemisphere == pydarn.Hemisphere.North:
-        if stid != 2:
-            if stid in [66, 65, 6, 65, 5]: 
-                fov_rtn = pydarn.Fan.plot_fov(stid, datetime(2021, 2, 5, 12, 5), 
-                                    radar_label=True, fov_color='green',
-                                    line_color='green', alpha=0.8, ax=fov_rtn['ax'])
-
-            fov_rtn = pydarn.Fan.plot_fov(stid, datetime(2021, 2, 5, 12, 5), 
-                                radar_label=True, fov_color='blue',
-                                line_color='blue', alpha=0.2, lowlat=10, 
-                                ax=fov_rtn['ax'])
+        if stid != pydarn.RadarID.SCH:
+            if stid in [
+                pydarn.RadarID.SAS,
+                pydarn.RadarID.PGR,
+                pydarn.RadarID.CLY,
+                pydarn.RadarID.RKN,
+                pydarn.RadarID.INV
+            ]:
+                fov_rtn = pydarn.Fan.plot_fov(stid, datetime(2021, 2, 5, 12, 5),
+                                              radar_label=True, fov_color='green',
+                                              line_color='green', alpha=0.8, ax=fov_rtn['ax'])
+            else:
+                fov_rtn = pydarn.Fan.plot_fov(stid, datetime(2021, 2, 5, 12, 5),
+                                              radar_label=True, fov_color='blue',
+                                              line_color='blue', alpha=0.2, lowlat=10,
+                                              ax=fov_rtn['ax'])
 
 plt.show()
 ```
 
 ![](../imgs/fov_2.png)
 
-This example will plot the South Hemisphere radars FOV in red:
+This example will plot all radars in the southern hemisphere FOV in red:
 
 ```python
 import pydarn
 from datetime import datetime
-import matplotlib.pyplot as plt 
+import matplotlib.pyplot as plt
 
-fov_rtn={}
+fov_rtn = {}
 fov_rtn['ax'] = None
-for stid in pydarn.SuperDARNRadars.radars.keys():
+for stid in pydarn.RadarID:
     if pydarn.SuperDARNRadars.radars[stid].hemisphere == pydarn.Hemisphere.South:
-        if stid != 2:
+        if stid != pydarn.RadarID.SCH:
             fov_rtn = pydarn.Fan.plot_fov(stid, datetime(2021, 2, 5, 12, 5),
-                                radar_label=True, fov_color='red',
-                                line_color='red', alpha=0.2, ax=fov_rtn['ax'])
+                                          radar_label=True, fov_color='red',
+                                          line_color='red', alpha=0.2, ax=fov_rtn['ax'])
 plt.show()
 ```
 
 ![](../imgs/fov_3.png)
 
 
-This example shows the use of *cartopy*, plotting in geographic coordinates with the coastline outlines. 
+This example shows plotting in geographic coordinates with the coastline outlines. 
 
 ```python
 import pydarn
 from datetime import datetime
 import matplotlib.pyplot as plt 
 
-pydarn.Fan.plot_fov(stid=65, date=datetime(2022, 1, 8, 14, 5),
+pydarn.Fan.plot_fov(stid=pydarn.RadarID.RKN, date=datetime(2022, 1, 8, 14, 5),
                     fov_color='red', coords=pydarn.Coords.GEOGRAPHIC,
                     projs=pydarn.Projs.GEO, coastline=True)
 plt.show()
@@ -135,27 +144,27 @@ import pydarn
 from datetime import datetime
 import matplotlib.pyplot as plt 
 
-fov_rtn = pydarn.Fan.plot_fov(66, datetime(2021, 6, 21, 6, 0),
+fov_rtn = pydarn.Fan.plot_fov(pydarn.RadarID.CLY, datetime(2021, 6, 21, 6, 0),
                               lowlat= 50, boundary=True, radar_label=True,
                               line_color='red', grid = True,
                               coords=pydarn.Coords.GEOGRAPHIC,
                               projs=pydarn.Projs.GEO, coastline=True)
-pydarn.Fan.plot_fov(5, datetime(2021, 2, 5, 12, 5), radar_label=True,
+pydarn.Fan.plot_fov(pydarn.RadarID.SAS, datetime(2021, 2, 5, 12, 5), radar_label=True,
                     ax=fov_rtn['ax'], ccrs=fov_rtn['ccrs'], boundary=True,
                     line_color='blue', grid = True,
                     coords=pydarn.Coords.GEOGRAPHIC,
                     projs=pydarn.Projs.GEO)
-pydarn.Fan.plot_fov(64, datetime(2021, 2, 5, 12, 5), radar_label=True,
+pydarn.Fan.plot_fov(pydarn.RadarID.INV, datetime(2021, 2, 5, 12, 5), radar_label=True,
                     ax=fov_rtn['ax'], ccrs=fov_rtn['ccrs'],
                     boundary=True, line_color='green',
                     grid = True, coords=pydarn.Coords.GEOGRAPHIC,
                     projs=pydarn.Projs.GEO)
-pydarn.Fan.plot_fov(65, datetime(2021, 2, 5, 12, 5), radar_label=True,
+pydarn.Fan.plot_fov(pydarn.RadarID.RKN, datetime(2021, 2, 5, 12, 5), radar_label=True,
                     ax=fov_rtn['ax'], ccrs=fov_rtn['ccrs'],
                     boundary=True, line_color='orange',
                     grid = True, coords=pydarn.Coords.GEOGRAPHIC,
                     projs=pydarn.Projs.GEO)
-pydarn.Fan.plot_fov(6, datetime(2021, 2, 5, 12, 5), radar_label=True,
+pydarn.Fan.plot_fov(pydarn.RadarID.PGR, datetime(2021, 2, 5, 12, 5), radar_label=True,
                     ax=fov_rtn['ax'], ccrs=fov_rtn['ccrs'],
                     boundary=True, grid = True,
                     coords=pydarn.Coords.GEOGRAPHIC, projs=pydarn.Projs.GEO)
@@ -164,20 +173,6 @@ plt.show()
 
 ![](../imgs/fov_8.png)
 
-!!! Warning
-    You cannot plot AACGM coordinates on a geographic plot as its not correctly transformed.
-
-
-`plot_fov` use two other plotting methods `plot_radar_position` and `plot_radar_label`, these methods have the following parameters: 
-
-| Option              | Action                                                                     |
-| ------------------- | -------------------------------------------------------------------------- |
-| stid=(int)          | Station id of the radar. Can be found using [SuperDARNRadars](hardware.md) |
-| date=(datetime)     | `datetime` object to determine the position the radar fov is in MLT        |
-| line_color=(string) | Sets the text and radar location dot color (default: black)                |
-
-!!! Note
-    These methods will not plot on a polar axis if called without `plot_fov`, so it is strongly encouraged to use `plot_fov` to use them. 
 
 To obtain only dots and labels:
 
@@ -186,7 +181,7 @@ import pydarn
 from datetime import datetime
 import matplotlib.pyplot as plt 
 
-pydarn.Fan.plot_fov(66, datetime(2021, 2, 5, 12, 5), boundary=False,
+pydarn.Fan.plot_fov(pydarn.RadarID.CLY, datetime(2021, 2, 5, 12, 5), boundary=False,
                     radar_label=True)
 plt.show()
 ```
@@ -194,6 +189,6 @@ plt.show()
 ![](../imgs/fov_4.png)
 
 !!! Note
-    The radar label positions have been manually set so that no labels overlap. Users can plot their own labels using `plt.text(*lon psn in radians*, *lat psn in degrees*, *text string*)` if the current position used is not suitable.
+    The radar label positions have been manually set in geographic and geomagnetic coordinates so that no labels overlap. Users can plot their own labels using `plt.text(*lon psn in radians/degrees*, *lat psn in degrees*, *text string*)` if the current position used is not suitable. You may need to include a Cartopy transform if using the GEO or MAG projections from Cartopy.
 
 

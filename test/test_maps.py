@@ -12,7 +12,6 @@
 # and conditions of version 3 of the GNU General Public License,
 # supplemented by the additional permissions listed below.
 
-import datetime as dt
 import matplotlib.pyplot as plt
 import pytest
 import warnings
@@ -20,7 +19,7 @@ import warnings
 import pydarn
 
 
-data = pydarn.SuperDARNRead('test/data/test.north.mp').read_map()
+data, _ = pydarn.read_map('test/data/test.north.mp')
 
 
 class TestMap_defaults:

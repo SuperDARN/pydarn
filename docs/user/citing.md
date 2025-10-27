@@ -62,7 +62,7 @@ For the general achievements of the SuperDARN Network, you can read these papers
 - Nishitani, N., Ruohoniemi, J.M., Lester, M. et al. Review of the accomplishments of mid-latitude Super Dual Auroral Radar Network (SuperDARN) HF radars. Prog Earth Planet Sci 6, 27 (2019) [doi:10.1186/s40645-019-0270-5](https://progearthplanetsci.springeropen.com/articles/10.1186/s40645-019-0270-5)
 
 During your study, if using data from individual radars only, please contact the Principal Investigator (PI) of that radar about potential co-authorship. 
-A list of radars, institutions, and their PI's information can be found [here](http://vt.superdarn.org/tiki-index.php?page=Radar+Overview).  
+A list of radars, institutions, and their PI's information can be found [here](https://superdarn.ca/radar-info).  
 
 ## Acknowledgements
 
@@ -107,7 +107,7 @@ Please either cite using the version DOI's below or acknowledge the use of the s
 - Release 3.1 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7468856.svg)](https://doi.org/10.5281/zenodo.7468856)
 - Release 3.1.1 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7767590.svg)](https://doi.org/10.5281/zenodo.7767590)
 - Release 4.0 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10452339.svg)](https://doi.org/10.5281/zenodo.10452339)
-
+- Release 4.1 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.13694617.svg)](https://doi.org/10.5281/zenodo.13694617)
 
 ## Python Library References 
 

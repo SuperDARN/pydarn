@@ -21,9 +21,11 @@ Coordinate-time plots have all the additional features as the range-time plots, 
 Your plot can be made with a combination of the `range_estimate`, `coords` and `latlon` keywords.
 For example, if `range_estimate=RangeEstimate.SLANT_RANGE`, `coords=Coords.AACGM` and `latlon='lat'`, this method will produce a plot with magnetic latitude on the y-axis calculated from the slant range value.
 
-```
-SDarn_read = pydarn.SuperDARNRead('file/name.fitacf')
-fitacf_data = SDarn_read.read_fitacf()
+```python
+import pydarn
+import matplotlib.pyplot as plt
+
+fitacf_data, _ = pydarn.read_fitacf('file/name.fitacf')
 pydarn.RTP.plot_coord_time(fitacf_data, beam_num=0,
                         range_estimation=pydarn.RangeEstimation.SLANT_RANGE,
                         latlon='lat', coords=pydarn.Coords.AACGM)
@@ -40,10 +42,13 @@ plt.show()
 
 ## Plot Equatorward?
 
-As mentioned, some radar FOV go up then down in latitude. So that we do not overplot and potentially misrepresent data, the user can choose to plot the 'up' section of data (poleward), or the 'down' section of data (equatorward).
+As mentioned, some radar FOV go up then down in latitude over the length of a beam. So that we do not overplot and potentially misrepresent data, the user can choose to plot the 'up' section of data (poleward), or the 'down' section of data (equatorward).
 For example, using Clyde River data, you can use the `plot_equatorward` keyword to avoid overplotting and can see the data more clearly. The default for this keyword is `False`, however, the console will print information for you regarding the point at which the data changes direction and how to plot the remaining data. 
 
-```
+```python
+import pydarn
+import matplotlib.pyplot as plt
+
 a = pydarn.RTP.plot_coord_time(fitacf_data, beam_num=0,
                             range_estimation=pydarn.RangeEstimation.SLANT_RANGE,
                             latlon='lat', coords=pydarn.Coords.AACGM,
@@ -55,7 +60,10 @@ plt.show()
 
 ![](../imgs/ctp_equator.png)
 
-```
+```python
+import pydarn
+import matplotlib.pyplot as plt
+
 a = pydarn.RTP.plot_coord_time(fitacf_data, beam_num=0,
                             range_estimation=pydarn.RangeEstimation.SLANT_RANGE,
                             latlon='lat', coords=pydarn.Coords.AACGM,

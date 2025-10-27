@@ -20,7 +20,7 @@ import numpy as np
 
 from typing import List
 
-from pydarn import SuperDARNRadars, exceptions, RTP
+from pydarn import SuperDARNRadars, exceptions, RTP, RadarID
 
 
 class Power():
@@ -276,7 +276,7 @@ class Power():
                 default: True
         """
         # get station ID and radar abbreviation for the title
-        stid = records[0]['stid']
+        stid = RadarID(records[0]['stid'])
         radar_abbrev = SuperDARNRadars.radars[stid].hardware_info.abbrev
         # plot a time series using RTP class of pwr0
         RTP.plot_time_series(records, parameter='pwr0', beam_num=beam_num)

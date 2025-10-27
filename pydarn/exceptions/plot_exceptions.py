@@ -14,11 +14,7 @@
 # This version of the GNU Lesser General Public License incorporates the terms
 # and conditions of version 3 of the GNU General Public License,
 # supplemented by the additional permissions listed below.
-
-import logging
 import datetime
-
-pydarn_log = logging.getLogger('pydarn')
 
 
 class PartialRecordsError(Exception):
@@ -31,32 +27,7 @@ class PartialRecordsError(Exception):
                 "records created in RST (data processing software for"\
                 " SuperDARN)".format(missing_field)
         super().__init__(self.message)
-        pydarn_log.error(self.message)
 
-
-class CartopyMissingError(Exception):
-    """
-    Error given when attmpting a cartopy style plot but cartopy isn't installed
-    """
-    def __init__(self):
-        self.message = 'cartopy is independent library that the user must'\
-                'install to use. Please either change '\
-                'plot styles or install cartopy and dependencies: '\
-                'https://pydarn.readthedocs.io/en/main/user/install/.'
-        super().__init__(self.message)
-        pydarn_log.error(self.message)
-
-
-class CartopyVersionError(Exception):
-    """
-    Error given when attmpting a cartopy style plot but cartopy isn't installed
-    """
-    def __init__(self, version):
-        self.message = 'cartopy is independent library that the user must'\
-                'install to use. Please insure the version number is '\
-                '>= 0.19. Your current version is: {}'.format(version)
-        super().__init__(self.message)
-        pydarn_log.error(self.message)
 
 class NotImplemented(Exception):
     """
@@ -65,7 +36,7 @@ class NotImplemented(Exception):
     def __init__(self, msg):
         self.message = msg
         super().__init__(self.message)
-        pydarn_log.error(self.message)
+
 
 class IncorrectPlotMethodError(Exception):
     """
@@ -81,7 +52,6 @@ class IncorrectPlotMethodError(Exception):
             " for this data types.".format(parameter=self.parameter,
                                            data_type=self.data_type)
         super().__init__(self.message)
-        pydarn_log.error(self.message)
 
 
 class IncorrectDateError(Exception):
@@ -98,7 +68,6 @@ class IncorrectDateError(Exception):
             "".format(record_date=self.record_date.strftime('%Y%m%d %H:%M'),
                       plot_date=self.plot_date.strftime('%Y%m%d %H:%M'))
         super().__init__(self.message)
-        pydarn_log.error(self.message)
 
 
 class NoDataFoundError(Exception):
@@ -181,7 +150,6 @@ class NoDataFoundError(Exception):
                                   parameter_value=opt_parameter_value)
 
         super().__init__(self.message)
-        pydarn_log.error(self.message)
 
 
 class UnknownParameterError(Exception):
@@ -209,7 +177,6 @@ class UnknownParameterError(Exception):
                     " you are using the correct data."\
                     "".format(parameter=self.parameter)
         super().__init__(self.message)
-        pydarn_log.error(self.message)
 
 
 class OutOfRangeGateError(Exception):
@@ -226,7 +193,6 @@ class OutOfRangeGateError(Exception):
                                              param=self.parameter,
                                              max_gate=self.max_range_gate-1)
         super().__init__(self.message)
-        pydarn_log.error(self.message)
 
 
 class NoChannelError(Exception):
@@ -242,4 +208,3 @@ class NoChannelError(Exception):
                        .format(channel=self.channel,
                                opt_channel=self.opt_channel)
         super().__init__(self.message)
-        pydarn_log.error(self.message)

@@ -26,12 +26,10 @@ where `fitacf_data` is the data read in using the read functions, and the option
 First, make sure pyDARN and matplotlib are imported, then read in the fitacf file with the data you wish to plot:
 ```python
 import matplotlib.pyplot as plt
-
 import pydarn
 
 fitacf_file = "20190831.C0.cly.fitacf"
-sdarn_read = pydarn.SuperDARNRead(fitacf_file)
-fitacf_data = sdarn_read.read_fitacf()
+fitacf_data, _ = pydarn.read_fitacf(fitacf_file)
 
 ```
 
@@ -57,12 +55,10 @@ To specify which beam to look at, add the option:
 As an example, taking a look at some `v` data from the first record of Clyde River radar FITACF file:
 ```python
 import matplotlib.pyplot as plt
-
 import pydarn
 
 fitacf_file = "20190831.C0.cly.fitacf"
-sdarn_read = pydarn.SuperDARNRead(fitacf_file)
-fitacf_data = sdarn_read.read_fitacf()
+fitacf_data, _ = pydarn.read_fitacf(fitacf_file)
 
 pydarn.RTP.plot_range_time(fitacf_data, beam_num=fitacf_data[0]['bmnum'], range_estimation=pydarn.RangeEstimation.RANGE_GATE)
 plt.title("Radar {:d}, Beam {:d}".format(fitacf_data[0]['stid'], fitacf_data[0]['bmnum']))  
@@ -168,8 +164,7 @@ import pydarnio
 import matplotlib.pyplot as plt 
 
 fitacf_file = 'data/20161014.1401.00.rkn.lmfit2'
-fitacf_reader = pydarnio.SDarnRead(fitacf_file)
-fitacf_data = fitacf_reader.read_fitacf()
+fitacf_data, _ = pydarn.read_fitacf(fitacf_file)
 pydarn.RTP.plot_range_time(fitacf_data, beam_num=7, parameter='p_l')
 plt.show()
 ```
@@ -201,13 +196,13 @@ plt.show()
 
 Range-time plots also allow users to plot `pwr0` parameters in RAWACF files:
 
-``` python
+```python
 import pydarn
 import matplotlib.pyplot as plt 
 from matplotlib import colors
 
 rawacf_file = './data/20180404.0601.00.inv.rawacf'
-rawacf_data = pydarn.SuperDARNRead().read_dmap(rawacf_file)
+rawacf_data, _ = pydarn.read_dmap(rawacf_file)
 lognorm=colors.LogNorm
 
 pydarn.RTP.plot_range_time(rawacf_data, beam_num=0, parameter='pwr0',

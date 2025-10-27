@@ -13,6 +13,7 @@
 # 2022-12-13: CJM - Limited reference vectors to only velocity use
 # 2023-03-14: CJM - Added true vector option
 # 2023-06-28: CJM - Refactored return values
+# 2024-07-11: CJM - Added potential time series plot
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
@@ -29,13 +30,14 @@ Grid plots, mapped to AACGM coordinates in a polar format
 """
 
 import datetime as dt
+
+import matplotlib.axes
 import matplotlib.pyplot as plt
 import numpy as np
 import warnings
 
 from enum import Enum
 from matplotlib import ticker, cm, colors
-from mpl_toolkits.axes_grid1.inset_locator import InsetPosition
 from scipy import special
 from typing import List
 
@@ -43,14 +45,14 @@ from typing import List
 # Third party libraries
 import aacgmv2
 
-from pydarn import (PyDARNColormaps, plot_exceptions,
+from pydarn import (PyDARNColormaps, plot_exceptions, RadarID,
                     standard_warning_format, Re, Hemisphere,
                     time2datetime, find_record, Fan, Projs,
                     MapParams, TimeSeriesParams)
 warnings.formatwarning = standard_warning_format
 
 
-class Maps():
+class Maps:
     """
     Maps plots for SuperDARN data
 
@@ -71,7 +73,7 @@ class Maps():
                      record: int = 0, start_time: dt.datetime = None,
                      time_delta: float = 1,  alpha: float = 1.0,
                      len_factor: float = 150, color_vectors: bool = True,
-                     cmap: str = None, colorbar: bool = True, 
+                     cmap: str = None, colorbar: bool = True,
                      contour_colorbar: bool = True,
                      colorbar_label: str = '', title: str = '',
                      zmin: float = None, zmax: float = None,
@@ -85,7 +87,7 @@ class Maps():
         Parameters
         ----------
             dmap_data : dict[List]
-                DMAP data returned from pyDARN.SuperDARNRead or pyDARNio
+                DMAP data
             ax: object
                 matplotlib axis object
             parameters: enum
@@ -164,8 +166,7 @@ class Maps():
                 Default: 500 (vector plotted)
             projs: Enum
                 choice of projection for plot
-                default: Projs.POLAR (polar projection)
-                There is no support for other projections currently
+                default: Projs.POLAR (geomagnetic polar projection)
             kwargs: key=value
                 uses the parameters for plot_fov and projections.axis
 
@@ -200,7 +201,7 @@ class Maps():
         norm = norm(zmin, zmax)
 
         if projs != Projs.POLAR:
-            raise plot_exceptions.NotImplemented(" Only polar projections"
+            raise plot_exceptions.NotImplemented(" Only polar projections "
                                                  " are implemented for"
                                                  " convection maps."
                                                  " Please set"
@@ -213,14 +214,22 @@ class Maps():
             # Needs to find the positions for each
             # Else just call the axis maker: proj
             if boundary or radar_location:
-                for stid in dmap_data[record]['stid']:
-                    fan_rtn = Fan.plot_fov(stid, date, ax=ax,
-                                           boundary=boundary,
+                fan_rtn = Fan.plot_fov(RadarID(dmap_data[record]['stid'][0]), date,
+                                       ax=ax, boundary=boundary,
+                                       radar_location=radar_location,
+                                       **kwargs)
+                ax = fan_rtn['ax']
+                ccrs = fan_rtn['ccrs']
+                for stid in dmap_data[record]['stid'][1:]:
+                    fan_rtn = Fan.plot_fov(RadarID(stid), date, ax=ax,
+                                           boundary=boundary, ccrs=ccrs,
                                            radar_location=radar_location,
                                            **kwargs)
                     ax = fan_rtn['ax']
             else:
-                ax, _ = projs(date, ax=ax, hemisphere=hemisphere, **kwargs)
+                
+                ax, ccrs = projs(date, ax=ax, hemisphere=hemisphere, **kwargs)
+
 
         if parameter == MapParams.MODEL_VELOCITY:
             try:
@@ -352,12 +361,12 @@ class Maps():
                         ind = (np.abs(hmblons - rounded_mlon)).argmin()
                         lat_limit = dmap_data[record]['boundary.mlat'][ind]
                         if abs(mlats[i]) >= abs(lat_limit):
-                            plt.plot([mlons[i], end_mlons[i]],
+                            ax.plot([mlons[i], end_mlons[i]],
                                      [mlats[i], end_mlats[i]],
                                      c=cmap(norm(v_mag[i])),
                                      linewidth=0.5, zorder=5.0)
                     else:
-                        plt.plot([mlons[i], end_mlons[i]],
+                        ax.plot([mlons[i], end_mlons[i]],
                                  [mlats[i], end_mlats[i]],
                                  c=cmap(norm(v_mag[i])),
                                  linewidth=0.5, zorder=5.0)
@@ -378,11 +387,11 @@ class Maps():
                         ind = (np.abs(hmblons - rounded_mlon)).argmin()
                         lat_limit = dmap_data[record]['boundary.mlat'][ind]
                         if abs(mlats[i]) >= abs(lat_limit):
-                            plt.plot([mlons[i], end_mlons[i]],
+                            ax.plot([mlons[i], end_mlons[i]],
                                      [mlats[i], end_mlats[i]], c='#292929',
                                      linewidth=0.5, zorder=5.0)
                     else:
-                        plt.plot([mlons[i], end_mlons[i]],
+                        ax.plot([mlons[i], end_mlons[i]],
                                  [mlats[i], end_mlats[i]], c='#292929',
                                  linewidth=0.5, zorder=5.0)
 
@@ -392,20 +401,20 @@ class Maps():
                              MapParams.RAW_VELOCITY,
                              MapParams.TRUE_VELOCITY]:
                 if reference_vector > 0:
-                    plt.scatter(mlons[:-1], mlats[:-1], c=v_mag[:-1], s=2.0,
+                    ax.scatter(mlons[:-1], mlats[:-1], c=v_mag[:-1], s=2.0,
                                 vmin=zmin, vmax=zmax,  cmap=cmap, zorder=5.0,
                                 clip_on=True)
-                    plt.scatter(mlons[-1], mlats[-1], c=v_mag[-1], s=2.0,
+                    ax.scatter(mlons[-1], mlats[-1], c=v_mag[-1], s=2.0,
                                 vmin=zmin, vmax=zmax,  cmap=cmap, zorder=5.0,
                                 clip_on=False)
-                    plt.plot([mlons[-1], end_mlons[-1]],
+                    ax.plot([mlons[-1], end_mlons[-1]],
                              [mlats[-1], end_mlats[-1]],
                              c=cmap(norm(v_mag[-1])),
                              linewidth=0.5, zorder=5.0, clip_on=False)
                     plt.figtext(0.675, 0.15, str(reference_vector) + ' m/s',
                                 fontsize=8)
                 else:
-                    plt.scatter(mlons[:-1], mlats[:-1], c=v_mag[:-1], s=2.0,
+                    ax.scatter(mlons[:-1], mlats[:-1], c=v_mag[:-1], s=2.0,
                                 vmin=zmin, vmax=zmax,  cmap=cmap, zorder=5.0)
             elif parameter is MapParams.FITTED_VELOCITY:
                 # Shift HMB lons to MLT
@@ -421,16 +430,16 @@ class Maps():
                     ind = (np.abs(hmblons - rounded_mlon)).argmin()
                     lat_limit = dmap_data[record]['boundary.mlat'][ind]
                     if abs(mlats[m]) >= abs(lat_limit):
-                        plt.scatter(mlon, mlats[m], color=cmap(norm(v_mag[m])),
+                        ax.scatter(mlon, mlats[m], color=cmap(norm(v_mag[m])),
                                     s=2.0, zorder=5.0, clip_on=True)
                     else:
-                        plt.scatter(mlon, mlats[m], c='#DDDDDD', s=2.0,
+                        ax.scatter(mlon, mlats[m], c='#DDDDDD', s=2.0,
                                     zorder=5.0, clip_on=True)
                 if reference_vector > 0:
-                    plt.scatter(mlons[-1], mlats[-1],
+                    ax.scatter(mlons[-1], mlats[-1],
                                 color=cmap(norm(v_mag[-1])),
                                 s=2.0, zorder=5.0, clip_on=False)
-                    plt.plot([mlons[-1], end_mlons[-1]],
+                    ax.plot([mlons[-1], end_mlons[-1]],
                              [mlats[-1], end_mlats[-1]],
                              c=cmap(norm(v_mag[-1])),
                              linewidth=0.5, zorder=5.0, clip_on=False)
@@ -438,7 +447,7 @@ class Maps():
                                 fontsize=8)
             # No vector socks on spectral width
             else:
-                plt.scatter(mlons[:], mlats[:], c=v_mag[:], s=2.0,
+                ax.scatter(mlons[:], mlats[:], c=v_mag[:], s=2.0,
                             vmin=zmin, vmax=zmax,  cmap=cmap, zorder=5.0)
 
         else:
@@ -448,17 +457,17 @@ class Maps():
                              MapParams.RAW_VELOCITY,
                              MapParams.TRUE_VELOCITY]:
                 if reference_vector > 0:
-                    plt.scatter(mlons[:-1], mlats[:-1], c='#292929', s=2.0,
+                    ax.scatter(mlons[:-1], mlats[:-1], c='#292929', s=2.0,
                                 zorder=5.0, clip_on=True)
-                    plt.scatter(mlons[-1], mlats[-1], c='#292929', s=2.0,
+                    ax.scatter(mlons[-1], mlats[-1], c='#292929', s=2.0,
                                 zorder=5.0, clip_on=False)
-                    plt.plot([mlons[-1], end_mlons[-1]],
+                    ax.plot([mlons[-1], np.degrees(end_mlons[-1])],
                              [mlats[-1], end_mlats[-1]], c='#292929',
                              linewidth=0.5, zorder=5.0, clip_on=False)
                     plt.figtext(0.675, 0.15, str(reference_vector) + ' m/s',
                                 fontsize=8)
                 else:
-                    plt.scatter(mlons[:-1], mlats[:-1], c='#292929', s=2.0,
+                    ax.scatter(mlons[:-1], mlats[:-1], c='#292929', s=2.0,
                                 zorder=5.0)
             elif parameter is MapParams.FITTED_VELOCITY:
                 # Shift HMB lons to MLT
@@ -474,22 +483,22 @@ class Maps():
                     ind = (np.abs(hmblons - rounded_mlon)).argmin()
                     lat_limit = dmap_data[record]['boundary.mlat'][ind]
                     if abs(mlats[m]) >= abs(lat_limit):
-                        plt.scatter(mlon, mlats[m], c='#292929', s=2.0,
+                        ax.scatter(mlon, mlats[m], c='#292929', s=2.0,
                                     zorder=5.0, clip_on=True)
                     else:
-                        plt.scatter(mlon, mlats[m], c='#DDDDDD', s=2.0,
+                        ax.scatter(mlon, mlats[m], c='#DDDDDD', s=2.0,
                                     zorder=5.0, clip_on=True)
                 if reference_vector > 0:
-                    plt.scatter(mlons[-1], mlats[-1], c='#292929', s=2.0,
+                    ax.scatter(mlons[-1], mlats[-1], c='#292929', s=2.0,
                                 zorder=5.0, clip_on=False)
-                    plt.plot([mlons[-1], end_mlons[-1]],
+                    ax.plot([mlons[-1], end_mlons[-1]],
                              [mlats[-1], end_mlats[-1]], c='#292929',
                              linewidth=0.5, zorder=5.0, clip_on=False)
                     plt.figtext(0.675, 0.15, str(reference_vector) + ' m/s',
                                 fontsize=8)
             # No vector socks on spectral width
             else:
-                plt.scatter(mlons[:], mlats[:], c='#292929', s=2.0,
+                ax.scatter(mlons[:], mlats[:], c='#292929', s=2.0,
                             zorder=5.0)
 
         if colorbar is True:
@@ -597,7 +606,7 @@ class Maps():
                 }
 
     @classmethod
-    def index_legendre(cls, l: int, m: int):
+    def index_legendre(cls, el: int, m: int):
         """
         not a 100% how this works some black magic
 
@@ -612,8 +621,8 @@ class Maps():
         ------
             legendre index?
         """
-        return (m == 0 and l**2) or ((l != 0)
-                                     and (m != 0) and l**2 + 2 * m - 1) or 0
+        return (m == 0 and el**2) or ((el != 0)
+                                      and (m != 0) and el**2 + 2 * m - 1) or 0
 
     @classmethod
     def calculated_true_velocities(cls, v_los: list, a_los: list,
@@ -740,14 +749,14 @@ class Maps():
         # coefficients for elec. Field
         fit_coefficient_flat = fit_coefficient.flatten()
         for m in range(fit_order + 1):
-            for l in range(m, fit_order + 1):
-                k3 = cls.index_legendre(l, m)
-                k4 = cls.index_legendre(l, m)
+            for el in range(m, fit_order + 1):
+                k3 = cls.index_legendre(el, m)
+                k4 = cls.index_legendre(el, m)
 
                 if k3 >= 0:
                     thetas_ecoeffs[k4, q_prime] =\
                             thetas_ecoeffs[k4, q_prime] -\
-                            fit_coefficient_flat[k3] * alpha * l *\
+                            fit_coefficient_flat[k3] * alpha * el *\
                             np.cos(thetas_prime[q_prime]) / \
                             np.sin(thetas_prime[q_prime]) / Re_meters
                     phi_ecoeffs[k4, q] = phi_ecoeffs[k4, q] - \
@@ -757,17 +766,17 @@ class Maps():
                         fit_coefficient_flat[k3] * m /\
                         np.sin(thetas[q]) / Re_meters
 
-                if l < fit_order:
-                    k1 = cls.index_legendre(l+1, m)
+                if el < fit_order:
+                    k1 = cls.index_legendre(el+1, m)
                 else:
                     k1 = -1
 
-                k2 = cls.index_legendre(l, m)
+                k2 = cls.index_legendre(el, m)
 
                 if k1 >= 0:
                     thetas_ecoeffs[k2, q_prime] =\
                         thetas_ecoeffs[k2, q_prime] + \
-                        fit_coefficient_flat[k1] * alpha * (l + 1 + m) / \
+                        fit_coefficient_flat[k1] * alpha * (el + 1 + m) / \
                         np.sin(thetas_prime[q_prime]) / Re_meters
 
                 if m > 0:
@@ -782,7 +791,7 @@ class Maps():
                     if k3 >= 0:
                         thetas_ecoeffs[k4, q_prime] =\
                                 thetas_ecoeffs[k4, q_prime] \
-                                - fit_coefficient_flat[k3] * alpha * l * \
+                                - fit_coefficient_flat[k3] * alpha * el * \
                                 np.cos(thetas_prime[q_prime]) / \
                                 np.sin(thetas_prime[q_prime]) / Re_meters
 
@@ -790,7 +799,7 @@ class Maps():
                         thetas_ecoeffs[k2, q_prime] = \
                             thetas_ecoeffs[k2, q_prime] \
                             + fit_coefficient_flat[k1] * alpha *\
-                            (l + 1 + m) / np.sin(thetas_prime[q_prime]) /\
+                            (el + 1 + m) / np.sin(thetas_prime[q_prime]) /\
                             Re_meters
 
         # Calculate the Electric field positions
@@ -798,8 +807,8 @@ class Maps():
         phi_ecomp = np.zeros(thetas.shape)
 
         for m in range(fit_order + 1):
-            for l in range(m, fit_order + 1):
-                k = cls.index_legendre(l, m)
+            for el in range(m, fit_order + 1):
+                k = cls.index_legendre(el, m)
                 # Now in the IDL code we use
                 # legendre_poly[:,l,m] instead of
                 # legendre_poly[:,m,l] like here, this is
@@ -809,17 +818,17 @@ class Maps():
                 # stores values in arrays...
                 if m == 0:
                     thetas_ecomp = thetas_ecomp + thetas_ecoeffs[k, :] * \
-                            legendre_poly[:, m, l]
+                            legendre_poly[:, m, el]
                     phi_ecomp = phi_ecomp + phi_ecoeffs[k, :] * \
-                        legendre_poly[:, m, l]
+                        legendre_poly[:, m, el]
                 else:
                     thetas_ecomp = thetas_ecomp + thetas_ecoeffs[k, :] * \
-                        legendre_poly[:, m, l] * np.cos(m * phi) + \
-                        thetas_ecoeffs[k+1, :] * legendre_poly[:, m, l] * \
+                        legendre_poly[:, m, el] * np.cos(m * phi) + \
+                        thetas_ecoeffs[k+1, :] * legendre_poly[:, m, el] * \
                         np.sin(m * phi)
                     phi_ecomp = phi_ecomp + phi_ecoeffs[k, :] * \
-                        legendre_poly[:, m, l] * np.cos(m * phi) + \
-                        phi_ecoeffs[k+1, :] * legendre_poly[:, m, l] * \
+                        legendre_poly[:, m, el] * np.cos(m * phi) + \
+                        phi_ecoeffs[k+1, :] * legendre_poly[:, m, el] * \
                         np.sin(m * phi)
 
         # Store the two components of Efield into a single array
@@ -922,7 +931,7 @@ class Maps():
         return mlon, mlats
 
     @classmethod
-    def plot_imf_dial(cls, ax: object, by: float = 0, bz: float = 0,
+    def plot_imf_dial(cls, ax: matplotlib.axes.Axes, by: float = 0, bz: float = 0,
                       bt: float = 0, delay: float = 0):
         """
         Plots an IMF clock angle dial on the existing plot
@@ -947,9 +956,7 @@ class Maps():
                 Default = 0 minutes
         """
         # Create new axes inside existing axes
-        ax_imf = plt.axes([0, 0, 1, 1])
-        ip = InsetPosition(ax, [-0.2, 0.7, 0.4, 0.4])
-        ax_imf.set_axes_locator(ip)
+        ax_imf = ax.inset_axes((-0.2, 0.7, 0.4, 0.4))
         ax_imf.axis('off')
 
         ax_imf.set_xlim([-20.2, 20.2])
@@ -960,11 +967,11 @@ class Maps():
                                   edgecolor='k')
         ax_imf.add_patch(limit_circle)
         # Plot axis lines
-        plt.plot([-10, 10], [0, 0], color='k', linewidth=0.5)
-        plt.plot([0, 0], [-10, 10], color='k', linewidth=0.5)
+        ax_imf.plot([-10, 10], [0, 0], color='k', linewidth=0.5)
+        ax_imf.plot([0, 0], [-10, 10], color='k', linewidth=0.5)
 
         # Plot line for magnetic field
-        plt.plot([0, by], [0, bz], color='r')
+        ax_imf.plot([0, by], [0, bz], color='r')
 
         # Add axis labels
         ax_imf.annotate('+Z', xy=(-2.5, 11))
@@ -1057,14 +1064,14 @@ class Maps():
 
         coeff_fit_flat = fit_coefficient.flatten()
         for m in range(lmax):
-            for l in range(m, lmax):
-                k = cls.index_legendre(l, m)
+            for el in range(m, lmax):
+                k = cls.index_legendre(el, m)
                 if m == 0:
-                    v = v + coeff_fit_flat[k] * plm_fit[:, 0, l]
+                    v = v + coeff_fit_flat[k] * plm_fit[:, 0, el]
                 else:
                     v = v + coeff_fit_flat[k] * np.cos(m * phi) \
-                          * plm_fit[:, m, l] + coeff_fit_flat[k+1] \
-                          * np.sin(m * phi) * plm_fit[:, m, l]
+                          * plm_fit[:, m, el] + coeff_fit_flat[k+1] \
+                          * np.sin(m * phi) * plm_fit[:, m, el]
 
         pot_arr = np.zeros((num_lons, num_lats))
         pot_arr = np.reshape(v, pot_arr.shape) / 1000.0
@@ -1159,14 +1166,14 @@ class Maps():
 
         coeff_fit_flat = fit_coefficient.flatten()
         for m in range(lmax):
-            for l in range(m, lmax):
-                k = cls.index_legendre(l, m)
+            for el in range(m, lmax):
+                k = cls.index_legendre(el, m)
                 if m == 0:
-                    v = v + coeff_fit_flat[k] * plm_fit[:, 0, l]
+                    v = v + coeff_fit_flat[k] * plm_fit[:, 0, el]
                 else:
                     v = v + coeff_fit_flat[k] * np.cos(m * phi) \
-                        * plm_fit[:, m, l] + coeff_fit_flat[k + 1] \
-                        * np.sin(m * phi) * plm_fit[:, m, l]
+                        * plm_fit[:, m, el] + coeff_fit_flat[k + 1] \
+                        * np.sin(m * phi) * plm_fit[:, m, el]
 
         # Convert from V to kV
         v /= 1000
@@ -1402,7 +1409,9 @@ class Maps():
                          parameter: Enum = TimeSeriesParams.NUM_VECTORS,
                          start_record: int = 0, end_record: int = 1,
                          start_time: dt.datetime = None,
-                         end_time: dt.datetime = None, ax=None, **kwargs):
+                         end_time: dt.datetime = None,
+                         potential_position: list = [],
+                         ax=None, **kwargs):
         '''
         Plot time series of various map parameters
 
@@ -1418,6 +1427,8 @@ class Maps():
             Start time of the data
         end_time: dt.datetime
             End time of the data
+        potential_position: list [mlon, mlat]
+            Position at which the potential is to be calculated and plotted
         ax:
             matplotlib axis
         kwargs:
@@ -1444,7 +1455,11 @@ class Maps():
             for records in range(start_record, end_record):
                 # append the dimension of numv for each record
                 # we can just uexse any of the keys with dimensionality numv
-                datalist.append(len(dmap_data[records]['vector.mlat']))
+                # Try loop for partial records
+                try:
+                    datalist.append(len(dmap_data[records]['vector.mlat']))
+                except KeyError:
+                    datalist.append(np.nan)
                 # now get the associated time data point per record
                 timelist.append(time2datetime(dmap_data[records]))
             plt.plot(timelist, datalist, **kwargs)
@@ -1452,6 +1467,45 @@ class Maps():
             plt.xlabel('Time (UTC)')
             plt.title("Number of Vectors for " + str(start_time)
                       + " to " + str(end_time))
+        elif parameter == TimeSeriesParams.POT:
+            # This requires a position input in [mlat, mlon]
+            if len(potential_position) != 2:
+                warnings.warn("A valid magnetic position with format "
+                              "[mlon, mlat] "
+                              "is required to plot the potential "
+                              "at a given location. E.G. "
+                              "potential_position = [-110, 78]")
+            elif (potential_position[0] <= -180 or
+                  potential_position[0] >= 180 or
+                  potential_position[1] <= -90 or
+                  potential_position[1] >= 90):
+                warnings.warn("A valid magnetic position with format "
+                              "[mlon, mlat] "
+                              "is required to plot the potential "
+                              "at a given location. E.G. "
+                              "potential_position = [-110, 78]")
+            else:
+                datalist = []
+                timelist = []
+                for records in range(start_record, end_record):
+                    # Calculate potential
+                    pot = cls.calculate_potentials_pos(
+                            potential_position[1],
+                            potential_position[0],
+                            dmap_data[records]['N+2'],
+                            dmap_data[records]['latmin'],
+                            dmap_data[records]['lat.shft'],
+                            dmap_data[records]['lon.shft'],
+                            dmap_data[records]['fit.order'],
+                            Hemisphere(dmap_data[records]['hemisphere']))
+                    datalist.append(pot)
+                    timelist.append(time2datetime(dmap_data[records]))
+                plt.plot(timelist, datalist, **kwargs)
+                plt.ylabel('Potential (kV)')
+                plt.xlabel('Time (UTC)')
+                plt.title('Potential at ' + str(potential_position) +
+                          ' for ' + str(start_time) + " to " +
+                          str(end_time))
         elif parameter is not None:
             datalist = []
             timelist = []

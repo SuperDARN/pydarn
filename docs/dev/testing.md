@@ -1,6 +1,7 @@
 <!--Copyright (C) 2020 SuperDARN Canada, University of Saskatchewan 
 Author(s): Marina Schmidt 
 Modifications:
+2024-07-30 CJM Rewritten
 
 Disclaimer:
 pyDARN is under the LGPL v3 license found in the root directory LICENSE.md 
@@ -15,45 +16,59 @@ the additional permissions listed below.
 
 # Testing Pull Requests 
 
-One way to help pyDARN get developed faster and smoother is by testing [Pull Requests](https://github.com/SuperDARN/pydarn/pulls). 
-This can take fifteen minutes or less to do, helps the developer merge their code,
-and allows you to be on the author list!
+Testing pull requests for pyDARN can help development move at a quicker pace. We use the online tools for GitHub to test and review new code.
+Some pull request testing can take fifteen minutes or less to do, and allows you to be on the author list for the next release!
 
-Every contribution helps! 
-
-## Setting up the testing environment
-
-If you haven't cloned pyDARN before this will get you the correct branch installed to just test:
-`pip install git+https://github.com/superdarn/pydarn@<branchname>`
-Make sure to install any new instances of pyDARN, or branches that are not main in a virtual environment to avoid mixing pyDARN versions! 
-
-
-If you wish to clone pyDARN for multi-branch comparison or testing in the future: 
-
-1. Clone the [pyDARN repository](https://github.com/SuperDARN/pydarn.git) by typing 
-`git clone https://github.com/SuperDARN/pydarn.git` into the terminal or command line.
-
-2. Then checkout the branch you need to test or test against. The author of the Pull Request should give you some information on how to test the code and if you need to checkout other branches to compare results. To checkout a branch you want to test use this git commands:\ 
-
-        git fetch 
-        git checkout <branch name>
-        git pull origin <branch name>
-    These lines *fetch* metadata on any new branches made, *checkout* the right branch you want to test and then *pull* changes to that branch so you're not behind any new changes made.\
-  
-    !!! Note 
-        if you are unaware what the branch name is at the top of the page below the Pull Request title and number shows the branch name and which branch it will be merged into. 
-
-3. From here you just need to install the code run the normal installation steps in a python environment (this ensures it doesn't mix with your current pyDARN version)\
-
-        python3 -m virtual <environment name>
-        source <environment name>/bin/activate
-   for more information on [python virtual environment](https://docs.python.org/3.6/tutorial/venv.html) or to use conda with pyDARN see the [installation documentation](../user/install.md)
-
-4. Next install the branch you are testing by moving to the pyDARN directory you just cloned and running `pip3 install . --user`
-5. Once this is complete follow any test cases the documentation and Pull Request the author describes. 
-Report anything in the Pull Request comments about how you tested the code, what your output is, and any feedback, or information.
-Note: To suggest changes to and/or comment on certain sections of code, navigate to the Files Changed tab where it is possible to select multiple lines of code by clicking and dragging the '+' symbol next to line of code.
-6. Once you are satisfied with the Pull Request, **approve** it by clicking on the top `Files changed` then clicking Review changes and select *Approve*. Make sure to comment what you did in testing for your approval. 
+You can browse our open pull requests here: [Pull Requests](https://github.com/SuperDARN/pydarn/pulls).
+When a developer wants to amend or add new code to the code base, they must first make a 'branch' off from the main code base to allow for their changes to be tracked properly, and make sure those changes do not interfere with the main code base. 
+A pull request is when that developer has finished and wants the code to be included back in the main codebase, but we want to make sure that the code is working and does not break any existing code - therefore, we test it.
 
 !!! Note
-    If the Pull Request has more than two approvals (one for code review and another for testing) with no comments to respond to, then please merge the code. Merge button is at the bottom of the Pull Request page. 
+    It is always recommended to install different branches of pyDARN in Python virtual environments to make sure that 
+    a) Your main installation of pyDARN is not affected, 
+    b) You are definitely testing the correct branch and,
+    c) Existing installations of pyDARN are not interacting with your testing.
+    Read more about Python virtual environments here:[python virtual environment](https://docs.python.org/3.6/tutorial/venv.html)
+
+1. Make and activate your virtual environment:  
+`python3 -m venv venv-name-here`  
+`source venv-name-here/bin/activate`  
+
+2. Decide if you want to quick install or clone install the branch that requires testing.  
+
+    a) Quick install by typing:  
+    `pip install git+https://github.com/superdarn/pydarn@<branchname>`  
+
+    b) Clone install by:  
+    `git clone https://github.com/SuperDARN/pydarn.git`  
+    Checkout the branch:  
+    `git checkout <branchname>`  
+    Move into repository and install this branch:  
+    `cd pydarn`  
+    `pip install .`  
+
+    !!! Note
+        You can check the installation of pyDARN if it appears in the list produced by `pip list`. This can also be used to check the version number of pyDARN and the required dependencies too.
+  
+    !!! Note 
+        The branchname can be found at the top of the page below the Pull Request title and number shows the branch name and which branch it will be merged into. 
+
+3. Now you are ready tu test the code. The developer who made the Pull Request should have written up a piece of test code and described the desired output (if they haven't, comment and ask for it!).
+You will need to make a new Python file `test_code.py`, that includes the code, and will need to source any [data](https://pydarn.readthedocs.io/en/main/user/superdarn_data/) that you might need to use. 
+
+4. Then run the file and interpret the outcome `python3 test_code.py`. It is always useful for the tester to make changes to the test code, use different key words, and different data to test for edge cases and all around usability of the new changes. 
+
+6. What to write up in a comment once tested.  
+    a) The code in your `test_code.py` file.  
+    b) Any plots that the code has made - interpret them scientifically if you are testing science data and accuracy, or comment on their appearance if it a new type of plot. Is it clear, is it useful, should it be laid out differently?  
+    c) If there are any errors, copy the whole traceback into a comment for the developer to read.  
+    d) Include any attempts to circumvent or fix errors and how that worked out.  
+    e) Include versions of dependencies required by developer - we always want to know what version of Matplotlib is being used!  
+    f) Include suggestions if you are able and are doing a [code review](https://pydarn.readthedocs.io/en/main/dev/code_review/).  
+    g) If you are unsure, include as much information as possible for the developer to follow and recreate what you have done.  
+
+7. If everything worked as expected and you are happy with the code, you can **approve** the code officially if you are already part of the pyDARN development team by clicking `Files Changed` then clicking `Review Changes` and select *Approve*.
+If you are not a member, please make a clear statement at the end of the comment saying if you require further changes, or you approve and think the pull request should be merged. 
+
+!!! Note
+    If the Pull Request has the required number of approvals stated by the developer (including your own) with no comments to respond to, then feel free to merge the code. The merge button is at the bottom of the Pull Request page, you can then also delete the branch (an option for this will show up once merged).

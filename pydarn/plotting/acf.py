@@ -20,8 +20,6 @@
 # supplemented by the additional permissions listed below.
 
 
-import copy
-
 import matplotlib.markers
 import matplotlib.pyplot as plt
 import numpy as np
@@ -33,7 +31,7 @@ from typing import List
 
 from pydarn import (plot_exceptions, SuperDARNRadars,
                     standard_warning_format, time2datetime,
-                    check_data_type)
+                    check_data_type, RadarID)
 
 warnings.formatwarning = standard_warning_format
 
@@ -70,7 +68,11 @@ class ACF:
                   normalized: bool = False, real_color: str = 'red',
                   plot_blank: bool = True, blank_marker: str = 'o',
                   imaginary_color: str = 'blue', legend: bool = True,
-                  pwr_and_phs: bool = True, **kwargs):
+                  pwr_and_phs: bool = True, pwr_color: str = 'tab:orange',
+                  phs_color: str = 'tab:purple',
+                  real_marker: str = 'o', imaginary_marker: str = 'o',
+                  pwr_marker: str = 'o', phs_marker: str = 'o',
+                  **kwargs):
         """
         Plots the parameter ACF/XCF field from SuperDARN file,
         typically RAWACF format for a given beam and gate number
@@ -115,9 +117,26 @@ class ACF:
         pwr_and_phs: bool
             plots the power and phase of the ACF
             default: True
+        pwr_color: str
+            the color of line and symbol of power
+            default: tab:orange
+        phs_color: str
+            the color of line and symbol of phase
+            default: tab:purple
+        real_marker: str
+            the marker symbol of real lags
+            default: o - dot
+        imaginary_marker: str
+            the marker symbol of imaginary lags
+            default: o - dot
+        pwr_marker: str
+            the marker symbol of power
+            default: o - dot
+        phs_marker: str
+            the marker symbol of phase
+            default: o - dot
         kwargs: dict
-            are applied to the real and imaginary plots
-
+            are applied to the plots
 
         Notes
         -----
@@ -260,13 +279,13 @@ class ACF:
 
         real_dict = ACF.plot_acf_param(lags, masked_re, ax,
                                        plot_blank=plot_blank,
-                                       marker='o',
+                                       marker=real_marker,
                                        color=real_color,
                                        blank_marker=blank_marker,
                                        **kwargs)
         imag_dict = ACF.plot_acf_param(lags, masked_im, ax,
                                        plot_blank=plot_blank,
-                                       marker='o',
+                                       marker=imaginary_marker,
                                        color=imaginary_color,
                                        blank_marker=blank_marker,
                                        **kwargs)
@@ -289,8 +308,8 @@ class ACF:
         if pwr_and_phs is True:
             power_dict = ACF.plot_acf_param(lags, masked_pwr, ax_pwr,
                                             plot_blank=plot_blank,
-                                            marker='o',
-                                            color='tab:orange',
+                                            marker=pwr_marker,
+                                            color=pwr_color,
                                             blank_marker=blank_marker,
                                             **kwargs)
             ax_pwr.set_ylabel('Power')
@@ -301,8 +320,8 @@ class ACF:
 
             phase_dict = ACF.plot_acf_param(lags, masked_phs, ax_phs,
                                             plot_blank=plot_blank,
-                                            marker='o',
-                                            color='tab:purple',
+                                            marker=phs_marker,
+                                            color=phs_color,
                                             blank_marker=blank_marker,
                                             **kwargs)
             ax_phs.set_ylabel('Phase (degrees)')
@@ -325,7 +344,7 @@ class ACF:
             plt.subplots_adjust(right=0.8)
 
         # Set title of Plot
-        radar_name = SuperDARNRadars.radars[dmap_data[0]['stid']].name
+        radar_name = SuperDARNRadars.radars[RadarID(dmap_data[0]['stid'])].name
         title = "{date} UT {radar} Beam {beam}, Gate {gate}, Control "\
                 "Program: {cpid}"\
                 "".format(radar=radar_name, beam=beam_num, gate=gate_num,

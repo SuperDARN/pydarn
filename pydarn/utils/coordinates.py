@@ -25,11 +25,13 @@ import enum
 import numpy as np
 
 import aacgmv2
+
+import pydarn
 from pydarn import (geocentric_coordinates, SuperDARNRadars, RangeEstimation,
-                    radar_exceptions, Re)
+                    radar_exceptions, Re, RadarID)
 
 
-def geo_coordinates(stid: int, beams: int = None,
+def geo_coordinates(stid: RadarID, beams: int = None,
                     gates: tuple = None, **kwargs):
     """
     geographic_coordinates calculates the geographic coordinate for a given
@@ -60,7 +62,7 @@ def geo_coordinates(stid: int, beams: int = None,
     return beam_corners_lats[y0inx:], beam_corners_lons[y0inx:]
 
 
-def aacgm_coordinates(stid: int, beams: int = None, gates: tuple = None,
+def aacgm_coordinates(stid: pydarn.RadarID, beams: int = None, gates: tuple = None,
                       date: dt.datetime = dt.datetime.now, **kwargs):
     if gates is None:
         gates = [0, SuperDARNRadars.radars[stid].range_gate_45]
@@ -103,7 +105,7 @@ def convert2MLT(lons: float, date: object, **kwargs):
     return beam_corners_mlts
 
 
-def gate2geographic_location(stid: int, beam: int, height: float = None,
+def gate2geographic_location(stid: pydarn.RadarID, beam: int, height: float = None,
                              elv_angle: float = 0.0, center: bool = False,
                              range_estimation: RangeEstimation =
                              RangeEstimation.SLANT_RANGE, **kwargs):
@@ -113,7 +115,7 @@ def gate2geographic_location(stid: int, beam: int, height: float = None,
 
     parameters
     ----------
-        stid: int
+        stid: pydarn.RadarID
             station id of the radar to use
         beam: int
             beam number (indexing at 0)

@@ -12,7 +12,6 @@
 # and conditions of version 3 of the GNU General Public License,
 # supplemented by the additional permissions listed below.
 
-import bz2
 import datetime as dt
 import matplotlib.pyplot as plt
 import pytest
@@ -21,7 +20,7 @@ import warnings
 import pydarn
 
 
-data = pydarn.SuperDARNRead('test/data/test.grd').read_grid()
+data, _ = pydarn.read_grid('test/data/test.grd')
 
 
 class TestGrid_defaults:
