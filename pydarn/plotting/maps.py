@@ -637,13 +637,13 @@ class Maps:
         Parameters
         ----------
             v_los: array
-                raw magnitude of LOS velocity
+                magnitude of LOS velocity vector
             a_los: array
-                angle of direction of raw LOS velocity
+                angle of LOS velocity vector from north
             v_fit: array
-                raw magnitude of LOS velocity
+                magnitude of fitted velocity vector
             a_fit: array
-                angle of direction of raw LOS velocity
+                angle of fitted velocity vector from magnetic north
         """
         # Reduce LOS vector to components normalized
         tkvect = np.empty([2, len(a_los)])
