@@ -11,7 +11,7 @@
 # supplemented by the additional permissions listed below.
 #
 # Modification:
-#
+#   20251029:  Kevin Sterne, reordering and adding more values
 """
 This module contains SuperDARN radar modes classified by cpid number
 Current documentation on modes:
@@ -22,17 +22,7 @@ Current documentation on modes:
 
 class SuperDARNCpids():
 
-    cpids = {26401: 'stereoscan',
-             26009: 'stereoscan',
-             26008: 'stereoscan',
-             26007: 'stereoscan',
-             26006: 'stereoscan',
-             26005: 'stereoscan',
-             26004: 'stereoscan',
-             26003: 'stereoscan',
-             26002: 'stereoscan',
-             6401: 'stereoscan',
-             150: 'normalscan slow',
+    cpids = {150: 'normalscan slow',
              151: 'normalscan fast',
              152: 'stereoscan',
              153: 'stereoscan',
@@ -64,7 +54,17 @@ class SuperDARNCpids():
              3560: 'multifonebm',
              3600: 'tauscan slow',
              3601: 'tauscan fast',
+             6401: 'stereoscan',
              8510: 'ltuseqscan slow',
              8511: 'ltuseqscan fast',
              9211: 'pcpscan',
-             9151: 'pcodecamp'}
+             9151: 'pcodecamp',
+             26002: 'stereoscan',
+             26003: 'stereoscan',
+             26004: 'stereoscan',
+             26005: 'stereoscan',
+             26006: 'stereoscan',
+             26007: 'stereoscan',
+             26008: 'stereoscan',
+             26009: 'stereoscan',
+             26401: 'stereoscan'}
