@@ -127,7 +127,7 @@ class SuperDARNCpids():
              6216: 'band12-5camp9',
              6217: 'band1-9camp5',
              6217: 'band13-7camp9',
-             6218: 'band13-15.ice.c'.
+             6218: 'band13-15.ice.c',
              6219: 'bandx.ice.c',
              6220: 'band2-9camp5',
              6220: 'band13-6camp9',
