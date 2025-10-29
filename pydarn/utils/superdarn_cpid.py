@@ -124,13 +124,13 @@ class SuperDARNCpids():
              6214: '5 Frequency sweep',
              6215: '5 Frequency sweep',
              6216: 'band1-8camp5',
-             6216: 'band12-5camp9',
+            # 6216: 'band12-5camp9', this cpid is repeated in VT's list
              6217: 'band1-9camp5',
-             6217: 'band13-7camp9',
+            # 6217: 'band13-7camp9', this cpid is repeated in VT's list
              6218: 'band13-15.ice.c',
              6219: 'bandx.ice.c',
              6220: 'band2-9camp5',
-             6220: 'band13-6camp9',
+            # 6220: 'band13-6camp9', this cpid is repeated in VT's list
              6221: '2beam.c',
              6222: '3then1.c',
              6223: 'band15-0camp5',
@@ -193,6 +193,7 @@ class SuperDARNCpids():
              6320: 'fnormal_scan_D.c',
              6321: 'eurocamp.c',
              6401: 'stereoscan',
+             6404: 'Unknown',  # Found on pyk 20020515 data
              7500: 'EISCAT Svalbard',
              7501: 'iwdscan17',
              8500: 'stereo_scan',
@@ -221,10 +222,10 @@ class SuperDARNCpids():
              26008: '2 camp beams (ChB)',
              26009: '2 camp beams (ChB)',
              26401: 'stereoscan',
-             26404: 'Unknown',
+             26404: 'Unknown',  # Found on channel B of pyk 20020515 data
              26999: '(ChB)',
              27500: 'EISCAT Svalbard (STEREO)',
              28161: 'La Trobe code',
              28163: 'stereo_scan',
              28165: 'La Trobe code',
-             28510: 'La Trobe code'}
+             28510: 'La Trobe code'}  # Found on Unwin 20110501 data
