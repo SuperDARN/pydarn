@@ -89,7 +89,7 @@ class SuperDARNCpids():
              3520: 'uafsound slow',
              3521: 'uafsound fast',
              3550: 'twofonebm',
-             3551: 'N/A'
+             3551: 'N/A',
              3560: 'multifonebm',
              3600: 'tauscan slow',
              3601: 'tauscan fast',
