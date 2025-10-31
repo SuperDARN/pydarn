@@ -92,20 +92,21 @@ plt.show()
 ### Additional options
 To see all the customisation options, check out all the parameters listed in 'rtp.py'. A few useful ones:
 
-| Parameter                    | Action                                                      |
-|------------------------------|-------------------------------------------------------------|
-| start_time=(datetime object) | Control the start time of the plot                          |
-| end_time=(datetime object)   | Control the end time of the plot                            |
-| channel=(int or string)      | Choose which channel to plot. Default is 'all'.             |
-| groundscatter=(bool)         | True or false to showing ground scatter as grey             |
-| date_fmt=(string)            | How the x-tick labels look. Default is ('%y/%m/%d\n %H:%M') |
-| zmin=(int)                   | Minimum data value to be plotted                            |
-| zmax=(int)                   | Maximum data value to be plotted                            |
-| range_estimation=(RangeEstimation)              | Estaimtion of the distance for the radar to use for the y-axis (See [Ranges, Coords and Projs](coordinates.md)) |
-| coords=(Coords)              | Used in conjunction with range_estimation, converts the y-axis to a coordinate |
-| lat_or_lon=(str)             | In conjunction with coords, choose if you would like the latitude ('lat') or longitude ('lon') |
-| colorbar=(plt.colorbar)      | If you would like a different colorbar than the default     |
-| colorbar_label=(str)         | Set the label fo the colorbar                               |
+| Parameter                          | Action                                                                                                          |
+|------------------------------------|-----------------------------------------------------------------------------------------------------------------|
+| start_time=(datetime object)       | Control the start time of the plot                                                                              |
+| end_time=(datetime object)         | Control the end time of the plot                                                                                |
+| channel=(int or string)            | Choose which channel to plot. Default is 'all'.                                                                 |
+| groundscatter=(bool)               | True or false to showing ground scatter as grey                                                                 |
+| date_fmt=(string)                  | How the x-tick labels look. Default is ('%y/%m/%d\n %H:%M')                                                     |
+| zmin=(int)                         | Minimum data value to be plotted                                                                                |
+| zmax=(int)                         | Maximum data value to be plotted                                                                                |
+| range_estimation=(RangeEstimation) | Estimation of the distance for the radar to use for the y-axis (See [Ranges, Coords and Projs](coordinates.md)) |
+| coords=(Coords)                    | Used in conjunction with range_estimation, converts the y-axis to a coordinate                                  |
+| lat_or_lon=(str)                   | In conjunction with coords, choose if you would like the latitude ('lat') or longitude ('lon')                  |
+| colorbar=(plt.colorbar)            | If you would like a different colorbar than the default                                                         |
+| colorbar_label=(str)               | Set the label fo the colorbar                                                                                   |
+| nightshade=(bool)                  | Turn on shading of the night side of the terminator                                                                     |
 
 For instance, code for a velocity RTP showing the same beam of Clyde river radar as above, but with ground scatter plotted in grey, date format as `hh:mm`, custom min and max values and a colour bar label could look something like:
 ```python

@@ -28,6 +28,8 @@
 Range-Time Parameter (aka Intensity) plots
 """
 import copy
+
+import cartopy.geodesic
 import matplotlib.pyplot as plt
 import numpy as np
 import warnings
@@ -40,7 +42,8 @@ from pydarn import (RangeEstimation, check_data_type, Coords,
                     time2datetime, rtp_exceptions, plot_exceptions,
                     SuperDARNCpids, SuperDARNRadars, RadarID,
                     standard_warning_format, PyDARNColormaps,
-                    determine_embargo, add_embargo)
+                    determine_embargo, add_embargo, terminator as calc_terminator)
+from pydarn.utils.coordinates import gate2geographic_location
 
 warnings.formatwarning = standard_warning_format
 
@@ -76,7 +79,7 @@ class RTP:
     @classmethod
     def plot_range_time(cls, dmap_data: List[dict], parameter: str = 'v',
                         beam_num: int = 0, channel: int = 'all', ax=None,
-                        background: str = 'w', background_alpha: float = 1.0,
+                        background: str = 'w', background_alpha: float = 0.0,
                         groundscatter: bool = False,
                         zmin: int = None, zmax: int = None,
                         start_time: datetime = None, end_time: datetime = None,
@@ -88,7 +91,9 @@ class RTP:
                         norm=colors.Normalize, cmap: str = None,
                         filter_settings: dict = {},
                         date_fmt: str = '%y/%m/%d\n %H:%M',
-                        round_start: bool = True, **kwargs):
+                        round_start: bool = True,
+                        nightshade: bool = False,
+                        **kwargs):
         """
         Plots a range-time parameter plot of the given
         field name in the dmap_data
@@ -124,7 +129,7 @@ class RTP:
             default: white
         background_alpha : float
             alpha (transparency) of the background in the plot
-            default: 1.0 (opaque)
+            default: 0.0 (transparent)
         zmin: int
             Minimum normalized value
             Default: minimum parameter value in the data set
@@ -195,6 +200,8 @@ class RTP:
                 option to round the start time to give tick at start of xaxis
                 Set True to round, set False to plot from start of data.
                 Default: True
+        nightshade: bool=False
+                Flag to include the terminator (day/night boundary) and shade the night-side
         kwargs:
             used for other methods in pyDARN
                 - reflection_height
@@ -269,7 +276,7 @@ class RTP:
         # because nrang can change based on mode we need to look
         # for the largest value
         y_max = max(record['nrang'] for record in cls.dmap_data)
-        y = np.arange(0, y_max+1, 1)
+        range_gates = np.arange(0, y_max+1, 1)
 
         # z: parameter data mapped into the color mesh
         z = np.zeros((1, y_max)) * np.nan
@@ -341,7 +348,7 @@ class RTP:
 
                     # insert a new column into the z_data
                     if i > 0:
-                        z = np.insert(z, len(z), np.zeros([1, y_max]) * np.nan,
+                        z = np.insert(z, len(z), np.zeros((1, y_max)) * np.nan,
                                       axis=0)
                     try:
                         if len(dmap_record[parameter]) == dmap_record['nrang']:
@@ -397,6 +404,9 @@ class RTP:
             y0inx = np.min(np.where(np.isfinite(y))[0])
             y = y[y0inx:]
             z = z[:, y0inx:]
+            range_gates = range_gates[y0inx:]
+        else:
+            y = range_gates
 
         time_axis, y_axis = np.meshgrid(x, y)
         z_data = np.ma.masked_where(np.isnan(z.T), z.T)
@@ -446,6 +456,32 @@ class RTP:
             gs_color = colors.ListedColormap(['grey'])
             ax.pcolormesh(time_axis, y_axis, ground_scatter, lw=0.01,
                           cmap=gs_color, norm=norm, **kwargs)
+
+        if nightshade:
+            height = 300  # km
+
+            # [num_ranges, 2] holding the [lat, lon] for each range gate
+            radar_id = RadarID(cls.dmap_data[0]["stid"])
+            geographic_points = np.array([
+                gate2geographic_location(radar_id, beam_num, height, center=True, range_gate=rg)
+                for rg in range_gates
+            ])
+            # switch to [lon, lat] for compatibility with cartopy geodesic calculations
+            geographic_points = np.flip(geographic_points, axis=1)
+
+            # [num_times, num_ranges] indicating if the cell is in darkness at that time
+            is_night = np.zeros_like(time_axis, dtype=np.int8)
+            geodesic = cartopy.geodesic.Geodesic()
+            for i, t in enumerate(x):
+                anti_point, arc_ang, _ = calc_terminator(t, height)
+                distance_to_antisolar_point = geodesic.inverse(anti_point, geographic_points)[:, 0] / 1000.0  # convert to km
+                is_night[:, i] = distance_to_antisolar_point < arc_ang
+            ax.pcolormesh(time_axis, y_axis, is_night,
+                          cmap=colors.ListedColormap(['white', 'gray']),
+                          zorder=0.5,
+                          vmin=0,
+                          vmax=1,
+                          alpha=0.7)
 
         # setup some standard axis information
         if ymax is None:
@@ -514,7 +550,7 @@ class RTP:
         ax.margins(0)
 
         # Create color bar if None supplied
-        if not colorbar:
+        if colorbar is None:
             with warnings.catch_warnings():
                 warnings.filterwarnings('error')
                 try:
@@ -543,7 +579,8 @@ class RTP:
         else:
             cb = colorbar
         if colorbar_label != '':
-            cb.set_label(colorbar_label)
+            if cb is not False:
+                cb.set_label(colorbar_label)
 
         if determine_embargo(end_time, dmap_data[-1]['cp'],
                              SuperDARNRadars.radars[RadarID(dmap_data[-1]['stid'])].name):
@@ -874,6 +911,7 @@ class RTP:
                      latlon: str = None, coords: object = Coords.AACGM,
                      vector_parameters: list = [('p_l'), ('v'),
                                                 ('w_l'), ('elv')],
+                     nightshade: bool = False,
                      **kwargs):
         """
         Plots the summary of several SuperDARN parameters using time-series and
@@ -962,6 +1000,8 @@ class RTP:
             Required parameters for plotting in the summary plot
             Must be a subset of the default list below
             default:[('p_l'), ('v'), ('w_l'), ('elv')]
+        nightshade: bool=False
+            Flag to include the terminator (day/night boundary) and shade the night-side
         kwargs:
             reflection_height for ground_scatter_mapped method
             background
@@ -1265,6 +1305,7 @@ class RTP:
                                             yspacing=500,
                                             background=background,
                                             range_estimation=range_estimation,
+                                            nightshade=nightshade,
                                             **kwargs)
                     else:
                         rt_rtn =\
@@ -1446,7 +1487,7 @@ class RTP:
     @classmethod
     def plot_coord_time(cls, dmap_data: List[dict], parameter: str = 'v',
                         beam_num: int = 0, channel: int = 'all', ax=None,
-                        background: str = 'w', background_alpha: float = 1.0,
+                        background: str = 'w', background_alpha: float = 0.0,
                         groundscatter: bool = False,
                         zmin: int = None, zmax: int = None,
                         coords: object = Coords.AACGM, latlon: str = 'lat',
@@ -1460,7 +1501,9 @@ class RTP:
                         filter_settings: dict = {},
                         date_fmt: str = '%y/%m/%d\n %H:%M',
                         round_start: bool = True,
-                        plot_equatorward: bool = False, **kwargs):
+                        plot_equatorward: bool = False,
+                        nightshade: bool = False,
+                        **kwargs):
         """
         Plots a range-time parameter plot of the given
         field name in the dmap_data using coordinates in latitude and
@@ -1497,7 +1540,7 @@ class RTP:
             default: white
         background_alpha : float
             alpha (transparency) of the background in the plot
-            default: 1.0 (opaque)
+            default: 0.0 (transparent)
         zmin: int
             Minimum normalized value
             Default: minimum parameter value in the data set
@@ -1579,6 +1622,8 @@ class RTP:
                 direction to plot the equator-ward or pole-ward data
                 No option to overplot.
                 Default: False (plot poleward data only)
+        nightshade: bool=False
+                Flag to include the terminator (day/night boundary) and shade the night-side
         kwargs:
             used for other methods in pyDARN
                 - reflection_height
@@ -1653,7 +1698,7 @@ class RTP:
         # because nrang can change based on mode we need to look
         # for the largest value
         y_max = max(record['nrang'] for record in cls.dmap_data)
-        y = np.arange(0, y_max+1, 1)
+        range_gates = np.arange(0, y_max, 1)
 
         # z: parameter data mapped into the color mesh
         z = np.zeros((1, y_max)) * np.nan
@@ -1726,7 +1771,7 @@ class RTP:
 
                     # insert a new column into the z_data
                     if i > 0:
-                        z = np.insert(z, len(z), np.zeros([1, y_max]) * np.nan,
+                        z = np.insert(z, len(z), np.zeros((1, y_max)) * np.nan,
                                       axis=0)
                     try:
                         if len(dmap_record[parameter]) == dmap_record['nrang']:
@@ -1783,6 +1828,14 @@ class RTP:
                            gates=[0, dmap_data[0]['nrang']],
                            range_estimation=range_estimation, **kwargs)
 
+        # coords may not return the same number of points as passed in by `gates=...`
+        # The dropped gates are always at the start of the array, so we drop down our `z` and
+        # `range_gates` arrays to match
+        num_gates = len(lats) - 1
+        if num_gates != len(range_gates):
+            z = z[:, -(num_gates + 1):-1]
+            range_gates = range_gates[-(num_gates+1):-1]
+
         if latlon == 'lat':
             y = lats[:, beam_num]
             # If the FOV is over the pole, only plot up to the pole to avoid
@@ -1803,6 +1856,7 @@ class RTP:
                             'use the keyword plot_equatorward=True.'
                             .format(yind,))
                 y = y[:yind]
+                range_gates = range_gates[:yind]
                 y = np.append(y, y[-1])
                 z = z[:, :yind]
             if any(x < 0 for x in diff_y) and plot_equatorward:
@@ -1814,6 +1868,7 @@ class RTP:
                             'use the keyword plot_equatorward=False.'
                             .format(yind))
                 y = y[yind-1:]
+                range_gates = range_gates[yind-1:]
                 z = z[:, yind-1:]
         elif latlon == 'lon':
             y = lons[:, beam_num]
@@ -1870,6 +1925,34 @@ class RTP:
             gs_color = colors.ListedColormap(['grey'])
             ax.pcolormesh(time_axis, y_axis, ground_scatter, lw=0.01,
                           cmap=gs_color, norm=norm, **kwargs)
+
+        if nightshade:
+            height = 300  # km
+
+            # [num_ranges, 2] holding the [lat, lon] for each range gate
+            radar_id = RadarID(cls.dmap_data[0]["stid"])
+            geographic_points = np.array([
+                gate2geographic_location(radar_id, beam_num, height, center=True, range_gate=rg)
+                for rg in range_gates
+            ])
+            # switch to [lon, lat] for compatibility with cartopy geodesic calculations
+            geographic_points = np.flip(geographic_points, axis=1)
+
+            # [num_times, num_ranges] indicating if the cell is in darkness at that time
+            is_night = np.zeros((len(range_gates), time_axis.shape[1]), dtype=bool)
+            geodesic = cartopy.geodesic.Geodesic()
+            for i, t in enumerate(x):
+                anti_point, arc_ang, _ = calc_terminator(t, height)
+                distance_to_antisolar_point = geodesic.inverse(anti_point, geographic_points)[:, 0] / 1000.0  # convert to km
+                is_night[:, i] = distance_to_antisolar_point < arc_ang
+            ax.pcolormesh(time_axis, y_axis, is_night[:, :-1],
+                          cmap=colors.ListedColormap(['white', 'gray']),
+                          shading='auto',
+                          zorder=0.5,
+                          vmin=0,
+                          vmax=1,
+                          alpha=0.5
+                          )
 
         # setup some standard axis information
         if ymax is None:
@@ -1934,11 +2017,6 @@ class RTP:
         if y[0] < 0 and latlon == 'lat':
             ax.invert_yaxis()
 
-        if range_estimation != RangeEstimation.RANGE_GATE:
-            ax.yaxis.set_minor_locator(ticker.AutoMinorLocator(2))
-        else:
-            ax.yaxis.set_minor_locator(ticker.MultipleLocator(5))
-        # so the plots gets to the ends
         ax.margins(0)
 
         # Create color bar if None supplied
