@@ -105,7 +105,7 @@ To see all the customisation options, check out all the parameters listed in 'rt
 | date_fmt=(string)                  | How the x-tick labels look. Default is ('%y/%m/%d\n %H:%M')                                                     |
 | zmin=(int)                         | Minimum data value to be plotted                                                                                |
 | zmax=(int)                         | Maximum data value to be plotted                                                                                |
-| range_estimation=(RangeEstimation) | Estaimtion of the distance for the radar to use for the y-axis (See [Ranges, Coords and Projs](coordinates.md)) |
+| range_estimation=(RangeEstimation) | Estimation of the distance for the radar to use for the y-axis (See [Ranges, Coords and Projs](coordinates.md)) |
 | coords=(Coords)                    | Used in conjunction with range_estimation, converts the y-axis to a coordinate                                  |
 | lat_or_lon=(str)                   | In conjunction with coords, choose if you would like the latitude ('lat') or longitude ('lon')                  |
 | colorbar=(plt.colorbar)            | If you would like a different colorbar than the default                                                         |

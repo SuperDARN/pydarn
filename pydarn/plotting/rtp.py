@@ -92,7 +92,7 @@ class RTP:
                         filter_settings: dict = {},
                         date_fmt: str = '%y/%m/%d\n %H:%M',
                         round_start: bool = True,
-                        terminator: bool = False,
+                        nightshade: bool = False,
                         **kwargs):
         """
         Plots a range-time parameter plot of the given
@@ -200,7 +200,7 @@ class RTP:
                 option to round the start time to give tick at start of xaxis
                 Set True to round, set False to plot from start of data.
                 Default: True
-        terminator: bool=False
+        nightshade: bool=False
                 Flag to include the terminator (day/night boundary) and shade the night-side
         kwargs:
             used for other methods in pyDARN
@@ -457,7 +457,7 @@ class RTP:
             ax.pcolormesh(time_axis, y_axis, ground_scatter, lw=0.01,
                           cmap=gs_color, norm=norm, **kwargs)
 
-        if terminator:
+        if nightshade:
             height = 300  # km
 
             # [num_ranges, 2] holding the [lat, lon] for each range gate
@@ -910,7 +910,7 @@ class RTP:
                      latlon: str = None, coords: object = Coords.AACGM,
                      vector_parameters: list = [('p_l'), ('v'),
                                                 ('w_l'), ('elv')],
-                     terminator: bool = False,
+                     nightshade: bool = False,
                      **kwargs):
         """
         Plots the summary of several SuperDARN parameters using time-series and
@@ -999,7 +999,7 @@ class RTP:
             Required parameters for plotting in the summary plot
             Must be a subset of the default list below
             default:[('p_l'), ('v'), ('w_l'), ('elv')]
-        terminator: bool=False
+        nightshade: bool=False
             Flag to include the terminator (day/night boundary) and shade the night-side
         kwargs:
             reflection_height for ground_scatter_mapped method
@@ -1304,7 +1304,7 @@ class RTP:
                                             yspacing=500,
                                             background=background,
                                             range_estimation=range_estimation,
-                                            terminator=terminator,
+                                            nightshade=nightshade,
                                             **kwargs)
                     else:
                         rt_rtn =\
@@ -1501,7 +1501,7 @@ class RTP:
                         date_fmt: str = '%y/%m/%d\n %H:%M',
                         round_start: bool = True,
                         plot_equatorward: bool = False,
-                        terminator: bool = False,
+                        nightshade: bool = False,
                         **kwargs):
         """
         Plots a range-time parameter plot of the given
@@ -1621,7 +1621,7 @@ class RTP:
                 direction to plot the equator-ward or pole-ward data
                 No option to overplot.
                 Default: False (plot poleward data only)
-        terminator: bool=False
+        nightshade: bool=False
                 Flag to include the terminator (day/night boundary) and shade the night-side
         kwargs:
             used for other methods in pyDARN
@@ -1925,7 +1925,7 @@ class RTP:
             ax.pcolormesh(time_axis, y_axis, ground_scatter, lw=0.01,
                           cmap=gs_color, norm=norm, **kwargs)
 
-        if terminator:
+        if nightshade:
             height = 300  # km
 
             # [num_ranges, 2] holding the [lat, lon] for each range gate
