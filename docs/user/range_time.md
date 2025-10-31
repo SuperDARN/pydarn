@@ -106,7 +106,7 @@ To see all the customisation options, check out all the parameters listed in 'rt
 | lat_or_lon=(str)                   | In conjunction with coords, choose if you would like the latitude ('lat') or longitude ('lon')                  |
 | colorbar=(plt.colorbar)            | If you would like a different colorbar than the default                                                         |
 | colorbar_label=(str)               | Set the label fo the colorbar                                                                                   |
-| terminator=(bool)                  | Turn on shading of the day-night terminator                                                                     |
+| nightshade=(bool)                  | Turn on shading of the night side of the terminator                                                                     |
 
 For instance, code for a velocity RTP showing the same beam of Clyde river radar as above, but with ground scatter plotted in grey, date format as `hh:mm`, custom min and max values and a colour bar label could look something like:
 ```python

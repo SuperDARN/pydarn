@@ -461,8 +461,9 @@ class RTP:
             height = 300  # km
 
             # [num_ranges, 2] holding the [lat, lon] for each range gate
+            radar_id = RadarID(cls.dmap_data[0]["stid"])
             geographic_points = np.array([
-                gate2geographic_location(cls.dmap_data[0]["stid"], beam_num, height, center=True, range_gate=rg)
+                gate2geographic_location(radar_id, beam_num, height, center=True, range_gate=rg)
                 for rg in range_gates
             ])
             # switch to [lon, lat] for compatibility with cartopy geodesic calculations
