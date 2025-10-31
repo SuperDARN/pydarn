@@ -20,12 +20,10 @@ the additional permissions listed below.
 Basic code to plot a time series from a FITACF file would look like:
 ```python
 import matplotlib.pyplot as plt
-
 import pydarn
 
 file = "20190831.C0.cly.fitacf"
-sdarn_read = pydarn.SuperDARNRead(file)
-fitacf_data = sdarn_read.read_fitacf()
+fitacf_data, _ = pydarn.read_fitacf(file)
  
 pydarn.RTP.plot_time_series(fitacf_data)
 plt.show()

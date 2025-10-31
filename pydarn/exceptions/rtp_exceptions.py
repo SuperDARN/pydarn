@@ -1,8 +1,5 @@
 # Copyright (C) SuperDARN Canada, Universtiy of Saskatchewan
 # Authors: Marina Schmidt
-import logging
-
-pydarn_log = logging.getLogger('pydarn')
 
 
 class RTPZeroError(Exception):
@@ -31,4 +28,3 @@ class RTPZeroError(Exception):
             " method.".format(zmin=zmin, zmax=zmax, norm=norm,
                               num=beam_num, param=parameter)
         super().__init__(self.message)
-        pydarn_log.error(self.message)

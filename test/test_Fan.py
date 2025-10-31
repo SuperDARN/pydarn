@@ -12,7 +12,6 @@
 # and conditions of version 3 of the GNU General Public License,
 # supplemented by the additional permissions listed below.
 
-import bz2
 import datetime as dt
 import matplotlib.pyplot as plt
 import pytest
@@ -20,9 +19,7 @@ import warnings
 
 import pydarn
 
-with bz2.open('test/data/test.fitacf.bz2') as fp:
-    fitacf_stream = fp.read()
-data = pydarn.SuperDARNRead(fitacf_stream, True).read_fitacf()
+data, _ = pydarn.read_fitacf('test/data/test.fitacf.bz2')
 
 
 class TestFan_defaults:
@@ -35,10 +32,10 @@ class TestFan_defaults:
     def test_fov_series(self):
         """ """
         with warnings.catch_warnings(record=True):
-            pydarn.Fan.plot_fov(6, dt.datetime(2020, 4, 4, 6, 2))
+            pydarn.Fan.plot_fov(pydarn.RadarID.PGR, dt.datetime(2020, 4, 4, 6, 2))
 
 
-@pytest.mark.parametrize('stid', [5, 97])
+@pytest.mark.parametrize('stid', [pydarn.RadarID.SAS, pydarn.RadarID.DCN])
 @pytest.mark.parametrize('ranges', [(5,70)])
 @pytest.mark.parametrize('boundary', [False])
 @pytest.mark.parametrize('rsep', [15])

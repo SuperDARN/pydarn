@@ -13,17 +13,24 @@
 # Modifications:
 # 2022-03-10 MTS - removed radar_fov from the __init__ file
 # 2023-06-20 PXP - added TimeSeriesParams to the __init__ file
-"""
-Init file to setup the logging configuration and linking pyDARN's
-module, classes, and functions.
-"""
+
 # KEEP THIS FILE AS MINIMAL AS POSSIBLE!
 # ruff: noqa: F401
+
 # version file
 from .version import __version__
 
 # Import io for pyDARN
-from .io.superdarn_io import SuperDARNRead
+from .io.superdarn_io import read_borealis
+from pydarnio import (
+    read_iqdat,
+    read_rawacf,
+    read_fitacf,
+    read_grid,
+    read_map,
+    read_snd,
+    read_dmap,
+)
 
 # Importing pydarn exception classes
 from .exceptions import rtp_exceptions, plot_exceptions, radar_exceptions
@@ -39,7 +46,7 @@ from .utils.conversions import dmap2dict
 from .utils.plotting import (MapParams, TimeSeriesParams, check_data_type,
     time2datetime, find_record, determine_embargo, add_embargo)
 from .utils.general_utils import GeneralUtils
-from .utils.superdarn_radars import SuperDARNRadars
+from .utils.superdarn_radars import RadarID, SuperDARNRadars
 from .utils.superdarn_cpid import SuperDARNCpids
 from .utils.superdarn_radars import Hemisphere, read_hdw_file, get_hdw_files
 from .utils.scan import find_records_by_datetime, find_records_by_scan

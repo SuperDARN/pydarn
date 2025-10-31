@@ -80,8 +80,8 @@ This class contains a dictionary of all currently accepted SuperDARN radars (inc
 ``` python
 import pydarn
 
-# Access Prince Georges Radar information
-radar_info = pydarn.SuperDARNRadars.radars[6]
+# Access Prince George Radar information
+radar_info = pydarn.SuperDARNRadars.radars[pydarn.RadarID.PGR]
 print(radar_info)
 ```
 
@@ -101,8 +101,8 @@ Example code:
 ```python
 import pydarn
 
-# Geographic coordinates for Clyde River (STID: 66) FOV
-geo_lats, geo_lons=pydarn.Coords.GEOGRAPHIC(66)
+# Geographic coordinates for Clyde River FOV
+geo_lats, geo_lons=pydarn.Coords.GEOGRAPHIC(pydarn.RadarID.CLY)
 ```
 
 You also have the option to set the `coords` keyword to `aacgm`. In this case, [Altitude adjusted corrected geomagnetic](http://superdarn.thayer.dartmouth.edu/aacgm.html) latitude and longitude are returned instead of geographic. Because AACGM requires a date to convert coordinates accurately, a python datetime object is also required to be passed in to `coords` under this circumstance:
@@ -110,8 +110,8 @@ You also have the option to set the `coords` keyword to `aacgm`. In this case, [
 import pydarn
 import datetime as dt
 
-# AACGMv2 coordinates for Dome C (STID: 96), valid for November 26th, 2005
-aacgm_lats, aacgm_lons=pydarn.Coords.AACGM(96, date=dt.datetime(2005, 11, 26))
+# AACGMv2 coordinates for Dome C East, valid for November 26th, 2005
+aacgm_lats, aacgm_lons=pydarn.Coords.AACGM(pydarn.RadarID.DCE, date=dt.datetime(2005, 11, 26))
 ```
 The `Coords` keyword points to the function to convert the radar's Field-of-View to the designed coordinate system. The outputs are two numpy arrays of latitude and longitude coordinates with dimensions (number_of_beams+1 x number_of_gates+1). They correspond to the corners of each range gate.
 

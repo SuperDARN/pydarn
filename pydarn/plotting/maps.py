@@ -29,13 +29,14 @@ Grid plots, mapped to AACGM coordinates in a polar format
 """
 
 import datetime as dt
+
+import matplotlib.axes
 import matplotlib.pyplot as plt
 import numpy as np
 import warnings
 
 from enum import Enum
 from matplotlib import ticker, cm, colors
-from mpl_toolkits.axes_grid1.inset_locator import InsetPosition
 from scipy import special
 from typing import List
 
@@ -43,14 +44,14 @@ from typing import List
 # Third party libraries
 import aacgmv2
 
-from pydarn import (PyDARNColormaps, plot_exceptions,
+from pydarn import (PyDARNColormaps, plot_exceptions, RadarID,
                     standard_warning_format, Re, Hemisphere,
                     time2datetime, find_record, Fan, Projs,
                     MapParams, TimeSeriesParams)
 warnings.formatwarning = standard_warning_format
 
 
-class Maps():
+class Maps:
     """
     Maps plots for SuperDARN data
 
@@ -85,7 +86,7 @@ class Maps():
         Parameters
         ----------
             dmap_data : dict[List]
-                DMAP data returned from pyDARN.SuperDARNRead or pyDARNio
+                DMAP data
             ax: object
                 matplotlib axis object
             parameters: enum
@@ -207,14 +208,14 @@ class Maps():
             # Needs to find the positions for each
             # Else just call the axis maker: proj
             if boundary or radar_location:
-                fan_rtn = Fan.plot_fov(dmap_data[record]['stid'][0], date, 
+                fan_rtn = Fan.plot_fov(RadarID(dmap_data[record]['stid'][0]), date,
                                        ax=ax, boundary=boundary,
                                        radar_location=radar_location,
                                        **kwargs)
                 ax = fan_rtn['ax']
                 ccrs = fan_rtn['ccrs']
                 for stid in dmap_data[record]['stid'][1:]:
-                    fan_rtn = Fan.plot_fov(stid, date, ax=ax,
+                    fan_rtn = Fan.plot_fov(RadarID(stid), date, ax=ax,
                                            boundary=boundary, ccrs=ccrs,
                                            radar_location=radar_location,
                                            **kwargs)
@@ -854,7 +855,7 @@ class Maps():
         return mlon, mlats
 
     @classmethod
-    def plot_imf_dial(cls, ax: object, by: float = 0, bz: float = 0,
+    def plot_imf_dial(cls, ax: matplotlib.axes.Axes, by: float = 0, bz: float = 0,
                       bt: float = 0, delay: float = 0):
         """
         Plots an IMF clock angle dial on the existing plot
@@ -879,9 +880,7 @@ class Maps():
                 Default = 0 minutes
         """
         # Create new axes inside existing axes
-        ax_imf = plt.axes([0, 0, 1, 1])
-        ip = InsetPosition(ax, [-0.2, 0.7, 0.4, 0.4])
-        ax_imf.set_axes_locator(ip)
+        ax_imf = ax.inset_axes((-0.2, 0.7, 0.4, 0.4))
         ax_imf.axis('off')
 
         ax_imf.set_xlim([-20.2, 20.2])
@@ -892,11 +891,11 @@ class Maps():
                                   edgecolor='k')
         ax_imf.add_patch(limit_circle)
         # Plot axis lines
-        plt.plot([-10, 10], [0, 0], color='k', linewidth=0.5)
-        plt.plot([0, 0], [-10, 10], color='k', linewidth=0.5)
+        ax_imf.plot([-10, 10], [0, 0], color='k', linewidth=0.5)
+        ax_imf.plot([0, 0], [-10, 10], color='k', linewidth=0.5)
 
         # Plot line for magnetic field
-        plt.plot([0, by], [0, bz], color='r')
+        ax_imf.plot([0, by], [0, bz], color='r')
 
         # Add axis labels
         ax_imf.annotate('+Z', xy=(-2.5, 11))

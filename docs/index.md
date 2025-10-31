@@ -29,6 +29,7 @@ If you have any questions or concerns please submit an **Issue** on the SuperDAR
     - [Fan plots](user/fan.md)
     - [Grid plots](user/grid.md)
     - [Convection Map Potential plots](user/map.md)
+    - [Getting Map velocities and potentials](user/vels_and_potentials.md)
     - [Power plots](user/power.md)
     - [ACF plotting](user/acf.md)
     - [IQ Plotting](user/iq.md)

@@ -31,7 +31,7 @@ from typing import List
 # Third party libraries
 import aacgmv2
 
-from pydarn import (PyDARNColormaps, Fan, plot_exceptions, Hemisphere,
+from pydarn import (PyDARNColormaps, Fan, plot_exceptions, Hemisphere, RadarID,
                     standard_warning_format, Projs, Coords, GeneralUtils)
 
 warnings.formatwarning = standard_warning_format
@@ -187,7 +187,7 @@ class Grid():
                 transform = ccrs.Geodetic()
 
             for stid in dmap_data[record]['stid']:
-                fan_rtn = Fan.plot_fov(stid, date, ax=ax, ccrs=ccrs,
+                fan_rtn = Fan.plot_fov(RadarID(stid), date, ax=ax, ccrs=ccrs,
                                        coords=coords, projs=projs, **kwargs)
                 coord_lons = fan_rtn['data']['beam_corners_lons']
                 ax = fan_rtn['ax']
