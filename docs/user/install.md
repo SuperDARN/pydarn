@@ -37,10 +37,10 @@ Installing in virtual environments is recommended, see below for details.
 
 ## Prerequisites
 
-pyDARN requires **python 3.7** or later and **matplotlib 3.3.4** or later.
+pyDARN requires **python 3.8** or later, see list below for library dependencies.
 
 !!! Note
-    Python 3.6 is commonly the default version included on many operating systems, you may need to install a newer version and specify that version when running python programs and installing libraries.
+    Python 3.6 is commonly the default version included on many operating systems, you may need to install a newer version and specify the newer version when running python programs and installing libraries.
 
 Depending on your operating system or distribution, the following package installers, development environments or data parsers are required: 
  
@@ -59,14 +59,14 @@ You can check your python version using
 On installation, pyDARN will download the following dependencies: 
 
 - [NumPy](https://numpy.org/)
-- [matplotlib 3.3.4+](https://matplotlib.org/) 
+- [scipy 1.15.0+](https://scipy.org/)
+- [matplotlib 3.7.0+](https://matplotlib.org/) 
 - [PyYAML](https://pyyaml.org/wiki/PyYAMLDocumentation)
-- [pyDARNio](https://pydarnio.readthedocs.io/en/latest/user/install/)
+- [pyDARNio 2.0.0+](https://pydarnio.readthedocs.io/en/latest/user/install/)
 - [AACGMv2](https://pypi.org/project/aacgmv2/) 
 - [Cartopy 0.22.0+](https://scitools.org.uk/cartopy/docs/latest/)
 
-and dependencies of the above.
-
+pyDARN will also install any dependencies of the above libraries. 
 
 ### Cartopy
 Updates to the Cartopy library mean that new versions can be installed as dependencies easily, unlike earlier versions which required an installation process.
@@ -76,27 +76,30 @@ To install cartopy please follow the [official installation](https://scitools.or
 
 
 ## Virtual Environments
-It is recommended to install pyDARN in one of the suggested virtual environments if you have multiple python versions on your computer, or do not want to affect the main systems python libraries. 
+It is recommended to install pyDARN in a virtual environment if you have multiple python versions on your computer, or do not want to affect the main systems python libraries. 
 
 ### pip Virtual Environment
 Instructions can be found here [virtual environment](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/)
 
 Option 1:
 
-1. `$ python3 -m pip install --user virtualenv` (Install virtual environment package)
-2. `$ python3 -m virtualenv <environment name>` (Make your virtual environment)
+1. `$ python3 -m pip install --user venv` (Install virtual environment package)
+2. `$ python3 -m venv <environment name>` (Make your virtual environment)
 * `$ source <environment name>/bin/activate` (Activate the virtual environment)
 * `$ pip3 install pydarn` (Install pyDARN)
 
 !!! Note
-    In newer python versions, `virtualenv` is now `venv`.
+    In python versions <3.10, `venv` was `vitualenv`.
 
 ### Anaconda Virtual Environment
 Instructions can be found here [conda environment](https://uoa-eresearch.github.io/eresearch-cookbook/recipe/2014/11/20/conda/) and installing [anaconda](https://docs.anaconda.com/anaconda/install/)
 
-1. `$ conda create -n yourenvname python=3.7 anaconda`
+1. `$ conda create -n yourenvname python=3.8 anaconda`
 2. `$ conda activate yourenvname`
 * `$ pip install pydarn`
+
+!!! Note
+    The pyDARN developers have limited experience using Anaconda so may be unable to troubleshoot issues.
 
 #### Adding the environment to PyCharm
 
@@ -127,7 +130,7 @@ You can alternatively install a specific branch using the following installation
 
 `pip3 install git+https://github.com/superdarn/pydarn@branch_name`
 
-Please read pyDARN [Workflow documentation](../dev/team.md) to further understand how to develop in pyDARN.
+Please read pyDARN [Workflow documentation](../dev/team.md) for more information on developing for pyDARN. 
     
 ## Troubleshooting
 
@@ -140,7 +143,7 @@ Issue: `pip3 install --user git+https://github.com/superdarn/pydarn@develop` not
 Solution:
 
 1. check git is installed `apt install git` (for ubuntu)
-2. Check pip version `pip --version` - with newer distros of Linux/Virtual machines `pip` may point to pyhon3 and you will not need pip3.
+2. Check pip version `pip --version` - with newer distros of Linux/Virtual machines `pip` may point to python3 and you will not need pip3.
 * Alternative virtual environment steps for getting python 3.8 working
 
 ```bash 
@@ -168,7 +171,7 @@ Solution:
 
 Solution:
 
-1. check matplotlib version, if lower than 3.3.4 then upgrade matplotlib equal or higher version.
+1. check matplotlib version, if lower than 3.7.0, then upgrade matplotlib to an equal or higher version.
 2. `pip install -U matplotlib`
 
 !!! Note 

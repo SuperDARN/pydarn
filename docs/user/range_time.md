@@ -44,15 +44,14 @@ You can choose one of four data products to plot:
 
 which is chosen by adding: 
 
-`parameter=String name` 
+`parameter='String name'` 
 
 as an option. The default if left blank is `v`.
-
 To specify which beam to look at, add the option:
 
-`beam=beam_number`
+`beam='beam_number'`
 
-As an example, taking a look at some `v` data from the first record of Clyde River radar FITACF file:
+Here is an example of velocity `v` data from the first record (`fitacf_data[0]`) of some Clyde River FITACF data:
 ```python
 import matplotlib.pyplot as plt
 import pydarn
@@ -71,10 +70,10 @@ which produces:
 
 `fitacf_data[0]['bmnum']` is used to extract the beam number of the first (0th) record from the data dictionary, whilst `fitacf_data[0]['stid']` gives the station id (which is 66 for Clyde River).
 
-Notice that the velocity scale on the right is a bit larger than we need, and also ground scatter isn't coloured grey by default. Showing the dates on the x axis is also a bit redundant, because it's data from a single day. Below, there are some additional parameters you can set to address these and more.
+Notice that the velocity scale on the right is a bit larger than we need, and also ground scatter isn't coloured grey by default. Showing the dates on the x axis is also a bit redundant, because it's data from a single day. Below, there are some additional parameters you can set to customise the plot and more.
 
-In addition, we use `range_estimation=pydarn.RangeEstimation.RANGE_GATE` to set the y-axis to plot in range gates. 
-Ground-Scatter Mapped Range is another type of axis you can use with range-time plots:
+In addition, above we use `range_estimation=pydarn.RangeEstimation.RANGE_GATE` to set the y-axis to plot in range gates. 
+Below we use Ground-Scatter Mapped Range instead to plot power:
 
 ```python
 pydarn.RTP.plot_range_time(fitacf_data, beam_num=3, parameter='p_l',
@@ -90,15 +89,14 @@ plt.show()
 
 
 ### Additional options
-To see all the customisation options, check out all the parameters listed in 'rtp.py'. A few useful ones:
 
 | Parameter                          | Action                                                                                                          |
 |------------------------------------|-----------------------------------------------------------------------------------------------------------------|
 | start_time=(datetime object)       | Control the start time of the plot                                                                              |
 | end_time=(datetime object)         | Control the end time of the plot                                                                                |
-| channel=(int or string)            | Choose which channel to plot. Default is 'all'.                                                                 |
+| channel=(int or string)            | Choose which channel to plot, default is 'all'                                                                 |
 | groundscatter=(bool)               | True or false to showing ground scatter as grey                                                                 |
-| date_fmt=(string)                  | How the x-tick labels look. Default is ('%y/%m/%d\n %H:%M')                                                     |
+| date_fmt=(string)                  | How the x-tick labels look, default is ('%y/%m/%d\n %H:%M')                                                     |
 | zmin=(int)                         | Minimum data value to be plotted                                                                                |
 | zmax=(int)                         | Maximum data value to be plotted                                                                                |
 | range_estimation=(RangeEstimation) | Estimation of the distance for the radar to use for the y-axis (See [Ranges, Coords and Projs](coordinates.md)) |
@@ -106,7 +104,13 @@ To see all the customisation options, check out all the parameters listed in 'rt
 | lat_or_lon=(str)                   | In conjunction with coords, choose if you would like the latitude ('lat') or longitude ('lon')                  |
 | colorbar=(plt.colorbar)            | If you would like a different colorbar than the default                                                         |
 | colorbar_label=(str)               | Set the label fo the colorbar                                                                                   |
-| nightshade=(bool)                  | Turn on shading of the night side of the terminator                                                                     |
+| nightshade=(bool)                  | Turn on shading of the night side of the terminator                                                             |
+| background=(str)                   | Colour of the background of the plot, default 'w' (white)                                                       |
+| ymin=(int)                         | Sets the minimum y-axis value, default to use max from data                                                     |
+| ymax=(int)                         | Sets the maximum y-axis value, dafault uses 0 or minimum range estimate                                         |
+| yspacing=(int)                     | Sets default spacing between ticks on the y-axis, defaults depend on range estimate                             |
+| cmap=(matplotlib.colormap or str)  | Matplotlib colour map optiont to change colour map in plot                                                      |
+| round_start=(bool)                 | Option to round the start time to line up start with a tick label                                               |
 
 For instance, code for a velocity RTP showing the same beam of Clyde river radar as above, but with ground scatter plotted in grey, date format as `hh:mm`, custom min and max values and a colour bar label could look something like:
 ```python
@@ -173,7 +177,7 @@ plt.show()
 ***console output***
 
 ```bash
-UserWarning: Warning: zmin is -inf, set zmin to 0. You canset zmin and zmax in the functions options
+UserWarning: Warning: zmin is -inf, set zmin to 0. You can set zmin and zmax in the functions options
 ```
 
 ![](../imgs/rtp_rkn_lmfit2.png)

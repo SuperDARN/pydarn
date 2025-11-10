@@ -1,4 +1,4 @@
-# Getting convection map velocities and potentials
+# Retrieving Data from Convection Map plots
 ---
 
 This tutorial is for getting the derived SuperDARN fitted velocities and electric potentials from a convection map file (`.map` extension) at any location. Note that these are **fitted** parameters, based on accessing the Map Potential spherical harmonic solution to the line-of-sight velocities located in `.fitacf` format files. To look at data from fitacf files, see the [Range-Time Parameter Plots](range_time.md) and [Fan plots](fan.md) tutorials.
