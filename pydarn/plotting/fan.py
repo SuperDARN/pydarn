@@ -46,7 +46,7 @@ import datetime as dt
 import matplotlib.pyplot as plt
 import numpy as np
 import warnings
-
+import cartopy.crs as ccrs
 from matplotlib import ticker, cm, colors, axes
 from typing import List
 
@@ -1062,6 +1062,11 @@ class Fan:
 
     @staticmethod
     def plot_local_fan(dmap_data: List[dict],
+                       extent: List[float] = None,
+                       coastlines: bool = True,
+                       colorbar: bool = True,
+                       gridlines: bool = True,
+                       gridlabels: bool = True,
                        **kwargs):
         """
         Makes a fan plot for a single radar, zoomed into that radars location. Acts as a wrapper to both the
@@ -1070,19 +1075,78 @@ class Fan:
         Parameters
         -----------
                 dmap_data: List[dict]
-                Named list of dictionaries obtained from SDarn_read
-                        kwargs: key = value
-                Additional keyword arguments to be used in projection plotting
+                    Named list of dictionaries obtained from SDarn_read
+                extent: List[float]
+                    Extent of plotting window. Lower numbers to zoom in, higher numbers to zoom out
+                    Default: [-2500000, 2500000, -2500000, 2500000], defined in method
+                coastlines: bool
+                    Set to "False" to not plot coastlines.
+                    Default: True
+                colorbar: bool
+                    Set to "False" to not plot a colorbar.
+                    Default: True
+                gridlines: bool
+                    Set to "False" to not plot a gridline.
+                    Default: True
+                gridlabels: bool
+                    Set to "False" to not plot a gridline.
+                    If true, requires gridlines to also be true.
+                    Default: True
+                kwargs: key = value
+                    Additional keyword arguments to be used in projection plotting.
+                    For example, scan_index, scan_time, parameter, zmin/zmax, etc...
 
         Returns
         -------
 
         """
 
+        # Based on the fitacf data structure supplied,
+        # determine the radar and a sensible central location for the plot (the middle beam and range gate)
+        stid = RadarID(dmap_data[0]['stid'])
 
+        beam_corners_lats, beam_corners_lons = Coords.GEOGRAPHIC(stid=stid)
+        # coords = SuperDARNRadars.radars[stid][6].geographic
+        projection = ccrs.LambertAzimuthalEqualArea(
+            central_longitude=np.mean(beam_corners_lons),
+            central_latitude=np.mean(beam_corners_lats),
+        )
 
+        fig = plt.figure(figsize=(6, 4))
+        ax = fig.add_subplot(1, 1, 1, projection=projection)
 
+        if coastlines:
+            ax.coastlines(zorder=5, alpha=0.2, resolution='50m')
 
+        # Set extent in projection coordinates (meters)
+        if not extent:
+            extent = [-2500000, 2500000, -2500000, 2500000]
+        ax.set_extent(extent, crs=projection)
+
+        # Additional axis for the colorbar
+        if colorbar:
+            cax = ax.inset_axes([1.04, 0.0, 0.05, 1.0])
+        else:
+            cax = None
+
+        # Plot!
+        Fan.plot_fan(dmap_data,
+                     ax=ax,
+                     coords=Coords.GEOGRAPHIC,
+                     colorbar=colorbar,
+                     cax=cax,
+                     projs=Projs.GEO,
+                     grid_lines=False,
+                     **kwargs)
+
+        # Handle gridlines and labels, if (un)desired
+        if gridlines:
+            gl = ax.gridlines(draw_labels=False, color='gray', linestyle='--')
+            if gridlabels:
+                gl.left_labels = True
+                gl.bottom_labels = True
+
+        return ax
 
     @staticmethod
     def __add_title__(first_timestamp: dt.datetime,
