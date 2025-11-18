@@ -1061,6 +1061,30 @@ class Fan:
         return
 
     @staticmethod
+    def plot_local_fan(dmap_data: List[dict],
+                       **kwargs):
+        """
+        Makes a fan plot for a single radar, zoomed into that radars location. Acts as a wrapper to both the
+        Cartopy "LambertAzimuthalEqualArea" projection, and `plot_fan`
+
+        Parameters
+        -----------
+                dmap_data: List[dict]
+                Named list of dictionaries obtained from SDarn_read
+                        kwargs: key = value
+                Additional keyword arguments to be used in projection plotting
+
+        Returns
+        -------
+
+        """
+
+
+
+
+
+
+    @staticmethod
     def __add_title__(first_timestamp: dt.datetime,
                       end_timestamp: dt.datetime):
         title = "{year}-{month}-{day} {start_hour}:{start_minute}:{second} -"\
