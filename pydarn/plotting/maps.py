@@ -27,9 +27,8 @@
 """
 Grid plots, mapped to AACGM coordinates in a polar format
 """
-
+import aacgmv2
 import datetime as dt
-
 import matplotlib.axes
 import matplotlib.pyplot as plt
 import numpy as np
@@ -40,14 +39,11 @@ from matplotlib import ticker, cm, colors
 from scipy import special
 from typing import List
 
-
-# Third party libraries
-import aacgmv2
-
 from pydarn import (PyDARNColormaps, plot_exceptions, RadarID,
                     standard_warning_format, Re, Hemisphere,
                     time2datetime, find_record, Fan, Projs,
-                    MapParams, TimeSeriesParams)
+                    Coords, MapParams, TimeSeriesParams,
+                    GeneralUtils)
 warnings.formatwarning = standard_warning_format
 
 
@@ -67,19 +63,19 @@ class Maps:
                 "   - plot_maps()\n"
 
     @classmethod
-    def plot_mapdata(cls, dmap_data: List[dict], ax=None,
-                     parameter: Enum = MapParams.FITTED_VELOCITY,
-                     record: int = 0, start_time: dt.datetime = None,
-                     time_delta: float = 1,  alpha: float = 1.0,
-                     len_factor: float = 150, color_vectors: bool = True,
-                     cmap: str = None, colorbar: bool = True,
-                     contour_colorbar: bool = True,
-                     colorbar_label: str = '', title: str = '',
-                     zmin: float = None, zmax: float = None,
-                     hmb: bool = True, boundary: bool = False,
-                     radar_location: bool = False, map_info: bool = True,
-                     imf_dial: bool = True, reference_vector: int = 500,
-                     projs: Projs = Projs.POLAR, **kwargs):
+    def plot_map(cls, dmap_data: List[dict], ax=None,
+                 parameter: Enum = MapParams.FITTED_VELOCITY,
+                 record: int = 0, start_time: dt.datetime = None,
+                 time_delta: float = 1,  alpha: float = 1.0,
+                 len_factor: float = 150, color_vectors: bool = True,
+                 cmap: str = None, colorbar: bool = True,
+                 contour_colorbar: bool = True,
+                 colorbar_label: str = '', title: str = '',
+                 zmin: float = None, zmax: float = None,
+                 hmb: bool = True, boundary: bool = False,
+                 radar_location: bool = False, map_info: bool = True,
+                 imf_dial: bool = True, reference_vector: int = 500,
+                 projs: Projs = Projs.POLAR, **kwargs):
         """
         Plots convection maps data points and vectors
 
@@ -194,36 +190,31 @@ class Maps:
         norm = colors.Normalize
         norm = norm(zmin, zmax)
 
-        if projs != Projs.POLAR:
-            raise plot_exceptions.NotImplemented(" Only polar projections "
-                                                 " are implemented for"
-                                                 " convection maps."
-                                                 " Please set"
-                                                 " projs=Projs.POLAR"
-                                                 " to plot a convection map.")
-
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             # If the user wants to plot a FOV boundary or radar location
             # Needs to find the positions for each
             # Else just call the axis maker: proj
             if boundary or radar_location:
-                fan_rtn = Fan.plot_fov(RadarID(dmap_data[record]['stid'][0]), date,
-                                       ax=ax, boundary=boundary,
+                fan_rtn = Fan.plot_fov(RadarID(dmap_data[record]['stid'][0]),
+                                       date, ax=ax, boundary=boundary,
                                        radar_location=radar_location,
-                                       **kwargs)
+                                       projs=projs, **kwargs)
                 ax = fan_rtn['ax']
                 ccrs = fan_rtn['ccrs']
                 for stid in dmap_data[record]['stid'][1:]:
                     fan_rtn = Fan.plot_fov(RadarID(stid), date, ax=ax,
                                            boundary=boundary, ccrs=ccrs,
                                            radar_location=radar_location,
-                                           **kwargs)
+                                           projs=projs, **kwargs)
                     ax = fan_rtn['ax']
             else:
-                
                 ax, ccrs = projs(date, ax=ax, hemisphere=hemisphere, **kwargs)
 
+        if ccrs is None:
+            transform = ax.transData
+        else:
+            transform = ccrs.Geodetic()
 
         if parameter == MapParams.MODEL_VELOCITY:
             try:
@@ -236,14 +227,25 @@ class Maps:
                 data_lons = dmap_data[record]['vector.mlon']
                 data_lats = dmap_data[record]['vector.mlat']
             except KeyError:
-                raise plot_exceptions.PartialRecordsError('model.mlat')
+                raise plot_exceptions.PartialRecordsError('vector.mlon')
 
         # Arbitrary lon used to calculate the shift required
         shifted_mlts = 0 - (aacgmv2.convert_mlt(0, date) * 15)
         shifted_lons = data_lons - shifted_mlts
-        # Note that this "mlons" is adjusted for MLT
-        mlons = np.radians(shifted_lons)
-        mlats = data_lats
+
+        # Convert and/or correct units for projections choice
+        if projs == Projs.POLAR:
+            # Note that this "mlons" is adjusted for MLT
+            mlons = np.radians(shifted_lons)
+            mlats = data_lats
+        elif projs == Projs.MAG:
+            mlons = shifted_lons % 360
+            mlats = data_lats
+        elif projs == Projs.GEO:
+            mlats, mlons, _ = aacgmv2.convert_latlon_arr(
+                              data_lats, data_lons, 300,
+                              date, method_code="A2G")
+            thetas = np.radians(mlons)
 
         # If the parameter is velocity then plot the LOS vectors
         # Actual mlons used here, not adjusted mlons (np.radians(data_lons))
@@ -274,12 +276,57 @@ class Maps:
             v_mag = dmap_data[record]['vector.wdt.median']
             azm_v = np.radians(dmap_data[record]['vector.kvect'])
 
+        # Azimuth direction needs to be converted
+        if projs == Projs.GEO:
+            # Pole coords in geo for this date
+            gpole_lat = 90 * hemisphere.value
+            gpole_lon = 0
+            mpole_lat, mpole_lon, _ = \
+                aacgmv2.convert_latlon(gpole_lat, gpole_lon, 300,
+                                       date, method_code='A2G')
+
+            # Flatten array to work on
+            a_m_flat = []
+            b_m_flat = []
+            thetas_flat = thetas.flatten()
+            rs_flat = mlats.flatten()
+            for i in range(len(rs_flat)):
+                a_m_flat.append(
+                    GeneralUtils.great_circle(thetas_flat[i],
+                                              rs_flat[i],
+                                              gpole_lon,
+                                              gpole_lat))
+                b_m_flat.append(
+                    GeneralUtils.great_circle(thetas_flat[i],
+                                              rs_flat[i],
+                                              mpole_lon,
+                                              mpole_lat))
+            a_m = np.reshape(a_m_flat, mlats.shape)
+            b_m = np.reshape(b_m_flat, mlats.shape)
+            c_m_flat = np.ones(len(rs_flat)) * \
+                GeneralUtils.great_circle(gpole_lon, gpole_lat,
+                                          mpole_lon, mpole_lat)
+            c_m = np.reshape(c_m_flat, mlats.shape)
+            declination = np.arccos((np.cos(c_m) - np.cos(a_m)
+                                     * np.cos(b_m)) /
+                                    (np.sin(a_m) * np.sin(b_m)))
+
+            azm_v = np.radians(np.degrees(azm_v) +
+                               np.degrees(declination) * hemisphere.value)
+
+        if projs is not Projs.POLAR:
+            mlons = np.radians(mlons)
+
         if parameter in [MapParams.FITTED_VELOCITY, MapParams.MODEL_VELOCITY,
                          MapParams.RAW_VELOCITY]:
             # Make reference vector and add it to the array to
             # be calculated too
-            reflat = (np.abs(plt.gca().get_ylim()[1]) - 5) * hemisphere.value
+            if projs is Projs.POLAR:
+                reflat = (np.abs(plt.gca().get_ylim()[1]) - 5) * hemisphere.value
+            else:
+                reflat = ax.get_extent(crs=ccrs.PlateCarree())[2] + 20
             reflon = np.radians(45)
+            
             v_mag = np.append(v_mag, reference_vector)
             if hemisphere == Hemisphere.North:
                 azm_v = np.append(azm_v, np.radians(135))
@@ -318,58 +365,65 @@ class Maps:
 
             end_mlats = end_mlats * hemisphere.value
 
+            # Calculate HMBlon
+            # Shift HMB lons to MLT
+            shifted_mlts = \
+                dmap_data[record]['boundary.mlon'][0] - (aacgmv2.convert_mlt(
+                    dmap_data[record]['boundary.mlon'][0], date) * 15)
+            hmblons = (dmap_data[record]['boundary.mlon']
+                       - shifted_mlts) % 360
+
+            # Convert required vectors to degrees if in MAG or GEO
+            if projs is not Projs.POLAR:
+                end_mlons = np.degrees(end_mlons)
+                mlons = np.degrees(mlons)
+
             # Plot the vector socks (final vector is the reference
             # vector to be plotted later if required)
             if color_vectors is True:
                 for i in range(len(v_mag) - 1):
                     if parameter == MapParams.FITTED_VELOCITY:
-                        # Shift HMB lons to MLT
-                        shifted_mlts = \
-                            dmap_data[record]['boundary.mlon'][0] - \
-                            (aacgmv2.convert_mlt(
-                                dmap_data[record]['boundary.mlon'][0],
-                                date) * 15)
-                        hmblons = (dmap_data[record]['boundary.mlon'] -
-                                   shifted_mlts) % 360
                         # Find where the closest HMB value is, set equivalent
                         # latitude as the lat limit for plotting
-                        rounded_mlon = np.degrees(mlons[i]) % 360
+                        if projs == Projs.POLAR:
+                            rounded_mlon = np.degrees(mlons[i]) % 360
+                        else:
+                            rounded_mlon = mlons[i] % 360
                         ind = (np.abs(hmblons - rounded_mlon)).argmin()
                         lat_limit = dmap_data[record]['boundary.mlat'][ind]
                         if abs(mlats[i]) >= abs(lat_limit):
                             ax.plot([mlons[i], end_mlons[i]],
-                                     [mlats[i], end_mlats[i]],
-                                     c=cmap(norm(v_mag[i])),
-                                     linewidth=0.5, zorder=5.0)
+                                    [mlats[i], end_mlats[i]],
+                                    c=cmap(norm(v_mag[i])),
+                                    linewidth=0.5, zorder=5.0,
+                                    transform=transform)
                     else:
                         ax.plot([mlons[i], end_mlons[i]],
-                                 [mlats[i], end_mlats[i]],
-                                 c=cmap(norm(v_mag[i])),
-                                 linewidth=0.5, zorder=5.0)
+                                [mlats[i], end_mlats[i]],
+                                c=cmap(norm(v_mag[i])),
+                                linewidth=0.5, zorder=5.0,
+                                transform=transform)
             else:
                 for i in range(len(v_mag) - 1):
                     if parameter == MapParams.FITTED_VELOCITY:
-                        # Shift HMB lons to MLT
-                        shifted_mlts = \
-                            dmap_data[record]['boundary.mlon'][0] - \
-                            (aacgmv2.convert_mlt(
-                                dmap_data[record]['boundary.mlon'][0],
-                                date) * 15)
-                        hmblons = (dmap_data[record]['boundary.mlon'] -
-                                   shifted_mlts) % 360
                         # Find where the closest HMB value is, set equivalent
                         # latitude as the lat limit for plotting
-                        rounded_mlon = np.degrees(mlons[i]) % 360
+                        if projs == Projs.POLAR:
+                            rounded_mlon = np.degrees(mlons[i]) % 360
+                        else:
+                            rounded_mlon = mlons[i] % 360
                         ind = (np.abs(hmblons - rounded_mlon)).argmin()
                         lat_limit = dmap_data[record]['boundary.mlat'][ind]
                         if abs(mlats[i]) >= abs(lat_limit):
                             ax.plot([mlons[i], end_mlons[i]],
-                                     [mlats[i], end_mlats[i]], c='#292929',
-                                     linewidth=0.5, zorder=5.0)
+                                    [mlats[i], end_mlats[i]], c='#292929',
+                                    linewidth=0.5, zorder=5.0,
+                                    transform=transform)
                     else:
                         ax.plot([mlons[i], end_mlons[i]],
-                                 [mlats[i], end_mlats[i]], c='#292929',
-                                 linewidth=0.5, zorder=5.0)
+                                [mlats[i], end_mlats[i]], c='#292929',
+                                linewidth=0.5, zorder=5.0,
+                                transform=transform)
 
         # Plot the sock start dots and reference vector if known
         if color_vectors is True:
@@ -377,53 +431,57 @@ class Maps:
                              MapParams.RAW_VELOCITY]:
                 if reference_vector > 0:
                     ax.scatter(mlons[:-1], mlats[:-1], c=v_mag[:-1], s=2.0,
-                                vmin=zmin, vmax=zmax,  cmap=cmap, zorder=5.0,
-                                clip_on=True)
+                               vmin=zmin, vmax=zmax,  cmap=cmap, zorder=5.0,
+                               clip_on=True, transform=transform)
                     ax.scatter(mlons[-1], mlats[-1], c=v_mag[-1], s=2.0,
-                                vmin=zmin, vmax=zmax,  cmap=cmap, zorder=5.0,
-                                clip_on=False)
+                               vmin=zmin, vmax=zmax,  cmap=cmap, zorder=5.0,
+                               clip_on=False, transform=transform)
                     ax.plot([mlons[-1], end_mlons[-1]],
-                             [mlats[-1], end_mlats[-1]],
-                             c=cmap(norm(v_mag[-1])),
-                             linewidth=0.5, zorder=5.0, clip_on=False)
+                            [mlats[-1], end_mlats[-1]],
+                            c=cmap(norm(v_mag[-1])),
+                            linewidth=0.5, zorder=5.0, clip_on=False,
+                            transform=transform)
                     plt.figtext(0.675, 0.15, str(reference_vector) + ' m/s',
                                 fontsize=8)
                 else:
                     ax.scatter(mlons[:-1], mlats[:-1], c=v_mag[:-1], s=2.0,
-                                vmin=zmin, vmax=zmax,  cmap=cmap, zorder=5.0)
+                               vmin=zmin, vmax=zmax,  cmap=cmap, zorder=5.0,
+                               transform=transform)
             elif parameter is MapParams.FITTED_VELOCITY:
-                # Shift HMB lons to MLT
-                shifted_mlts = dmap_data[record]['boundary.mlon'][0] - \
-                        (aacgmv2.convert_mlt(
-                            dmap_data[record]['boundary.mlon'][0], date) * 15)
-                hmblons = (dmap_data[record]['boundary.mlon'] -
-                           shifted_mlts) % 360
                 # Find where the closest HMB value is, set equivalent
                 # latitude as the lat limit for plotting
                 for m, mlon in enumerate(mlons[:-1]):
-                    rounded_mlon = np.degrees(mlon) % 360
+                    if projs is Projs.POLAR:
+                        rounded_mlon = np.degrees(mlon) % 360
+                    else:
+                        rounded_mlon = mlon % 360
                     ind = (np.abs(hmblons - rounded_mlon)).argmin()
                     lat_limit = dmap_data[record]['boundary.mlat'][ind]
                     if abs(mlats[m]) >= abs(lat_limit):
                         ax.scatter(mlon, mlats[m], color=cmap(norm(v_mag[m])),
-                                    s=2.0, zorder=5.0, clip_on=True)
+                                   s=2.0, zorder=5.0, clip_on=True,
+                                   transform=transform)
                     else:
                         ax.scatter(mlon, mlats[m], c='#DDDDDD', s=2.0,
-                                    zorder=5.0, clip_on=True)
+                                   zorder=5.0, clip_on=True,
+                                   transform=transform)
                 if reference_vector > 0:
                     ax.scatter(mlons[-1], mlats[-1],
-                                color=cmap(norm(v_mag[-1])),
-                                s=2.0, zorder=5.0, clip_on=False)
+                               color=cmap(norm(v_mag[-1])),
+                               s=2.0, zorder=5.0, clip_on=False,
+                               transform=transform)
                     ax.plot([mlons[-1], end_mlons[-1]],
-                             [mlats[-1], end_mlats[-1]],
-                             c=cmap(norm(v_mag[-1])),
-                             linewidth=0.5, zorder=5.0, clip_on=False)
+                            [mlats[-1], end_mlats[-1]],
+                            c=cmap(norm(v_mag[-1])),
+                            linewidth=0.5, zorder=5.0, clip_on=False,
+                            transform=transform)
                     plt.figtext(0.675, 0.15, str(reference_vector) + ' m/s',
                                 fontsize=8)
             # No vector socks on spectral width
             else:
                 ax.scatter(mlons[:], mlats[:], c=v_mag[:], s=2.0,
-                            vmin=zmin, vmax=zmax,  cmap=cmap, zorder=5.0)
+                           vmin=zmin, vmax=zmax,  cmap=cmap, zorder=5.0,
+                           transform=transform)
 
         else:
             # no color so make sure colorbar is turned off
@@ -432,48 +490,50 @@ class Maps:
                              MapParams.RAW_VELOCITY]:
                 if reference_vector > 0:
                     ax.scatter(mlons[:-1], mlats[:-1], c='#292929', s=2.0,
-                                zorder=5.0, clip_on=True)
+                               zorder=5.0, clip_on=True, transform=transform)
                     ax.scatter(mlons[-1], mlats[-1], c='#292929', s=2.0,
-                                zorder=5.0, clip_on=False)
+                               zorder=5.0, clip_on=False, transform=transform)
                     ax.plot([mlons[-1], np.degrees(end_mlons[-1])],
-                             [mlats[-1], end_mlats[-1]], c='#292929',
-                             linewidth=0.5, zorder=5.0, clip_on=False)
+                            [mlats[-1], end_mlats[-1]], c='#292929',
+                            linewidth=0.5, zorder=5.0, clip_on=False,
+                            transform=transform)
                     plt.figtext(0.675, 0.15, str(reference_vector) + ' m/s',
                                 fontsize=8)
                 else:
                     ax.scatter(mlons[:-1], mlats[:-1], c='#292929', s=2.0,
-                                zorder=5.0)
+                               zorder=5.0, transform=transform)
             elif parameter is MapParams.FITTED_VELOCITY:
-                # Shift HMB lons to MLT
-                shifted_mlts = dmap_data[record]['boundary.mlon'][0] - \
-                        (aacgmv2.convert_mlt(
-                            dmap_data[record]['boundary.mlon'][0], date) * 15)
-                hmblons = (dmap_data[record]['boundary.mlon'] -
-                           shifted_mlts) % 360
                 # Find where the closest HMB value is, set equivalent
                 # latitude as the lat limit for plotting
                 for m, mlon in enumerate(mlons[:-1]):
-                    rounded_mlon = np.degrees(mlon) % 360
+                    if projs is Projs.POLAR:
+                        rounded_mlon = np.degrees(mlon) % 360
+                    else:
+                        rounded_mlon = mlon % 360
                     ind = (np.abs(hmblons - rounded_mlon)).argmin()
                     lat_limit = dmap_data[record]['boundary.mlat'][ind]
                     if abs(mlats[m]) >= abs(lat_limit):
                         ax.scatter(mlon, mlats[m], c='#292929', s=2.0,
-                                    zorder=5.0, clip_on=True)
+                                   zorder=5.0, clip_on=True,
+                                   transform=transform)
                     else:
                         ax.scatter(mlon, mlats[m], c='#DDDDDD', s=2.0,
-                                    zorder=5.0, clip_on=True)
+                                   zorder=5.0, clip_on=True,
+                                   transform=transform)
                 if reference_vector > 0:
                     ax.scatter(mlons[-1], mlats[-1], c='#292929', s=2.0,
-                                zorder=5.0, clip_on=False)
+                               zorder=5.0, clip_on=False,
+                               transform=transform)
                     ax.plot([mlons[-1], end_mlons[-1]],
-                             [mlats[-1], end_mlats[-1]], c='#292929',
-                             linewidth=0.5, zorder=5.0, clip_on=False)
+                            [mlats[-1], end_mlats[-1]], c='#292929',
+                            linewidth=0.5, zorder=5.0, clip_on=False,
+                            transform=transform)
                     plt.figtext(0.675, 0.15, str(reference_vector) + ' m/s',
                                 fontsize=8)
             # No vector socks on spectral width
             else:
                 ax.scatter(mlons[:], mlats[:], c='#292929', s=2.0,
-                            zorder=5.0)
+                           zorder=5.0, transform=transform)
 
         if colorbar is True:
             mappable = cm.ScalarMappable(norm=norm, cmap=cmap)
@@ -510,12 +570,11 @@ class Maps:
         lat_min = dmap_data[record]['latmin']
 
         _, _, pot_arr, cs, cb_contour = \
-            cls.plot_potential_contours(fit_coefficient,
-                                        lat_min, date, ax,
-                                        lat_shift=lat_shift,
+            cls.plot_potential_contours(fit_coefficient, lat_min, date, ax,
+                                        ccrs, transform, lat_shift=lat_shift,
                                         lon_shift=lon_shift,
                                         fit_order=fit_order,
-                                        hemisphere=hemisphere,
+                                        hemisphere=hemisphere, projs=projs,
                                         contour_colorbar=contour_colorbar,
                                         **kwargs)
 
@@ -525,7 +584,9 @@ class Maps:
             mlons_hmb = dmap_data[record]['boundary.mlon']
             hmb_lon, hmb_lat = cls.plot_heppner_maynard_boundary(mlats_hmb,
                                                                  mlons_hmb,
-                                                                 date)
+                                                                 transform,
+                                                                 date,
+                                                                 projs=projs)
         else:
             hmb_lon = None
             hmb_lat = None
@@ -548,8 +609,10 @@ class Maps:
         num_points = len(dmap_data[record]['vector.mlat'])
         pol_cap_pot = dmap_data[record]['pot.drop']
         if map_info is True:
-            cls.add_map_info(fit_order, pol_cap_pot, num_points, model)
-
+            if projs is Projs.POLAR:
+                cls.add_map_info(fit_order, pol_cap_pot, num_points, model)
+            else:
+                cls.add_map_info_inset(ax, fit_order, pol_cap_pot, num_points, model)
         bx = dmap_data[record]['IMF.Bx']
         by = dmap_data[record]['IMF.By']
         bz = dmap_data[record]['IMF.Bz']
@@ -557,7 +620,10 @@ class Maps:
         bt = np.sqrt(bx**2 + by**2 + bz**2)
         if imf_dial is True:
             # Plot the IMF dial
-            cls.plot_imf_dial(ax, by, bz, bt, delay)
+            if projs is Projs.POLAR:
+                cls.plot_imf_dial(ax, by, bz, bt, delay)
+            else:
+                cls.plot_imf_dial_inset(ax, by, bz, bt, delay)
 
         return {'ax': ax,
                 'ccrs': None,
@@ -822,9 +888,38 @@ class Maps:
         plt.figtext(0.1, 0.1, text_string)
 
     @classmethod
+    def add_map_info_inset(cls, ax: matplotlib.axes.Axes, fit_order: float, pol_cap_pot: float,
+                           num_points: float, model: str):
+        """
+        Annotates the plot with information about the map plotting
+
+        Parameters
+        ----------
+            ax: object
+                matplotlib axis object
+            fit_order: int
+                order of the fit
+            pol_cap_pot: float
+                value of the polar cap potential in kV
+            num_points: int
+                number of vectors plotted
+            model: str
+                model used to fit data
+        """
+        text_string = r'$\phi_{PC}$' + ' = ' + str(round(pol_cap_pot/1000))\
+                      + ' kV\n' \
+                      + 'N = ' + str(num_points) + '\n' \
+                      + 'Order: ' + str(fit_order) + '\n' \
+                      + 'Model: ' + model
+        bbox = ax.get_position()
+        plt.figtext(bbox.x0 + 0.02, bbox.y0 + 0.02, text_string,
+                    backgroundcolor='w')
+
+    @classmethod
     def plot_heppner_maynard_boundary(cls, mlats: list, mlons: list,
+                                      transform: object,
                                       date: object, line_color: str = 'black',
-                                      **kwargs):
+                                      projs: Projs = Projs.POLAR, **kwargs):
         # TODO: No evaluation of coordinate system made! May need if in
         # plotting to plot in radians/geo ect.
         """
@@ -849,14 +944,17 @@ class Maps:
         shifted_mlts = mlons[0] - \
             (aacgmv2.convert_mlt(mlons[0], date) * 15)
         shifted_lons = mlons - shifted_mlts
-        mlon = np.radians(shifted_lons)
-
-        plt.plot(mlon, mlats, c=line_color, zorder=4.0, **kwargs)
+        if projs is Projs.POLAR:
+            mlon = np.radians(shifted_lons)
+        else:
+            mlon = shifted_lons % 360
+        plt.plot(mlon, mlats, c=line_color, zorder=4.0,
+                 transform=transform, **kwargs)
         return mlon, mlats
 
     @classmethod
-    def plot_imf_dial(cls, ax: matplotlib.axes.Axes, by: float = 0, bz: float = 0,
-                      bt: float = 0, delay: float = 0):
+    def plot_imf_dial(cls, ax: matplotlib.axes.Axes, by: float = 0,
+                      bz: float = 0, bt: float = 0, delay: float = 0):
         """
         Plots an IMF clock angle dial on the existing plot
         Defaults all to 0 if no IMF data available to plot
@@ -906,6 +1004,59 @@ class Maps:
                         fontsize=7)
         ax_imf.annotate('Delay = -' + str(delay) + ' min', xy=(-16, -17),
                         fontsize=7)
+
+    @classmethod
+    def plot_imf_dial_inset(cls, ax: matplotlib.axes.Axes, by: float = 0,
+                            bz: float = 0, bt: float = 0, delay: float = 0):
+        """
+        Plots an IMF clock angle dial on the existing plot
+        Defaults all to 0 if no IMF data available to plot
+
+        Parameters
+        ----------
+            ax: object
+                matplotlib axis object
+            by: Float
+                Value of the magnetic field in the y-direction (nT)
+                Default = 0 nT
+            bz: Float
+                Value of the magnetic field in the z-direction (nT)
+                Default = 0 nT
+            bt: Float
+                Magnitude of the magnetic field (nT)
+                Default = 0 nT
+            delay: Float
+                Time delay of magnetic field between the
+                measuring satellite and the ionosphere (minutes)
+                Default = 0 minutes
+        """
+        # Create new axes inside existing axes
+        ax_imf = ax.inset_axes([-0.09, 0.69, 0.4, 0.4])
+        ax_imf.axis('off')
+
+        ax_imf.set_xlim([-20.2, 20.2])
+        ax_imf.set_ylim([-20.2, 20.2])
+
+        # Plot a Circle
+        limit_circle = plt.Circle((0, 0), 10, facecolor='w',
+                                  edgecolor='k')
+        ax_imf.add_patch(limit_circle)
+        # Plot axis lines
+        ax_imf.plot([-10, 10], [0, 0], color='k', linewidth=0.5)
+        ax_imf.plot([0, 0], [-10, 10], color='k', linewidth=0.5)
+
+        # Plot line for magnetic field
+        ax_imf.plot([0, by], [0, bz], color='r')
+
+        # Add axis labels
+        ax_imf.annotate('+Z', xy=(-4.75, 6.75))
+        ax_imf.annotate('+Y', xy=(5, -2.75))
+
+        # Add annotations for delay and Btot
+        ax_imf.annotate('|B| = ' + str(round(bt)) + ' nT', xy=(-6, -13),
+                        fontsize=7, backgroundcolor='w')
+        ax_imf.annotate('Delay = -' + str(delay) + ' min', xy=(-9, -17),
+                        fontsize=7, backgroundcolor='w')
 
     @classmethod
     def calculate_potentials(cls, fit_coefficient: list, lat_min: list,
@@ -1106,8 +1257,10 @@ class Maps:
 
     @classmethod
     def plot_potential_contours(cls, fit_coefficient: list, lat_min: list,
-                                date: object, ax: object, lat_shift: int = 0,
+                                date: object, ax: object, ccrs: object,
+                                transform: object, lat_shift: int = 0,
                                 lon_shift: int = 0, fit_order: int = 6,
+                                projs: Projs = Projs.POLAR,
                                 hemisphere: Enum = Hemisphere.North,
                                 contour_levels: list = [],
                                 contour_spacing: int = None,
@@ -1232,11 +1385,17 @@ class Maps:
             pot_zmax = np.max(contour_levels)
             pot_zmin = np.min(contour_levels)
 
+        if projs is Projs.POLAR:
+            mlon = np.radians(mlon)
+
         if contour_fill:
             # Filled contours
             norm = colors.Normalize
             norm = norm(pot_zmin, pot_zmax)
-            cs = plt.contourf(np.radians(mlon), mlat, pot_arr, 2,
+            # ccrs.geodetic not supported in contours
+            if projs is not Projs.POLAR:
+                transform = ccrs.PlateCarree()
+            cs = plt.contourf(mlon, mlat, pot_arr, 2,
                               norm=norm, vmax=pot_zmax, vmin=pot_zmin,
                               levels=np.array(contour_levels),
                               cmap=contour_fill_cmap, alpha=0.5,
@@ -1255,15 +1414,21 @@ class Maps:
                 cb_contour = None
         else:
             # Contour lines only
-            cs = plt.contour(np.radians(mlon), mlat, pot_arr, 2,
+            if projs is not Projs.POLAR:
+                transform = ccrs.PlateCarree()
+            cs = plt.contour(mlon, mlat, pot_arr, 2,
                              vmax=pot_zmax, vmin=pot_zmin,
                              levels=np.array(contour_levels),
                              colors=contour_color, alpha=0.8,
-                             linewidths=contour_linewidths, zorder=3.0)
+                             linewidths=contour_linewidths, zorder=3.0,
+                             transform=transform)
             cb_contour = None
             # TODO: Add in contour labels
             # if contour_label:
             #    plt.clabel(cs, cs.levels, inline=True, fmt='%d', fontsize=5)
+
+        if projs is Projs.POLAR:
+            mlon = np.degrees(mlon)
 
         # Get max value of potential
         ind_max = np.where(pot_arr == pot_arr.max())
@@ -1273,10 +1438,17 @@ class Maps:
         min_mlon = mlon[ind_min]
         min_mlat = mlat[ind_min]
 
-        plt.scatter(np.radians(max_mlon), max_mlat, marker='+', s=70,
-                    color=pot_minmax_color, zorder=5.0)
-        plt.scatter(np.radians(min_mlon), min_mlat, marker='_', s=70,
-                    color=pot_minmax_color, zorder=5.0)
+        if projs is Projs.POLAR:
+            max_mlon = np.radians(max_mlon)
+            min_mlon = np.radians(min_mlon)
+        else:
+            max_mlon = max_mlon % 360
+            min_mlon = min_mlon % 360
+
+        plt.scatter(max_mlon, max_mlat, marker='+', s=70,
+                    color=pot_minmax_color, zorder=5.0, transform=transform)
+        plt.scatter(min_mlon, min_mlat, marker='_', s=70,
+                    color=pot_minmax_color, zorder=5.0, transform=transform)
         return mlat, mlon_u, pot_arr, cs, cb_contour
 
     @classmethod
