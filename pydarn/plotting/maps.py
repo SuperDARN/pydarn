@@ -259,7 +259,7 @@ class Maps:
 
         # Arbitrary lon used to calculate the shift required
         shifted_mlts = 0 - (aacgmv2.convert_mlt(0, date) * 15)
-        shifted_lons = data_lons - shifted_mlts
+        shifted_lons = (data_lons - shifted_mlts) % 360
         # Note that this "mlons" is adjusted for MLT
         mlons = np.radians(shifted_lons)
         mlats = data_lats
@@ -1212,8 +1212,12 @@ class Maps:
         # Shift mlon to MLT
         shifted_mlts = mlon_u[0, 0] - \
             (aacgmv2.convert_mlt(mlon_u[0, 0], date) * 15)
-        shifted_lons = mlon_u - shifted_mlts
-        mlon = shifted_lons
+        shifted_lons = (mlon_u - shifted_mlts) % 360
+        # Sort longitudes so the contour grid wraps only once around the pole
+        sort_idx = np.argsort(shifted_lons[:, 0])
+        mlon = shifted_lons[sort_idx]
+        mlat = mlat[sort_idx]
+        pot_arr = pot_arr[sort_idx]
 
         # Contained in function as too long to go into the function call
         if contour_levels == []:
