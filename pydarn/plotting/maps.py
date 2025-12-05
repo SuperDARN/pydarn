@@ -51,6 +51,25 @@ from pydarn import (PyDARNColormaps, plot_exceptions, RadarID,
 warnings.formatwarning = standard_warning_format
 
 
+def _legendre_pmn(fit_order: int, x_val: float) -> np.ndarray:
+    """
+    Compute associated Legendre polynomials P_m^n(x) with the same
+    layout as scipy.special.lpmn (order, degree). Uses the newer
+    assoc_legendre_p_all when available to avoid the SciPy 1.15+
+    deprecation of lpmn while keeping backward compatibility.
+    """
+    if hasattr(special, "assoc_legendre_p_all"):
+        values = np.asarray(
+            special.assoc_legendre_p_all(fit_order, fit_order, x_val,
+                                         norm=False)
+        )[0]
+        # assoc_legendre_p_all returns degrees x orders (0..m then -m..-1)
+        # We keep only the non-negative orders and transpose to
+        # match lpmn's (order, degree) layout.
+        return values[:, :fit_order + 1].T
+    return special.lpmn(fit_order, fit_order, x_val)[0]
+
+
 class Maps:
     """
     Maps plots for SuperDARN data
@@ -637,15 +656,8 @@ class Maps:
 
         # i is the index of the list
         # x_i is the element of x at ith index
-        for i, x_i in enumerate(x):
-            temp_poly = special.lpmn(fit_order, fit_order, x_i)
-            if i == 0:
-                legendre_poly = np.append([temp_poly[0]], [temp_poly[0]],
-                                          axis=0)
-            else:
-                legendre_poly = np.append(legendre_poly, [temp_poly[0]],
-                                          axis=0)
-        legendre_poly = np.delete(legendre_poly, 0, 0)
+        legendre_poly = np.stack([_legendre_pmn(fit_order, x_i)
+                                  for x_i in x], axis=0)
         phi = mlons
 
         # now do the index legender part,
@@ -972,14 +984,8 @@ class Maps:
         alpha = np.pi / theta_max
         x = np.cos(alpha*theta)
         # Legendre Polys
-        for j, xj in enumerate(x):
-            plm_tmp = special.lpmn(fit_order, fit_order, xj)
-            if j == 0:
-                plm_fit = np.append([plm_tmp[0]], [plm_tmp[0]], axis=0)
-            else:
-                plm_fit = np.append(plm_fit, [plm_tmp[0]], axis=0)
-        # Remove first element as it is duplicated to start off the array
-        plm_fit = np.delete(plm_fit, 0, 0)
+        plm_fit = np.stack([_legendre_pmn(fit_order, xj) for xj in x],
+                           axis=0)
 
         # Eval the potential
         lmax = plm_fit.shape
@@ -1074,14 +1080,8 @@ class Maps:
         x = np.cos(alpha * theta)
 
         # Legendre Polys
-        for j, xj in enumerate(x):
-            plm_tmp = special.lpmn(fit_order, fit_order, xj)
-            if j == 0:
-                plm_fit = np.append([plm_tmp[0]], [plm_tmp[0]], axis=0)
-            else:
-                plm_fit = np.append(plm_fit, [plm_tmp[0]], axis=0)
-        # Remove first element as it is duplicated to start off the array
-        plm_fit = np.delete(plm_fit, 0, 0)
+        plm_fit = np.stack([_legendre_pmn(fit_order, xj) for xj in x],
+                           axis=0)
 
         # Eval the potential
         lmax = plm_fit.shape

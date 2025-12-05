@@ -22,15 +22,21 @@ from .version import __version__
 
 # Import io for pyDARN
 from .io.superdarn_io import read_borealis
-from pydarnio import (
-    read_iqdat,
-    read_rawacf,
-    read_fitacf,
-    read_grid,
-    read_map,
-    read_snd,
-    read_dmap,
-)
+import pydarnio
+
+read_rawacf = pydarnio.read_rawacf
+read_fitacf = pydarnio.read_fitacf
+read_grid = pydarnio.read_grid
+read_map = pydarnio.read_map
+read_snd = pydarnio.read_snd
+read_dmap = pydarnio.read_dmap
+
+read_iqdat = getattr(pydarnio, "read_iqdat", None)
+if read_iqdat is None:
+    def read_iqdat(*args, **kwargs):  # type: ignore
+        raise ImportError("read_iqdat is not available in the installed "
+                          "pydarnio package; install a version with iqdat "
+                          "support to use this function.")
 
 # Importing pydarn exception classes
 from .exceptions import rtp_exceptions, plot_exceptions, radar_exceptions

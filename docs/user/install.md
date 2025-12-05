@@ -59,7 +59,7 @@ You can check your python version using
 On installation, pyDARN will download the following dependencies: 
 
 - [NumPy](https://numpy.org/)
-- [scipy 1.15.0+](https://scipy.org/)
+- [scipy 1.14.0+](https://scipy.org/) (tested with 1.16.3)
 - [matplotlib 3.7.0+](https://matplotlib.org/) 
 - [PyYAML](https://pyyaml.org/wiki/PyYAMLDocumentation)
 - [pyDARNio 2.0.0+](https://pydarnio.readthedocs.io/en/latest/user/install/)
