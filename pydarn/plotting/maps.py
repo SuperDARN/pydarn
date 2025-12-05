@@ -54,20 +54,25 @@ warnings.formatwarning = standard_warning_format
 def _legendre_pmn(fit_order: int, x_val: float) -> np.ndarray:
     """
     Compute associated Legendre polynomials P_m^n(x) with the same
-    layout as scipy.special.lpmn (order, degree). Uses the newer
-    assoc_legendre_p_all when available to avoid the SciPy 1.15+
-    deprecation of lpmn while keeping backward compatibility.
+    layout as scipy.special.lpmn (order, degree).
+
+    SciPy's assoc_legendre_p_all returns slightly different values at the
+    endpoints (e.g., x=-1) compared to the legacy lpmn implementation, which
+    changes the fitted potentials. To preserve historical behaviour, prefer
+    lpmn (silencing its deprecation warning) and fall back to lpmv if lpmn
+    is unavailable.
     """
-    if hasattr(special, "assoc_legendre_p_all"):
-        values = np.asarray(
-            special.assoc_legendre_p_all(fit_order, fit_order, x_val,
-                                         norm=False)
-        )[0]
-        # assoc_legendre_p_all returns degrees x orders (0..m then -m..-1)
-        # We keep only the non-negative orders and transpose to
-        # match lpmn's (order, degree) layout.
-        return values[:, :fit_order + 1].T
-    return special.lpmn(fit_order, fit_order, x_val)[0]
+    if hasattr(special, "lpmn"):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=DeprecationWarning)
+            return special.lpmn(fit_order, fit_order, x_val)[0]
+
+    # Fallback: build the same array using lpmv.
+    values = np.zeros((fit_order + 1, fit_order + 1))
+    for m in range(fit_order + 1):
+        for n in range(m, fit_order + 1):
+            values[m, n] = special.lpmv(m, n, x_val)
+    return values
 
 
 class Maps:
