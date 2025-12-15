@@ -16,32 +16,29 @@ the additional permissions listed below.
 
 # Summary plots 
 
-Summary plots in SuperDARN are a collection of set parameter plots from a FITACF file. The parameters typically in the plots are:
+Summary plots in SuperDARN are a collection of set parameter plots from a FITACF file, and show a easily accessible overview of data in a FITACF file. The parameters shown in the plots are:
 
 * Time-series plots:
     * Sky Noise (`noise.sky`)
     * Transmission Frequency and Number of averages (`tfreq` and `nav`)
     * Control Program ID (`cp`)
-    * Range(or Coord)-time plots:
+* Range(or Coord)-time plots:
     * Signal to Noise (`p_l`)
     * Velocity (`v`)
     * Spectral Width (`w_l`)
     * Elevation (`elv`)
 
 !!! Note
-    Elevation (`elv`) is optional to plot and is set to be plotted, however, not all radars have elevation data. 
-    If the radar doesn't have elevation data then it is not plotted.
+    Elevation (`elv`) will be plotted as default if the FITACF file contains elevation data. 
 
 ## Default Summary
-With pyDARN and matplotlib imported, read in a FITACF with `pydarn.SuperDARNRead`, then call `plot_summary` with a chosen beam number. Here, we've loaded in some data from Clyde River and chosen beam 2:
+With pyDARN and matplotlib imported, read in a FITACF with `pydarn.read_fitacf()`, then call `plot_summary` with a chosen beam number. Here, we've loaded in some data from Clyde River and chosen beam 2:
 ```python
 import matplotlib.pyplot as plt
-
 import pydarn
 
 fitacf_file = "20190831.C0.cly.fitacf"
-darn_read = pydarn.SuperDARNRead(fitacf_file)
-fitacf_data = darn_read.read_fitacf()
+fitacf_data, _ = pydarn.read_fitacf(fitacf_file)
 
 pydarn.RTP.plot_summary(fitacf_data, beam_num=2,
                         range_estimation=pydarn.RangeEstimation.RANGE_GATE)
@@ -88,6 +85,4 @@ Other common options include:
 | cmaps=(dict/str) | Specifies the colour maps used in plotting                               | 
 | range_estimation=(RangeEstimation)              | Range use for the y-axis (See [Ranges, Coords and Projs](coordinates.md)) |
 
-
-For more options on how to modify plot_summary, take a look at the method in `rtp.py`. 
 All options available in time-series and range-time plots can be used in summary plots. 

@@ -12,7 +12,6 @@
 # and conditions of version 3 of the GNU General Public License,
 # supplemented by the additional permissions listed below.
 
-import bz2
 import datetime as dt
 import pytest
 import warnings
@@ -20,9 +19,7 @@ import warnings
 import pydarn
 
 
-with bz2.open('test/data/test.fitacf.bz2') as fp:
-    fitacf_stream = fp.read()
-data = pydarn.SuperDARNRead(fitacf_stream, True).read_fitacf()
+data, _ = pydarn.read_fitacf('test/data/test.fitacf.bz2')
 
 
 class TestUtils_citations:

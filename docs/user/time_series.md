@@ -13,19 +13,17 @@ and conditions of version 3 of the GNU General Public License, supplemented by
 the additional permissions listed below.
 -->
 
-# Time Series Plots
+# Basic Time Series Plots
 
-`plot_time_series` simply plots out a time series of any scalar beam parameter in the loaded in FITACF or RAWACF file. See [Map](map.md) tutorial for map file scalar parameter plotting.
+`plot_time_series` simply plots out a time series of any scalar beam parameter in FITACF or RAWACF files. See [Map](map.md) tutorial for map file scalar parameter plotting.
 
 Basic code to plot a time series from a FITACF file would look like:
 ```python
 import matplotlib.pyplot as plt
-
 import pydarn
 
 file = "20190831.C0.cly.fitacf"
-sdarn_read = pydarn.SuperDARNRead(file)
-fitacf_data = sdarn_read.read_fitacf()
+fitacf_data, _ = pydarn.read_fitacf(file)
  
 pydarn.RTP.plot_time_series(fitacf_data)
 plt.show()
@@ -47,7 +45,7 @@ In a similar way to RTP, you also have access to numerous plotting options:
 | linewidth=(float)            | Thickness of plotted line                                   |
 
 
-For example, checking out the cpid's for a 24hour Clyde FITACF file:
+For example, this plot shows the cpids in a 24hour Clyde FITACF file:
 
 ```python
 plt.title("20180101, Beam 7, CLY")
@@ -55,3 +53,16 @@ pydarn.RTP.plot_time_series(fitacf_data, parameter='cp', date_fmt=('%H:%M'), bea
 plt.show()
 ```    
 ![](../imgs/cpid_eg.png)
+
+# Advanced Time Series Plots
+
+This method is flexible and can be used to plot any value as a time series. By choosing any parameter that matches a field name in any of the DMap files, you can plot that parameter as a time series. The user can also can choose a vector parameter, and then choose the gate in which you would like to plot the data with time using the gate option (e.g. `gate=25`).
+
+```python
+fitacf_data,_ = pydarn.read_fitacf('20250702.0000.00.sas.a.fitacf')
+plt.title('Vector Parameter "Velocity" in Gate 20')
+pydarn.RTP.plot_time_series(fitacf_data, parameter='v', beam_no=7, gate=20)
+plt.show()
+```
+
+![](../imgs/rtp-timeseries-velocity.png)

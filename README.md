@@ -1,7 +1,7 @@
 ![pydarn](https://raw.githubusercontent.com/SuperDARN/pydarn/master/docs/imgs/pydarn_logo.png)
 
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPLv3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0) 
-[![Python 3.6](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/downloads/release/python-360/) 
+[![Python 3.8](https://img.shields.io/badge/python-3.8-blue.svg)](https://www.python.org/downloads) 
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/superdarn/pydarn)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3727269.svg)](https://doi.org/10.5281/zenodo.3727269)
 
@@ -9,10 +9,12 @@ Python data visualization library for the Super Dual Auroral Radar Network (Supe
 
 ## Changelog
 
-## Version 4.1.2 - Patch Release!
+## Version 4.2 - Major Release!
 
-This patch release fixes a bug installing when from PyPI, and corrects the ownership of ADE, ADW, KOD, KSR, MCM, and SPS
-to Penn State.
+This major release includes:
+- Updates to pyDARNio interface: faster reading of files
+- `nightshade` added to range-time plot options
+- ENUM use for retrieving radar information
 
 ## Documentation
 
@@ -39,7 +41,7 @@ import pydarn
 fitacf_file = '20190831.C0.cly.fitacf'
 
 # pyDARN functions to read a fitacf file
-fitacf_data = pydarn.SuperDARNRead(fitacf_file).read_fitacf()
+fitacf_data, _ = pydarn.read_fitacf(fitacf_file)
 
 pydarn.RTP.plot_summary(fitacf_data, beam_num=2)
 plt.show()

@@ -14,7 +14,7 @@ the additional permissions listed below.
 
 # Pull Requests 
 
-Pull Requests in GitHub are a nice means of allowing others to review and test your code. 
+Pull Requests in GitHub are a nice way of allowing others to review and test your code. 
 This allows members of the community to know what is coming up in new releases of pyDARN and be part of the collaboration.  
 
 
@@ -23,12 +23,11 @@ This allows members of the community to know what is coming up in new releases o
 Before submitting a PR check the code check list first:
 
 - copyright and disclaimer, or modification line is added 
-- the code installs with python 3.6 and higher 
+- the code installs with python 3.8 and higher 
 - the code doesn't fail on [`pytest` test](pytest.md)
 - any new features need to have [tests for `pytest` to run on](pytest.md)
 - documentation is updated or in another PR for users 
-- Follows [PEP8](https://www.python.org/dev/peps/pep-0008/) code style and [pandas docstring](https://pandas.pydata.org/pandas-docs/stable/development/contributing_docstring.html) style
-- unit tests or various testing has been added/done 
+- Follows [PEP8](https://www.python.org/dev/peps/pep-0008/) code style and [pandas docstring](https://pandas.pydata.org/pandas-docs/stable/development/contributing_docstring.html) style 
 - code is on its own *git* branch
 - all code is pushed to the branch 
 

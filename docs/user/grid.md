@@ -26,10 +26,8 @@ Read in the desired [GRID file](https://pydarn.readthedocs.io/en/main/user/io/).
 import matplotlib.pyplot as plt
 import pydarn
 
-#Read in grid file using SuperDARNRead, then read_grid
 file = "path/to/grid/file"
-SDarn_read = pydarn.SuperDARNRead(file)
-grid_data = SDarn_read.read_grid()
+grid_data, _ = pydarn.read_grid(file)
 
 ```
 With the grid data loaded as a list of dictionaries (`grid_data` variable in above example), you may now call the `plot_grid` method. Make sure you tell the method what time, in DateTime format, or record number (numbered from first recorded in file, counting from 0):
@@ -93,7 +91,7 @@ import pydarn
 #Read in GRID file
 stime = dt.datetime(2015, 3, 8, 14, 2)
 grid_file = "20150308.n.grd"
-grid_data = pydarn.SuperDARNRead(grid_file).read_grid()
+grid_data, _ = pydarn.read_grid(grid_file)
 
 pydarn.Grid.plot_grid(grid_data, start_time=stime,
                       colorbar_label='Velocity (m/s)',

@@ -27,63 +27,58 @@ Types of files used by SuperDARN which are usually accessed in DMap format are:
 - FITACF
 - GRID/GRD
 - MAP
+- SND
 
-This tutorial will focus on reading in DMap structured files using Pydarn, including how to read compressed files and access common data fields.
+This tutorial will focus on reading in DMap structured files using pyDARN, including how to read compressed files and access common data fields.
 
-## Reading with SuperDARNRead
+## Reading in files
 
 The basic code to read in a DMap structured file is as follows:
 ```python
 import pydarn
 
 file = "path/to/file"
-SDarn_read = pydarn.SuperDARNRead(file)
+data, corruption_start = pydarn.read_dmap(file)
 ```
-which puts the file contents into a Python class called `SDarn_read`.
+which puts the file contents into a list of dictionaries, with each dictionary containing one DMap record. If the input file
+is corrupted, the second return value will be the byte where the corrupted records start. If the file is not corrupted, it will
+be `None`.
 
-Now you need to tell it what kind of file it is. For instance, if the file you were reading in is a FITACF file, you would write something like:
+The function `read_dmap()` is able to read any DMap file type, but will not check to ensure that all fields for a given
+DMap file type are there. There are specific I/O functions that will conduct these checks:
 ```python
-fitacf_data = SDarn_read.read_fitacf()
+iqdat_data, _ = pydarn.read_iqdat(iqdat_file)
+rawacf_data, _ = pydarn.read_rawacf(rawacf_file)
+fitacf_data, _ = pydarn.read_fitacf(fitacf_file)
+grid_data, _ = pydarn.read_grid(grid_file)
+map_data, _ = pydarn.read_map(map_file)
+snd_data, _ = pydarn.read_snd(snd_file)
 ```
-where the named variable `fitacf_data` is a python dictionary list containing all the data in the file. If you were reading a different kind of file, you would need to use the methods `read_iqdat`, `read_rawacf`, `read_grid` or `read_map` for their respective filetypes.
+Note that if you pass a file of the incorrect type into one of these functions, it will raise an exception.
+Another thing to note is that whether you read a file in using `read_dmap()` or one of the specific functions
+like `read_rawacf()`, you will get the same data either way.
 
 ## Reading a compressed file
 
-To read a compressed file like **bz2** (commonly used for SuperDARN data products), you will need to use [bz2 library](https://docs.python.org/3/library/bz2.html). 
-The `SuperDARNRead` class allows the user to provide the file data as a stream of data which is what the **bz2** returns when it reads a compressed file: 
-```python
-import bz2
-import pydarn
-
-fitacf_file = path/to/file.bz2
-with bz2.open(fitacf_file) as fp:
-      fitacf_stream = fp.read()
-
-reader = pydarn.SuperDARNRead(fitacf_stream, True)
-records = reader.read_fitacf()
-```
-## Generic SuperDARN File Reading
-In the previous sections, you needed to tell the code which file you want to open, i.e. `read_fitacf` for a FITACF file. The following method will check to see which file type the file is and open it for you. 
-
+pyDARN can seamlessly read a compressed file like **bz2** (commonly used for SuperDARN data products). 
+The I/O functions in the section above will detect `.bz2` compression, and handle decompression automatically. 
 ```python
 import pydarn
-file = "path/to/file"
-data = pydarn.SuperDARNRead().read_dmap(file)
+fitacf_file = "path/to/file.bz2"
+records, _ = pydarn.read_fitacf(fitacf_file)
 ```
-Currently, this method will open FITACF, RAWACF and IQDAT format files. The method also unzips .bz2 files.
 
 ## Accessing data fields
 To see the names of the variables you've loaded in and now have access to, try using the `keys()` method:
 ```python
 print(fitacf_data[0].keys())
 ```
-which will tell you all the variablies in the first [0th] record.
+which will tell you all the variables in the first [0th] record.
 
 Let's say you loaded in a MAP file, and wanted to grab the cross polar-cap potentials for each record:
 ```python
 file = "20150302.n.map"
-SDarn_read = pydarn.SuperDARNRead(file)
-map_data = SDarn_read.read_map()
+map_data, _ = pydarn.read_map(file)
 
 cpcps=[i['pot.drop'] for i in map_data]
 ```
@@ -95,7 +90,7 @@ In pyDARN, you can use the following example code to convert:
 import pydarn
 
 borealis_file = "path/to/file"
-sdarn_data = pydarn.SuperDARNRead().read_borealis(borealis_file)
+sdarn_data = pydarn.read_borealis(borealis_file)
 ```
 You can then use the dictionary of data in sdarn_data for your plotting needs.  
 In addition, you can select a specific *slice* to convert by assigning `slice_id = 0` in the options. This option is required for files produced before Borealis v0.5 was released.
@@ -109,22 +104,17 @@ Other examples of using pyDARN with file reading is for reading in multiple 2-ho
 For example, you may do something like this, using the **glob** library:
 
 ```python
-import bz2 
 import pydarn 
-
 from glob import glob
 
 fitacf_files = glob('path/to/fitacf/files/<date><radar>.fitacf.bz2')
+data = list()
 
 # assuming they are named via date and time
 fitacf_files.sort()
 print("Reading in fitacf files")
 for fitacf_file in fitacf_files:
-    with bz2.open(fitacf_file) as fp:
-        fitacf_stream = fp.read()
-
-    reader = pydarn.SuperDARNRead(fitacf_stream, True)
-    records = reader.read_fitacf()
+    records, _ = pydarn.read_fitacf(fitacf_file)
     data += records
 print("Reading complete...")
 ``` 

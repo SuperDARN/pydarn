@@ -22,17 +22,14 @@ Fan plots are a way to visualise data from the entire scan of a SuperDARN radar.
 All beams and ranges for a given parameter (such as line-of-sight velocity, backscatter power, etc) and a particular scan can be projected onto a polar or geomagnetic plot in [AACGMv2](http://superdarn.thayer.dartmouth.edu/aacgm.html) coordinates, or projected onto a geographic plot in geographic coordinates.
 
 ### Basic usage
-pyDARN and pyplot need to be imported, as well as any FITACF file needs to be [read in](https://pydarn.readthedocs.io/en/latest/user/SDarnRead/):
 
 ```python
 import matplotlib.pyplot as plt
 from datetime import datetime
 import pydarn
 
-#Read in fitACF file using SuperDARDRead, then read_fitacf
 file = "path/to/fitacf/file"
-SDarn_read = pydarn.SuperDARNRead(file)
-fitacf_data = SDarn_read.read_fitacf()
+fitacf_data, _ = pydarn.read_fitacf(file)
 
 ```
 With the FITACF data loaded as a list of dictionaries (`fitacf_data` variable in above example), you may now call the `plot_fan` method. Make sure you tell it which scan (numbered from first recorded scan in file, counting from 1 or give it a `datetime` object for the scan at that time) you want using `scan_index`:
@@ -71,7 +68,7 @@ plt.show()
 
 ### Groundscatter
 
-Default plots do not show groundscatter as grey. Set it to true to colour groundscatter:
+Default plots do not show groundscatter as grey. Set it to true to grey out groundscatter:
 
 ```python
 fan_rtn = pydarn.Fan.plot_fan(fitacf_data,
@@ -97,7 +94,7 @@ In addition to line-of-sight velocity, you can choose one of three other data pr
 ### Ball and Stick Plots
 
 Data on fan plots can also be displayed as a 'ball and stick' plot, where each data point is represented by a ball with a stick showing direction towards or away from the radar, coloured by the magnitude of the parameter plotted.
-Ball and stick plots can be plotted usng the `ball_and_stick` with `len_factor` key words, as follows:
+Ball and stick plots can be plotted usng the `ball_and_stick` with `len_factor` key words to control the size of the sticks, as follows:
 
 ```
 pydarn.Fan.plot_fan(fitacf_data,
@@ -145,6 +142,9 @@ Here is a list of all the current options than can be used with `plot_fan`
     In other cases, the user may want to specify the channel and use an integer (N) for the `scan_index`. Be aware that this will show the
     data for the Nth scan of only the chosen channel, not that of the entire file. 
 
+!!! Warning
+    Not all data is designed to be plotted on a fan plot. Some CPID's, such as camping beam/themisscan, do not plot well due to overlapping beams in a single scan. It is up to the user to interpret the suitability of the plotting method used.
+
 ### Plotting Multiple Fans on One Plot
 
 You might have noticed that the variable `fan_rtn` in the examples above actually holds some information. This return value is a dictionary containing data in the plot, ax and ccrs values along with color map and color bar information:
@@ -167,8 +167,8 @@ import matplotlib.pyplot as plt
 cly_file = 'data/20150308.1400.03.cly.fitacf'
 pyk_file = 'data/20150308.1401.00.pyk.fitacf'
 
-pyk_data = pydarn.SuperDARNRead().read_dmap(pyk_file)
-cly_data = pydarn.SuperDARNRead().read_dmap(cly_file)
+pyk_data, _ = pydarn.read_dmap(pyk_file)
+cly_data, _ = pydarn.read_dmap(cly_file)
 
 fan_rtn = pydarn.Fan.plot_fan(cly_data, scan_time=datetime(2015, 3, 8, 14, 4),
                     colorbar=False, fov_color='grey', line_color='blue',

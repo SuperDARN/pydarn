@@ -2,7 +2,7 @@
 
 For some spatial plots (FOV, Fan, Grid), pyDARN allows users to choose between polar, 
 geographic, and geomagnetic axes using the `projs` keyword and `Projs` module.
-Convection maps currently only use the polar projection.
+Convection maps currently only use the polar projection, future development will include geomagnetic axes for map plots.
 Remember to also set the correct coordinate system for your projection, see [Ranges, Coords and Projs](https://pydarn.readthedocs.io/en/main/user/coordinates/).
 
 ## Projs.POLAR 
@@ -19,7 +19,7 @@ Remember to also set the correct coordinate system for your projection, see [Ran
 
 
 This choice will return an `ax` object and a value of None for the Cartopy `ccrs` (coordinate reference system).
-The polar projection allows for a lowlat keyword to plot the lowest latitude, but the center of the plot is fixed to the geomagnetic pole, if you would like to zoom in on a specific area, use the other two projections.
+The polar projection allows for a lowlat keyword to plot the lowest latitude, but the center of the plot is fixed to the geomagnetic pole, if you would like to zoom in on a specific area, use one of the other two projections below.
 
 ```python
 import pydarn
@@ -41,19 +41,18 @@ plt.show()
 
 | Option                         | Action                                                                               |
 | ------------------------------ | ------------------------------------------------------------------------------------ |
-| lowlat=(int)                   | Lower Latitude boundary for the plot (degree) (default: 30)                          |
+| lowlat=(int)                   | Lower Latitude boundary for the plot (degrees) (default: 30)                         |
 | hemisphere=(pydarn.Hemisphere) | Hemisphere of the radar (default: Hemisphere.North)                                  |
-| coastline=(bool)               | Uses Cartopy to add outlines fo the coastlines                                       |
-| coastline_color=(str)          | Uses Cartopy to colour outlines to the coastlines (default: black)                   |
-| cartopy_scale=(str)          | Uses Cartopy to set the resolution of the coastlines (options: '110m', '50m', '10m') |
-| coastline_linewidth=(float)    | Uses Cartopy to set line width of the coastlines                                     |
+| coastline=(bool)               | Uses Cartopy to add an outline of the coastlines                                     |
+| coastline_color=(str)          | Uses Cartopy to colour the outline of the coastlines (default: black                 |
+| cartopy_scale=(str)            | Uses Cartopy to set the resolution of the coastlines (options: '110m', '50m', '10m') |
+| coastline_linewidth=(float)    | Uses Cartopy to set line width of the coastline outlines                             |
 | grid_lines=(bool)              | Uses Cartopy to plot grid lines                                                      |
 | nightshade=(int)               | Uses the value given to calculate and show where on the plot the Earth is in shadow  |
 | plot_center=[float,float]      | Longitude and latitude of the desired center of the plot (e.g. [-90, 60])            |
-| plot_extent=[float,float]      | Plotting extent in terms of percentage of the earth (e.g. [80,50])                   |
+| plot_extent=[float,float]      | Plotting extent in terms of percentage of the earth [X-axis,Y-axis] (e.g. [80,50])   |
 
 This choice will return an `ax` object and a Cartopy `ccrs` object (coordinate reference system).
-Nightshade is not currently working for this projection - check out the terminator function.
 
 ```python
 import pydarn
@@ -78,9 +77,9 @@ plt.show()
 | ------------------------------ | ------------------------------------------------------------------------------------ |
 | lowlat=(int)                   | Lower Latitude boundary for the plot (degree) (default: 30)                          |
 | hemisphere=(pydarn.Hemisphere) | Hemisphere of the radar (default: Hemisphere.North)                                  |
-| coastline=(bool)               | Uses Cartopy to add outlines fo the coastlines                                       |
-| coastline_color=(str)          | Uses Cartopy to colour outlines to the coastlines (default: black)                   |
-| cartopy_scale=(str)          | Uses Cartopy to set the resolution of the coastlines (options: '110m', '50m', '10m') |
+| coastline=(bool)               | Uses Cartopy to add outlines of the coastlines                                       |
+| coastline_color=(str)          | Uses Cartopy to colour outlines of the coastlines (default: black)                   |
+| cartopy_scale=(str)            | Uses Cartopy to set the resolution of the coastlines (options: '110m', '50m', '10m') |
 | coastline_linewidth=(float)    | Uses Cartopy to set line width of the coastlines                                     |
 | grid_lines=(bool)              | Uses Cartopy to plot grid lines                                                      |
 | nightshade=(int)               | Uses the value given to calculate and show where on the plot the Earth is in shadow  |
@@ -89,7 +88,9 @@ plt.show()
 
 This choice will return an `ax` object and a Cartopy `ccrs` object (coordinate reference system).
 This option uses Cartopy, but amends the coastlines and plotting features to plot in AACGMv2 magnetic latitude and MLT.
-Nightshade is not currently working for this projection - check out the terminator function.
+
+!!! Note
+        AACGMv2 is not a 1-1 translation from geographic coordinates, you should expect some distortion.
 
 ```python
 import pydarn
@@ -110,8 +111,8 @@ plt.show()
 
 ## Custom Axes
 pyDARN does not currently support use of custom axes to read in and plot on. This means
-that use of subplots is not supported. There are ways to get around this if a custom axis
-that has the same setup as either axes above is read into the subplot. For example, a polar
+that use of subplots is not supported. There are ways to get around this, if a custom axis
+that has the same setup as any of the axes above is read into the subplot. For example, a polar
 and a geographic plots can be positioned using subplots as follows:
 
 ```python

@@ -40,8 +40,7 @@ If using pyDARN produced plots in publications please be aware of the following 
 
 ```
 
-These citations refer to methods or codebases previously published that are used in the pyDARN software.
-A list of the journal article citations is below, formatted to each journals specification:
+These citations refer to methods or codebases previously published that are used in the pyDARN software, cited below.
 
 - Bristow, W. A., Greenwald, R. A., and Samson, J. C. (1994), Identification of high-latitude acoustic gravity wave sources using the Goose Bay HF Radar, J. Geophys. Res., 99( A1), 319– 331, doi:10.1029/93JA01470.
 - Chisham, G., Yeoman, T. K., and Sofko, G. J.: Mapping ionospheric backscatter measured by the SuperDARN HF radars – Part 1: A new empirical virtual height model, Ann. Geophys., 26, 823–841, https://doi.org/10.5194/angeo-26-823-2008, 2008.
@@ -51,7 +50,7 @@ A list of the journal article citations is below, formatted to each journals spe
 
 # How to cite the SuperDARN Community
 
-Super Dual Auroral Radar Network (SuperDARN) is a made up of 35+ radars and 20 institutions. 
+Super Dual Auroral Radar Network (SuperDARN) is a made up of 40+ radars and 20 institutions. 
 To generally cite SuperDARN you can use: 
 
 - Greenwald, R.A., Baker, K.B., Dudeney, J.R. et al. Space Sci Rev (1995) 71: 761. [doi:10.1007/BF00751350](https://doi.org/10.1007/BF00751350)
@@ -62,7 +61,9 @@ For the general achievements of the SuperDARN Network, you can read these papers
 - Nishitani, N., Ruohoniemi, J.M., Lester, M. et al. Review of the accomplishments of mid-latitude Super Dual Auroral Radar Network (SuperDARN) HF radars. Prog Earth Planet Sci 6, 27 (2019) [doi:10.1186/s40645-019-0270-5](https://progearthplanetsci.springeropen.com/articles/10.1186/s40645-019-0270-5)
 
 During your study, if using data from individual radars only, please contact the Principal Investigator (PI) of that radar about potential co-authorship. 
-A list of radars, institutions, and their PI's information can be found [here](https://superdarn.ca/radar-info).  
+A list of radars, institutions, and their PI's information can be found [here](https://superdarn.ca/radar-info).
+
+Virginia Tech SuperDARN group has developed a data validation tool to help you include the correct citations and contact the correct PI's: [Data Validation Tool](http://vt.superdarn.org/data-usage)
 
 ## Acknowledgements
 
@@ -108,6 +109,9 @@ Please either cite using the version DOI's below or acknowledge the use of the s
 - Release 3.1.1 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.7767590.svg)](https://doi.org/10.5281/zenodo.7767590)
 - Release 4.0 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10452339.svg)](https://doi.org/10.5281/zenodo.10452339)
 - Release 4.1 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.13694617.svg)](https://doi.org/10.5281/zenodo.13694617)
+- Release 4.1.1 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14796490.svg)](https://doi.org/10.5281/zenodo.14796490)
+- Release 4.1.2 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15441879.svg)](https://doi.org/10.5281/zenodo.15441879)
+
 
 ## Python Library References 
 
@@ -119,10 +123,10 @@ Stéfan van der Walt, S. Chris Colbert and Gaël Varoquaux. The NumPy Array: A S
 
 #### pyDARNio
 
-SuperDARN Data Visualization Working Group, Rohel et al. Version 1.2.1 [Zenodo Link](https://zenodo.org/records/7615720)
+SuperDARN Data Visualization Working Group, Rohel et al. [Zenodo Link](https://doi.org/10.5281/zenodo.4009470)
 
 #### AACGM
 
-Angeline G. Burrell, Christer van der Meeren, Karl M. Laundal, & Hugo van Kemenade. (2021, January 13). aburrell/aacgmv2: Version 2.6.2 (Version 2.6.2). Zenodo. http://doi.org/10.5281/zenodo.4437229
+Angeline G. Burrell, Christer van der Meeren, Karl M. Laundal, & Hugo van Kemenade. [Zenodo Link](https://doi.org/10.5281/zenodo.1212694)
 
 Shepherd, S. G. (2014), Altitude‐adjusted corrected geomagnetic coordinates: Definition and functional approximations, Journal of Geophysical Research: Space Physics, 119, 7501–7521, doi:10.1002/2014JA020264.
