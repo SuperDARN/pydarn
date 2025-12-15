@@ -1324,6 +1324,7 @@ class RTP:
                                             background=background,
                                             range_estimation=range_estimation,
                                             coords=coords, latlon=latlon,
+                                            nightshade=nightshade,
                                             **kwargs)
                 cbar = rt_rtn['cb']
                 x = rt_rtn['data']['x']
