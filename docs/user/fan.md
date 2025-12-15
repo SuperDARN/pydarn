@@ -28,7 +28,6 @@ import matplotlib.pyplot as plt
 from datetime import datetime
 import pydarn
 
-#Read in fitACF file using SuperDARDRead, then read_fitacf
 file = "path/to/fitacf/file"
 fitacf_data, _ = pydarn.read_fitacf(file)
 

@@ -59,7 +59,7 @@ You can check your python version using
 On installation, pyDARN will download the following dependencies: 
 
 - [NumPy](https://numpy.org/)
-- [scipy 1.15.0+](https://scipy.org/)
+- [scipy <1.15.0](https://scipy.org/)
 - [matplotlib 3.7.0+](https://matplotlib.org/) 
 - [PyYAML](https://pyyaml.org/wiki/PyYAMLDocumentation)
 - [pyDARNio 2.0.0+](https://pydarnio.readthedocs.io/en/latest/user/install/)
@@ -89,7 +89,7 @@ Option 1:
 * `$ pip3 install pydarn` (Install pyDARN)
 
 !!! Note
-    In python versions <3.10, `venv` was `vitualenv`.
+    In python versions <3.10, `venv` was `virtualenv`.
 
 ### Anaconda Virtual Environment
 Instructions can be found here [conda environment](https://uoa-eresearch.github.io/eresearch-cookbook/recipe/2014/11/20/conda/) and installing [anaconda](https://docs.anaconda.com/anaconda/install/)

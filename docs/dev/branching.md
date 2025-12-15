@@ -44,9 +44,9 @@ In git, "branches" are used to make changes to the code without affecting the ma
 4. Decide on the new branch name. It is recommended to use the following Prefixes:  
     * HOTFIX/ : a bug that needs to be fixed ASAP and pushed to `main`
     * FIX/ : a bug fix that can wait to be released 
-    * EHN/ : an enhancement or new feature to the `develop` code
+    * ENH/ : an enhancement or new feature to the `develop` code
     * DOC/ : new or updating existing documentation 
-    * DEP/ : depreciating code from the codebase
+    * DEP/ : deprecating code from the codebase
    
         `git checkout -b <prefix>/<new branch name>`
 
