@@ -51,6 +51,30 @@ from pydarn import (PyDARNColormaps, plot_exceptions, RadarID,
 warnings.formatwarning = standard_warning_format
 
 
+def _legendre_pmn(fit_order: int, x_val: float) -> np.ndarray:
+    """
+    Compute associated Legendre polynomials P_m^n(x) with the same
+    layout as scipy.special.lpmn (order, degree).
+
+    SciPy's assoc_legendre_p_all returns slightly different values at the
+    endpoints (e.g., x=-1) compared to the legacy lpmn implementation, which
+    changes the fitted potentials. To preserve historical behaviour, prefer
+    lpmn (silencing its deprecation warning) and fall back to lpmv if lpmn
+    is unavailable.
+    """
+    if hasattr(special, "lpmn"):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=DeprecationWarning)
+            return special.lpmn(fit_order, fit_order, x_val)[0]
+
+    # Fallback: build the same array using lpmv.
+    values = np.zeros((fit_order + 1, fit_order + 1))
+    for m in range(fit_order + 1):
+        for n in range(m, fit_order + 1):
+            values[m, n] = special.lpmv(m, n, x_val)
+    return values
+
+
 class Maps:
     """
     Maps plots for SuperDARN data
@@ -240,7 +264,7 @@ class Maps:
 
         # Arbitrary lon used to calculate the shift required
         shifted_mlts = 0 - (aacgmv2.convert_mlt(0, date) * 15)
-        shifted_lons = data_lons - shifted_mlts
+        shifted_lons = (data_lons - shifted_mlts) % 360
         # Note that this "mlons" is adjusted for MLT
         mlons = np.radians(shifted_lons)
         mlats = data_lats
@@ -637,15 +661,8 @@ class Maps:
 
         # i is the index of the list
         # x_i is the element of x at ith index
-        for i, x_i in enumerate(x):
-            temp_poly = special.lpmn(fit_order, fit_order, x_i)
-            if i == 0:
-                legendre_poly = np.append([temp_poly[0]], [temp_poly[0]],
-                                          axis=0)
-            else:
-                legendre_poly = np.append(legendre_poly, [temp_poly[0]],
-                                          axis=0)
-        legendre_poly = np.delete(legendre_poly, 0, 0)
+        legendre_poly = np.stack([_legendre_pmn(fit_order, x_i)
+                                  for x_i in x], axis=0)
         phi = mlons
 
         # now do the index legender part,
@@ -972,14 +989,8 @@ class Maps:
         alpha = np.pi / theta_max
         x = np.cos(alpha*theta)
         # Legendre Polys
-        for j, xj in enumerate(x):
-            plm_tmp = special.lpmn(fit_order, fit_order, xj)
-            if j == 0:
-                plm_fit = np.append([plm_tmp[0]], [plm_tmp[0]], axis=0)
-            else:
-                plm_fit = np.append(plm_fit, [plm_tmp[0]], axis=0)
-        # Remove first element as it is duplicated to start off the array
-        plm_fit = np.delete(plm_fit, 0, 0)
+        plm_fit = np.stack([_legendre_pmn(fit_order, xj) for xj in x],
+                           axis=0)
 
         # Eval the potential
         lmax = plm_fit.shape
@@ -1074,14 +1085,8 @@ class Maps:
         x = np.cos(alpha * theta)
 
         # Legendre Polys
-        for j, xj in enumerate(x):
-            plm_tmp = special.lpmn(fit_order, fit_order, xj)
-            if j == 0:
-                plm_fit = np.append([plm_tmp[0]], [plm_tmp[0]], axis=0)
-            else:
-                plm_fit = np.append(plm_fit, [plm_tmp[0]], axis=0)
-        # Remove first element as it is duplicated to start off the array
-        plm_fit = np.delete(plm_fit, 0, 0)
+        plm_fit = np.stack([_legendre_pmn(fit_order, xj) for xj in x],
+                           axis=0)
 
         # Eval the potential
         lmax = plm_fit.shape
@@ -1212,8 +1217,12 @@ class Maps:
         # Shift mlon to MLT
         shifted_mlts = mlon_u[0, 0] - \
             (aacgmv2.convert_mlt(mlon_u[0, 0], date) * 15)
-        shifted_lons = mlon_u - shifted_mlts
-        mlon = shifted_lons
+        shifted_lons = (mlon_u - shifted_mlts) % 360
+        # Sort longitudes so the contour grid wraps only once around the pole
+        sort_idx = np.argsort(shifted_lons[:, 0])
+        mlon = shifted_lons[sort_idx]
+        mlat = mlat[sort_idx]
+        pot_arr = pot_arr[sort_idx]
 
         # Contained in function as too long to go into the function call
         if contour_levels == []:

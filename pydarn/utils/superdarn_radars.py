@@ -20,13 +20,17 @@ This module contains SuperDARN radar information
 """
 import glob
 import os
-import pydarn
 import shutil
+import warnings
 
+from pathlib import Path
 from typing import NamedTuple
 from enum import Enum
 from datetime import datetime
-from subprocess import check_call
+from subprocess import check_call, CalledProcessError
+
+_hdw_download_attempted = False
+_missing_hdw_warned = set()
 
 
 def get_hdw_files(force: bool = True, version: str = None):
@@ -47,10 +51,10 @@ def get_hdw_files(force: bool = True, version: str = None):
     """
 
     # Path should the path where pydarn is installed
-    hdw_path = "{}/hdw/".format(os.path.dirname(pydarn.utils.__file__))
+    hdw_path = Path(__file__).with_name("hdw")
 
-    if not os.path.exists(hdw_path):
-        os.makedirs(hdw_path)
+    if not hdw_path.exists():
+        hdw_path.mkdir(parents=True)
 
     # TODO: implement when DSWG starts versioning hardware files
     if version is not None:
@@ -58,25 +62,59 @@ def get_hdw_files(force: bool = True, version: str = None):
 
     # if there is no files in hdw folder or force is true
     # download the hdw files
-    if len(os.listdir(hdw_path)) == 0 or force:
+    if len(list(hdw_path.iterdir())) == 0 or force:
         # pycurl doesn't download a zip folder easily so
         # use the command line command
-        check_call(['curl', '-L', '-o', hdw_path+'/main.zip',
+        zip_path = hdw_path / "main.zip"
+        check_call(['curl', '-L', '-o', str(zip_path),
                     'https://github.com/SuperDARN/hdw/archive/main.zip'])
         # use unzip command because zipfile on works with files and not folders
         # though this is possible with zipfile but this was easier for me to
         # get it working
-        check_call(['unzip', '-d', hdw_path, hdw_path+'/main.zip'])
-        dat_files = glob.glob(hdw_path+'/hdw-main/*')
+        check_call(['unzip', '-d', str(hdw_path), str(zip_path)])
+        dat_files = (hdw_path / 'hdw-main').glob('*')
         # shutil only moves specific files so we need to move
         # everything one at a time
         for hdw_file in dat_files:
-            shutil.move(hdw_file, hdw_path+os.path.basename(hdw_file))
+            shutil.move(str(hdw_file), str(hdw_path / hdw_file.name))
         # delete the empty folder
-        os.removedirs(hdw_path+'/hdw-main/')
+        shutil.rmtree(hdw_path / 'hdw-main', ignore_errors=True)
 
 
-def read_hdw_file(abbrv, date: datetime = None, update: bool = False):
+def _fallback_hdw_info(abbrv: str, fallback_geo=None) -> "_HdwInfo":
+    """
+    Provide a minimal hardware description when hardware files are missing.
+    This keeps core functionality available in offline environments.
+    """
+    if abbrv not in _missing_hdw_warned:
+        warnings.warn(
+            f"Hardware file for {abbrv} not found or could not be downloaded; "
+            "using fallback metadata with approximate defaults."
+        )
+        _missing_hdw_warned.add(abbrv)
+    lat, lon = (fallback_geo if fallback_geo is not None else (0.0, 0.0))
+    return _HdwInfo(
+        stid=-1,
+        status=Status.other,
+        abbrev=abbrv,
+        date=datetime.min,
+        geographic=_Coord(lat, lon, 0.0),
+        boresight=_Boresight(0.0, 0.0),
+        beam_separation=3.24,
+        velocity_sign=1.0,
+        phase_sign=1.0,
+        tdiff=_Tdiff(0.0, 0.0),
+        interferometer_offset=_InterferometerOffset(0.0, -100.0, 0.0),
+        rx_rise_time=0.0,
+        rx_attenuator=0.0,
+        attenuation_stages=0,
+        gates=75,
+        beams=16,
+    )
+
+
+def read_hdw_file(abbrv, date: datetime = None, update: bool = False,
+                  fallback_geo=None):
     """
     Reads the hardware file for the associated abbreviation of the radar name.
 
@@ -110,8 +148,16 @@ def read_hdw_file(abbrv, date: datetime = None, update: bool = False):
     hdw_lines_date = []
     # if the file does not exist then try
     # and download it
+    global _hdw_download_attempted
     if os.path.exists(hdw_file) is False:
-        get_hdw_files(force=update)
+        if _hdw_download_attempted and not update:
+            return _fallback_hdw_info(abbrv, fallback_geo)
+        _hdw_download_attempted = True
+        try:
+            get_hdw_files(force=update)
+        except Exception as exc:
+            warnings.warn(f"Unable to download hardware files for {abbrv}: {exc}")
+            return _fallback_hdw_info(abbrv, fallback_geo)
     try:
         with open(hdw_file, 'r') as reader:
             lines = reader.readlines()
@@ -248,7 +294,7 @@ def read_hdw_file(abbrv, date: datetime = None, update: bool = False):
                             gates=int(hdw_data[j][20]),
                             beams=int(hdw_data[j][21]))
     except FileNotFoundError:
-        raise pydarn.radar_exceptions.HardwareFileNotFoundError(abbrv)
+        return _fallback_hdw_info(abbrv, fallback_geo)
 
 
 class Hemisphere(Enum):
@@ -454,6 +500,17 @@ class _Radar(NamedTuple):
     hardware_info: _HdwInfo
 
 
+def _radar_entry(name, institution, hemisphere, range_gate_45,
+                 geo_label, mag_label, abbrv):
+    """
+    Helper to build a _Radar with hardware metadata, providing
+    fallback geographic information for offline environments.
+    """
+    return _Radar(name, institution, hemisphere, range_gate_45,
+                  geo_label, mag_label,
+                  read_hdw_file(abbrv, fallback_geo=geo_label))
+
+
 class RadarID(Enum):
     """
     Class used to denote the Station ID (stid) of each radar.
@@ -531,152 +588,161 @@ class SuperDARNRadars():
         _Radar : radar object containing radar information
         read_hdw_file : function to read hardware information for a given radar
     """
-    radars = {RadarID.ADE: _Radar('Adak Island East',
+    radars = {RadarID.ADE: _radar_entry('Adak Island East',
                           'Penn State University', Hemisphere.North,
-                                  75, [47, -172], [42, -106], read_hdw_file('ade')),
-              RadarID.ADW: _Radar('Adak Island West', 'Penn State University',
-                                  Hemisphere.North, 75, [47, 178], [42, -116],
-                                  read_hdw_file('adw')),
-              RadarID.BKS: _Radar('Blackstone', 'Virginia Tech', Hemisphere.North,
-                                  100, [32, -78], [44, -5], read_hdw_file('bks')),
-              RadarID.CVE: _Radar('Christmas Valley East', 'Dartmouth College',
-                                  Hemisphere.North, 100, [38, -115], [48, -53],
-                                  read_hdw_file('cve')),
-              RadarID.CVW: _Radar('Christmas Valley West', 'Dartmouth College',
-                                  Hemisphere.North, 100, [38, -125], [48, -63],
-                                  read_hdw_file('cvw')),
-              RadarID.CLY: _Radar('Clyde River', 'University of Saskatchewan',
-                                  Hemisphere.North, 100, [65, -68], [72, 17],
-                                  read_hdw_file('cly')),
-              RadarID.FHE: _Radar('Fort Hays East', 'Virginia Tech', Hemisphere.North,
-                                  100, [34, -94], [45, -25], read_hdw_file('fhe')),
-              RadarID.FHW: _Radar('Fort Hays West', 'Virginia Tech', Hemisphere.North,
-                                  100, [34, -104], [45, -35], read_hdw_file('fhw')),
-              RadarID.GBR: _Radar('Goose Bay', 'Virginia Tech', Hemisphere.North,
-                                  100, [48, -60], [54, 23], read_hdw_file('gbr')),
-              RadarID.HAN: _Radar('Hankasalmi', 'University of Leicester',
-                                  Hemisphere.North, 70, [57, 27], [54, 102],
-                                  read_hdw_file('han')),
-              RadarID.HJE: _Radar('Hejing East',
+                          75, [47, -172], [42, -106], 'ade'),
+              RadarID.ADW: _radar_entry('Adak Island West', 'Penn State University',
+                                        Hemisphere.North, 75, [47, 178],
+                                        [42, -116], 'adw'),
+              RadarID.BKS: _radar_entry('Blackstone', 'Virginia Tech',
+                                        Hemisphere.North, 100, [32, -78],
+                                        [44, -5], 'bks'),
+              RadarID.CVE: _radar_entry('Christmas Valley East',
+                                        'Dartmouth College', Hemisphere.North,
+                                        100, [38, -115], [48, -53], 'cve'),
+              RadarID.CVW: _radar_entry('Christmas Valley West',
+                                        'Dartmouth College', Hemisphere.North,
+                                        100, [38, -125], [48, -63], 'cvw'),
+              RadarID.CLY: _radar_entry('Clyde River', 'University of Saskatchewan',
+                                        Hemisphere.North, 100, [65, -68],
+                                        [72, 17], 'cly'),
+              RadarID.FHE: _radar_entry('Fort Hays East', 'Virginia Tech',
+                                        Hemisphere.North, 100, [34, -94],
+                                        [45, -25], 'fhe'),
+              RadarID.FHW: _radar_entry('Fort Hays West', 'Virginia Tech',
+                                        Hemisphere.North, 100, [34, -104],
+                                        [45, -35], 'fhw'),
+              RadarID.GBR: _radar_entry('Goose Bay', 'Virginia Tech',
+                                        Hemisphere.North, 100, [48, -60],
+                                        [54, 23], 'gbr'),
+              RadarID.HAN: _radar_entry('Hankasalmi', 'University of Leicester',
+                                        Hemisphere.North, 70, [57, 27],
+                                        [54, 102], 'han'),
+              RadarID.HJE: _radar_entry('Hejing East',
                          'National Space Science Center,'
                          'Chinese Academy of Sciences',
-                                  Hemisphere.North, 100, [40, 87], [36, 163],
-                                  read_hdw_file('hje')),
-              RadarID.HJW: _Radar('Hejing West',
+                         Hemisphere.North, 100, [40, 87], [36, 163], 'hje'),
+              RadarID.HJW: _radar_entry('Hejing West',
                          'National Space Science Center,'
                          'Chinese Academy of Sciences',
-                                  Hemisphere.North, 100, [40, 81], [36, 153],
-                                  read_hdw_file('hjw')),
-              RadarID.HOK: _Radar('Hokkaido East', 'Nagoya University',
-                                  Hemisphere.North, 110, [39, 149], [35, -139],
-                                  read_hdw_file('hok')),
-              RadarID.HKW: _Radar('Hokkaido West', 'Nagoya University',
-                                  Hemisphere.North, 110, [39, 139], [35, -149],
-                                  read_hdw_file('hkw')),
-              RadarID.ICE: _Radar('Iceland East', 'Dartmouth College',
-                                  Hemisphere.North, 100, [61, -16], [60, 70],
-                                  read_hdw_file('ice')),
-              RadarID.ICW: _Radar('Iceland West', 'Dartmouth College',
-                                  Hemisphere.North, 100, [61, -26], [60, 60],
-                                  read_hdw_file('icw')),
-              RadarID.INV: _Radar('Inuvik', 'University of Saskatchewan',
-                                  Hemisphere.North, 75, [63, -134], [66, -80],
-                                  read_hdw_file('inv')),
-              RadarID.JME: _Radar('Jiamusi East',
+                         Hemisphere.North, 100, [40, 81], [36, 153], 'hjw'),
+              RadarID.HOK: _radar_entry('Hokkaido East', 'Nagoya University',
+                                        Hemisphere.North, 110, [39, 149],
+                                        [35, -139], 'hok'),
+              RadarID.HKW: _radar_entry('Hokkaido West', 'Nagoya University',
+                                        Hemisphere.North, 110, [39, 139],
+                                        [35, -149], 'hkw'),
+              RadarID.ICE: _radar_entry('Iceland East', 'Dartmouth College',
+                                        Hemisphere.North, 100, [61, -16],
+                                        [60, 70], 'ice'),
+              RadarID.ICW: _radar_entry('Iceland West', 'Dartmouth College',
+                                        Hemisphere.North, 100, [61, -26],
+                                        [60, 60], 'icw'),
+              RadarID.INV: _radar_entry('Inuvik', 'University of Saskatchewan',
+                                        Hemisphere.North, 75, [63, -134],
+                                        [66, -80], 'inv'),
+              RadarID.JME: _radar_entry('Jiamusi East',
                          'National Space Science Center,'
                          'Chinese Academy of Sciences',
-                                  Hemisphere.North, 100, [42, 130], [37, -155],
-                                  read_hdw_file('jme')),
-              RadarID.KAP: _Radar('Kapuskasing', 'Virginia Tech', Hemisphere.North,
-                                  75, [44, -82], [54, -7], read_hdw_file('kap')),
-              RadarID.KSR: _Radar('King Salmon',
+                         Hemisphere.North, 100, [42, 130], [37, -155], 'jme'),
+              RadarID.KAP: _radar_entry('Kapuskasing', 'Virginia Tech',
+                                        Hemisphere.North, 75, [44, -82],
+                                        [54, -7], 'kap'),
+              RadarID.KSR: _radar_entry('King Salmon',
                          'National Institute of Information and'
                          ' Communications Technology', Hemisphere.North,
-                                  75, [54, -162], [52, -99], read_hdw_file('ksr')),
-              RadarID.KOD: _Radar('Kodiak', 'Penn State University',
-                                  Hemisphere.North, 110, [53, -152], [52, -92],
-                                  read_hdw_file('kod')),
-              RadarID.LJE: _Radar('Longjing East',
+                         75, [54, -162], [52, -99], 'ksr'),
+              RadarID.KOD: _radar_entry('Kodiak', 'Penn State University',
+                                        Hemisphere.North, 110, [53, -152],
+                                        [52, -92], 'kod'),
+              RadarID.LJE: _radar_entry('Longjing East',
                          'National Space Science Center,'
                          'Chinese Academy of Sciences',
-                                  Hemisphere.North, 100, [39, 132], [32, -151],
-                                  read_hdw_file('lje')),
-              RadarID.LJW: _Radar('Longjing West',
+                         Hemisphere.North, 100, [39, 132], [32, -151], 'lje'),
+              RadarID.LJW: _radar_entry('Longjing West',
                          'National Space Science Center,'
                          'Chinese Academy of Sciences',
-                                  Hemisphere.North, 100, [39, 126], [42, -161],
-                                  read_hdw_file('ljw')),
-              RadarID.LYR: _Radar('Longyearbyen', 'University of Centre in Svalbard',
-                                  Hemisphere.North, 70, [73, 16], [71, 108],
-                                  read_hdw_file('lyr')),
-              RadarID.PYK: _Radar('Pykkvibaer', 'University of Leicester',
-                                  Hemisphere.North, 70, [58, -19], [56, 75],
-                                  read_hdw_file('pyk')),
-              RadarID.PGR: _Radar('Prince George', 'University of Saskatchewan',
-                                  Hemisphere.North, 75, [49, -123], [55, -61],
-                                  read_hdw_file('pgr')),
-              RadarID.RKN: _Radar('Rankin Inlet', 'University of Saskatchewan',
-                                  Hemisphere.North, 75, [58, -92], [66, -21],
-                                  read_hdw_file('rkn')),
-              RadarID.SAS: _Radar('Saskatoon', 'University of Saskatchewan',
-                                  Hemisphere.North, 75, [47, -107], [56, -41],
-                                  read_hdw_file('sas')),
-              RadarID.SCH: _Radar('Schefferville', 'CNRS/LPCE', Hemisphere.North,
-                                  75, [50, -67], [60, 14], read_hdw_file('sch')),
-              RadarID.SZE: _Radar('Siziwang East',
+                         Hemisphere.North, 100, [39, 126], [42, -161], 'ljw'),
+              RadarID.LYR: _radar_entry('Longyearbyen',
+                                        'University of Centre in Svalbard',
+                                        Hemisphere.North, 70, [73, 16],
+                                        [71, 108], 'lyr'),
+              RadarID.PYK: _radar_entry('Pykkvibaer', 'University of Leicester',
+                                        Hemisphere.North, 70, [58, -19],
+                                        [56, 75], 'pyk'),
+              RadarID.PGR: _radar_entry('Prince George',
+                                        'University of Saskatchewan',
+                                        Hemisphere.North, 75, [49, -123],
+                                        [55, -61], 'pgr'),
+              RadarID.RKN: _radar_entry('Rankin Inlet',
+                                        'University of Saskatchewan',
+                                        Hemisphere.North, 75, [58, -92],
+                                        [66, -21], 'rkn'),
+              RadarID.SAS: _radar_entry('Saskatoon', 'University of Saskatchewan',
+                                        Hemisphere.North, 75, [47, -107],
+                                        [56, -41], 'sas'),
+              RadarID.SCH: _radar_entry('Schefferville', 'CNRS/LPCE',
+                                        Hemisphere.North, 75, [50, -67],
+                                        [60, 14], 'sch'),
+              RadarID.SZE: _radar_entry('Siziwang East',
                          'National Space Science Center,'
                          'Chinese Academy of Sciences',
-                                  Hemisphere.North, 100, [38, 115], [37, -169],
-                                  read_hdw_file('sze')),
-              RadarID.SZW: _Radar('Siziwang West',
+                         Hemisphere.North, 100, [38, 115], [37, -169], 'sze'),
+              RadarID.SZW: _radar_entry('Siziwang West',
                          'National Space Science Center,'
                          'Chinese Academy of Sciences',
-                                  Hemisphere.North, 100, [38, 109], [37, -179],
-                                  read_hdw_file('szw')),
-              RadarID.STO: _Radar('Stokkseyri', 'Lancaster University',
-                                  Hemisphere.North, 75, [58, -29], [56, 65],
-                                  read_hdw_file('sto')),
-              RadarID.WAL: _Radar('Wallops Island', 'JHU Applied Physics Laboratory',
-                                  Hemisphere.North, 100, [33, -75], [44, 5],
-                                  read_hdw_file('wal')),
-              RadarID.BPK: _Radar('Buckland Park', 'La Trobe University',
-                                  Hemisphere.South, 75, [-30, 138], [-40, -146],
-                                  read_hdw_file('bpk')),
-              RadarID.DCE: _Radar('Dome C East',
+                         Hemisphere.North, 100, [38, 109], [37, -179], 'szw'),
+              RadarID.STO: _radar_entry('Stokkseyri', 'Lancaster University',
+                                        Hemisphere.North, 75, [58, -29],
+                                        [56, 65], 'sto'),
+              RadarID.WAL: _radar_entry('Wallops Island',
+                                        'JHU Applied Physics Laboratory',
+                                        Hemisphere.North, 100, [33, -75],
+                                        [44, 5], 'wal'),
+              RadarID.BPK: _radar_entry('Buckland Park', 'La Trobe University',
+                                        Hemisphere.South, 75, [-30, 138],
+                                        [-40, -146], 'bpk'),
+              RadarID.DCE: _radar_entry('Dome C East',
                          'Institute for Space Astrophysics and Planetology',
-                                  Hemisphere.South, 75, [-80, 130], [-83, 0],
-                                  read_hdw_file('dce')),
-              RadarID.DCN: _Radar('Dome C North',
+                         Hemisphere.South, 75, [-80, 130], [-83, 0], 'dce'),
+              RadarID.DCN: _radar_entry('Dome C North',
                          'Institute for Space Astrophysics and Planetology',
-                                  Hemisphere.South, 75, [-75, 112], [-85, 90],
-                                  read_hdw_file('dcn')),
-              RadarID.FIR: _Radar('Falkland Islands', 'British Antarctic Survey',
-                                  Hemisphere.South, 110, [-47, -59], [-35, 10],
-                                  read_hdw_file('fir')),
-              RadarID.HAL: _Radar('Halley', 'British Antarctic Survey',
-                                  Hemisphere.South, 100, [-71, -27], [-58, 30],
-                                  read_hdw_file('hal')),
-              RadarID.KER: _Radar('Kerguelen', 'IRAP/CNRS/IPEV', Hemisphere.South,
-                                  75, [-44, 70], [-53, 124], read_hdw_file('ker')),
-              RadarID.MCM: _Radar('McMurdo', 'Penn State University',
-                                  Hemisphere.South, 75, [-78, 187], [-75, -36],
-                                  read_hdw_file('mcm')),
-              RadarID.SAN: _Radar('SANAE', 'South African National Space Agency',
-                                  Hemisphere.South, 110, [-67, -3], [-60, 45],
-                                  read_hdw_file('san')),
-              RadarID.SPS: _Radar('South Pole Station',
+                         Hemisphere.South, 75, [-75, 112], [-85, 90], 'dcn'),
+              RadarID.FIR: _radar_entry('Falkland Islands',
+                                        'British Antarctic Survey',
+                                        Hemisphere.South, 110, [-47, -59],
+                                        [-35, 10], 'fir'),
+              RadarID.HAL: _radar_entry('Halley', 'British Antarctic Survey',
+                                        Hemisphere.South, 100, [-71, -27],
+                                        [-58, 30], 'hal'),
+              RadarID.KER: _radar_entry('Kerguelen', 'IRAP/CNRS/IPEV',
+                                        Hemisphere.South, 75, [-44, 70],
+                                        [-53, 124], 'ker'),
+              RadarID.MCM: _radar_entry('McMurdo', 'Penn State University',
+                                        Hemisphere.South, 75, [-78, 187],
+                                        [-75, -36], 'mcm'),
+              RadarID.SAN: _radar_entry('SANAE',
+                                        'South African National Space Agency',
+                                        Hemisphere.South, 110, [-67, -3],
+                                        [-60, 45], 'san'),
+              RadarID.SPS: _radar_entry('South Pole Station',
                          'Penn State University', Hemisphere.South,
-                                  75, [-87, 12], [-74, 25], read_hdw_file('sps')),
-              RadarID.SYE: _Radar('Syowa East', 'National Institute of Polar Research',
-                                  Hemisphere.South, 75, [-64, 45], [-62, 82],
-                                  read_hdw_file('sye')),
-              RadarID.SYS: _Radar('Syowa South', 'National Institute of Polar Research',
-                                  Hemisphere.South, 80, [-66, 30], [-62, 68],
-                                  read_hdw_file('sys')),
-              RadarID.TIG: _Radar('Tiger', 'La Trobe University', Hemisphere.South,
-                                  75, [-38, 147], [-49, -133], read_hdw_file('tig')),
-              RadarID.UNW: _Radar('Unwin', 'La Trobe University', Hemisphere.South,
-                                  75, [-42, 168], [-49, -105], read_hdw_file('unw')),
-              RadarID.ZHO: _Radar('Zhongshan', 'Polar Research Institute of China',
-                                  Hemisphere.South, 70, [-67, 64], [-70, 99],
-                                  read_hdw_file('zho'))}
+                         75, [-87, 12], [-74, 25], 'sps'),
+              RadarID.SYE: _radar_entry('Syowa East',
+                                        'National Institute of Polar Research',
+                                        Hemisphere.South, 75, [-64, 45],
+                                        [-62, 82], 'sye'),
+              RadarID.SYS: _radar_entry('Syowa South',
+                                        'National Institute of Polar Research',
+                                        Hemisphere.South, 80, [-66, 30],
+                                        [-62, 68], 'sys'),
+              RadarID.TIG: _radar_entry('Tiger', 'La Trobe University',
+                                        Hemisphere.South, 75, [-38, 147],
+                                        [-49, -133], 'tig'),
+              RadarID.UNW: _radar_entry('Unwin', 'La Trobe University',
+                                        Hemisphere.South, 75, [-42, 168],
+                                        [-49, -105], 'unw'),
+              RadarID.ZHO: _radar_entry('Zhongshan',
+                                        'Polar Research Institute of China',
+                                        Hemisphere.South, 70, [-67, 64],
+                                        [-70, 99], 'zho')}

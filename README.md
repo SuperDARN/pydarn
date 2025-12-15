@@ -13,7 +13,7 @@ Python data visualization library for the Super Dual Auroral Radar Network (Supe
 
 This patch release includes:
 - matplotlib v3.10 support (fixed incompatibility)
-- scipy dependency capped at v1.14.1
+- scipy dependency updated to support v1.16.x
 - **NEW** `marker` and `markersize` kwargs for `pydarn.Fan.plot_radar_position()`
 - **NEW** `pydarn.RadarID` enum abstracting away the station ID numbers of each radar
 
