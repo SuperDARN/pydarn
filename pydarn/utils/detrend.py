@@ -2,6 +2,7 @@ import copy
 import pydarn
 import datetime as dt
 import numpy as np
+from scipy.signal import savgol_filter
 from typing import List
 
 
@@ -18,6 +19,66 @@ class Detrend:
                 " the following methods: \n"\
                 "   - detrend_running_mean()\n"\
                 "   - dentrend()\n"\
+
+
+    @classmethod
+    def detrend_savgol(cls,
+                       timeseries: List[float],
+                       half_k: int,
+                       **kwargs
+                       ):
+        """
+        Detrend a given timeseries with a Savitsky-Golay filter.
+
+        Parameters
+        -----------
+        timeseries: List[float]
+            List timeseries data to detrend
+        half_k: int
+            Half the window size for the running mean window
+        **kwargs:
+            Optional inputs for detrending using scipy's `savgol_filter()`
+            E.g., polyorder, mode
+            Defaults are polyorder = 2, mode = 'interp' (edge truncation)
+        Returns
+        -------
+        detrended: List[float]
+            Detrended timeseries data
+        """
+
+        # Convert to numpy array for processing
+        y = np.array(timeseries, dtype=float)
+
+        # Map out where the Nones are
+        mask = np.isnan(y)
+        # If everything is None, return as is
+        if np.all(mask):
+            return [None] * len(timeseries)
+        indices = np.arange(len(y))
+
+        # Linearly interpolate over "None"s so the filter can work
+        # Will result in anomalous velocities/SNR's if data is sparse
+        y_interp = np.copy(y)
+        y_interp[mask] = np.interp(indices[mask], indices[~mask], y[~mask])
+
+        # Generate filter series
+        window_len = (half_k * 2) + 1
+        if 'polyorder' not in kwargs:
+            polyorder = 2
+        background = savgol_filter(y_interp, window_length=window_len, polyorder=polyorder, **kwargs)
+
+        # Detrend
+        detrended_tmp = y_interp - background
+
+        # Restore the original None positions
+        # Convert back to list and replace masked values
+        detrended = detrended_tmp.tolist()
+        for i in range(len(detrended)):
+            if mask[i]:
+                detrended[i] = None
+
+        return detrended
+
 
     @classmethod
     def detrend_running_mean(cls,
@@ -78,9 +139,11 @@ class Detrend:
                        fitacf_data: List[dict],
                        parameter: str = 'all',
                        window_length: int = 600,
+                       detrend_type: str='mean',
+                       **kwargs
                        ):
         """
-        Detrend a series of input fitacf records using a low-pass moving average filter.
+        Detrend a series of input fitacf records using a low-pass filter.
         Useful for the study of period ULF waves or generally removing background flows.
 
         Parameters
@@ -93,6 +156,14 @@ class Detrend:
             Options: 'both', 'v', 'p_l'
         window_length: int
             Length of the detrending low-pass filter in seconds
+        detrend_type: str
+            Type of detrending to be used
+            Default: 'mean' - subtract a running mean of window_length
+            Option: 'savgol' - subtract a Savitsky-Golay filter instead
+        **kwargs:
+            Optional inputs for detrending using scipy's `savgol_filter()`
+            E.g., polyorder, mode
+            Defaults are polyorder = 2, mode = 'interp' (edge truncation)
 
         Returns
         -------
@@ -171,7 +242,12 @@ class Detrend:
                     ]
 
                     # Running mean detrend
-                    detrended = Detrend.detrend_running_mean(timeseries, half_k, n_times)
+                    if detrend_type == 'mean':
+                        detrended = Detrend.detrend_running_mean(timeseries, half_k, n_times)
+                    elif detrend_type == 'savgol':
+                        detrended = Detrend.detrend_savgol(timeseries, half_k, **kwargs)
+                    else:
+                        raise NameError('No valid detrending type specified')
 
                     # Collect detrended timeseries for all parameters
                     detrended_timeseries.append(detrended)
