@@ -10,15 +10,17 @@ class Detrend:
     """
     Methods
     -------
+    detrend_savgol
     detrend_running_mean
     detrend_fitacf
     """
 
     def __str__(self):
         return "This class is static class that provides"\
-                " the following methods: \n"\
-                "   - detrend_running_mean()\n"\
-                "   - dentrend()\n"\
+               " the following methods: \n" \
+               "   - detrend_savgol()\n" \
+               "   - detrend_running_mean()\n"\
+               "   - dentrend()\n"\
 
 
     @classmethod
@@ -63,7 +65,9 @@ class Detrend:
 
         # Generate filter series
         window_len = (half_k * 2) + 1
-        if 'polyorder' not in kwargs:
+        try:
+            polyorder = kwargs['polyorder']
+        except KeyError:
             polyorder = 2
         background = savgol_filter(y_interp, window_length=window_len, polyorder=polyorder, **kwargs)
 
