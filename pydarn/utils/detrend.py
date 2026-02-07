@@ -66,10 +66,10 @@ class Detrend:
         # Generate filter series
         window_len = (half_k * 2) + 1
         try:
-            polyorder = kwargs['polyorder']
+            kwargs['polyorder']
         except KeyError:
-            polyorder = 2
-        background = savgol_filter(y_interp, window_length=window_len, polyorder=polyorder, **kwargs)
+            kwargs['polyorder'] = 2
+        background = savgol_filter(y_interp, window_length=window_len, **kwargs)
 
         # Detrend
         detrended_tmp = y_interp - background
