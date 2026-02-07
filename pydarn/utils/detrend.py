@@ -144,7 +144,8 @@ class Detrend:
             # Convert window length from seconds to number of records (k)
             # We use an odd number for k to make centering cleaner
             k = int(window_length / time_delta)
-            if k % 2 == 0: k += 1
+            if k % 2 == 0:
+                k += 1
             half_k = k // 2
             n_times = len(this_beam_times)
 
