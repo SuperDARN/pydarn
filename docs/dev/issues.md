@@ -12,13 +12,15 @@ and conditions of version 3 of the GNU General Public License, supplemented by
 the additional permissions listed below.
 -->
 
-# Issues 
+# Issues and Bugs
 
 GitHub Issues are a convenient way to communicate with pydarn developers about future changes to the pydarn codebase. Issues are not just for bug reporting. They can also be used to:
 
 - Notify others that a new feature is being planned
 - Ask for help or advice on using/installing pyDARN
 - Initiate open discussions about a pydarn-related topic
+
+Please open an issue when working on a new feature so that the group knows what is being worked on and we don't end up with two versions of one feature!
 
 When opening a new issue on the pyDARN Github page, you will be prompted to use a template to describe your issue. These templates are designed to help you provide enough detail for other developers to respond.
 
@@ -133,4 +135,3 @@ Then click on *Create Label*.
 
 Sometimes Issues can be open-ended, especially discussion issues. Here are some steps to make progress on the issue and prevent it going **stale**:
 - Label it with *telecon* if needs to be further discussed in a telecon with DVWG members 
-- Once a general idea is established, close the issue and create a project to break it into a defined tasks. Open the first task as an issue, see [projects](projects.md).

@@ -22,14 +22,12 @@ Fan plots are a way to visualise data from the entire scan of a SuperDARN radar.
 All beams and ranges for a given parameter (such as line-of-sight velocity, backscatter power, etc) and a particular scan can be projected onto a polar or geomagnetic plot in [AACGMv2](http://superdarn.thayer.dartmouth.edu/aacgm.html) coordinates, or projected onto a geographic plot in geographic coordinates.
 
 ### Basic usage
-pyDARN and pyplot need to be imported, as well as any FITACF file needs to be [read in](https://pydarn.readthedocs.io/en/latest/user/SDarnRead/):
 
 ```python
 import matplotlib.pyplot as plt
 from datetime import datetime
 import pydarn
 
-#Read in fitACF file using SuperDARDRead, then read_fitacf
 file = "path/to/fitacf/file"
 fitacf_data, _ = pydarn.read_fitacf(file)
 
@@ -70,7 +68,7 @@ plt.show()
 
 ### Groundscatter
 
-Default plots do not show groundscatter as grey. Set it to true to colour groundscatter:
+Default plots do not show groundscatter as grey. Set it to true to grey out groundscatter:
 
 ```python
 fan_rtn = pydarn.Fan.plot_fan(fitacf_data,
@@ -96,7 +94,7 @@ In addition to line-of-sight velocity, you can choose one of three other data pr
 ### Ball and Stick Plots
 
 Data on fan plots can also be displayed as a 'ball and stick' plot, where each data point is represented by a ball with a stick showing direction towards or away from the radar, coloured by the magnitude of the parameter plotted.
-Ball and stick plots can be plotted usng the `ball_and_stick` with `len_factor` key words, as follows:
+Ball and stick plots can be plotted usng the `ball_and_stick` with `len_factor` key words to control the size of the sticks, as follows:
 
 ```
 pydarn.Fan.plot_fan(fitacf_data,
@@ -143,6 +141,9 @@ Here is a list of all the current options than can be used with `plot_fan`
     For some control programs, the user may need to specify a channel integer as `'all'` will not correctly show the data.
     In other cases, the user may want to specify the channel and use an integer (N) for the `scan_index`. Be aware that this will show the
     data for the Nth scan of only the chosen channel, not that of the entire file. 
+
+!!! Warning
+    Not all data is designed to be plotted on a fan plot. Some CPID's, such as camping beam/themisscan, do not plot well due to overlapping beams in a single scan. It is up to the user to interpret the suitability of the plotting method used.
 
 ### Plotting Multiple Fans on One Plot
 

@@ -590,8 +590,7 @@ class SuperDARNRadars():
               RadarID.KAP: _Radar('Kapuskasing', 'Virginia Tech', Hemisphere.North,
                                   75, [44, -82], [54, -7], read_hdw_file('kap')),
               RadarID.KSR: _Radar('King Salmon',
-                         'National Institute of Information and'
-                         ' Communications Technology', Hemisphere.North,
+                                  'Penn State University', Hemisphere.North,
                                   75, [54, -162], [52, -99], read_hdw_file('ksr')),
               RadarID.KOD: _Radar('Kodiak', 'Penn State University',
                                   Hemisphere.North, 110, [53, -152], [52, -92],

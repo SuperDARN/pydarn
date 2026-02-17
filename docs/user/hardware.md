@@ -124,6 +124,9 @@ pydarn.get_hdw_files()
 ```
 This should also replace any missing files.
 
+!!! Warning
+        This method is not available on Windows PCs. You can update the hdw files by replacing the 'utils/hdw' directory in the location of your pyDARN installation with the new version from the [hardware repo](https://github.com/SuperDARN/hdw). Or you can navigate to the 'utils/hdw' directory, and `git pull origin main` to obtain the new versions in the location of your pyDARN installation. 
+
 # Troubleshooting
 
 If you get an error on importing pyDARN regarding hardware files or the `get_hdw_files()` is not getting the required files to run pyDARN please create an [issue](https://github.com/SuperDARN/pydarn/issues) detailing your computer specifications, commands used to get the error, and output of the error. 

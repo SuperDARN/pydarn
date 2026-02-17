@@ -1,7 +1,7 @@
 ![pydarn](https://raw.githubusercontent.com/SuperDARN/pydarn/master/docs/imgs/pydarn_logo.png)
 
 [![License: LGPL v3](https://img.shields.io/badge/License-LGPLv3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0) 
-[![Python 3.6](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/downloads/release/python-360/) 
+[![Python 3.8](https://img.shields.io/badge/python-3.8-blue.svg)](https://www.python.org/downloads) 
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/superdarn/pydarn)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3727269.svg)](https://doi.org/10.5281/zenodo.3727269)
 
@@ -9,13 +9,12 @@ Python data visualization library for the Super Dual Auroral Radar Network (Supe
 
 ## Changelog
 
-## Version 4.1.1 - Patch Release!
+## Version 4.2 - Major Release!
 
-This patch release includes:
-- matplotlib v3.10 support (fixed incompatibility)
-- scipy dependency capped at v1.14.1
-- **NEW** `marker` and `markersize` kwargs for `pydarn.Fan.plot_radar_position()`
-- **NEW** `pydarn.RadarID` enum abstracting away the station ID numbers of each radar
+This major release includes:
+- Updates to pyDARNio interface: faster reading of files
+- `nightshade` added to range-time plot options
+- ENUM use for retrieving radar information
 
 ## Documentation
 

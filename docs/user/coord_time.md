@@ -15,8 +15,8 @@ the additional permissions listed below.
 # Coordinate-Time Parameter Plots
 ---
 
-Similar to range-time plots, the coordinate-time plots allow the user to plot data with geographic or magnetic, longitude or latitude.
-Coordinate-time plots have all the additional features as the range-time plots, however the plot by default will show magnetic latitude on the y-axis. Where a range estimation can be used to convert the range gate to a distance from the radar which is in turn converted into a location in latitude or longitude. 
+Similar to range-time plots, the coordinate-time plots allow the user to plot data with geographic or magnetic longitude or latitude.
+Coordinate-time plots have the same additional options as the range-time plots. The coord-time plot by default will show magnetic latitude on the y-axis. Where a range estimation can be used to convert the range gate to a distance from the radar which is in turn converted into a location in latitude or longitude. 
 
 Your plot can be made with a combination of the `range_estimate`, `coords` and `latlon` keywords.
 For example, if `range_estimate=RangeEstimate.SLANT_RANGE`, `coords=Coords.AACGM` and `latlon='lat'`, this method will produce a plot with magnetic latitude on the y-axis calculated from the slant range value.
