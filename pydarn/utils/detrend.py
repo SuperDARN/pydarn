@@ -141,7 +141,7 @@ class Detrend:
     @classmethod
     def detrend_fitacf(cls,
                        fitacf_data: List[dict],
-                       parameter: str = 'all',
+                       parameter: str = 'both',
                        window_length: int = 600,
                        detrend_type: str='mean',
                        **kwargs
