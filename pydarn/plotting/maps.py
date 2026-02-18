@@ -265,7 +265,6 @@ class Maps:
                                                          record]['fit.order'],
                                                      lat_min=dmap_data[
                                                          record]['latmin'])
-
         elif parameter == MapParams.MODEL_VELOCITY:
             v_mag = dmap_data[record]['model.vel.median']
             azm_v = np.radians(dmap_data[record]['model.kvect'])
@@ -287,8 +286,7 @@ class Maps:
                                                      fit_order=dmap_data[
                                                          record]['fit.order'],
                                                      lat_min=dmap_data[
-                                                         record]['latmin'],
-                                                     len_factor=len_factor)
+                                                         record]['latmin'])
             v_mag, azm_v = cls.calculated_true_velocities(v_los, a_los,
                                                           v_fit, a_fit)
         elif parameter == MapParams.POWER:
@@ -645,26 +643,26 @@ class Maps:
             a_fit: array
                 angle of fitted velocity vector from magnetic north
         """
-        # Reduce LOS vector to components normalized
+        # Reduce LOS vector to components
         tkvect = np.empty([2, len(a_los)])
-        for j in range(0, len(a_los)):
-            tkvect[:,j] = [-np.cos(a_los[j]), np.sin(a_los[j])]
+        tkvect[0,:] = - v_los * np.cos(a_los)
+        tkvect[1,:] = v_los * np.sin(a_los)
 
-        # Get vector components
-        rvect = np.empty([2, len(v_fit)])
-        rvect[0,:] = v_fit * np.cos(a_fit)
+        # Get fitted vector components
+        rvect = np.empty([2, len(a_fit)])
+        rvect[0,:] = - v_fit * np.cos(a_fit)
         rvect[1,:] = v_fit * np.sin(a_fit)
 
-        # Get perpendicular vector components
-        vv = np.empty([2, len(v_fit)])
-        vn = np.squeeze(np.sum(rvect * tkvect, axis=0))
-        for i in range(0,len(vn)):
-            vv[:,i] = vn[i] * tkvect[:,i]
-        tvect = rvect - vv
+        # Get fitted component along the los direction
+        # (a.b / b.b) * b
+        vn = (np.sum(rvect * tkvect, axis=0) / np.sum(tkvect * tkvect, axis=0)) * tkvect
+
+        # Perp is original vect - parallel
+        tvect = rvect - vn
 
         # Combine vectors
         for k in range(0,len(v_los)):
-            tvect[:,k] = tvect[:,k] + v_los[k] * tkvect[:,k]
+            tvect[:,k] = tvect[:,k] + tkvect[:,k]
 
         # Calculate the magnitude and azimuth
         v_true = np.sqrt(tvect[0,:]**2 + tvect[1,:]**2)
