@@ -160,10 +160,8 @@ def axis_geomagnetic(date, ax: axes.Axes = None, lowlat: int = 30,
     else:
         # If the center of the plot is given- shift it around
         lon = plot_center[0] * 15 
-        # Given in MLT as this plot is plotted in mlt
+        # Given in MLT as this proj is plotted in mlt
         lat = plot_center[1]
-        #lon = (lon1 + (aacgmv2.convert_mlt(0, date, m2a=True)) * 15)[0]
-        #print(lon)
         if ax is None:
             proj = ccrs.Orthographic(lon, lat)
             ax = plt.axes(projection=proj)
