@@ -123,7 +123,8 @@ def axis_geomagnetic(date, ax: axes.Axes = None, lowlat: int = 30,
             Setting this option will change the rotation and 12 MLT may no
             longer be at the bottom of the plot
             Default: None
-            Example: [-90, 60] will show the Earth centered on Canada
+            Example: [0, 75] will show the Earth centered on wherever 0 MLT
+            is and 75 degrees north
         plot_extent: list [float, float]
             Plotting extent in terms of a percentage of Earth shown in
             the x and y plotting field 
@@ -158,8 +159,11 @@ def axis_geomagnetic(date, ax: axes.Axes = None, lowlat: int = 30,
 
     else:
         # If the center of the plot is given- shift it around
-        lon = plot_center[0]
+        lon = plot_center[0] * 15 
+        # Given in MLT as this plot is plotted in mlt
         lat = plot_center[1]
+        #lon = (lon1 + (aacgmv2.convert_mlt(0, date, m2a=True)) * 15)[0]
+        #print(lon)
         if ax is None:
             proj = ccrs.Orthographic(lon, lat)
             ax = plt.axes(projection=proj)
