@@ -22,7 +22,6 @@
 #                   as this has yet to be figured out
 # 2023-02-06: CJM - Added option to plot single beams in a scan or FOV diagram
 # 2023-03-01: CJM - Added ball and stick plotting options
-# 2023-03-01: CJM - Added ball and stick plotting options (merged later in year)
 # 2023-08-16: CJM - Corrected for winding order in geo plots
 # 2023-06-28: CJM - Refactored return values
 # 2023-10-14: CJM - Add embargoed data method
@@ -147,7 +146,8 @@ class Fan:
                 Requires colorbar to be true
                 Default: ''
             cax: axes.Axes
-                Pre-defined axis for the colorbar. If not specified and colorbar
+                Pre-defined axis for the colorbar.
+                If not specified and colorbar
                 is True, a new axis will be created.
                 Default: None
             title: bool
@@ -341,7 +341,7 @@ class Fan:
             kwargs = Fan.__calculate_tight_layout(beam_corners_lats,
                                                   beam_corners_lons,
                                                   projs, **kwargs)
-        
+
         ax, ccrs = projs(date=date, ax=ax, **kwargs)
 
         if ccrs is None:
@@ -429,9 +429,9 @@ class Fan:
                                 end_thetas = np.degrees(end_thetas)
                             # Plot sticks!
                             ax.plot([t_center, end_thetas],
-                                     [r_center, end_rs],
-                                     color=col, zorder=3.0, linewidth=0.5,
-                                     transform=transform)
+                                    [r_center, end_rs],
+                                    color=col, zorder=3.0, linewidth=0.5,
+                                    transform=transform)
 
                     # Plot ground scatter balls (no sticks)
                     if groundscatter and grndsct[i, j] != 0.0:
@@ -502,17 +502,19 @@ class Fan:
                          'ground_scatter': grndsct}
                 }
 
-
     @staticmethod
     def plot_fan_input(data_array: list = [], data_datetime: dt.datetime = [],
-                       ax: object = None, stid: RadarID = None, data_groundscatter: list = [],
+                       ax: object = None, stid: RadarID = None,
+                       data_groundscatter: list = [],
                        rsep: int = 45, frang: int = 180,
-                       data_parameter: str = 'v', cmap: str = None, zmin: int = None,
+                       data_parameter: str = 'v', cmap: str = None,
+                       zmin: int = None,
                        zmax: int = None, colorbar: bool = True,
-                       colorbar_label: str = '', cax=None, boundary: bool = True,
+                       colorbar_label: str = '', cax=None,
+                       boundary: bool = True,
                        projs: Projs = Projs.POLAR,
                        coords: Coords = Coords.AACGM_MLT,
-                       plot_tight: bool =False, **kwargs):
+                       plot_tight: bool = False, **kwargs):
         """
         Plots a radar's Field Of View (FOV) fan plot for the given data and
         scan number
@@ -560,7 +562,8 @@ class Fan:
                 Requires colorbar to be true
                 Default: ''
             cax: axes.Axes
-                Pre-defined axis for the colorbar. If not specified and colorbar
+                Pre-defined axis for the colorbar.
+                If not specified and colorbar
                 is True, a new axis will be created.
             boundary: bool
                 if true then plots the FOV boundaries
@@ -710,7 +713,8 @@ class Fan:
 
     @staticmethod
     def plot_fov(stid: RadarID, date: dt.datetime,
-                 ax=None, ccrs=None, ranges: List = None, boundary: bool = True,
+                 ax=None, ccrs=None, ranges: List = None,
+                 boundary: bool = True,
                  rsep: int = 45, frang: int = 180,
                  projs: Projs = Projs.POLAR,
                  coords: Coords = Coords.AACGM_MLT,
@@ -1009,9 +1013,11 @@ class Fan:
             marker: str
                 Controls which symbol is plotted.
                 Default: "."
-                See https://matplotlib.org/stable/api/markers_api.html#module-matplotlib.markers for options
+                See https://matplotlib.org/stable/api/markers_api.html#module-matplotlib.markers
+                for options
             markersize: int
-                Controls the size of the symbol plotted, "s" passed to ax.scatter().
+                Controls the size of the symbol plotted,
+                "s" passed to ax.scatter().
                 Default: 5
 
         Returns
@@ -1033,7 +1039,8 @@ class Fan:
         if projs == Projs.POLAR:
             lon = np.radians(lon)
         # Plot a dot at the radar site
-        ax.scatter(lon, lat, c=line_color, s=markersize, transform=transform, marker=marker)
+        ax.scatter(lon, lat, c=line_color, s=markersize,
+                   transform=transform, marker=marker)
         return
 
     @staticmethod
@@ -1116,7 +1123,7 @@ class Fan:
         Calculates the plot_center and plot_extent values needed
         to center the FOV in the middle of the plot
 
-        Overwrites any given for these values and only works for 
+        Overwrites any given for these values and only works for
         projs MAG and GEO.
 
         Parameters
@@ -1134,11 +1141,11 @@ class Fan:
         """
         # Three corners of the fov
         c1 = [np.radians(beam_corners_lats[-1, -1]),
-                np.radians(beam_corners_lons[-1, -1])]
+              np.radians(beam_corners_lons[-1, -1])]
         c2 = [np.radians(beam_corners_lats[-1, 0]),
-                np.radians(beam_corners_lons[-1, 0])]
+              np.radians(beam_corners_lons[-1, 0])]
         c3 = [np.radians(beam_corners_lats[0, 0]),
-                np.radians(beam_corners_lons[0, 0])]
+              np.radians(beam_corners_lons[0, 0])]
 
         # Calculate center of FOV
         x1 = np.cos(c1[0]) * np.cos(c1[1])
@@ -1151,9 +1158,9 @@ class Fan:
         z2 = np.sin(c2[0])
         z3 = np.sin(c3[0])
 
-        x_av = np.mean([x1,x2,x3])
-        y_av = np.mean([y1,y2,y3])
-        z_av = np.mean([z1,z2,z3])
+        x_av = np.mean([x1, x2, x3])
+        y_av = np.mean([y1, y2, y3])
+        z_av = np.mean([z1, z2, z3])
 
         lat = np.atan2(z_av, np.sqrt(x_av**2 + y_av**2))
         lon = np.atan2(y_av, x_av)
@@ -1163,17 +1170,17 @@ class Fan:
             plot_center = [np.degrees(lon)/15, np.degrees(lat)]
 
         # Farthest point from the center
-        c4 = [lat,lon]
+        c4 = [lat, lon]
         d1 = np.acos((np.sin(c1[0]) * np.sin(c4[0])) +
-                        (np.cos(c1[0]) * np.cos(c4[0]) * np.cos(c1[1]- c4[1])))
+                     (np.cos(c1[0]) * np.cos(c4[0]) * np.cos(c1[1] - c4[1])))
         d2 = np.acos((np.sin(c2[0]) * np.sin(c4[0])) +
-                        (np.cos(c2[0]) * np.cos(c4[0]) * np.cos(c2[1]- c4[1])))
+                     (np.cos(c2[0]) * np.cos(c4[0]) * np.cos(c2[1] - c4[1])))
         d3 = np.acos((np.sin(c3[0]) * np.sin(c4[0])) +
-                        (np.cos(c3[0]) * np.cos(c4[0]) * np.cos(c3[1]- c4[1])))
-        d4 = max([d1,d2,d3]) * 100
+                     (np.cos(c3[0]) * np.cos(c4[0]) * np.cos(c3[1] - c4[1])))
+        d4 = max([d1, d2, d3]) * 100
 
-        plot_extent = [d4+5,d4+5]
+        plot_extent = [d4 + 5, d4 + 5]
 
-        kwargs['plot_center'] = plot_center 
+        kwargs['plot_center'] = plot_center
         kwargs['plot_extent'] = plot_extent
         return kwargs
