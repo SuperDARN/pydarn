@@ -638,7 +638,8 @@ class Maps:
         # i is the index of the list
         # x_i is the element of x at ith index
         for i, x_i in enumerate(x):
-            temp_poly = special.lpmn(fit_order, fit_order, x_i)
+            temp_poly = special.assoc_legendre_p_all(fit_order, fit_order, x_i)
+            temp_poly = ((temp_poly[0].T).tolist()[0:fit_order+1],)
             if i == 0:
                 legendre_poly = np.append([temp_poly[0]], [temp_poly[0]],
                                           axis=0)
@@ -973,7 +974,8 @@ class Maps:
         x = np.cos(alpha*theta)
         # Legendre Polys
         for j, xj in enumerate(x):
-            plm_tmp = special.lpmn(fit_order, fit_order, xj)
+            plm_tmp = special.assoc_legendre_p_all(fit_order, fit_order, xj)
+            plm_tmp = ((plm_tmp[0].T).tolist()[0:fit_order+1],)
             if j == 0:
                 plm_fit = np.append([plm_tmp[0]], [plm_tmp[0]], axis=0)
             else:
@@ -1075,7 +1077,8 @@ class Maps:
 
         # Legendre Polys
         for j, xj in enumerate(x):
-            plm_tmp = special.lpmn(fit_order, fit_order, xj)
+            plm_tmp = special.assoc_legendre_p_all(fit_order, fit_order, xj)
+            plm_tmp = ((plm_tmp[0].T).tolist()[0:fit_order+1],)
             if j == 0:
                 plm_fit = np.append([plm_tmp[0]], [plm_tmp[0]], axis=0)
             else:
