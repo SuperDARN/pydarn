@@ -26,9 +26,6 @@ import shutil
 from typing import NamedTuple
 from enum import Enum
 from datetime import datetime
-#from subprocess import check_call
-
-#new imports
 from urllib import request
 from zipfile import ZipFile
 
