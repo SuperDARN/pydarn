@@ -56,7 +56,7 @@ def get_hdw_files(force: bool = True, version: str = None):
 
     # TODO: implement when DSWG starts versioning hardware files
     if version is not None:
-        raise NotImplementedError("This feature is not implemented, Versioned hardware does not exist yet.") #clarified error
+        raise NotImplementedError("This feature is not implemented, Versioned hardware does not exist yet.") 
 
     # if there is no files in hdw folder or force is true
     # download the hdw files
