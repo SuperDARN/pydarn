@@ -336,7 +336,7 @@ class Fan:
             grndsct = grndsct[0:ranges[1]-ranges[0]]
 
         if remove_iono_scatter:
-            iono_scatter = scan*grndsct
+            iono_scatter = scan*~grndsct.astype(bool)
 
         # Set up axes in correct hemisphere
         stid = RadarID(dmap_data[0]['stid'])
@@ -361,7 +361,7 @@ class Fan:
                 is_color = colors.ListedColormap(['white'])
                 ax.pcolormesh(thetas, rs,
                               np.ma.masked_array(iono_scatter,
-                                                 iono_scatter.astype(bool)),
+                                                 ~iono_scatter.astype(bool)),
                               norm=norm, cmap=is_color, transform=transform,
                               zorder=2)
         else:
