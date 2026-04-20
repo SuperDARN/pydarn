@@ -27,6 +27,7 @@
 # 2023-06-28: CJM - Refactored return values
 # 2023-10-14: CJM - Add embargoed data method
 # 2024-10-09: DDB - Control marker and its size in plot_radar_position()
+# 2026-04-20: CJM - Add options for remove_iono_scatter and remove_ground_scatter
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
@@ -85,6 +86,8 @@ class Fan:
                  scan_time_tolerance: dt.timedelta = dt.timedelta(seconds=30),
                  parameter: str = 'v', cmap: str = None,
                  groundscatter: bool = False, zmin: int = None,
+                 remove_iono_scatter: bool = False,
+                 remove_ground_scatter: bool = False,
                  zmax: int = None, colorbar: bool = True,
                  colorbar_label: str = '', cax=None,
                  title: bool = True, boundary: bool = True,
@@ -130,6 +133,12 @@ class Fan:
             groundscatter : bool
                 Set true to indicate if groundscatter should be plotted in grey
                 Default: False
+            remove_iono_scatter: boolean
+                if True, ionospheric scatter will not be plotted
+                default: False
+            remove_ground_scatter: boolean
+                if True, ground scatter will not be plotted
+                default: False
             zmin: int
                 The minimum parameter value for coloring
                 Default: {'p_l': [0], 'v': [-200], 'w_l': [0], 'elv': [0]}
@@ -326,6 +335,9 @@ class Fan:
             scan = scan[0:ranges[1]-ranges[0]]
             grndsct = grndsct[0:ranges[1]-ranges[0]]
 
+        if remove_iono_scatter:
+            iono_scatter = scan*grndsct
+
         # Set up axes in correct hemisphere
         stid = RadarID(dmap_data[0]['stid'])
         kwargs['hemisphere'] = SuperDARNRadars.radars[stid].hemisphere
@@ -345,6 +357,13 @@ class Fan:
                           np.ma.masked_array(scan, ~scan.astype(bool)),
                           norm=norm, cmap=cmap, transform=transform,
                           zorder=2)
+            if remove_iono_scatter:
+                is_color = colors.ListedColormap(['white'])
+                ax.pcolormesh(thetas, rs,
+                              np.ma.masked_array(iono_scatter,
+                                                 iono_scatter.astype(bool)),
+                              norm=norm, cmap=is_color, transform=transform,
+                              zorder=2)
         else:
             # Get center of each gate instead of edges
             fan_shape = thetas.shape
@@ -423,8 +442,12 @@ class Fan:
 
                     # Plot ground scatter balls (no sticks)
                     if groundscatter and grndsct[i, j] != 0.0:
-                        ax.scatter(t_center, r_center, c='grey', s=1.0,
-                                   transform=transform, zorder=3.0)
+                        if remove_ground_scatter:
+                            ax.scatter(t_center, r_center, c='w', s=1.0,
+                                       transform=transform, zorder=3.0)
+                        else:
+                            ax.scatter(t_center, r_center, c='grey', s=1.0,
+                                       transform=transform, zorder=3.0)
 
         # plot the groundscatter as grey fill
         if groundscatter and not ball_and_stick:
@@ -434,6 +457,21 @@ class Fan:
                                              ~grndsct.astype(bool)),
                           cmap=gs_color,
                           transform=transform, zorder=3)
+        elif not groundscatter and not ball_and_stick:
+            gs_color = colors.ListedColormap(['white'])
+            ax.pcolormesh(thetas, rs,
+                          np.ma.masked_array(grndsct,
+                                             ~grndsct.astype(bool)),
+                          cmap=cmap, alpha=0.0,
+                          transform=transform, zorder=3)
+        if remove_ground_scatter:
+            gs_color = colors.ListedColormap(['white'])
+            ax.pcolormesh(thetas, rs,
+                          np.ma.masked_array(grndsct,
+                                             ~grndsct.astype(bool)),
+                          cmap=gs_color,
+                          transform=transform, zorder=3)
+
         if ccrs is None:
             azm = np.linspace(0, 2 * np.pi, 100)
             r, th = np.meshgrid(rs, azm)
