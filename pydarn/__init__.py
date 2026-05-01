@@ -55,6 +55,7 @@ from .utils.coordinates import Coords
 from .utils.terminator import terminator
 from .utils.recalculate_elevation import recalculate_elevation
 from .utils.filters import Boxcar
+from .utils.detrend import Detrend
 
 # import plotting
 from .plotting.color_maps import PyDARNColormaps

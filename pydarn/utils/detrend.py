@@ -1,7 +1,7 @@
 import copy
-import pydarn
 import datetime as dt
 import numpy as np
+from pydarn import SuperDARNRadars, RadarID
 from scipy.signal import savgol_filter
 from typing import List
 
@@ -179,7 +179,7 @@ class Detrend:
         fitacf_data_detrended = copy.deepcopy(fitacf_data)
 
         # Max beams and range gates for this data
-        no_beams = pydarn.SuperDARNRadars.radars[pydarn.RadarID(fitacf_data[0]['stid'])].hardware_info.beams
+        no_beams = SuperDARNRadars.radars[RadarID(fitacf_data[0]['stid'])].hardware_info.beams
         no_rang = fitacf_data[0]['nrang']
 
         # Grab slist and time lists for all records. "None" indicates no data for that record.
