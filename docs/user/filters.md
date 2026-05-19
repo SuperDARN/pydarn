@@ -12,12 +12,8 @@ and conditions of version 3 of the GNU General Public License, supplemented by
 the additional permissions listed below.
 -->
 
-# Filtering Data
+# Filtering and Detrending Data
 ---
-
-
-
-Currently pyDARN has one filtering option. 
 
 ## Boxcar Filtering
 
@@ -82,3 +78,18 @@ plt.show()
 
 ![](../imgs/unfiltered.png)
 ![](../imgs/filtered.png)
+
+## Data Detrending
+
+FITACF level data can be detrended to view background periodic fluctuations in data. 
+You can choose between using a mean value of the window length ('mean'), or using the Sovitsky-Golay filter ('sov-gal').
+
+```python
+import pydarn
+
+data, _ = pydarn.read_fitacf('superdarn.data.file.fitacf')
+
+dmap_detrended = pydarn.Detrend.detrend_fitacf(data, parameter='both', window_length=600, detrend_type='mean')
+```
+
+![](../imgs/detrend.png)

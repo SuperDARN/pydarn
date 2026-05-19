@@ -35,6 +35,9 @@ pip3 install --upgrade pydarn
 
 Installing in virtual environments is recommended, see below for details.
 
+!!! Note
+    Many funding agencies count acknowledgements and citations when assessing projects. Please remember to [acknowledge](/citing.md) the SuperDARN data, and tools you are using so we can keep producing high quality data and tools to use it!
+
 ## Prerequisites
 
 pyDARN requires **python 3.8** or later, see list below for library dependencies.
@@ -59,7 +62,7 @@ You can check your python version using
 On installation, pyDARN will download the following dependencies: 
 
 - [NumPy](https://numpy.org/)
-- [scipy <1.15.0](https://scipy.org/)
+- [scipy 1.17.0+](https://scipy.org/)
 - [matplotlib 3.7.0+](https://matplotlib.org/) 
 - [PyYAML](https://pyyaml.org/wiki/PyYAMLDocumentation)
 - [pyDARNio 2.0.0+](https://pydarnio.readthedocs.io/en/latest/user/install/)
