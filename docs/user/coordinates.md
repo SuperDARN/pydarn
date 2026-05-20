@@ -140,4 +140,4 @@ plt.show()
 ```
 
 !!! Note
-        Nightshade is now available in range-time plots. See [range-time plots](user/range_time.md).
+    Nightshade is now available in range-time plots. See [range-time plots](user/range_time.md).
