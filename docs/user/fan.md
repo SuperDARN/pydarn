@@ -134,6 +134,7 @@ Here is a list of all the current options than can be used with `plot_fan`
 | colorbar_label=(string)       | Label that appears next to the color bar, requires colorbar to be True                                  |
 | coastline=(bool)              | Plots outlines of coastlines below data (Uses Cartopy)                                                  |
 | beam=(int)                    | Only plots data/outline of specified beam (default: None)                                               |
+| plot_tight=(bool)*            | Centers the radars FOV in the plot and calculates extents based on FOV (default: False)                 |
 | kwargs **                     | Axis Polar settings. See [polar axis](axis.md)                                                          |
 
 
@@ -141,6 +142,9 @@ Here is a list of all the current options than can be used with `plot_fan`
     For some control programs, the user may need to specify a channel integer as `'all'` will not correctly show the data.
     In other cases, the user may want to specify the channel and use an integer (N) for the `scan_index`. Be aware that this will show the
     data for the Nth scan of only the chosen channel, not that of the entire file. 
+
+!!! Note
+    * plot_tight option only works with MAG and GEO projections, plot_tight will overwrite plot_center and plot_extent options from axis setup 
 
 !!! Warning
     Not all data is designed to be plotted on a fan plot. Some CPID's, such as camping beam/themisscan, do not plot well due to overlapping beams in a single scan. It is up to the user to interpret the suitability of the plotting method used.
