@@ -32,7 +32,9 @@ from pydarn import (geocentric_coordinates, SuperDARNRadars, RangeEstimation,
 
 
 def geo_coordinates(stid: RadarID, beams: int = None,
-                    gates: tuple = None, **kwargs):
+                    gates: tuple = None,
+                    include_invalid: bool = False,
+                    **kwargs):
     """
     geographic_coordinates calculates the geographic coordinate for a given
     set of gates and beams
@@ -58,12 +60,17 @@ def geo_coordinates(stid: RadarID, beams: int = None,
                                                 **kwargs)
             beam_corners_lats[gate-gates[0], beam] = lat
             beam_corners_lons[gate-gates[0], beam] = lon
-    y0inx = np.min(np.where(np.isfinite(beam_corners_lats[:,0]))[0])
-    return beam_corners_lats[y0inx:], beam_corners_lons[y0inx:]
+    if include_invalid:
+        return beam_corners_lats, beam_corners_lons
+    else:
+        y0inx = np.min(np.where(np.isfinite(beam_corners_lats[:,0]))[0])
+        return beam_corners_lats[y0inx:], beam_corners_lons[y0inx:]
 
 
 def aacgm_coordinates(stid: pydarn.RadarID, beams: int = None, gates: tuple = None,
-                      date: dt.datetime = dt.datetime.now, **kwargs):
+                      date: dt.datetime = dt.datetime.now,
+                      include_invalid: bool = False, 
+                      **kwargs):
     if gates is None:
         gates = [0, SuperDARNRadars.radars[stid].range_gate_45]
     if beams is None:
@@ -86,8 +93,11 @@ def aacgm_coordinates(stid: pydarn.RadarID, beams: int = None, gates: tuple = No
                                                       dtime=date))
             beam_corners_lats[gate-gates[0], beam] = geomag[0]
             beam_corners_lons[gate-gates[0], beam] = geomag[1]
-    y0inx = np.min(np.where(np.isfinite(beam_corners_lats[:,0]))[0])
-    return beam_corners_lats[y0inx:], beam_corners_lons[y0inx:]
+    if include_invalid:
+        return beam_corners_lats, beam_corners_lons
+    else:
+        y0inx = np.min(np.where(np.isfinite(beam_corners_lats[:,0]))[0])
+        return beam_corners_lats[y0inx:], beam_corners_lons[y0inx:]
 
 
 def aacgm_MLT_coordinates(**kwargs):
