@@ -60,7 +60,12 @@ Here is a list of all the current options than can be used with `plot_fov`
 | radar_label=(bool)      | Places the radar 3-letter abbreviation next to the radar location                                       |
 | coastline=(bool)        | Plots outlines of coastlines below FOV (Uses Cartopy)                                                   |
 | beam=(int)              | Only plots outline/fill of specified beam (default: None)                                               |
+| plot_tight=(bool)*      | Centers the radars FOV in the plot and calculates extents based on FOV (default: False)                 |
 | kwargs **               | Axis Polar settings. See [polar axis](axis.md)                                                          |
+
+!!! Note
+    * plot_tight option only works with MAG and GEO projections, plot_tight will overwrite plot_center and plot_extent options from axis setup 
+
 
 
 ### Examples

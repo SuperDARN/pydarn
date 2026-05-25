@@ -9,7 +9,7 @@
 # 2022-06-13 Elliott Day don't create new ax if ax passed in to Projs
 # 2023-02-22 CJM added options for nightshade
 # 2023-08-11 RR added crude check for unmodified axes, handle both hemispheres
-# 2024-05-15 CJM refactored geographic axes to add plot zoom and center, 
+# 2024-05-15 CJM refactored geographic axes to add plot zoom and center,
 #            and added the geomagnetic version to do the same
 # 2024-07-10 CJM removed cartopy logic to allow full dependency
 #
@@ -37,7 +37,8 @@ import numpy as np
 from pydarn import (Hemisphere, Re, nightshade_warning)
 
 
-def convert_geo_coastline_to_mag(geom, date, alt: float = 0.0, mag_lon: bool = False):
+def convert_geo_coastline_to_mag(geom, date, alt: float = 0.0,
+                                 mag_lon: bool = False):
     """
     Takes the geometry object of coastlines and converts
     the coordinates into AACGM_MLT
@@ -57,7 +58,7 @@ def convert_geo_coastline_to_mag(geom, date, alt: float = 0.0, mag_lon: bool = F
     """
     [mlats, lon_mag, _] = \
         aacgmv2.convert_latlon_arr(geom.coords.xy[1], geom.coords.xy[0], alt,
-                                       date, method_code='G2A')
+                                   date, method_code='G2A')
 
     # Finds the first not nan value to calculate the mlt shift
     # Substitutes NaN if not found which results in no data to plot
@@ -66,8 +67,8 @@ def convert_geo_coastline_to_mag(geom, date, alt: float = 0.0, mag_lon: bool = F
     notnan_lon = next((x for x in lon_mag if x == x), float('NaN'))
 
     # Shift to MLT
-    shifted_mlts = notnan_lon - \
-                    (aacgmv2.convert_mlt(notnan_lon, date) * 15)
+    shifted_mlts = notnan_lon - (aacgmv2.convert_mlt(notnan_lon,
+                                                     date) * 15)
     shifted_lons = lon_mag - shifted_mlts
 
     if mag_lon:
@@ -79,19 +80,19 @@ def convert_geo_coastline_to_mag(geom, date, alt: float = 0.0, mag_lon: bool = F
 
 
 def axis_geomagnetic(date, ax: axes.Axes = None, lowlat: int = 30,
-                    hemisphere: Hemisphere = Hemisphere.North,
-                    coastline: bool = False, cartopy_scale: str = '110m',
-                    coastline_color: str = 'k',
-                    coastline_linewidth: float = 0.5,
-                    nightshade: int = 0, grid_lines: bool = True,
-                    plot_center: list = None,
-                    plot_extent: list = None, **kwargs):
+                     hemisphere: Hemisphere = Hemisphere.North,
+                     coastline: bool = False, cartopy_scale: str = '110m',
+                     coastline_color: str = 'k',
+                     coastline_linewidth: float = 0.5,
+                     nightshade: int = 0, grid_lines: bool = True,
+                     plot_center: list = None,
+                     plot_extent: list = None, **kwargs):
     """
     Sets up the cartopy orthographic plot axis object, for use in
     various other functions. This plot assumes you are giving geoMAGNETIC
     values for plotting, so extra additional cartopy functions such as
     coastlines do not work in this context, you must convert to geomagnetic.
-    
+
     Parameters
     ----------
         date: datetime object
@@ -123,13 +124,14 @@ def axis_geomagnetic(date, ax: axes.Axes = None, lowlat: int = 30,
             Setting this option will change the rotation and 12 MLT may no
             longer be at the bottom of the plot
             Default: None
-            Example: [-90, 60] will show the Earth centered on Canada
+            Example: [0, 75] will show the Earth centered on wherever 0 MLT
+            is and 75 degrees north
         plot_extent: list [float, float]
             Plotting extent in terms of a percentage of Earth shown in
-            the x and y plotting field 
+            the x and y plotting field
             Default: None
             Example: [30, 50] shows a plot centered on the pole or specified
-                     plot_center coord that shows 30% of the Earth in x and 
+                     plot_center coord that shows 30% of the Earth in x and
                      50% of the Earth in y. See tutorials for plotted example.
     """
     if plot_center is None:
@@ -153,12 +155,15 @@ def axis_geomagnetic(date, ax: axes.Axes = None, lowlat: int = 30,
                 pady = (plot_extent[1] / 100) * Re*1000
                 ax.set_extent(extents=(-padx, padx, -pady, pady), crs=proj)
             else:
-                extent = abs(proj.transform_point(lon, lat, ccrs.PlateCarree())[1])
-                ax.set_extent(extents=(-extent, extent, -extent, extent), crs=proj)
+                extent = abs(proj.transform_point(lon, lat,
+                                                  ccrs.PlateCarree())[1])
+                ax.set_extent(extents=(-extent, extent, -extent, extent),
+                              crs=proj)
 
     else:
         # If the center of the plot is given- shift it around
-        lon = plot_center[0]
+        lon = plot_center[0] * 15
+        # Given in MLT as this proj is plotted in mlt
         lat = plot_center[1]
         if ax is None:
             proj = ccrs.Orthographic(lon, lat)
@@ -213,9 +218,11 @@ def axis_geomagnetic(date, ax: axes.Axes = None, lowlat: int = 30,
         for geom in cc.geometries():
             if geom.__class__.__name__ == 'MultiLineString':
                 for g in geom.geoms:
-                    geom_mag.append(convert_geo_coastline_to_mag(g, date, mag_lon=True))
+                    geom_mag.append(
+                        convert_geo_coastline_to_mag(g, date, mag_lon=True))
             else:
-                geom_mag.append(convert_geo_coastline_to_mag(geom, date, mag_lon=True))
+                geom_mag.append(
+                    convert_geo_coastline_to_mag(geom, date, mag_lon=True))
         cc_mag = cfeature.ShapelyFeature(geom_mag, ccrs.Geodetic(),
                                          color='k', zorder=2.0)
 
@@ -223,7 +230,7 @@ def axis_geomagnetic(date, ax: axes.Axes = None, lowlat: int = 30,
         for geom in cc_mag.geometries():
             plt.plot(*geom.coords.xy, color=coastline_color,
                      linewidth=coastline_linewidth, zorder=2.0,
-                     transform = ccrs.Geodetic())
+                     transform=ccrs.Geodetic())
 
     if nightshade:
         nightshade_warning()
@@ -232,18 +239,19 @@ def axis_geomagnetic(date, ax: axes.Axes = None, lowlat: int = 30,
 
 
 def axis_geomagnetic_polar(date, ax: axes.Axes = None, lowlat: int = 30,
-                    hemisphere: Hemisphere = Hemisphere.North,
-                    coastline: bool = False, cartopy_scale: str = '110m',
-                    coastline_color: str = 'k',
-                    coastline_linewidth: float = 0.5,
-                    nightshade: int = 0, **kwargs):
+                           hemisphere: Hemisphere = Hemisphere.North,
+                           coastline: bool = False,
+                           cartopy_scale: str = '110m',
+                           coastline_color: str = 'k',
+                           coastline_linewidth: float = 0.5,
+                           nightshade: int = 0, **kwargs):
     """
     Sets up the polar plot matplotlib axis object, for use in
     various other functions. Magnetic latitude - magnetic local
     time projection.
 
     This projection is defunct now MAG exists, however is kept available for
-    compatibility and non-cartopy options. 
+    compatibility and non-cartopy options.
 
     Parameters
     -----------
@@ -391,10 +399,10 @@ def axis_geographic(date, ax: axes.Axes = None,
             Example: [-90, 60] will show the Earth centered on Canada
         plot_extent: list [float, float]
             Plotting extent in terms of a percentage of Earth shown in
-            the x and y plotting field 
+            the x and y plotting field
             Default: None
             Example: [30, 50] shows a plot centered on the pole or specified
-                     plot_center coord that shows 30% of the Earth in x and 
+                     plot_center coord that shows 30% of the Earth in x and
                      50% of the Earth in y. See tutorials for plotted example.
     """
     if plot_center is None:
@@ -417,8 +425,10 @@ def axis_geographic(date, ax: axes.Axes = None,
                 pady = (plot_extent[1] / 100) * Re*1000
                 ax.set_extent(extents=(-padx, padx, -pady, pady), crs=proj)
             else:
-                extent = abs(proj.transform_point(lon, lat, ccrs.PlateCarree())[1])
-                ax.set_extent(extents=(-extent, extent, -extent, extent), crs=proj)
+                extent = abs(proj.transform_point(lon, lat,
+                                                  ccrs.PlateCarree())[1])
+                ax.set_extent(extents=(-extent, extent, -extent, extent),
+                              crs=proj)
     else:
         # If the center of the plot is given- shift it around
         lon = plot_center[0]

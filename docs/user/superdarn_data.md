@@ -24,7 +24,7 @@ The [Data Distribution Working Group (DDWG)](https://github.com/SuperDARN/DDWG) 
 ## Data Mirrors
 To get access to rawacf, fitacf and sometimes higher lever data, there are three possible data servers: one utilizes *Globus*, others use `rsync`, `sftp` and `scp`:
 
-  - [SuperDARN Canada](https://superdarn.ca/): uses [Globus](https://github.com/SuperDARNCanada/globus) to allow access to the SuperDARN data. Contact [superdarn@usask.ca](mailto:superdarn@usask.ca) for access.
+  - [SuperDARN Canada](https://superdarn.ca/data-access): uses [Globus](https://github.com/SuperDARNCanada/globus) to allow access to the SuperDARN data. Contact [superdarn@usask.ca](mailto:superdarn@usask.ca) for access or fill in the online form at the link above.
   - [BAS](https://www.bas.ac.uk/project/superdarn/#about): information on data access can be found [here](https://www.bas.ac.uk/project/superdarn/#data)
   - [NSSC](https://www.nssdc.ac.cn/nssdc_en/html/task/sdarn.html): please contact NSSC for access.
 
