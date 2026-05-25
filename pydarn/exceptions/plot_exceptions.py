@@ -16,6 +16,14 @@
 # supplemented by the additional permissions listed below.
 import datetime
 
+class GeneralError(Exception):
+    '''
+    Error for general messages
+    '''
+    def __init__(self, message):
+        self.message = message
+        super().__init__(self.message)
+
 
 class PartialRecordsError(Exception):
     """
