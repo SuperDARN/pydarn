@@ -311,6 +311,8 @@ class RTP:
             set_zmax = False
 
         for dmap_record in cls.dmap_data:
+            if parameter == 'pwr0' and 'slist' in dmap_record.keys():
+                dmap_record['pwr0'] = [dmap_record['pwr0'][i] for i in dmap_record['slist']]
             # get time difference to test if there is some gap data
             rec_time = time2datetime(dmap_record)
             diff_time = 0.0
@@ -452,7 +454,10 @@ class RTP:
                      'v': PyDARNColormaps.PYDARN_VELOCITY,
                      'w_l': PyDARNColormaps.PYDARN_VIRIDIS,
                      'elv': PyDARNColormaps.PYDARN_INFERNO}
-            cmap = cmaps[parameter]
+            try:
+                cmap = cmaps[parameter]
+            except KeyError:
+                cmap = PyDARNColormaps.PYDARN_VIRIDIS
 
         # set the background color, this needs to happen to avoid
         # the overlapping problem that occurs
