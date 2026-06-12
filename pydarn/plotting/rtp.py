@@ -371,8 +371,11 @@ class RTP:
                             groundflag = []
                             for k in good_gates:
                                 if k in dmap_record['slist']:
-                                    gflg_idx = [l for l,x in enumerate(dmap_record['slist']) if x == k]
-                                    groundflag.append(dmap_record['gflg'][gflg_idx])
+                                    gflg_idx = [sl for sl, x in 
+                                                enumerate(dmap_record['slist'])
+                                                if x == k]
+                                    groundflag.append(dmap_record['gflg']
+                                                      [gflg_idx])
                                 else:
                                     groundflag.append(0)
                             dmap_record['gflg'] = groundflag
