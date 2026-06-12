@@ -344,7 +344,8 @@ class Maps:
             # vector to be plotted later if required)
             if color_vectors is True:
                 for i in range(len(v_mag) - 1):
-                    if parameter == MapParams.FITTED_VELOCITY:
+                    if parameter in [MapParams.FITTED_VELOCITY,
+                                     MapParams.TRUE_VELOCITY]:
                         # Shift HMB lons to MLT
                         shifted_mlts = \
                             dmap_data[record]['boundary.mlon'][0] - \
@@ -370,7 +371,8 @@ class Maps:
                                  linewidth=0.5, zorder=5.0)
             else:
                 for i in range(len(v_mag) - 1):
-                    if parameter == MapParams.FITTED_VELOCITY:
+                    if parameter in [MapParams.FITTED_VELOCITY,
+                                     MapParams.TRUE_VELOCITY]:
                         # Shift HMB lons to MLT
                         shifted_mlts = \
                             dmap_data[record]['boundary.mlon'][0] - \
@@ -396,8 +398,7 @@ class Maps:
         # Plot the sock start dots and reference vector if known
         if color_vectors is True:
             if parameter in [MapParams.MODEL_VELOCITY,
-                             MapParams.RAW_VELOCITY,
-                             MapParams.TRUE_VELOCITY]:
+                             MapParams.RAW_VELOCITY]:
                 if reference_vector > 0:
                     ax.scatter(mlons[:-1], mlats[:-1], c=v_mag[:-1], s=2.0,
                                 vmin=zmin, vmax=zmax,  cmap=cmap, zorder=5.0,
@@ -414,7 +415,8 @@ class Maps:
                 else:
                     ax.scatter(mlons[:-1], mlats[:-1], c=v_mag[:-1], s=2.0,
                                 vmin=zmin, vmax=zmax,  cmap=cmap, zorder=5.0)
-            elif parameter is MapParams.FITTED_VELOCITY:
+            elif parameter in [MapParams.FITTED_VELOCITY,
+                               MapParams.TRUE_VELOCITY]:
                 # Shift HMB lons to MLT
                 shifted_mlts = dmap_data[record]['boundary.mlon'][0] - \
                         (aacgmv2.convert_mlt(
@@ -452,8 +454,7 @@ class Maps:
             # no color so make sure colorbar is turned off
             colorbar = False
             if parameter in [MapParams.MODEL_VELOCITY,
-                             MapParams.RAW_VELOCITY,
-                             MapParams.TRUE_VELOCITY]:
+                             MapParams.RAW_VELOCITY]:
                 if reference_vector > 0:
                     ax.scatter(mlons[:-1], mlats[:-1], c='#292929', s=2.0,
                                 zorder=5.0, clip_on=True)
@@ -467,7 +468,8 @@ class Maps:
                 else:
                     ax.scatter(mlons[:-1], mlats[:-1], c='#292929', s=2.0,
                                 zorder=5.0)
-            elif parameter is MapParams.FITTED_VELOCITY:
+            elif parameter in [MapParams.FITTED_VELOCITY,
+                               MapParams.TRUE_VELOCITY]:
                 # Shift HMB lons to MLT
                 shifted_mlts = dmap_data[record]['boundary.mlon'][0] - \
                         (aacgmv2.convert_mlt(
