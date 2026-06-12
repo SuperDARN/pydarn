@@ -191,7 +191,10 @@ def axis_geomagnetic(date, ax: axes.Axes = None, lowlat: int = 30,
             unshiftedMLT = unshiftedMLT + 24
         elif unshiftedMLT >= 24:
             unshiftedMLT = unshiftedMLT - 24
-        return str(int(np.round(unshiftedMLT))) + ' MLT'
+        try:
+            return str(int(np.round(unshiftedMLT))) + ' MLT'
+        except TypeError:
+            return str(int(np.round(unshiftedMLT)[0])) + ' MLT'
 
     if grid_lines:
         # Mag Lon gridlines

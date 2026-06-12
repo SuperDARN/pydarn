@@ -1,6 +1,7 @@
 import copy
 import datetime as dt
 import numpy as np
+import warnings
 from pydarn import SuperDARNRadars, RadarID
 from scipy.signal import savgol_filter
 from typing import List
@@ -65,10 +66,24 @@ class Detrend:
 
         # Generate filter series
         window_len = (half_k * 2) + 1
+
+        if window_len > len(y_interp):
+            warnings.warn("Length of data required to fit polynomial for " \
+                          "Savitsky-Golay filter exceeds available data. Reduce " \
+                          "window length or supply longer time-frame of data.",
+                          UserWarning)
+
         try:
             kwargs['polyorder']
         except KeyError:
             kwargs['polyorder'] = 2
+
+        if window_len <= kwargs['polyorder']:
+            warnings.warn("Polynomial order for Savitsky-Golay filter exceeds " \
+                          "the length of the window of data required. Reduce " \
+                          "polynomial order or supply longer time-frame of data.",
+                          UserWarning)
+            
         background = savgol_filter(y_interp, window_length=window_len, **kwargs)
 
         # Detrend
