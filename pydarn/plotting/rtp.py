@@ -311,8 +311,6 @@ class RTP:
             set_zmax = False
 
         for dmap_record in cls.dmap_data:
-            if parameter == 'pwr0' and 'slist' in dmap_record.keys():
-                dmap_record['pwr0'] = [dmap_record['pwr0'][i] for i in dmap_record['slist']]
             # get time difference to test if there is some gap data
             rec_time = time2datetime(dmap_record)
             diff_time = 0.0
@@ -368,6 +366,16 @@ class RTP:
                     try:
                         if len(dmap_record[parameter]) == dmap_record['nrang']:
                             good_gates = range(len(dmap_record[parameter]))
+                            # Get slist and amend gflg with extra 0's and replace
+                            # This section is only for pwr0 parameter
+                            groundflag = []
+                            for k in good_gates:
+                                if k in dmap_record['slist']:
+                                    gflg_idx = [l for l,x in enumerate(dmap_record['slist']) if x == k]
+                                    groundflag.append(dmap_record['gflg'][gflg_idx])
+                                else:
+                                    groundflag.append(0)
+                            dmap_record['gflg'] = groundflag
                         else:
                             good_gates = dmap_record['slist']
 
@@ -401,6 +409,7 @@ class RTP:
                     # due to bad quality data.
                     except KeyError:
                         continue
+
         x.append(end_time)
         # Check if there is any data to plot
         if np.all(np.isnan(z)):
