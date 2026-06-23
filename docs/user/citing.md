@@ -112,6 +112,7 @@ Please either cite using the version DOI's below or acknowledge the use of the s
 - Release 4.1.1 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14796490.svg)](https://doi.org/10.5281/zenodo.14796490)
 - Release 4.1.2 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15441879.svg)](https://doi.org/10.5281/zenodo.15441879)
 - Release 4.2 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17943702.svg)](https://doi.org/10.5281/zenodo.17943702)
+- Release 4.3 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20820577.svg)](https://doi.org/10.5281/zenodo.20820577)
 
 
 ## Python Library References 
