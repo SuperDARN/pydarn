@@ -842,22 +842,7 @@ class Fan:
         beam_corners_lats, beam_corners_lons = \
             coords(stid=stid, gates=ranges, rsep=rsep, frang=frang,
                    date=date, **kwargs)
-
-        # If beam selected then reduce lats and lons array
-        if beam is not None:
-            beam_corners_lats = beam_corners_lats[:, beam:beam+2]
-            beam_corners_lons = beam_corners_lons[:, beam:beam+2]
-
-        if projs == Projs.POLAR:
-            beam_corners_lons = np.radians(beam_corners_lons)
-
-        # This section corrects winding order for cartopy plots on a sphere
-        # so that the outline is always anti-clockwise and will fill inside
-        bmsep = SuperDARNRadars.radars[stid].hardware_info.beam_separation
-        if projs != Projs.POLAR and bmsep < 0:
-            beam_corners_lons = beam_corners_lons[::-1]
-            beam_corners_lats = beam_corners_lats[::-1]
-
+        
         # Setup plot
         # This may screw up references
         hemisphere = SuperDARNRadars.radars[stid].hemisphere
@@ -874,7 +859,26 @@ class Fan:
             transform = ax.transData
         else:
             transform = ccrs.Geodetic()
+        
+        # If beam selected then reduce lats and lons array
+        if beam is not None:
+            beam_corners_lats = beam_corners_lats[:, beam:beam+2]
+            beam_corners_lons = beam_corners_lons[:, beam:beam+2]
 
+        if projs == Projs.POLAR:
+            beam_corners_lons = np.radians(beam_corners_lons)
+
+        # This section corrects winding order for cartopy plots on a sphere
+        # so that the outline is always anti-clockwise and will fill inside
+        bmsep = SuperDARNRadars.radars[stid].hardware_info.beam_separation
+        # Some radars have a nevative beam separation, which reverses the
+        # positions of the beam corners. The tight layout needs to be 
+        # calculated before this reversal but later calculations need the
+        # reversal
+        if projs != Projs.POLAR and bmsep < 0:
+            beam_corners_lons = beam_corners_lons[::-1]
+            beam_corners_lats = beam_corners_lats[::-1]
+        
         if boundary:
             # left boundary line
             ax.plot(beam_corners_lons[0:ranges[1]-ranges[0]+1, 0],
@@ -1216,7 +1220,6 @@ class Fan:
         d3 = np.acos((np.sin(c3[0]) * np.sin(c4[0])) +
                      (np.cos(c3[0]) * np.cos(c4[0]) * np.cos(c3[1] - c4[1])))
         d4 = max([d1, d2, d3]) * 100
-
         plot_extent = [d4 + 5, d4 + 5]
 
         kwargs['plot_center'] = plot_center
