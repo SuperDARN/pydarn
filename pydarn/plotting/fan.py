@@ -22,11 +22,13 @@
 #                   as this has yet to be figured out
 # 2023-02-06: CJM - Added option to plot single beams in a scan or FOV diagram
 # 2023-03-01: CJM - Added ball and stick plotting options
-# 2023-03-01: CJM - Added ball and stick plotting options (merged later in year)
 # 2023-08-16: CJM - Corrected for winding order in geo plots
 # 2023-06-28: CJM - Refactored return values
 # 2023-10-14: CJM - Add embargoed data method
 # 2024-10-09: DDB - Control marker and its size in plot_radar_position()
+# 2026-04-20: CJM - Add options for remove_iono_scatter and remove_ground_scatter
+# 2026-02-24: CJM - Added the option of plot_tight and corresponding
+#                   private method
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
@@ -85,13 +87,16 @@ class Fan:
                  scan_time_tolerance: dt.timedelta = dt.timedelta(seconds=30),
                  parameter: str = 'v', cmap: str = None,
                  groundscatter: bool = False, zmin: int = None,
+                 remove_iono_scatter: bool = False,
+                 remove_ground_scatter: bool = False,
                  zmax: int = None, colorbar: bool = True,
                  colorbar_label: str = '', cax=None,
                  title: bool = True, boundary: bool = True,
                  projs: Projs = Projs.POLAR,
                  coords: Coords = Coords.AACGM_MLT,
                  channel: int = 'all', ball_and_stick: bool = False,
-                 len_factor: float = 300, beam: int = None, **kwargs):
+                 len_factor: float = 300, beam: int = None,
+                 plot_tight: bool = False, **kwargs):
         """
         Plots a radar's Field Of View (FOV) fan plot for the given data and
         scan number
@@ -130,6 +135,12 @@ class Fan:
             groundscatter : bool
                 Set true to indicate if groundscatter should be plotted in grey
                 Default: False
+            remove_iono_scatter: boolean
+                if True, ionospheric scatter will not be plotted
+                default: False
+            remove_ground_scatter: boolean
+                if True, ground scatter will not be plotted
+                default: False
             zmin: int
                 The minimum parameter value for coloring
                 Default: {'p_l': [0], 'v': [-200], 'w_l': [0], 'elv': [0]}
@@ -144,7 +155,8 @@ class Fan:
                 Requires colorbar to be true
                 Default: ''
             cax: axes.Axes
-                Pre-defined axis for the colorbar. If not specified and colorbar
+                Pre-defined axis for the colorbar.
+                If not specified and colorbar
                 is True, a new axis will be created.
                 Default: None
             title: bool
@@ -172,6 +184,9 @@ class Fan:
             len_factor : float
                 control the length of the ball and stick plot stick length
                 Default : 300
+            plot_tight: boolean
+                if True, FOV is centered in the plot and zoomed in to fill
+                Default: False
             kwargs: key = value
                 Additional keyword arguments to be used in projection plotting
                 and plot_fov for possible keywords, see: projections.axis_polar
@@ -326,9 +341,18 @@ class Fan:
             scan = scan[0:ranges[1]-ranges[0]]
             grndsct = grndsct[0:ranges[1]-ranges[0]]
 
+        if remove_iono_scatter:
+            iono_scatter = scan*~grndsct.astype(bool)
+
         # Set up axes in correct hemisphere
         stid = RadarID(dmap_data[0]['stid'])
         kwargs['hemisphere'] = SuperDARNRadars.radars[stid].hemisphere
+
+        # Set plot center and plot extent if plot tight is given:
+        if plot_tight and projs != Projs.POLAR:
+            kwargs = Fan.__calculate_tight_layout(beam_corners_lats,
+                                                  beam_corners_lons,
+                                                  projs, **kwargs)
 
         ax, ccrs = projs(date=date, ax=ax, **kwargs)
 
@@ -345,6 +369,13 @@ class Fan:
                           np.ma.masked_array(scan, ~scan.astype(bool)),
                           norm=norm, cmap=cmap, transform=transform,
                           zorder=2)
+            if remove_iono_scatter:
+                is_color = colors.ListedColormap(['white'])
+                ax.pcolormesh(thetas, rs,
+                              np.ma.masked_array(iono_scatter,
+                                                 ~iono_scatter.astype(bool)),
+                              norm=norm, cmap=is_color, transform=transform,
+                              zorder=2)
         else:
             # Get center of each gate instead of edges
             fan_shape = thetas.shape
@@ -417,14 +448,18 @@ class Fan:
                                 end_thetas = np.degrees(end_thetas)
                             # Plot sticks!
                             ax.plot([t_center, end_thetas],
-                                     [r_center, end_rs],
-                                     color=col, zorder=3.0, linewidth=0.5,
-                                     transform=transform)
+                                    [r_center, end_rs],
+                                    color=col, zorder=3.0, linewidth=0.5,
+                                    transform=transform)
 
                     # Plot ground scatter balls (no sticks)
                     if groundscatter and grndsct[i, j] != 0.0:
-                        ax.scatter(t_center, r_center, c='grey', s=1.0,
-                                   transform=transform, zorder=3.0)
+                        if remove_ground_scatter:
+                            ax.scatter(t_center, r_center, c='w', s=1.0,
+                                       transform=transform, zorder=3.0)
+                        else:
+                            ax.scatter(t_center, r_center, c='grey', s=1.0,
+                                       transform=transform, zorder=3.0)
 
         # plot the groundscatter as grey fill
         if groundscatter and not ball_and_stick:
@@ -434,6 +469,21 @@ class Fan:
                                              ~grndsct.astype(bool)),
                           cmap=gs_color,
                           transform=transform, zorder=3)
+        elif not groundscatter and not ball_and_stick:
+            gs_color = colors.ListedColormap(['white'])
+            ax.pcolormesh(thetas, rs,
+                          np.ma.masked_array(grndsct,
+                                             ~grndsct.astype(bool)),
+                          cmap=cmap, alpha=0.0,
+                          transform=transform, zorder=3)
+        if remove_ground_scatter:
+            gs_color = colors.ListedColormap(['white'])
+            ax.pcolormesh(thetas, rs,
+                          np.ma.masked_array(grndsct,
+                                             ~grndsct.astype(bool)),
+                          cmap=gs_color,
+                          transform=transform, zorder=3)
+
         if ccrs is None:
             azm = np.linspace(0, 2 * np.pi, 100)
             r, th = np.meshgrid(rs, azm)
@@ -490,16 +540,19 @@ class Fan:
                          'ground_scatter': grndsct}
                 }
 
-
     @staticmethod
     def plot_fan_input(data_array: list = [], data_datetime: dt.datetime = [],
-                       ax: object = None, stid: RadarID = None, data_groundscatter: list = [],
+                       ax: object = None, stid: RadarID = None,
+                       data_groundscatter: list = [],
                        rsep: int = 45, frang: int = 180,
-                       data_parameter: str = 'v', cmap: str = None, zmin: int = None,
+                       data_parameter: str = 'v', cmap: str = None,
+                       zmin: int = None,
                        zmax: int = None, colorbar: bool = True,
-                       colorbar_label: str = '', cax=None, boundary: bool = True,
+                       colorbar_label: str = '', cax=None,
+                       boundary: bool = True,
                        projs: Projs = Projs.POLAR,
-                       coords: Coords = Coords.AACGM_MLT, **kwargs):
+                       coords: Coords = Coords.AACGM_MLT,
+                       plot_tight: bool = False, **kwargs):
         """
         Plots a radar's Field Of View (FOV) fan plot for the given data and
         scan number
@@ -547,7 +600,8 @@ class Fan:
                 Requires colorbar to be true
                 Default: ''
             cax: axes.Axes
-                Pre-defined axis for the colorbar. If not specified and colorbar
+                Pre-defined axis for the colorbar.
+                If not specified and colorbar
                 is True, a new axis will be created.
             boundary: bool
                 if true then plots the FOV boundaries
@@ -558,6 +612,9 @@ class Fan:
             coords: Enum
                 choice of plotting coordinates
                 default: Coords.AACGM_MLT (Magnetic Lat and MLT)
+            plot_tight: boolean
+                if True, FOV is centered in the plot and zoomed in to fill
+                Default: False
             kwargs: key = value
                 Additional keyword arguments to be used in projection plotting
                 and plot_fov for possible keywords, see: projections.axis_polar
@@ -624,6 +681,11 @@ class Fan:
         norm = norm(zmin, zmax)
 
         kwargs['hemisphere'] = SuperDARNRadars.radars[stid].hemisphere
+        # Set plot center and plot extent if plot tight is given:
+        if plot_tight and projs != Projs.POLAR:
+            kwargs = Fan.__calculate_tight_layout(beam_corners_lats,
+                                                  beam_corners_lons,
+                                                  projs, **kwargs)
         ax, ccrs = projs(date=data_datetime, ax=ax, **kwargs)
 
         if ccrs is None:
@@ -689,7 +751,8 @@ class Fan:
 
     @staticmethod
     def plot_fov(stid: RadarID, date: dt.datetime,
-                 ax=None, ccrs=None, ranges: List = None, boundary: bool = True,
+                 ax=None, ccrs=None, ranges: List = None,
+                 boundary: bool = True,
                  rsep: int = 45, frang: int = 180,
                  projs: Projs = Projs.POLAR,
                  coords: Coords = Coords.AACGM_MLT,
@@ -697,7 +760,8 @@ class Fan:
                  radar_location: bool = True, radar_label: bool = False,
                  line_color: str = 'black',
                  grid: bool = False, beam: int = None,
-                 line_alpha: float = 0.5, **kwargs):
+                 line_alpha: float = 0.5, plot_tight: bool = False,
+                 **kwargs):
         """
         plots only the field of view (FOV) for a given radar station ID (stid)
 
@@ -754,6 +818,9 @@ class Fan:
             radar_label: bool
                 Add a label with the radar abbreviation if True
                 Default: False
+            plot_tight: boolean
+                if True, FOV is centered in the plot and zoomed in to fill
+                Default: False
             kwargs: key = value
                 Additional keyword arguments to be used in projection plotting
                 For possible keywords, see: projections.axis_polar
@@ -775,7 +842,24 @@ class Fan:
         beam_corners_lats, beam_corners_lons = \
             coords(stid=stid, gates=ranges, rsep=rsep, frang=frang,
                    date=date, **kwargs)
-
+        
+        # Setup plot
+        # This may screw up references
+        hemisphere = SuperDARNRadars.radars[stid].hemisphere
+        if ax is None:
+            # Get the hemisphere to pass to plotting projection
+            kwargs['hemisphere'] = hemisphere
+            # Set plot center and plot extent if plot tight is given:
+            if plot_tight and projs != Projs.POLAR:
+                kwargs = Fan.__calculate_tight_layout(beam_corners_lats,
+                                                      beam_corners_lons,
+                                                      projs, **kwargs)
+            ax, ccrs = projs(date=date, **kwargs)
+        if ccrs is None:
+            transform = ax.transData
+        else:
+            transform = ccrs.Geodetic()
+        
         # If beam selected then reduce lats and lons array
         if beam is not None:
             beam_corners_lats = beam_corners_lats[:, beam:beam+2]
@@ -787,22 +871,14 @@ class Fan:
         # This section corrects winding order for cartopy plots on a sphere
         # so that the outline is always anti-clockwise and will fill inside
         bmsep = SuperDARNRadars.radars[stid].hardware_info.beam_separation
+        # Some radars have a nevative beam separation, which reverses the
+        # positions of the beam corners. The tight layout needs to be 
+        # calculated before this reversal but later calculations need the
+        # reversal
         if projs != Projs.POLAR and bmsep < 0:
             beam_corners_lons = beam_corners_lons[::-1]
             beam_corners_lats = beam_corners_lats[::-1]
-
-        # Setup plot
-        # This may screw up references
-        hemisphere = SuperDARNRadars.radars[stid].hemisphere
-        if ax is None:
-            # Get the hemisphere to pass to plotting projection
-            kwargs['hemisphere'] = hemisphere
-            ax, ccrs = projs(date=date, **kwargs)
-        if ccrs is None:
-            transform = ax.transData
-        else:
-            transform = ccrs.Geodetic()
-
+        
         if boundary:
             # left boundary line
             ax.plot(beam_corners_lons[0:ranges[1]-ranges[0]+1, 0],
@@ -979,9 +1055,11 @@ class Fan:
             marker: str
                 Controls which symbol is plotted.
                 Default: "."
-                See https://matplotlib.org/stable/api/markers_api.html#module-matplotlib.markers for options
+                See https://matplotlib.org/stable/api/markers_api.html#module-matplotlib.markers
+                for options
             markersize: int
-                Controls the size of the symbol plotted, "s" passed to ax.scatter().
+                Controls the size of the symbol plotted,
+                "s" passed to ax.scatter().
                 Default: 5
 
         Returns
@@ -1003,7 +1081,8 @@ class Fan:
         if projs == Projs.POLAR:
             lon = np.radians(lon)
         # Plot a dot at the radar site
-        ax.scatter(lon, lat, c=line_color, s=markersize, transform=transform, marker=marker)
+        ax.scatter(lon, lat, c=line_color, s=markersize,
+                   transform=transform, marker=marker)
         return
 
     @staticmethod
@@ -1077,3 +1156,72 @@ class Fan:
                           zfill(2),
                           end_second=str(end_timestamp.second).zfill(2))
         return title
+
+    @staticmethod
+    def __calculate_tight_layout(beam_corners_lats: list,
+                                 beam_corners_lons: list,
+                                 projs, **kwargs):
+        """
+        Calculates the plot_center and plot_extent values needed
+        to center the FOV in the middle of the plot
+
+        Overwrites any given for these values and only works for
+        projs MAG and GEO.
+
+        Parameters
+        -----------
+            beam_corners_lats: list
+                indices of the beams and gates positions: lat
+            beam_corners_lons: list
+                indices of the beams and gates positions: lon
+            projs: Projs object
+
+        Returns
+        -------
+            kwargs: amended kwargs dictionary, including plot_center
+                and plot_extent
+        """
+        # Three corners of the fov
+        c1 = [np.radians(beam_corners_lats[-1, -1]),
+              np.radians(beam_corners_lons[-1, -1])]
+        c2 = [np.radians(beam_corners_lats[-1, 0]),
+              np.radians(beam_corners_lons[-1, 0])]
+        c3 = [np.radians(beam_corners_lats[0, 0]),
+              np.radians(beam_corners_lons[0, 0])]
+
+        # Calculate center of FOV
+        x1 = np.cos(c1[0]) * np.cos(c1[1])
+        x2 = np.cos(c2[0]) * np.cos(c2[1])
+        x3 = np.cos(c3[0]) * np.cos(c3[1])
+        y1 = np.cos(c1[0]) * np.sin(c1[1])
+        y2 = np.cos(c2[0]) * np.sin(c2[1])
+        y3 = np.cos(c3[0]) * np.sin(c3[1])
+        z1 = np.sin(c1[0])
+        z2 = np.sin(c2[0])
+        z3 = np.sin(c3[0])
+
+        x_av = np.mean([x1, x2, x3])
+        y_av = np.mean([y1, y2, y3])
+        z_av = np.mean([z1, z2, z3])
+
+        lat = np.atan2(z_av, np.sqrt(x_av**2 + y_av**2))
+        lon = np.atan2(y_av, x_av)
+        if projs == Projs.GEO:
+            plot_center = [np.degrees(lon), np.degrees(lat)]
+        elif projs == Projs.MAG:
+            plot_center = [np.degrees(lon)/15, np.degrees(lat)]
+
+        # Farthest point from the center
+        c4 = [lat, lon]
+        d1 = np.acos((np.sin(c1[0]) * np.sin(c4[0])) +
+                     (np.cos(c1[0]) * np.cos(c4[0]) * np.cos(c1[1] - c4[1])))
+        d2 = np.acos((np.sin(c2[0]) * np.sin(c4[0])) +
+                     (np.cos(c2[0]) * np.cos(c4[0]) * np.cos(c2[1] - c4[1])))
+        d3 = np.acos((np.sin(c3[0]) * np.sin(c4[0])) +
+                     (np.cos(c3[0]) * np.cos(c4[0]) * np.cos(c3[1] - c4[1])))
+        d4 = max([d1, d2, d3]) * 100
+        plot_extent = [d4 + 5, d4 + 5]
+
+        kwargs['plot_center'] = plot_center
+        kwargs['plot_extent'] = plot_extent
+        return kwargs

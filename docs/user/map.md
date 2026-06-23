@@ -24,6 +24,7 @@ Map field descriptions can be found [here](https://radar-software-toolkit-rst.re
 | ------------------ | ----------------------------- | ----------------------------- |
 | Fitted Velocity    | `MapParams.FITTED_VELOCITIES` | see Fitted Velocities section |
 | Modeled Velocities | `MapParams.MODEL_VELOCITIES`  | `model.vel.median`            |
+| True Velocities    | `MapParams.TRUE_VELOCITIES`   | see True Velocities section   |
 | Raw Velocities     | `MapParams.RAW_VELOCITIES`    | `vector.vel.median`           |
 | Power              | `MapParams.POWER`             | `vector.pwr.median`           |
 | Spectral Width     | `MapParams.SPECTRAL_WIDTH`    | `vector.wdt.median`           |
@@ -37,6 +38,11 @@ Currently, map plots in pyDARN get geomagnetic positions of the mapped data in [
 Fitted velocities are velocity vectors which represent the fitted convection pattern. They are entirely in the direction of the fitted convection flow and so can be fairly different to line-of-sight velocities, but still ultimately constrained by them. 
 
 Fitted velocity vectors are by default only calculated at the same positions of the line-of-sight vectors, but fit vectors at an arbitrary position can be obtained by using the `calculated_fitted_velocities` function in `map.py`.
+
+### True Velocities
+
+True velocity is a name given to a value of velocity derived from the fitted and raw velocities. Note that is not the 'absolute true' velocity that is occuring in the ionosphere, it is just a different representation of the velocities. 
+The True velocity is given by combining the average line-of-sight velocity measured at each grid cell with the component of the fitted velocity which is perpendicular to the line-of-sight direction. More information can be read in [Chisham et al.2002](https://agupubs.onlinelibrary.wiley.com/doi/10.1029/2001JA009124).
 
 ## Basic usage
 

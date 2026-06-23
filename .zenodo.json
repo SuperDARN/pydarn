@@ -5,11 +5,6 @@
         },
         {
             "affiliation": "University of Saskatchewan",
-            "name": "Rohel, R.A.",
-            "orcid": "0000-0003-2208-1553"
-        },
-        {
-            "affiliation": "University of Saskatchewan",
             "name": "Martin, C.J.",
             "orcid": "0000-0002-8278-9783"
         },
@@ -17,6 +12,24 @@
             "affiliation": "University of Saskatchewan",
             "name": "Billett, D.D.",
             "orcid": "0000-0002-8905-8609"
+        },
+        {
+            "affiliation": "Virginia Tech",
+            "name": "Wanner, T.D.",
+            "orcid":"0009-0007-0616-5796"
+        },
+        {
+            "affiliation": "University of Saskatchewan",
+            "name": "Kucharyshen, K."
+        },
+        {
+            "affiliation": "University of Saskatchewan",
+            "name": "Sylvestre, R."
+        },
+        {
+            "affiliation": "University of Saskatchewan",
+            "name": "Rohel, R.A.",
+            "orcid": "0000-0003-2208-1553"
         },
         {
             "affiliation": "Virginia Tech",

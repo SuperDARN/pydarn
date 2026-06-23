@@ -11,6 +11,7 @@
 #                   vector
 # 2022-08-15: CJM - Removed plot_FOV call for default uses
 # 2022-12-13: CJM - Limited reference vectors to only velocity use
+# 2023-03-14: CJM - Added true vector option
 # 2023-06-28: CJM - Refactored return values
 # 2024-07-11: CJM - Added potential time series plot
 #
@@ -114,6 +115,7 @@ class Maps:
                     MapParams.FITTED_VELOCITY: 'plasma',
                     MapParams.MODEL_VELOCITY: 'plasma',
                     MapParams.RAW_VELOCITY: 'plasma',
+                    MapParams.TRUE_VELOCITY: 'plasma',
                     MapParams.POWER: 'plasma_r',
                     MapParams.SPECTRAL_WIDTH: PyDARNColormaps.PYDARN_VIRIDIS
             zmin: int
@@ -121,6 +123,7 @@ class Maps:
                 Default: MapParams.FITTED_VELOCITY: [0],
                          MapParams.MODEL_VELOCITY: [0],
                          MapParams.RAW_VELOCITY: [0],
+                         MapParams.TRUE_VELOCITY: [0],
                          MapParams.POWER: [0],
                          MapParams.SPECTRAL_WIDTH: [0]
             zmax: int
@@ -128,6 +131,7 @@ class Maps:
                 Default: MapParams.FITTED_VELOCITY: [1000],
                          MapParams.MODEL_VELOCITY: [1000],
                          MapParams.RAW_VELOCITY: [1000],
+                         MapParams.TRUE_VELOCITY: [1000],
                          MapParams.POWER: [250],
                          MapParams.SPECTRAL_WIDTH: [250]
             colorbar: bool
@@ -176,6 +180,7 @@ class Maps:
             cmap = {MapParams.FITTED_VELOCITY: PyDARNColormaps.PYDARN_PLASMA_R,
                     MapParams.MODEL_VELOCITY: PyDARNColormaps.PYDARN_PLASMA_R,
                     MapParams.RAW_VELOCITY: PyDARNColormaps.PYDARN_PLASMA_R,
+                    MapParams.TRUE_VELOCITY: PyDARNColormaps.PYDARN_PLASMA_R,
                     MapParams.POWER: PyDARNColormaps.PYDARN_PLASMA,
                     MapParams.SPECTRAL_WIDTH: PyDARNColormaps.PYDARN_VIRIDIS}
             cmap = cmap[parameter]
@@ -183,6 +188,7 @@ class Maps:
         defaultzminmax = {MapParams.FITTED_VELOCITY: [0, 1000],
                           MapParams.MODEL_VELOCITY: [0, 1000],
                           MapParams.RAW_VELOCITY: [0, 1000],
+                          MapParams.TRUE_VELOCITY: [0, 1000],
                           MapParams.POWER: [0, 250],
                           MapParams.SPECTRAL_WIDTH: [0, 250]}
         if zmin is None:
@@ -259,23 +265,39 @@ class Maps:
                                                          record]['fit.order'],
                                                      lat_min=dmap_data[
                                                          record]['latmin'])
-
         elif parameter == MapParams.MODEL_VELOCITY:
             v_mag = dmap_data[record]['model.vel.median']
             azm_v = np.radians(dmap_data[record]['model.kvect'])
         elif parameter == MapParams.RAW_VELOCITY:
             v_mag = dmap_data[record]['vector.vel.median']
             azm_v = np.radians(dmap_data[record]['vector.kvect'])
+        elif parameter == MapParams.TRUE_VELOCITY:
+            # Get LOS velocities
+            v_los = dmap_data[record]['vector.vel.median']
+            a_los = np.radians(dmap_data[record]['vector.kvect'])
+            # Get fitted velocities
+            v_fit, a_fit = \
+                    cls.calculated_fitted_velocities(mlats=mlats,
+                                                     mlons=np.radians(
+                                                         data_lons),
+                                                     hemisphere=hemisphere,
+                                                     fit_coefficient=dmap_data[
+                                                         record]['N+2'],
+                                                     fit_order=dmap_data[
+                                                         record]['fit.order'],
+                                                     lat_min=dmap_data[
+                                                         record]['latmin'])
+            v_mag, azm_v = cls.calculated_true_velocities(v_los, a_los,
+                                                          v_fit, a_fit)
         elif parameter == MapParams.POWER:
             v_mag = dmap_data[record]['vector.pwr.median']
             azm_v = np.radians(dmap_data[record]['vector.kvect'])
-
         elif parameter == MapParams.SPECTRAL_WIDTH:
             v_mag = dmap_data[record]['vector.wdt.median']
             azm_v = np.radians(dmap_data[record]['vector.kvect'])
 
         if parameter in [MapParams.FITTED_VELOCITY, MapParams.MODEL_VELOCITY,
-                         MapParams.RAW_VELOCITY]:
+                         MapParams.RAW_VELOCITY, MapParams.TRUE_VELOCITY]:
             # Make reference vector and add it to the array to
             # be calculated too
             reflat = (np.abs(plt.gca().get_ylim()[1]) - 5) * hemisphere.value
@@ -322,7 +344,8 @@ class Maps:
             # vector to be plotted later if required)
             if color_vectors is True:
                 for i in range(len(v_mag) - 1):
-                    if parameter == MapParams.FITTED_VELOCITY:
+                    if parameter in [MapParams.FITTED_VELOCITY,
+                                     MapParams.TRUE_VELOCITY]:
                         # Shift HMB lons to MLT
                         shifted_mlts = \
                             dmap_data[record]['boundary.mlon'][0] - \
@@ -348,7 +371,8 @@ class Maps:
                                  linewidth=0.5, zorder=5.0)
             else:
                 for i in range(len(v_mag) - 1):
-                    if parameter == MapParams.FITTED_VELOCITY:
+                    if parameter in [MapParams.FITTED_VELOCITY,
+                                     MapParams.TRUE_VELOCITY]:
                         # Shift HMB lons to MLT
                         shifted_mlts = \
                             dmap_data[record]['boundary.mlon'][0] - \
@@ -391,7 +415,8 @@ class Maps:
                 else:
                     ax.scatter(mlons[:-1], mlats[:-1], c=v_mag[:-1], s=2.0,
                                 vmin=zmin, vmax=zmax,  cmap=cmap, zorder=5.0)
-            elif parameter is MapParams.FITTED_VELOCITY:
+            elif parameter in [MapParams.FITTED_VELOCITY,
+                               MapParams.TRUE_VELOCITY]:
                 # Shift HMB lons to MLT
                 shifted_mlts = dmap_data[record]['boundary.mlon'][0] - \
                         (aacgmv2.convert_mlt(
@@ -443,7 +468,8 @@ class Maps:
                 else:
                     ax.scatter(mlons[:-1], mlats[:-1], c='#292929', s=2.0,
                                 zorder=5.0)
-            elif parameter is MapParams.FITTED_VELOCITY:
+            elif parameter in [MapParams.FITTED_VELOCITY,
+                               MapParams.TRUE_VELOCITY]:
                 # Shift HMB lons to MLT
                 shifted_mlts = dmap_data[record]['boundary.mlon'][0] - \
                         (aacgmv2.convert_mlt(
@@ -493,7 +519,8 @@ class Maps:
             else:
                 if parameter in [MapParams.FITTED_VELOCITY,
                                  MapParams.MODEL_VELOCITY,
-                                 MapParams.RAW_VELOCITY]:
+                                 MapParams.RAW_VELOCITY,
+                                 MapParams.TRUE_VELOCITY]:
                     cb.set_label('Velocity (m s$^{-1}$)')
                 elif parameter is MapParams.SPECTRAL_WIDTH:
                     cb.set_label('Spectral Width (m s$^{-1}$)')
@@ -598,6 +625,55 @@ class Maps:
                                       and (m != 0) and el**2 + 2 * m - 1) or 0
 
     @classmethod
+    def calculated_true_velocities(cls, v_los: list, a_los: list,
+                                   v_fit: list, a_fit: list):
+        """
+        Calculates the true velocities (Lasse Clausen/Ade Grocott Version)
+        The True velocity is calculated as the combined LOS vector and the
+        perpendicular-to-LOS component of the fitted velocity
+        Be aware many of the vectors in this function are in multi-dimensional
+        arrays
+
+        Parameters
+        ----------
+            v_los: array
+                magnitude of LOS velocity vector
+            a_los: array
+                angle of LOS velocity vector from north
+            v_fit: array
+                magnitude of fitted velocity vector
+            a_fit: array
+                angle of fitted velocity vector from magnetic north
+        """
+        # Reduce LOS vector to components
+        tkvect = np.empty([2, len(a_los)])
+        tkvect[0,:] = - v_los * np.cos(a_los)
+        tkvect[1,:] = v_los * np.sin(a_los)
+
+        # Get fitted vector components
+        rvect = np.empty([2, len(a_fit)])
+        rvect[0,:] = - v_fit * np.cos(a_fit)
+        rvect[1,:] = v_fit * np.sin(a_fit)
+
+        # Get fitted component along the los direction
+        # (a.b / b.b) * b
+        vn = (np.sum(rvect * tkvect, axis=0) / np.sum(tkvect * tkvect, axis=0)) * tkvect
+
+        # Perp is original vect - parallel
+        tvect = rvect - vn
+
+        # Combine vectors
+        for k in range(0,len(v_los)):
+            tvect[:,k] = tvect[:,k] + tkvect[:,k]
+
+        # Calculate the magnitude and azimuth
+        v_true = np.sqrt(tvect[0,:]**2 + tvect[1,:]**2)
+        a_true = np.arctan2(tvect[1,:], -tvect[0,:])
+
+        return v_true, a_true
+
+
+    @classmethod
     def calculated_fitted_velocities(cls, mlats: np.array, mlons: np.array,
                                      fit_coefficient: np.array,
                                      hemisphere: Enum = Hemisphere.North,
@@ -638,7 +714,8 @@ class Maps:
         # i is the index of the list
         # x_i is the element of x at ith index
         for i, x_i in enumerate(x):
-            temp_poly = special.lpmn(fit_order, fit_order, x_i)
+            temp_poly = special.assoc_legendre_p_all(fit_order, fit_order, x_i)
+            temp_poly = ((temp_poly[0].T).tolist()[0:fit_order+1],)
             if i == 0:
                 legendre_poly = np.append([temp_poly[0]], [temp_poly[0]],
                                           axis=0)
@@ -973,7 +1050,8 @@ class Maps:
         x = np.cos(alpha*theta)
         # Legendre Polys
         for j, xj in enumerate(x):
-            plm_tmp = special.lpmn(fit_order, fit_order, xj)
+            plm_tmp = special.assoc_legendre_p_all(fit_order, fit_order, xj)
+            plm_tmp = ((plm_tmp[0].T).tolist()[0:fit_order+1],)
             if j == 0:
                 plm_fit = np.append([plm_tmp[0]], [plm_tmp[0]], axis=0)
             else:
@@ -1075,7 +1153,8 @@ class Maps:
 
         # Legendre Polys
         for j, xj in enumerate(x):
-            plm_tmp = special.lpmn(fit_order, fit_order, xj)
+            plm_tmp = special.assoc_legendre_p_all(fit_order, fit_order, xj)
+            plm_tmp = ((plm_tmp[0].T).tolist()[0:fit_order+1],)
             if j == 0:
                 plm_fit = np.append([plm_tmp[0]], [plm_tmp[0]], axis=0)
             else:

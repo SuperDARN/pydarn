@@ -9,12 +9,13 @@ Python data visualization library for the Super Dual Auroral Radar Network (Supe
 
 ## Changelog
 
-## Version 4.2 - Major Release!
+## Version 4.3 - Minor Release!
 
-This major release includes:
-- Updates to pyDARNio interface: faster reading of files
-- `nightshade` added to range-time plot options
-- ENUM use for retrieving radar information
+This minor release includes:
+- Updated SciPy restriction and changes associated
+- NEW: True velocity in map plots
+- NEW: FITACF data detrending algorithm
+- Bug Fix: Updating HDW files on Windows fixed
 
 ## Documentation
 
@@ -51,7 +52,7 @@ plt.show()
 
 For more information and tutorials on pyDARN please see the [tutorial section](https://pydarn.readthedocs.io/en/main/).
 
-We also have a [Jupyter notebook](https://zenodo.org/record/7005203) with many examples to support our recent [publication](https://doi.org/10.3389/fspas.2022.1022690).
+We also have a [Jupyter notebook](https://zenodo.org/record/7005203) with many examples to support our [publication](https://doi.org/10.3389/fspas.2022.1022690). This notebook may be out of date.
 
 ## Getting involved
 

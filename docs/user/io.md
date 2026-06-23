@@ -18,7 +18,7 @@ the additional permissions listed below.
 # Reading in DMap structured SuperDARN data files
 ---
 
-Data Map (DMap) is a binary self-describing format that was developed by Rob Barnes. 
+Data Map (DMap) is a binary self-describing format that was developed by the SuperDARN community. 
 This format is currently the primary format used by SuperDARN. 
 For more information on DMap please see [RST Documentation](https://radar-software-toolkit-rst.readthedocs.io/en/latest/).
 Types of files used by SuperDARN which are usually accessed in DMap format are:

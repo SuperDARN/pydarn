@@ -12,6 +12,8 @@
 # 2023-06-12 Carley Martin added coordinate plotting method
 # 2023-06-28 Carley Martin refactored return values
 # 2023-10-14 Carley Martin added embargoed data method
+# 2026-04-20 Carley Martin added options for remove_iono_scatter 
+#            and remove_ground_scatter
 #
 # Disclaimer:
 # pyDARN is under the LGPL v3 license found in the root directory LICENSE.md
@@ -81,6 +83,8 @@ class RTP:
                         beam_num: int = 0, channel: int = 'all', ax=None,
                         background: str = 'w', background_alpha: float = 0.0,
                         groundscatter: bool = False,
+                        remove_iono_scatter: bool = False,
+                        remove_ground_scatter: bool = False,
                         zmin: int = None, zmax: int = None,
                         start_time: datetime = None, end_time: datetime = None,
                         colorbar: plt.colorbar = None, ymin: int = None,
@@ -124,6 +128,12 @@ class RTP:
             Flag to indicate if groundscatter should be plotted. If string
             groundscatter will be represented by that color else grey.
             Default : False
+        remove_iono_scatter: boolean
+            if True, ionospheric scatter will not be plotted
+            default: False
+        remove_ground_scatter: boolean
+            if True, ground scatter will not be plotted
+            default: False
         background : str
             color of the background in the plot
             default: white
@@ -284,9 +294,12 @@ class RTP:
         # x: time date data
         x = []
 
+        # If remove_ground scatter is chosen, set gs to white
+        if remove_ground_scatter:
+            groundscatter = 'w'
+
         # We cannot simply use numpy's built in min and max function
         # because of the groundscatter value :(
-
         # These flags indicate if zmin and zmax should change
         set_zmin = True
         set_zmax = True
@@ -353,6 +366,19 @@ class RTP:
                     try:
                         if len(dmap_record[parameter]) == dmap_record['nrang']:
                             good_gates = range(len(dmap_record[parameter]))
+                            # Get slist and amend gflg with extra 0's and replace
+                            # This section is only for pwr0 parameter
+                            groundflag = []
+                            for k in good_gates:
+                                if k in dmap_record['slist']:
+                                    gflg_idx = [sl for sl, x in 
+                                                enumerate(dmap_record['slist'])
+                                                if x == k]
+                                    groundflag.append(dmap_record['gflg']
+                                                      [gflg_idx])
+                                else:
+                                    groundflag.append(0)
+                            dmap_record['gflg'] = groundflag
                         else:
                             good_gates = dmap_record['slist']
 
@@ -368,6 +394,9 @@ class RTP:
                                 z[i][good_gates[j]] = -1000000
                             # otherwise store parameter value
                             # TODO: refactor and clean up this code
+                            elif dmap_record['gflg'][j] == 0 and\
+                                remove_iono_scatter:
+                                z[i][good_gates[j]] = -1000000
                             elif cls.__filter_data_check(dmap_record,
                                                          plot_filter, j):
                                 z[i][good_gates[j]] = \
@@ -383,6 +412,7 @@ class RTP:
                     # due to bad quality data.
                     except KeyError:
                         continue
+
         x.append(end_time)
         # Check if there is any data to plot
         if np.all(np.isnan(z)):
@@ -436,7 +466,10 @@ class RTP:
                      'v': PyDARNColormaps.PYDARN_VELOCITY,
                      'w_l': PyDARNColormaps.PYDARN_VIRIDIS,
                      'elv': PyDARNColormaps.PYDARN_INFERNO}
-            cmap = cmaps[parameter]
+            try:
+                cmap = cmaps[parameter]
+            except KeyError:
+                cmap = PyDARNColormaps.PYDARN_VIRIDIS
 
         # set the background color, this needs to happen to avoid
         # the overlapping problem that occurs
@@ -444,6 +477,18 @@ class RTP:
         # plot!
         im = ax.pcolormesh(time_axis, y_axis, z_data, lw=0.01,
                            cmap=cmap, norm=norm, **kwargs)
+
+        if remove_iono_scatter and not groundscatter:
+            iono_scatter = np.ma.masked_where(z_data != -1000000, z_data)
+            is_color = colors.ListedColormap(['white'])
+            ax.pcolormesh(time_axis, y_axis, iono_scatter, lw=0.01,
+                               cmap=is_color, norm=norm, **kwargs)
+
+        elif remove_iono_scatter and groundscatter:
+            raise plot_exceptions.GeneralError(message =
+                                               '"groundscatter" must be'
+                                               ' False to use'
+                                               ' remove_iono_scatter')
 
         if isinstance(groundscatter, str):
             ground_scatter = np.ma.masked_where(z_data != -1000000, z_data)
@@ -905,6 +950,7 @@ class RTP:
                      plot_elv: bool = True, title=None,
                      background: str = 'w',
                      groundscatter: bool = True,
+                     remove_ground_scatter: bool = False,
                      channel: int = 'all', line_color: dict = {},
                      range_estimation: object =
                      RangeEstimation.SLANT_RANGE,
@@ -1284,6 +1330,9 @@ class RTP:
                     grndflg = True
                 else:
                     grndflg = False
+
+                if remove_ground_scatter:
+                    grndflg = 'w'
                 # with warning catch, catches all the warnings
                 # that would be produced by time-series this would be
                 # the citing warning.
@@ -1490,6 +1539,8 @@ class RTP:
                         beam_num: int = 0, channel: int = 'all', ax=None,
                         background: str = 'w', background_alpha: float = 0.0,
                         groundscatter: bool = False,
+                        remove_iono_scatter: bool = False,
+                        remove_ground_scatter: bool = False,
                         zmin: int = None, zmax: int = None,
                         coords: object = Coords.AACGM, latlon: str = 'lat',
                         start_time: datetime = None, end_time: datetime = None,
@@ -1536,6 +1587,9 @@ class RTP:
             Flag to indicate if groundscatter should be plotted. If string
             groundscatter will be represented by that color else grey.
             Default : False
+        remove_iono_scatter:  boolean
+            if True, ionospheric scatter will not be plotted
+            default: False
         background : str
             color of the background in the plot
             default: white
@@ -1707,6 +1761,10 @@ class RTP:
         # x: time date data
         x = []
 
+        # If remove_ground scatter is chosen, set gs to white
+        if remove_ground_scatter:
+            groundscatter = 'w'
+
         # We cannot simply use numpy's built in min and max function
         # because of the groundscatter value :(
 
@@ -1789,6 +1847,9 @@ class RTP:
                                 # chosen value from davitpy to make the
                                 # groundscatter a different color
                                 # from the color map
+                                z[i][good_gates[j]] = -1000000
+                            elif dmap_record['gflg'][j] == 0 and\
+                                remove_iono_scatter:
                                 z[i][good_gates[j]] = -1000000
                             # otherwise store parameter value
                             # TODO: refactor and clean up this code
@@ -1914,6 +1975,18 @@ class RTP:
         # plot!
         im = ax.pcolormesh(time_axis, y_axis, z_data, lw=0.01,
                            cmap=cmap, norm=norm, **kwargs)
+
+        if remove_iono_scatter and not groundscatter:
+            iono_scatter = np.ma.masked_where(z_data != -1000000, z_data)
+            is_color = colors.ListedColormap(['white'])
+            ax.pcolormesh(time_axis, y_axis, iono_scatter, lw=0.01,
+                               cmap=is_color, norm=norm, **kwargs)
+
+        elif remove_iono_scatter and groundscatter:
+            raise plot_exceptions.GeneralError(message =
+                                               '"groundscatter" must be'
+                                               ' False to use'
+                                               ' remove_iono_scatter')
 
         if isinstance(groundscatter, str):
             ground_scatter = np.ma.masked_where(z_data != -1000000, z_data)

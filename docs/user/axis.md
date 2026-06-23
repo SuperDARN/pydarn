@@ -83,7 +83,7 @@ plt.show()
 | coastline_linewidth=(float)    | Uses Cartopy to set line width of the coastlines                                     |
 | grid_lines=(bool)              | Uses Cartopy to plot grid lines                                                      |
 | nightshade=(int)               | Uses the value given to calculate and show where on the plot the Earth is in shadow  |
-| plot_center=[float,float]      | Longitude and latitude of the desired center of the plot (e.g. [-90, 60])            |
+| plot_center=[float,float]      | MLT(MAG)/Longitude(GEO) and latitude of the desired center of the plot (e.g. [6, 60])            |
 | plot_extent=[float,float]      | Plotting extent in terms of percentage of the earth (e.g. [80,50])                   |
 
 This choice will return an `ax` object and a Cartopy `ccrs` object (coordinate reference system).

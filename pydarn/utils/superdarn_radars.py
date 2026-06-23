@@ -26,8 +26,8 @@ import shutil
 from typing import NamedTuple
 from enum import Enum
 from datetime import datetime
-from subprocess import check_call
-
+from urllib import request
+from zipfile import ZipFile
 
 def get_hdw_files(force: bool = True, version: str = None):
     """
@@ -46,35 +46,42 @@ def get_hdw_files(force: bool = True, version: str = None):
     have yet to be versioned.
     """
 
-    # Path should the path where pydarn is installed
-    hdw_path = "{}/hdw/".format(os.path.dirname(pydarn.utils.__file__))
-
+    # Path should the path where pydarn utils are located, joined with 'hdw'. 
+    hdw_path = os.path.join(os.path.dirname(pydarn.utils.__file__), "hdw")
     if not os.path.exists(hdw_path):
         os.makedirs(hdw_path)
 
     # TODO: implement when DSWG starts versioning hardware files
     if version is not None:
-        raise Exception("This feature is not implemented yet")
+        raise NotImplementedError("This feature is not implemented, Versioned hardware does not exist yet.") 
 
     # if there is no files in hdw folder or force is true
     # download the hdw files
     if len(os.listdir(hdw_path)) == 0 or force:
-        # pycurl doesn't download a zip folder easily so
-        # use the command line command
-        check_call(['curl', '-L', '-o', hdw_path+'/main.zip',
-                    'https://github.com/SuperDARN/hdw/archive/main.zip'])
-        # use unzip command because zipfile on works with files and not folders
-        # though this is possible with zipfile but this was easier for me to
-        # get it working
-        check_call(['unzip', '-d', hdw_path, hdw_path+'/main.zip'])
-        dat_files = glob.glob(hdw_path+'/hdw-main/*')
-        # shutil only moves specific files so we need to move
-        # everything one at a time
-        for hdw_file in dat_files:
-            shutil.move(hdw_file, hdw_path+os.path.basename(hdw_file))
-        # delete the empty folder
-        os.removedirs(hdw_path+'/hdw-main/')
+       # Define URL and temporary file paths
+        url = 'https://github.com/SuperDARN/hdw/archive/main.zip'
+        zip_path = os.path.join(hdw_path, 'main.zip')
+        unzip_dir_name = 'hdw-main'  # The unzipped folder will have this name
+        unzip_dir_path = os.path.join(hdw_path, unzip_dir_name) 
+        try:
+            # Download the file using Python's urllib
+            request.urlretrieve(url, zip_path)
 
+            # Extract the zip file using Python's zipfile module
+            with ZipFile(zip_path, 'r') as zip_ref:
+                zip_ref.extractall(hdw_path)
+
+            # Move files from the subdirectory to the parent hdw_path
+            source_dir = os.path.join(hdw_path, unzip_dir_name)
+            files_to_move = glob.glob(os.path.join(source_dir, '*'))
+            for file_path in files_to_move:
+                shutil.move(file_path, hdw_path)
+        finally:
+            # Clean up the downloaded zip file and the empty subdirectory
+            if os.path.exists(zip_path):
+                os.remove(zip_path)
+            if os.path.exists(unzip_dir_path):
+                shutil.rmtree(unzip_dir_path, ignore_errors=True)
 
 def read_hdw_file(abbrv, date: datetime = None, update: bool = False):
     """
@@ -249,7 +256,6 @@ def read_hdw_file(abbrv, date: datetime = None, update: bool = False):
                             beams=int(hdw_data[j][21]))
     except FileNotFoundError:
         raise pydarn.radar_exceptions.HardwareFileNotFoundError(abbrv)
-
 
 class Hemisphere(Enum):
     """
