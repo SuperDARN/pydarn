@@ -18,8 +18,9 @@
 #  2022-03-04 Marina Schmidt add the VH_Types class to the bottom
 """ virtual_heights.py comprises of different of virtual height models"""
 import enum
+import numpy as np
 
-def chisham(target_range: float, **kwargs):
+def chisham(target_range: float | np.typing.NDArray, **kwargs):
     """
     Mapping ionospheric backscatter measured by the SuperDARN HF
     radars – Part 1: A new empirical virtual height model by
@@ -27,7 +28,7 @@ def chisham(target_range: float, **kwargs):
 
     Parameters
     ----------
-    target_range: float
+    target_range: float or np.array
         is the range from radar to the target (echos)
         sometimes known as slant range [km]
     kwargs: is only needed to avoid key item errors
@@ -36,26 +37,35 @@ def chisham(target_range: float, **kwargs):
     -------
     altered target_range (slant range) [km]
     """
+
+    # Check for single inputs - will convert back at the end so it doesn't break upstream code
+    is_scalar = np.isscalar(target_range)
+    x = np.asarray(target_range, dtype=float)
+    result = np.empty_like(x)
+
     # Model constants
     A_const = (108.974, 384.416, 1098.28)
     B_const = (0.0191271, -0.178640, -0.354557)
     C_const = (6.68283e-5, 1.81405e-4, 9.39961e-5)
 
-    # determine which region of ionosphere the gate
-    if target_range < 115:
-        return (target_range / 115.0) * 112.0
-    elif target_range < 787.5:
-        return A_const[0] + B_const[0] * target_range + C_const[0] *\
-                 target_range**2
-    elif target_range <= 2137.5:
-        return A_const[1] + B_const[1] * target_range + C_const[1] *\
-                 target_range**2
-    else:
-        return A_const[2] + B_const[2] * target_range + C_const[2] *\
-                 target_range**2
+    # Determine which region of ionosphere the gate is from
+    m1 = x < 115
+    result[m1] = (x[m1] / 115.0) * 112.0
+
+    m2 = (x >= 115) & (x < 787.5)
+    result[m2] = A_const[0] + B_const[0] * x[m2] + C_const[0] * x[m2] ** 2
+
+    m3 = (x >= 787.5) & (x <= 2137.5)
+    result[m3] = A_const[1] + B_const[1] * x[m3] + C_const[1] * x[m3] ** 2
+
+    m4 = x > 2137.5
+    result[m4] = A_const[2] + B_const[2] * x[m4] + C_const[2] * x[m4] ** 2
+
+    # If it was a single range, convert it back
+    return result.item() if is_scalar else result
 
 
-def standard_virtual_height(target_range: float, cell_height: int = 300,
+def standard_virtual_height(target_range: float | np.typing.NDArray, cell_height: int = 300,
                             **kwargs):
     """
     cell_height, target_range and x_height are in km
@@ -71,7 +81,7 @@ def standard_virtual_height(target_range: float, cell_height: int = 300,
 
     Parameters
     ----------
-    target_range: float
+    target_range: float or np.array
         is the range from radar to the target (echos)
         sometimes known as slant range [km]
     cell_height: int
@@ -84,19 +94,38 @@ def standard_virtual_height(target_range: float, cell_height: int = 300,
     altered target_range (slant range) [km]
     """
     # TODO: why 115?
+
+    # Check for single inputs - will convert back at the end so it doesn't break upstream code
+    is_scalar = np.isscalar(target_range) and np.isscalar(cell_height)
+    # broadcasting handles if ones a float and ones an array
+    x, ch = np.broadcast_arrays(target_range, cell_height)
+    x = x.astype(float)
+    ch = ch.astype(float)
+    result = np.empty_like(x)
+
     # map everything into the E region
-    if cell_height <= 150 and target_range > 150:
-        return cell_height
+    m1 = (ch <= 150) & (x > 150)
+    result[m1] = ch[m1]
+
     # virtual height equation (1) from the above paper
-    elif target_range < 150:
-        return (target_range / 150.0) * 115
-    elif target_range >= 150 and target_range <= 600:
-        return 115
-    elif target_range > 600 and target_range < 800:
-        return (target_range - 600) / 200 * (cell_height - 115) + 115
-    # higher than 800 km
-    else:
-        return cell_height
+    # (m1 requires x > 150, so m1 and m2 can never overlap. No need to exclude m1.)
+    m2 = x < 150
+    result[m2] = (x[m2] / 150.0) * 115
+
+    # (x >= 150 CAN overlap with m1, so we explicitly exclude m1)
+    m3 = (~m1) & (x >= 150) & (x <= 600)
+    result[m3] = 115
+
+    m4 = (~m1) & (x > 600) & (x < 800)
+    result[m4] = (x[m4] - 600) / 200.0 * (ch[m4] - 115) + 115
+
+    #  higher than 800 km, just what's left
+    m5 = ~(m1 | m2 | m3 | m4)
+    result[m5] = ch[m5]
+
+    # If it was a single range, convert it back
+    return result.item() if is_scalar else result
+
 
 
 class VHModels(enum.Enum):

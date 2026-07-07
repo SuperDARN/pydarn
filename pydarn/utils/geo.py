@@ -37,7 +37,7 @@ import numpy as np
 from pydarn import VHModels, EARTH_EQUATORIAL_RADIUS
 
 
-def geocentric_coordinates(target_range: float, psi: float, boresight: float,
+def geocentric_coordinates(target_range: float | np.typing.NDArray, psi: float | np.typing.NDArray, boresight: float,
                            virtual_height_model: VHModels =
                            VHModels.STANDARD,
                            **kwargs):
@@ -51,14 +51,14 @@ def geocentric_coordinates(target_range: float, psi: float, boresight: float,
             radars site latitude [rad]
         radar_lon : float
             radars site longitude [lon]
-        target_range: float
+        target_range: float or np.ndarray
             The range from the instrument to the target (echo) [km]
-        cell_height : float
+        cell_height : float or np.ndarray
             virtual height of the gate cell [km]
-        psi: int
+        psi: int or np.ndarray
             [rad]
         boresight: float
-            boresight of the radar beam [rad]
+            boresight of the radar [rad]
         virtual_height_model: VHModels
             use for choosing type of virtual height
             default: VHModels.STANDARD
@@ -87,41 +87,50 @@ def geocentric_coordinates(target_range: float, psi: float, boresight: float,
     psi_sin_2 = np.sin(psi)**2
 
     while_flag = True
-    while while_flag:
+    while np.any(while_flag):
         # distance between the gate cell to the earth's centre [km]
         cell_rho = r_cell + x_height
         # elevation angle relative to local horizon [rad]
         rel_elv = np.arcsin(((cell_rho**2) - (r_radar**2) - target_range**2) /
                             (2.0 * r_radar * target_range))
+
         # estimate elevation for multi-hop propagation
-        if virtual_height_model == VHModels.CHISHAM and target_range > 2137.5:
-            gamma = np.arccos((r_radar**2 + cell_rho**2 - target_range**2) /
-                              (2.0 * r_radar * cell_rho))
-            beta = np.arcsin(r_radar * np.sin(gamma/3.0) /
-                             (target_range/3.0))
-            # Elevation angle used for estimating off-array normal
-            # azimuth [rad]
-            xelv = (np.pi/2) - beta - (gamma/3.0)
-        else:
-            xelv = rel_elv
+        xelv = np.asarray(rel_elv, dtype=float) # Default assuming standard model
+        if virtual_height_model == VHModels.CHISHAM:
+            with np.errstate(invalid='ignore', divide='ignore'): # mute div by zero temporarily
+                gamma = np.arccos((r_radar ** 2 + cell_rho ** 2 - target_range ** 2) /
+                                  (2.0 * r_radar * cell_rho))
+                beta = np.arcsin(r_radar * np.sin(gamma / 3.0) /
+                                 (target_range / 3.0))
+                # Elevation angle used for estimating off-array normal
+                # azimuth [rad]
+                calc_xelv = (np.pi / 2) - beta - (gamma / 3.0)
+
+            # Overwrite only the elements where target_range > 2137.5
+            xelv = np.where(np.asarray(target_range) > 2137.5, calc_xelv, xelv)
+
+        # Use single float if only working with one range
+        if xelv.ndim == 0:
+            xelv = xelv.item()
 
         # Estimate the off-array-normal azimuth in radians
         elv_sin_2 = np.sin(xelv)**2
-
         est_azimuth = psi_cos_2 - elv_sin_2
-        if est_azimuth < 0:
-            tan_azimuth = 1e32
-        else:
-            # in radians
-            tan_azimuth = np.sqrt(psi_sin_2 /
-                                  (psi_cos_2 - elv_sin_2))
-        # azimuth in [rad]
-        if psi > 0:
-            azimuth = np.arctan(tan_azimuth)
-        else:
-            azimuth = -np.arctan(tan_azimuth)
 
-        # azimuth of the gate cell [rad]
+        # Need extra logic if handling an array
+        with np.errstate(divide='ignore', invalid='ignore'): # mute div by zero temporarily
+            tan_azimuth = np.where(
+                np.asarray(est_azimuth) < 0,
+                1e32,
+                np.sqrt(psi_sin_2 / (psi_cos_2 - elv_sin_2))
+            )
+        azimuth = np.arctan(tan_azimuth) * np.where(np.asarray(psi) > 0, 1, -1)
+
+        # Use single float if only working with one range
+        if azimuth.ndim == 0:
+            azimuth = azimuth.item()
+
+        # azimuth of the gate cell(s) [rad]
         cell_azimuth = azimuth + boresight
         flatten_azimuth = geocentric2flattening(delta=delta,
                                                 azimuth=cell_azimuth,
@@ -175,6 +184,13 @@ def cell_geocentric_coordinates(lat: float, lon: float, rho: float,
         lon: float
             geocentric cell longitude [rad]
     """
+
+    # Check for single inputs - will convert back at the end so it doesn't break upstream code
+    is_scalar = np.isscalar(r) and np.isscalar(elv) and np.isscalar(azimuth)
+    r = np.asarray(r, dtype=float)
+    elv = np.asarray(elv, dtype=float)
+    azimuth = np.asarray(azimuth, dtype=float)
+
     cos_lat = np.cos(np.pi/2 - lat)
     sin_lat = np.sin(np.pi/2 - lat)
 
@@ -216,13 +232,12 @@ def cell_geocentric_coordinates(lat: float, lon: float, rho: float,
     # convert Cartesian back to spherical
     rho = np.sqrt(global_x**2 + global_y**2 + global_z**2)
     lat = np.pi/2 - np.arccos(global_z/rho)
-    if global_x == 0 and global_y == 0:
-        lon = 0
-    else:
-        lon = np.arctan2(global_y, global_x)
 
+    lon = np.arctan2(global_y, global_x)
+
+    if is_scalar:
+        return rho.item(), lat.item(), lon.item()
     return rho, lat, lon
-
 
 # goecnvrt
 def geocentric2flattening(delta: float, azimuth: float, elv: float, **kwargs):
