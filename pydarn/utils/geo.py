@@ -37,7 +37,7 @@ import numpy as np
 from pydarn import VHModels, EARTH_EQUATORIAL_RADIUS
 
 
-def geocentric_coordinates(target_range: float, psi: float, boresight: float,
+def geocentric_coordinates(target_range: float | np.typing.NDArray, psi: float | np.typing.NDArray, boresight: float,
                            virtual_height_model: VHModels =
                            VHModels.STANDARD,
                            **kwargs):

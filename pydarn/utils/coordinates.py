@@ -115,7 +115,7 @@ def convert2MLT(lons: float, date: object, **kwargs):
     return beam_corners_mlts
 
 
-def gate2geographic_location(stid: pydarn.RadarID, beam: int, height: float = None,
+def gate2geographic_location(stid: pydarn.RadarID, beam: int | np.typing.NDArray, height: float = None,
                              elv_angle: float = 0.0, center: bool = False,
                              range_estimation: RangeEstimation =
                              RangeEstimation.SLANT_RANGE, **kwargs):

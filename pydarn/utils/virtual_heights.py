@@ -20,7 +20,7 @@
 import enum
 import numpy as np
 
-def chisham(target_range: float, **kwargs):
+def chisham(target_range: float | np.typing.NDArray, **kwargs):
     """
     Mapping ionospheric backscatter measured by the SuperDARN HF
     radars – Part 1: A new empirical virtual height model by
@@ -65,7 +65,7 @@ def chisham(target_range: float, **kwargs):
     return result.item() if is_scalar else result
 
 
-def standard_virtual_height(target_range: float, cell_height: int = 300,
+def standard_virtual_height(target_range: float | np.typing.NDArray, cell_height: int = 300,
                             **kwargs):
     """
     cell_height, target_range and x_height are in km
