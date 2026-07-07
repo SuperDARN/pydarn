@@ -127,7 +127,7 @@ def gate2geographic_location(stid: pydarn.RadarID, beam: int, height: float = No
     ----------
         stid: pydarn.RadarID
             station id of the radar to use
-        beam: int
+        beam: int or np.array
             beam number (indexing at 0)
         height: float
             transmutation height [km]
@@ -141,6 +141,11 @@ def gate2geographic_location(stid: pydarn.RadarID, beam: int, height: float = No
             False obtains the near-left corner of the range gates.
             See also: gate2slant in range_estimation module
             default: False (return corner values)
+        range_estimation:
+            method for calulating distance.
+            default: RangeEstimation.SLANT_RANGE
+        **kwargs:
+            to be passed to range_estimation. Must include range_gate.
 
     returns
     -------
@@ -181,12 +186,12 @@ def gate2geographic_location(stid: pydarn.RadarID, beam: int, height: float = No
     # Calculate the slant range [km]
     if range_estimation == RangeEstimation.RANGE_GATE:
         raise radar_exceptions.RangeEstimationError("Range gates cannot be "
-                                                    "used in to estimate "
+                                                    "used to estimate "
                                                     "distance. Try SLANT_RANGE"
                                                     " instead.")
     elif range_estimation == RangeEstimation.TIME_OF_FLIGHT:
         raise radar_exceptions.RangeEstimationError("Time of flight cannot be "
-                                                    "used in to estimate "
+                                                    "used to estimate "
                                                     "distance. Try SLANT_RANGE"
                                                     " instead.")
     else:
